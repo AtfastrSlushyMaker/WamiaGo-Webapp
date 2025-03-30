@@ -40,8 +40,7 @@ WamiaGo Webapp is a Symfony-based web application designed to integrate multiple
 
 ## Built With
 
-- **[Symfony 6.4](https://symfony.com)**\
-
+- **[Symfony 6.4](https://symfony.com)**
 ---
 
 ## Getting Started
@@ -53,10 +52,10 @@ Follow these steps to set up and run WamiaGo Webapp on your local machine.
 Ensure you have the following installed:
 
 - [Composer](https://getcomposer.org)
-- [Symfony (6.4)]([https://www.oracle.com/java/technologies/javase-downloads.html](https://symfony.com/download))
+- [Symfony (6.4)](https://symfony.com/download)
 - [PHP (Latest](https://www.php.net/downloads.php)
 - [MySQL](https://dev.mysql.com/downloads/)
-- 
+
 ### Installation
 
 1. **Clone the repository:**
