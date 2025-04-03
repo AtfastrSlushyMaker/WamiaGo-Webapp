@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\BICYCLE_STATION_STATUS;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -113,15 +114,15 @@ class BicycleStation
         return $this;
     }
 
-    #[ORM\Column(type: 'integer', nullable: false)]
-    private ?int $status = null;
+    #[ORM\Column(enumType: BICYCLE_STATION_STATUS::class)]
+    private ?BICYCLE_STATION_STATUS $status = null;
 
-    public function getStatus(): ?int
+    public function getStatus(): ?BICYCLE_STATION_STATUS
     {
         return $this->status;
     }
 
-    public function setStatus(int $status): self
+    public function setStatus(BICYCLE_STATION_STATUS $status): self
     {
         $this->status = $status;
         return $this;
