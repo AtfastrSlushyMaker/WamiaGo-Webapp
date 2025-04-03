@@ -2,11 +2,11 @@
 
 namespace App\Entity;
 
+use App\Enum\ReservationStatus;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-
 use App\Repository\ReservationRepository;
 
 #[ORM\Entity(repositoryClass: ReservationRepository::class)]
@@ -17,6 +17,39 @@ class Reservation
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id_reservation = null;
+
+    #[ORM\Column(type: 'datetime', nullable: false)]
+    private ?\DateTimeInterface $date = null;
+
+    #[ORM\Column(enumType: ReservationStatus::class)]
+    private ?ReservationStatus $status = null;
+
+    #[ORM\Column(type: 'string', nullable: false)]
+    private ?string $description = null;
+
+    #[ORM\ManyToOne(targetEntity: Location::class, inversedBy: 'reservations')]
+    #[ORM\JoinColumn(name: 'id_start_location', referencedColumnName: 'id_location')]
+    private ?Location $startLocation = null;
+
+    #[ORM\ManyToOne(targetEntity: Location::class, inversedBy: 'reservations')]
+    #[ORM\JoinColumn(name: 'id_end_location', referencedColumnName: 'id_location')]
+    private ?Location $endLocation = null;
+
+    #[ORM\ManyToOne(targetEntity: Announcement::class, inversedBy: 'reservations')]
+    #[ORM\JoinColumn(name: 'id_announcement', referencedColumnName: 'id_announcement')]
+    private ?Announcement $announcement = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'reservations')]
+    #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id_user')]
+    private ?User $user = null;
+
+    #[ORM\OneToMany(targetEntity: Relocation::class, mappedBy: 'reservation')]
+    private Collection $relocations;
+
+    public function __construct()
+    {
+        $this->relocations = new ArrayCollection();
+    }
 
     public function getId_reservation(): ?int
     {
@@ -29,9 +62,6 @@ class Reservation
         return $this;
     }
 
-    #[ORM\Column(type: 'datetime', nullable: false)]
-    private ?\DateTimeInterface $date = null;
-
     public function getDate(): ?\DateTimeInterface
     {
         return $this->date;
@@ -43,22 +73,16 @@ class Reservation
         return $this;
     }
 
-    #[ORM\Column(type: 'string', nullable: false)]
-    private ?string $status = null;
-
-    public function getStatus(): ?string
+    public function getStatus(): ?ReservationStatus
     {
         return $this->status;
     }
 
-    public function setStatus(string $status): self
+    public function setStatus(ReservationStatus $status): self
     {
         $this->status = $status;
         return $this;
     }
-
-    #[ORM\Column(type: 'string', nullable: false)]
-    private ?string $description = null;
 
     public function getDescription(): ?string
     {
@@ -71,10 +95,6 @@ class Reservation
         return $this;
     }
 
-    #[ORM\ManyToOne(targetEntity: Location::class, inversedBy: 'reservations')]
-    #[ORM\JoinColumn(name: 'id_start_location', referencedColumnName: 'id_location')]
-    private ?Location $startLocation = null;
-
     public function getStartLocation(): ?Location
     {
         return $this->startLocation;
@@ -85,10 +105,6 @@ class Reservation
         $this->startLocation = $startLocation;
         return $this;
     }
-
-    #[ORM\ManyToOne(targetEntity: Location::class, inversedBy: 'reservations')]
-    #[ORM\JoinColumn(name: 'id_end_location', referencedColumnName: 'id_location')]
-    private ?Location $endLocation = null;
 
     public function getEndLocation(): ?Location
     {
@@ -101,10 +117,6 @@ class Reservation
         return $this;
     }
 
-    #[ORM\ManyToOne(targetEntity: Announcement::class, inversedBy: 'reservations')]
-    #[ORM\JoinColumn(name: 'id_announcement', referencedColumnName: 'id_announcement')]
-    private ?Announcement $announcement = null;
-
     public function getAnnouncement(): ?Announcement
     {
         return $this->announcement;
@@ -116,10 +128,6 @@ class Reservation
         return $this;
     }
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'reservations')]
-    #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id_user')]
-    private ?User $user = null;
-
     public function getUser(): ?User
     {
         return $this->user;
@@ -129,14 +137,6 @@ class Reservation
     {
         $this->user = $user;
         return $this;
-    }
-
-    #[ORM\OneToMany(targetEntity: Relocation::class, mappedBy: 'reservation')]
-    private Collection $relocations;
-
-    public function __construct()
-    {
-        $this->relocations = new ArrayCollection();
     }
 
     /**

@@ -9,6 +9,8 @@ use Doctrine\Common\Collections\Collection;
 
 use App\Repository\AnnouncementRepository;
 
+use App\Enum\Zone;
+
 #[ORM\Entity(repositoryClass: AnnouncementRepository::class)]
 #[ORM\Table(name: 'announcement')]
 class Announcement
@@ -86,15 +88,15 @@ class Announcement
         return $this;
     }
 
-    #[ORM\Column(type: 'string', nullable: false)]
-    private ?string $zone = null;
+    #[ORM\Column(enumType: Zone::class)]
+    private ?Zone $zone = null;
 
-    public function getZone(): ?string
+    public function getZone(): ?Zone
     {
         return $this->zone;
     }
 
-    public function setZone(string $zone): self
+    public function setZone(Zone $zone): self
     {
         $this->zone = $zone;
         return $this;
