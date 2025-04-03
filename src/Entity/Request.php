@@ -2,11 +2,10 @@
 
 namespace App\Entity;
 
-use Doctrine\DBAL\Types\Types;
+use App\Enum\REQUEST_STATUS;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-
 use App\Repository\RequestRepository;
 
 #[ORM\Entity(repositoryClass: RequestRepository::class)]
@@ -18,6 +17,33 @@ class Request
     #[ORM\Column(type: 'integer')]
     private ?int $id_request = null;
 
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'requests')]
+    #[ORM\JoinColumn(name: 'id_client', referencedColumnName: 'id_user')]
+    private ?User $user = null;
+
+    #[ORM\ManyToOne(targetEntity: Location::class, inversedBy: 'requests')]
+    #[ORM\JoinColumn(name: 'id_departure_location', referencedColumnName: 'id_location')]
+    private ?Location $departureLocation = null;
+
+    #[ORM\ManyToOne(targetEntity: Location::class, inversedBy: 'requests')]
+    #[ORM\JoinColumn(name: 'id_arrival_location', referencedColumnName: 'id_location')]
+    private ?Location $arrivalLocation = null;
+
+    #[ORM\Column(enumType: REQUEST_STATUS::class)]
+    private REQUEST_STATUS $status;
+
+    #[ORM\Column(type: 'datetime', nullable: false)]
+    private ?\DateTimeInterface $request_date = null;
+
+    #[ORM\OneToMany(targetEntity: Ride::class, mappedBy: 'request')]
+    private Collection $rides;
+
+    public function __construct()
+    {
+        $this->rides = new ArrayCollection();
+    }
+
+    // Getters and setters
     public function getId_request(): ?int
     {
         return $this->id_request;
@@ -28,10 +54,6 @@ class Request
         $this->id_request = $id_request;
         return $this;
     }
-
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'requests')]
-    #[ORM\JoinColumn(name: 'id_client', referencedColumnName: 'id_user')]
-    private ?User $user = null;
 
     public function getUser(): ?User
     {
@@ -44,10 +66,6 @@ class Request
         return $this;
     }
 
-    #[ORM\ManyToOne(targetEntity: Location::class, inversedBy: 'requests')]
-    #[ORM\JoinColumn(name: 'id_departure_location', referencedColumnName: 'id_location')]
-    private ?Location $departureLocation = null;
-
     public function getDepartureLocation(): ?Location
     {
         return $this->departureLocation;
@@ -58,10 +76,6 @@ class Request
         $this->departureLocation = $departureLocation;
         return $this;
     }
-
-    #[ORM\ManyToOne(targetEntity: Location::class, inversedBy: 'requests')]
-    #[ORM\JoinColumn(name: 'id_arrival_location', referencedColumnName: 'id_location')]
-    private ?Location $arrivalLocation = null;
 
     public function getArrivalLocation(): ?Location
     {
@@ -74,22 +88,16 @@ class Request
         return $this;
     }
 
-    #[ORM\Column(type: 'string', nullable: false)]
-    private ?string $status = null;
-
-    public function getStatus(): ?string
+    public function getStatus(): REQUEST_STATUS
     {
         return $this->status;
     }
 
-    public function setStatus(string $status): self
+    public function setStatus(REQUEST_STATUS $status): self
     {
         $this->status = $status;
         return $this;
     }
-
-    #[ORM\Column(type: 'datetime', nullable: false)]
-    private ?\DateTimeInterface $request_date = null;
 
     public function getRequest_date(): ?\DateTimeInterface
     {
@@ -102,36 +110,30 @@ class Request
         return $this;
     }
 
-    #[ORM\OneToMany(targetEntity: Ride::class, mappedBy: 'request')]
-    private Collection $rides;
-
-    public function __construct()
-    {
-        $this->rides = new ArrayCollection();
-    }
-
     /**
      * @return Collection<int, Ride>
      */
     public function getRides(): Collection
     {
-        if (!$this->rides instanceof Collection) {
-            $this->rides = new ArrayCollection();
-        }
         return $this->rides;
     }
 
     public function addRide(Ride $ride): self
     {
-        if (!$this->getRides()->contains($ride)) {
-            $this->getRides()->add($ride);
+        if (!$this->rides->contains($ride)) {
+            $this->rides->add($ride);
+            $ride->setRequest($this);
         }
         return $this;
     }
 
     public function removeRide(Ride $ride): self
     {
-        $this->getRides()->removeElement($ride);
+        if ($this->rides->removeElement($ride)) {
+            if ($ride->getRequest() === $this) {
+                $ride->setRequest(null);
+            }
+        }
         return $this;
     }
 
@@ -148,7 +150,6 @@ class Request
     public function setRequestDate(\DateTimeInterface $request_date): static
     {
         $this->request_date = $request_date;
-
         return $this;
     }
 }

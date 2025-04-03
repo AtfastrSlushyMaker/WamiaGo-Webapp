@@ -2,11 +2,10 @@
 
 namespace App\Entity;
 
-use Doctrine\DBAL\Types\Types;
+use App\Enum\RIDE_STATUS;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-
 use App\Repository\RideRepository;
 
 #[ORM\Entity(repositoryClass: RideRepository::class)]
@@ -86,15 +85,15 @@ class Ride
         return $this;
     }
 
-    #[ORM\Column(type: 'string', nullable: false)]
-    private ?string $status = null;
+    #[ORM\Column(enumType: RIDE_STATUS::class)]
+    private ?RIDE_STATUS $status = null;
 
-    public function getStatus(): ?string
+    public function getStatus(): ?RIDE_STATUS
     {
         return $this->status;
     }
 
-    public function setStatus(string $status): self
+    public function setStatus(RIDE_STATUS $status): self
     {
         $this->status = $status;
         return $this;
@@ -129,6 +128,39 @@ class Ride
         return $this;
     }
 
+    #[ORM\OneToMany(targetEntity: RideHistory::class, mappedBy: 'ride')]
+    private Collection $rideHistories;
+
+    public function __construct()
+    {
+        $this->rideHistories = new ArrayCollection();
+    }
+
+    /**
+     * @return Collection<int, RideHistory>
+     */
+    public function getRideHistories(): Collection
+    {
+        if (!$this->rideHistories instanceof Collection) {
+            $this->rideHistories = new ArrayCollection();
+        }
+        return $this->rideHistories;
+    }
+
+    public function addRideHistory(RideHistory $rideHistory): self
+    {
+        if (!$this->getRideHistories()->contains($rideHistory)) {
+            $this->getRideHistories()->add($rideHistory);
+        }
+        return $this;
+    }
+
+    public function removeRideHistory(RideHistory $rideHistory): self
+    {
+        $this->getRideHistories()->removeElement($rideHistory);
+        return $this;
+    }
+
     public function getIdRide(): ?int
     {
         return $this->id_ride;
@@ -142,8 +174,6 @@ class Ride
     public function setRideDate(\DateTimeInterface $ride_date): static
     {
         $this->ride_date = $ride_date;
-
         return $this;
     }
-
 }

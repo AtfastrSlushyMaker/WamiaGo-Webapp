@@ -5,7 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5c874806-e5eb-4c53-8a06-8d2fb4e2363c" name="Changes" comment="First commit">
+      <change afterPath="$PROJECT_DIR$/src/Enum/REQUEST_STATUS.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Entity/Request.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Entity/Request.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Entity/Ride.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Entity/Ride.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
