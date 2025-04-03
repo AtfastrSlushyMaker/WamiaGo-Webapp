@@ -1,6 +1,5 @@
 <?php
 namespace App\Enum;
-
 enum BICYCLE_STATUS: string
 {
     case AVAILABLE = 'available';
