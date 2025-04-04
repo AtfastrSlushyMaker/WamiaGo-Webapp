@@ -3,7 +3,7 @@
 
 {% block title %}About Us | WamiaGo{% endblock %}
 
-{% block body %}
+{% block hero %}
 {# Page Header #}
 <div class="page-header py-5 mb-5">
     <div class="container py-4">
@@ -26,7 +26,6 @@
 </div>
 {% endblock %}
 
-{# Our Story #}
 {% block content %}
 {# Our Story Section #}
 <section class="our-story py-5">
@@ -385,51 +384,34 @@
 {% block javascripts %}
 {{ parent() }}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        if (darkModeToggle) {
-            darkModeToggle.addEventListener('click', function() {
-                document.body.classList.toggle('dark-mode');
-                // Optional: save preference to localStorage
-                const isDarkMode = document.body.classList.contains('dark-mode');
-                localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
-            });
-            
-            // Check for saved preference
-            if (localStorage.getItem('darkMode') === 'enabled') {
-                document.body.classList.add('dark-mode');
+    // Simple counter animation for statistics
+    const counters = document.querySelectorAll('.counter');
+    
+    counters.forEach(counter => {
+        const target = parseInt(counter.innerText);
+        const duration = 2000; // 2 seconds
+        const step = target / (duration / 16); // 60fps
+        
+        let current = 0;
+        const updateCounter = () => {
+            current += step;
+            if (current < target) {
+                counter.innerText = Math.ceil(current);
+                requestAnimationFrame(updateCounter);
+            } else {
+                counter.innerText = target;
             }
-        }
+        };
         
-        // Simple counter animation for statistics
-        const counters = document.querySelectorAll('.counter');
+        // Start animation when element is in viewport
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                updateCounter();
+                observer.disconnect();
+            }
+        }, { threshold: 0.5 });
         
-        counters.forEach(counter => {
-            const target = parseInt(counter.innerText);
-            const duration = 2000; // 2 seconds
-            const step = target / (duration / 16); // 60fps
-            
-            let current = 0;
-            const updateCounter = () => {
-                current += step;
-                if (current < target) {
-                    counter.innerText = Math.ceil(current);
-                    requestAnimationFrame(updateCounter);
-                } else {
-                    counter.innerText = target;
-                }
-            };
-            
-            // Start animation when element is in viewport
-            const observer = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting) {
-                    updateCounter();
-                    observer.disconnect();
-                }
-            }, { threshold: 0.5 });
-            
-            observer.observe(counter);
-        });
+        observer.observe(counter);
     });
 </script>
 {% endblock %}

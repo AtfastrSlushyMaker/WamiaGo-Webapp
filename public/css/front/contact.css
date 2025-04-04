@@ -1,0 +1,316 @@
+/* ======================================================
+   SERVICE STYLES - Styles for service-related pages
+   
+   CONTENTS:
+   1. Variables & Base Service Styles
+   2. Service Cards
+   3. Icon Wrappers
+   4. Service-specific Styling
+   5. Service Details Page
+   6. Media Queries for Services
+   ====================================================== */
+
+/* ==================== 1. VARIABLES & BASE SERVICE STYLES ==================== */
+:root {
+    /* Define standard colors */
+    --primary: #0d6efd;
+    --taxi-color: #ffc107;
+    --bicycle-color: #66bb6a;
+    --bicycle-color-hover: #4caf50;
+    --bicycle-color-light: rgba(102, 187, 106, 0.1);
+    --bicycle-color-shadow: rgba(102, 187, 106, 0.3);
+    --news-color: #0dcaf0;
+    --shadow-sm: 0 5px 15px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 15px 30px rgba(0, 0, 0, 0.1);
+    --border-radius: 15px;
+    --transition: all 0.3s ease;
+
+    /* Dark mode colors */
+    --dark-bg: #121212;
+    --dark-card-bg: #1e1e1e;
+    --dark-text: #e0e0e0;
+    --dark-secondary-text: #aaaaaa;
+    --dark-border: #333333;
+    --dark-bicycle-glow: rgba(102, 187, 106, 0.3);
+    --dark-input-bg: #2c2c2c;
+    --dark-header-bg: #191919;
+    --dark-navbar-bg: #1a1a1a;
+    --dark-footer-bg: #191919;
+}
+
+/* ==================== 2. SERVICE CARDS ==================== */
+.service-card {
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    backface-visibility: hidden;
+    border: none;
+    overflow: hidden;
+}
+
+.service-card:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* ==================== 3. ICON WRAPPERS ==================== */
+.icon-wrapper {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    border-radius: 50%;
+    transition: var(--transition);
+}
+
+/* Card focus states for accessibility */
+.service-card:focus-within {
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-lg);
+}
+
+.service-card a:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* ==================== 4. SERVICE-SPECIFIC STYLING ==================== */
+/* Ride sharing styling */
+.ride-sharing-card .icon-wrapper {
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+.ride-sharing-card .icon-wrapper i {
+    color: var(--primary);
+}
+
+/* Taxi styling */
+.taxi-card .icon-wrapper {
+    background-color: rgba(255, 193, 7, 0.1);
+}
+
+.taxi-card .icon-wrapper i {
+    color: var(--taxi-color);
+}
+
+.taxi-card a:focus {
+    outline-color: var(--taxi-color);
+}
+
+/* Bicycle styling */
+.bicycle-card .icon-wrapper {
+    background-color: var(--bicycle-color-light);
+}
+
+.bicycle-card .icon-wrapper i {
+    color: var(--bicycle-color);
+}
+
+.bicycle-card a:focus {
+    outline-color: var(--bicycle-color);
+}
+
+/* News card styling */
+.news-card .icon-wrapper {
+    background-color: rgba(13, 202, 240, 0.1);
+}
+
+.news-card .icon-wrapper i {
+    color: var(--news-color);
+}
+
+.news-card a:focus {
+    outline-color: var(--news-color);
+}
+
+/* All cards hover effect */
+.service-card:hover .icon-wrapper {
+    transform: translateY(-5px);
+}
+
+/* Ride sharing hover */
+.ride-sharing-card:hover .icon-wrapper {
+    background-color: var(--primary);
+}
+
+.ride-sharing-card:hover .icon-wrapper i {
+    color: white !important;
+}
+
+/* Taxi hover */
+.taxi-card:hover .icon-wrapper {
+    background-color: var(--taxi-color);
+}
+
+.taxi-card:hover .icon-wrapper i {
+    color: white !important;
+}
+
+/* Bicycle hover */
+.bicycle-card:hover .icon-wrapper {
+    background-color: var(--bicycle-color);
+}
+
+.bicycle-card:hover .icon-wrapper i {
+    color: white !important;
+}
+
+/* News card hover */
+.news-card:hover .icon-wrapper {
+    background-color: var(--news-color);
+}
+
+.news-card:hover .icon-wrapper i {
+    color: white !important;
+}
+
+/* ==================== 5. SERVICE DETAILS PAGE ==================== */
+/* Service Features Section */
+.service-feature-item {
+    transition: all 0.3s ease;
+    border-radius: var(--border-radius);
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    border-left: 4px solid transparent;
+}
+
+.service-feature-item:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.ride-sharing-feature {
+    border-left-color: var(--primary);
+}
+
+.taxi-feature {
+    border-left-color: var(--taxi-color);
+}
+
+.bicycle-feature {
+    border-left-color: var(--bicycle-color);
+}
+
+/* Service Pricing */
+.pricing-card {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    transition: var(--transition);
+    border: none;
+}
+
+.pricing-card:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-lg);
+}
+
+.pricing-header {
+    padding: 2rem;
+}
+
+.pricing-price {
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.pricing-card.popular {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    z-index: 1;
+}
+
+.pricing-card.popular .badge-popular {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: var(--bicycle-color);
+    color: white;
+    border-radius: 30px;
+    padding: 0.25rem 1rem;
+    font-size: 0.8rem;
+}
+
+/* ==================== 6. MEDIA QUERIES FOR SERVICES ==================== */
+@media (max-width: 992px) {
+    .hero .btn-lg {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+    }
+
+    .hero h1.display-4 {
+        font-size: 2.5rem;
+    }
+
+    .hero .lead {
+        font-size: 1.1rem;
+    }
+
+    .icon-wrapper {
+        width: 70px;
+        height: 70px;
+    }
+
+    .icon-wrapper i {
+        font-size: 2.5rem !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .row.g-4 {
+        --bs-gutter-y: 1.5rem;
+    }
+
+    .service-card {
+        margin-bottom: 0;
+    }
+
+    .hero h1.display-4 {
+        font-size: 2rem;
+    }
+
+    .step {
+        margin-bottom: 2rem;
+    }
+
+    .cta {
+        padding: 2rem !important;
+    }
+
+    .icon-wrapper {
+        width: 60px;
+        height: 60px;
+    }
+
+    .icon-wrapper i {
+        font-size: 2rem !important;
+    }
+}
+
+@media (max-width: 380px) {
+    .service-card .card-body {
+        padding: 1rem;
+    }
+
+    .service-card .icon-wrapper {
+        width: 50px;
+        height: 50px;
+        margin-bottom: 0.75rem;
+    }
+
+    .service-card .icon-wrapper i {
+        font-size: 1.5rem !important;
+    }
+
+    .service-card h3.card-title {
+        font-size: 1.1rem;
+    }
+
+    .btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.9rem;
+    }
+}

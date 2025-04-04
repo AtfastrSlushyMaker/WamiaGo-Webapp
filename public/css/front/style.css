@@ -270,6 +270,8 @@ h6 {
     font-weight: 500;
     padding: 0.5rem 1rem;
     position: relative;
+    padding-bottom: 0.5rem !important;
+    transition: color 0.3s ease, background-color 0.3s ease !important;
 }
 
 .navbar .nav-link.active {
@@ -278,10 +280,6 @@ h6 {
 
 
 /* Navbar link underline animation */
-.navbar .nav-link {
-    position: relative;
-    padding-bottom: 0.5rem !important;
-}
 
 .navbar .nav-link::before {
     content: '';
@@ -1186,14 +1184,9 @@ body.dark-mode .carousel-image-wrapper {
 .navbar .dropdown-toggle.active::before {
     width: 70% !important;
 }
-
 /* ==================== NAVBAR HOVER COLOR FIX ==================== */
 
-/* Make nav links turn white on hover */
-.navbar .nav-link {
-    transition: color 0.3s ease, background-color 0.3s ease !important;
-}
-
+/* Make nav links turn white on hover - merged with existing .navbar .nav-link styles */
 .navbar .nav-link:hover,
 .navbar .dropdown-toggle:hover {
     color: white !important;

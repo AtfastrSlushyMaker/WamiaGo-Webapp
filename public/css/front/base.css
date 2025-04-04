@@ -1,0 +1,600 @@
+/* ======================================================
+   BASE STYLES - Core styling for WamiaGo website
+   
+   CONTENTS:
+   1. Root Variables & Base Styles
+   2. Typography
+   3. Utility Classes
+   4. Core Components
+      4.1 Buttons
+      4.2 Navigation & Dropdowns
+      4.3 Cards (basic)
+      4.4 Forms
+   5. Layout Elements
+      5.1 Header
+      5.2 Page Headers
+      5.3 Footer
+   6. Animations 
+   7. Responsive Base Styles
+   ====================================================== */
+
+/* ==================== 1. ROOT VARIABLES & BASE STYLES ==================== */
+:root {
+    /* Base colors */
+    --primary: #0d6efd;
+    --primary-light: rgba(13, 110, 253, 0.1);
+    --secondary: #6c757d;
+    --dark: #343a40;
+    --light: #f8f9fa;
+
+    /* Service-specific colors */
+    --taxi-color: #ffc107;
+    --bicycle-color: #66bb6a;
+    --bicycle-color-hover: #4caf50;
+    --bicycle-color-light: rgba(102, 187, 106, 0.1);
+    --news-color: #0dcaf0;
+
+    /* UI elements */
+    --transition: all 0.3s ease;
+    --shadow-sm: 0 5px 15px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 15px 30px rgba(0, 0, 0, 0.1);
+    --border-radius: 15px;
+    --border-radius-sm: 8px;
+    --border-radius-lg: 20px;
+
+    /* Dark mode colors */
+    --dark-bg: #121212;
+    --dark-card-bg: #1e1e1e;
+    --dark-secondary-bg: #252525;
+    --dark-card-border: #2d2d2d;
+    --dark-text: #e0e0e0;
+    --dark-secondary-text: #aaaaaa;
+    --dark-light-bg: #1a1a1a;
+    --dark-input-bg: #2b3035;
+    --dark-input-border: #495057;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+    line-height: 1.6;
+    transition: background-color 0.4s ease, color 0.4s ease;
+    position: relative;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+}
+
+a {
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+/* ==================== 2. TYPOGRAPHY ==================== */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.section-heading {
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+/* ==================== 3. UTILITY CLASSES ==================== */
+.min-vh-50 {
+    min-height: 50vh;
+}
+
+.text-bicycle {
+    color: var(--bicycle-color) !important;
+}
+
+.bg-bicycle {
+    background-color: var(--bicycle-color) !important;
+}
+
+/* ==================== 4. CORE COMPONENTS ==================== */
+
+/* 4.1 Buttons */
+.btn {
+    border-radius: var(--border-radius-sm);
+    font-weight: 500;
+    padding: 0.5rem 1.25rem;
+}
+
+.btn-bicycle {
+    background-color: var(--bicycle-color);
+    border-color: var(--bicycle-color);
+    color: white;
+    box-shadow: 0 2px 8px rgba(102, 187, 106, 0.2);
+}
+
+.btn-bicycle:hover,
+.btn-bicycle:focus {
+    background-color: var(--bicycle-color-hover);
+    border-color: var(--bicycle-color-hover);
+    color: white;
+    box-shadow: 0 5px 15px rgba(102, 187, 106, 0.3);
+    transform: translateY(-2px);
+}
+
+.btn-outline-bicycle {
+    color: var(--bicycle-color);
+    border-color: var(--bicycle-color);
+}
+
+.btn-outline-bicycle:hover,
+.btn-outline-bicycle:focus {
+    background-color: var(--bicycle-color);
+    color: white;
+    box-shadow: 0 5px 15px rgba(102, 187, 106, 0.3);
+    transform: translateY(-2px);
+}
+
+/* 4.2 Navigation & Dropdown */
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.navbar .nav-link {
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    position: relative;
+    padding-bottom: 0.5rem !important;
+}
+
+.navbar .nav-link.active {
+    color: var(--primary) !important;
+}
+
+.navbar .nav-link::before {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 50%;
+    background-color: var(--primary);
+    transition: var(--transition);
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+.navbar .nav-link:hover::before,
+.navbar .nav-link.active::before {
+    width: 70%;
+}
+
+.navbar .nav-link.bicycle-link::before {
+    background-color: var(--bicycle-color);
+}
+
+/* DROPDOWN MENU FIXES */
+/* Remove Bootstrap's default dropdown caret and borders */
+.navbar .dropdown-toggle::after,
+.navbar .nav-item.dropdown .nav-link::after {
+    display: none !important;
+}
+
+/* Custom dropdown toggle icon */
+.dropdown-toggle-arrow {
+    margin-left: 0.25em;
+    display: inline-block;
+    font-size: 0.75em;
+    opacity: 0.7;
+    transition: var(--transition);
+}
+
+/* Make arrow rotate on hover */
+.nav-item.dropdown:hover .dropdown-toggle-arrow {
+    transform: rotate(180deg);
+    opacity: 1;
+}
+
+/* Dropdown menu styling */
+.dropdown-menu {
+    border: none !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border-radius: var(--border-radius-sm);
+    padding: 0.75rem 0;
+    margin-top: 0.5rem;
+    animation: fadeIn 0.2s ease-in-out;
+    overflow: hidden;
+}
+
+.dropdown-header {
+    color: var(--primary);
+    font-weight: 600;
+    padding: 0.5rem 1.5rem;
+    margin-top: 0.25rem;
+    border: none !important;
+}
+
+.dropdown-item {
+    padding: 0.6rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.25s ease;
+    position: relative;
+    border: none !important;
+    background: transparent !important;
+}
+
+.dropdown-item i {
+    margin-right: 0.75rem !important;
+    width: 20px !important;
+    text-align: center !important;
+    opacity: 0.7;
+    transition: all 0.25s ease;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: rgba(13, 110, 253, 0.08) !important;
+    color: var(--primary) !important;
+    transform: translateX(5px);
+    border: none !important;
+}
+
+.dropdown-item:hover i,
+.dropdown-item:focus i {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.dropdown-item.active,
+.dropdown-item:active {
+    background-color: var(--primary) !important;
+    color: white !important;
+    border: none !important;
+}
+
+.dropdown-divider {
+    margin: 0.5rem 0;
+    opacity: 0.1;
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-item .badge {
+    margin-left: 0.5rem;
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover .badge {
+    transform: scale(1.1);
+}
+
+/* Remove ALL dropdown borders and outlines */
+.dropdown-item::before,
+.dropdown-item::after,
+.dropdown-menu::before,
+.dropdown-menu::after,
+.dropdown-toggle::before,
+.dropdown-toggle::after {
+    display: none !important;
+    content: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: none !important;
+    border: none !important;
+    position: static !important;
+    background-color: transparent !important;
+    opacity: 0 !important;
+}
+
+/* 4.3 Cards (basic) */
+.card {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+/* 4.4 Forms */
+.form-control,
+.input-group {
+    border-radius: var(--border-radius-sm);
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* ==================== 5. LAYOUT ELEMENTS ==================== */
+
+/* 5.1 Header */
+.top-bar {
+    position: relative;
+    z-index: 1000;
+}
+
+/* 5.2 Page Headers */
+.page-header {
+    position: relative;
+    background: linear-gradient(135deg, var(--primary) 0%, #0099ff 100%);
+}
+
+.page-header.bicycle-header {
+    background: linear-gradient(135deg, var(--bicycle-color) 0%, #43a047 100%);
+}
+
+.page-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('../images/front/pattern.svg') repeat;
+    opacity: 0.1;
+    z-index: 0;
+}
+
+.page-header>div {
+    position: relative;
+    z-index: 1;
+}
+
+/* 5.3 Footer */
+footer {
+    background-color: var(--dark);
+    position: relative;
+}
+
+footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary) 0%, var(--taxi-color) 50%, var(--bicycle-color) 100%);
+}
+
+.footer-link {
+    color: rgba(255, 255, 255, 0.7);
+    transition: var(--transition);
+    display: inline-block;
+}
+
+.footer-link:hover {
+    color: white;
+    padding-left: 5px;
+}
+
+.social-icon {
+    width: 36px;
+    height: 36px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.social-icon:hover {
+    background-color: var(--primary);
+    color: white;
+    transform: translateY(-3px);
+}
+
+.social-icon.bicycle-icon:hover {
+    background-color: var(--bicycle-color);
+}
+
+/* Back to Top Button */
+#back-to-top {
+    display: none;
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 99;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    opacity: 0.7;
+    transition: var(--transition);
+}
+
+#back-to-top:hover {
+    opacity: 1;
+    transform: translateY(-5px);
+}
+
+/* Cookie Consent Banner */
+.cookie-consent-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(52, 58, 64, 0.95);
+    color: white;
+    z-index: 1000;
+    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark Mode Toggle */
+#darkModeToggle {
+    background-color: transparent;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    transition: transform 0.2s;
+    outline: none !important;
+}
+
+#darkModeToggle:hover {
+    transform: scale(1.1);
+}
+
+#darkModeToggle:active {
+    transform: scale(0.95);
+}
+
+/* ==================== 6. ANIMATIONS ==================== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* ==================== 7. RESPONSIVE BASE STYLES ==================== */
+@media (max-width: 992px) {
+    .navbar-collapse {
+        background-color: rgba(52, 58, 64, 0.95);
+        border-radius: var(--border-radius);
+        padding: 15px;
+        margin-top: 10px;
+    }
+
+    body.dark-mode .navbar-collapse {
+        background-color: rgba(18, 18, 18, 0.95);
+    }
+
+    /* Responsive dropdown adjustments */
+    .dropdown-menu {
+        border: none;
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        box-shadow: none;
+        padding: 0;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .dropdown-item {
+        padding: 0.5rem 2rem;
+    }
+
+    .dropdown-divider {
+        margin: 0.25rem 0;
+    }
+
+    .dropdown-header {
+        padding-left: 2rem;
+    }
+
+    body.dark-mode .dropdown-menu {
+        background-color: rgba(0, 0, 0, 0.2) !important;
+        box-shadow: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .top-bar {
+        text-align: center;
+    }
+
+    .top-bar .contact-info,
+    .top-bar .social-links {
+        margin-bottom: 5px;
+    }
+
+    #back-to-top {
+        bottom: 20px;
+        right: 20px;
+        width: 36px;
+        height: 36px;
+    }
+}
+
+/* ==================== CRITICAL DROPDOWN UNDERLINE FIX ==================== */
+/* Remove specific rule that's causing the conflict */
+.dropdown-toggle::before,
+.dropdown-item::before,
+.dropdown-menu::before,
+.dropdown-toggle::after {
+    display: initial !important;
+    content: initial !important;
+    width: initial !important;
+    position: initial !important;
+}
+
+/* Restore the underline specifically for nav-links/dropdown-toggles */
+.navbar .nav-link::before,
+.navbar .dropdown-toggle::before {
+    content: '' !important;
+    position: absolute !important;
+    display: block !important;
+    width: 0 !important;
+    height: 2px !important;
+    bottom: 0 !important;
+    left: 50% !important;
+    background-color: var(--primary) !important;
+    transition: width 0.3s ease !important;
+    transform: translateX(-50%) !important;
+    z-index: 5 !important;
+    opacity: 1 !important;
+}
+
+/* Ensure hover states work for all nav links, including dropdowns */
+.navbar .nav-link:hover::before,
+.navbar .dropdown-toggle:hover::before {
+    width: 70% !important;
+}
+
+/* Make sure dropdown-hover class works */
+.navbar .dropdown-toggle.dropdown-hover::before {
+    width: 70% !important;
+}
+
+/* Ensure active states show underline */
+.navbar .nav-link.active::before,
+.navbar .dropdown-toggle.active::before {
+    width: 70% !important;
+}
+
+/* ==================== NAVBAR HOVER COLOR FIX ==================== */
+/* Make nav links turn white on hover */
+.navbar .nav-link.hover-fix {
+    transition: color 0.3s ease, background-color 0.3s ease !important;
+}
+
+.navbar .nav-link:hover,
+.navbar .dropdown-toggle:hover {
+    color: white !important;
+}
+
+/* Ensure dropdown items maintain appropriate hover colors */
+.dropdown-menu .dropdown-item:hover {
+    color: var(--primary) !important;
+}
+
+/* Make sure active state has proper contrast */
+.navbar .nav-link.active:hover {
+    color: white !important;
+}
