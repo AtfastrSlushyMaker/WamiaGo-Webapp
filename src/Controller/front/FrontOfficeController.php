@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\front;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,10 +31,7 @@ class FrontOfficeController extends AbstractController
     {
         return $this->render('front/contact.html.twig', [
             'title' => 'Contact Us',
-            'meta_description' => 'Get in touch with the WamiaGo team for questions, feedback, or support.',
-            'contact_email' => 'info@wamiango.com',
-            'contact_phone' => '+1 (234) 567-8900'
+            'meta_description' => 'Get in touch with WamiaGo for inquiries, support, or feedback.'
         ]);
     }
-    
 }

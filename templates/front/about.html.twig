@@ -1,118 +1,253 @@
+{# filepath: d:\Github\WamiaGo-Webapp\templates\front\about.html.twig #}
 {% extends 'front/base.html.twig' %}
 
-{% block title %}{{ title }} - WamiaGo{% endblock %}
+{% block title %}About Us | WamiaGo{% endblock %}
 
-{% block hero %}
-<section class="page-header bg-primary text-white py-5">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-8 offset-md-2 text-center">
-                <h1 class="display-4 fw-bold">Contact Us</h1>
-                <p class="lead">We'd love to hear from you! Get in touch with our team for any questions or feedback.</p>
+{% block body %}
+{# Page Header #}
+<div class="page-header py-5 mb-5">
+    <div class="container py-4">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{{ path('app_front_home') }}" class="text-white text-decoration-none">Home</a></li>
+                        <li class="breadcrumb-item active text-white" aria-current="page">About Us</li>
+                    </ol>
+                </nav>
+                <h1 class="display-4 fw-bold text-white mt-2 mb-4">About WamiaGo</h1>
+                <p class="lead text-white-75 mb-4">Discover our story, our mission, and the team behind WamiaGo's innovative mobility solutions.</p>
+            </div>
+            <div class="col-lg-6 text-center text-lg-end">
+                <img src="https://via.placeholder.com/500x300/0D6EFD/FFFFFF?text=About+WamiaGo" alt="About WamiaGo" class="img-fluid" style="max-height: 300px;">
             </div>
         </div>
     </div>
-</section>
+</div>
 {% endblock %}
 
+{# Our Story #}
 {% block content %}
-<section class="contact-info mb-5">
-    <div class="row">
-        <div class="col-md-4 mb-4 mb-md-0">
-            <div class="card h-100 contact-card">
-                <div class="card-body text-center p-4">
-                    <div class="icon-circle mb-4">
-                        <i class="fas fa-map-marker-alt"></i>
-                    </div>
-                    <h3 class="h4 mb-3">Our Location</h3>
-                    <p class="mb-0">123 Innovation Street<br>Tech City, TC 12345<br>Country</p>
-                </div>
+{# Our Story Section #}
+<section class="our-story py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <img src="{{ asset('images/logo/logo.png') }}" alt="WamiaGo Story" class="img-fluid rounded-4 shadow-sm">
             </div>
-        </div>
-        <div class="col-md-4 mb-4 mb-md-0">
-            <div class="card h-100 contact-card">
-                <div class="card-body text-center p-4">
-                    <div class="icon-circle mb-4">
-                        <i class="fas fa-phone-alt"></i>
+            <div class="col-lg-6">
+                <span class="badge bg-primary px-3 py-2 rounded-pill mb-3">Our Story</span>
+                <h2 class="display-6 fw-bold mb-4">Building a Better Way to Move</h2>
+                <p class="lead mb-4">WamiaGo began in 2020 with a simple idea: to create transportation solutions that connect people, protect our environment, and transform urban mobility.</p>
+                <p class="mb-4">What started as a small ridesharing service quickly expanded into a comprehensive mobility platform. We identified gaps in existing transportation systems and developed innovative solutions to address them.</p>
+                <p>Today, WamiaGo offers a diverse range of transportation services, from taxi rides to bicycle rentals, all accessible through our easy-to-use platform. Our growth continues to be guided by our commitment to convenience, sustainability, and community.</p>
+                <div class="mt-4 d-flex align-items-center">
+                    <div class="me-4 text-center">
+                        <h3 class="fw-bold text-primary mb-0"><span class="counter">3</span>+</h3>
+                        <p class="small text-muted mb-0">Years of Service</p>
                     </div>
-                    <h3 class="h4 mb-3">Phone Numbers</h3>
-                    <p class="mb-2">Main: +1 (234) 567-8900</p>
-                    <p class="mb-0">Support: +1 (234) 567-8901</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100 contact-card">
-                <div class="card-body text-center p-4">
-                    <div class="icon-circle mb-4">
-                        <i class="fas fa-envelope"></i>
+                    <div class="me-4 text-center">
+                        <h3 class="fw-bold text-primary mb-0"><span class="counter">12</span></h3>
+                        <p class="small text-muted mb-0">Cities Served</p>
                     </div>
-                    <h3 class="h4 mb-3">Email Addresses</h3>
-                    <p class="mb-2">General: info@wamiango.com</p>
-                    <p class="mb-0">Support: support@wamiango.com</p>
+                    <div class="text-center">
+                        <h3 class="fw-bold text-primary mb-0"><span class="counter">50</span>k+</h3>
+                        <p class="small text-muted mb-0">Happy Users</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="contact-form-section mb-5">
-    <div class="row">
-        <div class="col-lg-8 mb-5 mb-lg-0">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-4 p-md-5">
-                    <h2 class="mb-4">Send Us a Message</h2>
-                    <form id="contactForm">
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <label for="name" class="form-label">Your Name</label>
-                                <input type="text" class="form-control" id="name" placeholder="Enter your name">
+{# Mission and Vision #}
+<section class="mission-vision py-5 bg-light">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary px-3 py-2 rounded-pill mb-3">Our Purpose</span>
+            <h2 class="display-5 fw-bold">Mission & Vision</h2>
+            <div class="mx-auto" style="max-width: 600px;">
+                <p class="lead text-muted">Guided by strong values and a clear direction, we're transforming how people move.</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-inline-block bg-primary-light p-3 rounded-circle mb-3">
+                            <i class="fas fa-bullseye text-primary fa-2x"></i>
+                        </div>
+                        <h3 class="fw-bold mb-3">Our Mission</h3>
+                        <p>To provide accessible, sustainable, and efficient transportation solutions that enhance mobility for everyone. We aim to reduce traffic congestion and carbon emissions while connecting communities through innovative mobility services.</p>
+                        <p class="mb-0">At WamiaGo, we believe that transportation should be convenient, affordable, and environmentally conscious, with options that adapt to diverse needs and preferences.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-inline-block bg-primary-light p-3 rounded-circle mb-3">
+                            <i class="fas fa-binoculars text-primary fa-2x"></i>
+                        </div>
+                        <h3 class="fw-bold mb-3">Our Vision</h3>
+                        <p>To become the global leader in sustainable urban mobility, recognized for transforming transportation networks worldwide. We envision cities where people can move freely and efficiently without relying on private car ownership.</p>
+                        <p class="mb-0">Our ultimate goal is to create a future where mobility is seamless, eco-friendly, and accessible to all, powered by technology that continuously evolves to meet the changing needs of communities.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# Core Values #}
+<section class="core-values py-5">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary px-3 py-2 rounded-pill mb-3">What We Stand For</span>
+            <h2 class="display-5 fw-bold">Our Core Values</h2>
+            <div class="mx-auto" style="max-width: 600px;">
+                <p class="lead text-muted">The principles that guide our decisions and define our company culture.</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="card border-0 shadow-sm h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="icon-wrapper bg-primary-light text-primary mx-auto mb-4">
+                            <i class="fas fa-leaf fa-2x"></i>
+                        </div>
+                        <h4 class="fw-bold">Sustainability</h4>
+                        <p class="mb-0 text-muted">We prioritize environmentally responsible solutions in everything we do, from our bicycle programs to our efficient ride-sharing options.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="card border-0 shadow-sm h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="icon-wrapper bg-primary-light text-primary mx-auto mb-4">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                        <h4 class="fw-bold">Inclusivity</h4>
+                        <p class="mb-0 text-muted">We design our services to be accessible and beneficial to people of all backgrounds, abilities, and economic situations.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="card border-0 shadow-sm h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="icon-wrapper bg-primary-light text-primary mx-auto mb-4">
+                            <i class="fas fa-lightbulb fa-2x"></i>
+                        </div>
+                        <h4 class="fw-bold">Innovation</h4>
+                        <p class="mb-0 text-muted">We constantly explore new technologies and ideas to improve our services and transform urban transportation.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="card border-0 shadow-sm h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="icon-wrapper bg-primary-light text-primary mx-auto mb-4">
+                            <i class="fas fa-shield-alt fa-2x"></i>
+                        </div>
+                        <h4 class="fw-bold">Safety</h4>
+                        <p class="mb-0 text-muted">The wellbeing of our users, employees, and communities is our top priority in every service we offer.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# Our Team #}
+<section class="our-team py-5 bg-light">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary px-3 py-2 rounded-pill mb-3">Meet Our Experts</span>
+            <h2 class="display-5 fw-bold">Leadership Team</h2>
+            <div class="mx-auto" style="max-width: 600px;">
+                <p class="lead text-muted">The dedicated professionals guiding WamiaGo's vision and growth.</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="team-card card border-0 shadow-sm h-100 text-center">
+                    <div class="position-relative overflow-hidden">
+                        <img src="https://randomuser.me/api/portraits/women/42.jpg" alt="Team Member" class="card-img-top">
+                        <div class="team-overlay">
+                            <div class="d-flex justify-content-center">
+                                <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
                             </div>
-                            <div class="col-md-6 mb-4">
-                                <label for="email" class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="email" placeholder="Enter your email">
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <h4 class="fw-bold mb-1">Sarah Johnson</h4>
+                        <p class="text-primary mb-3">Chief Executive Officer</p>
+                        <p class="mb-0 text-muted small">With over 15 years in the transportation industry, Sarah leads WamiaGo's overall vision and strategic growth initiatives.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="team-card card border-0 shadow-sm h-100 text-center">
+                    <div class="position-relative overflow-hidden">
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Team Member" class="card-img-top">
+                        <div class="team-overlay">
+                            <div class="d-flex justify-content-center">
+                                <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
                             </div>
                         </div>
-                        <div class="mb-4">
-                            <label for="subject" class="form-label">Subject</label>
-                            <input type="text" class="form-control" id="subject" placeholder="Enter subject">
-                        </div>
-                        <div class="mb-4">
-                            <label for="message" class="form-label">Message</label>
-                            <textarea class="form-control" id="message" rows="6" placeholder="Enter your message"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-lg">Send Message</button>
-                    </form>
+                    </div>
+                    <div class="card-body p-4">
+                        <h4 class="fw-bold mb-1">David Chen</h4>
+                        <p class="text-primary mb-3">Chief Technology Officer</p>
+                        <p class="mb-0 text-muted small">David oversees WamiaGo's technological infrastructure and innovation, bringing experience from leading tech companies.</p>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body p-4">
-                    <h3 class="mb-4">Office Hours</h3>
-                    <ul class="list-unstyled office-hours">
-                        <li class="d-flex justify-content-between mb-3">
-                            <span><strong>Monday - Friday:</strong></span>
-                            <span>9:00 AM - 6:00 PM</span>
-                        </li>
-                        <li class="d-flex justify-content-between mb-3">
-                            <span><strong>Saturday:</strong></span>
-                            <span>10:00 AM - 4:00 PM</span>
-                        </li>
-                        <li class="d-flex justify-content-between mb-3">
-                            <span><strong>Sunday:</strong></span>
-                            <span>Closed</span>
-                        </li>
-                    </ul>
-                    
-                    <hr class="my-4">
-                    
-                    <h3 class="mb-4">Follow Us</h3>
-                    <div class="social-icons">
-                        <a href="#" class="btn btn-outline-primary me-2"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="btn btn-outline-info me-2"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="btn btn-outline-danger me-2"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="btn btn-outline-primary me-2"><i class="fab fa-linkedin-in"></i></a>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="team-card card border-0 shadow-sm h-100 text-center">
+                    <div class="position-relative overflow-hidden">
+                        <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Team Member" class="card-img-top">
+                        <div class="team-overlay">
+                            <div class="d-flex justify-content-center">
+                                <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <h4 class="fw-bold mb-1">Maria Rodriguez</h4>
+                        <p class="text-primary mb-3">Chief Operations Officer</p>
+                        <p class="mb-0 text-muted small">Maria manages day-to-day operations and ensures all services meet our high-quality standards.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="team-card card border-0 shadow-sm h-100 text-center">
+                    <div class="position-relative overflow-hidden">
+                        <img src="https://randomuser.me/api/portraits/men/75.jpg" alt="Team Member" class="card-img-top">
+                        <div class="team-overlay">
+                            <div class="d-flex justify-content-center">
+                                <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <h4 class="fw-bold mb-1">Alex Patel</h4>
+                        <p class="text-primary mb-3">Chief Marketing Officer</p>
+                        <p class="mb-0 text-muted small">Alex leads our brand strategy and marketing initiatives, helping WamiaGo connect with communities worldwide.</p>
                     </div>
                 </div>
             </div>
@@ -120,119 +255,181 @@
     </div>
 </section>
 
-<section class="map mb-5">
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-            <h3 class="visually-hidden">Map Location</h3>
-            <div class="ratio ratio-21x9">
-                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3024.2219901290355!2d-74.00369368400567!3d40.71312937933185!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25a23e28c1191%3A0x49f75d3281df052a!2s150%20Park%20Row%2C%20New%20York%2C%20NY%2010007%2C%20USA!5e0!3m2!1sen!2sbg!4v1579767901424!5m2!1sen!2sbg" style="border:0;" allowfullscreen="" aria-hidden="false" tabindex="0"></iframe>
+{# Testimonials #}
+<section class="testimonials py-5">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary px-3 py-2 rounded-pill mb-3">What People Say</span>
+            <h2 class="display-5 fw-bold">Client Testimonials</h2>
+            <div class="mx-auto" style="max-width: 600px;">
+                <p class="lead text-muted">Hear what our customers have to say about their experiences with WamiaGo.</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="testimonial-card card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="flex-shrink-0">
+                                <img src="https://randomuser.me/api/portraits/men/41.jpg" alt="User" class="testimonial-avatar rounded-circle">
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="fw-bold mb-0">Michael Thompson</h5>
+                                <p class="text-muted mb-0 small">Regular Commuter</p>
+                            </div>
+                            <div class="text-warning">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i> 
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                        <p class="mb-0">"WamiaGo's ride-sharing service has completely transformed my daily commute. The drivers are professional, the cars are clean, and the app is incredibly easy to use. I save money and time every day!"</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="testimonial-card card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="flex-shrink-0">
+                                <img src="https://randomuser.me/api/portraits/women/33.jpg" alt="User" class="testimonial-avatar rounded-circle">
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="fw-bold mb-0">Emma Wilson</h5>
+                                <p class="text-muted mb-0 small">Weekend Explorer</p>
+                            </div>
+                            <div class="text-warning">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                        <p class="mb-0">"The bicycle rental service is fantastic! I use it every weekend to explore the city. The bikes are well-maintained, and the pickup/drop-off points are conveniently located. It's an eco-friendly way to see the sights!"</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="testimonial-card card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="flex-shrink-0">
+                                <img src="https://randomuser.me/api/portraits/men/22.jpg" alt="User" class="testimonial-avatar rounded-circle">
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="fw-bold mb-0">James Cooper</h5>
+                                <p class="text-muted mb-0 small">Business Traveler</p>
+                            </div>
+                            <div class="text-warning">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                        </div>
+                        <p class="mb-0">"As someone who travels for business frequently, WamiaGo's taxi service has been a game-changer. The drivers are punctual and professional, and the fixed pricing means no surprises. I recommend it to all my colleagues!"</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="faq mb-5">
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-4 p-md-5">
-            <h2 class="text-center mb-5">Frequently Asked Questions</h2>
-            <div class="accordion" id="faqAccordion">
-                <div class="accordion-item">
-                    <h3 class="accordion-header" id="headingOne">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                            How do I register for an account?
-                        </button>
-                    </h3>
-                    <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
-                        <div class="accordion-body">
-                            You can register for an account by clicking the "Sign Up" button in the top right corner of the website. Fill out the registration form with your details and follow the verification process.
-                        </div>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <h3 class="accordion-header" id="headingTwo">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                            How does ride sharing work?
-                        </button>
-                    </h3>
-                    <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
-                        <div class="accordion-body">
-                            With ride sharing, users can either offer a ride or find a ride. If you're offering a ride, you specify your route, date, time, and how many passengers you can take. If you're looking for a ride, you search for available rides matching your needs and request to join.
-                        </div>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <h3 class="accordion-header" id="headingThree">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                            How do I rent a bicycle?
-                        </button>
-                    </h3>
-                    <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
-                        <div class="accordion-body">
-                            To rent a bicycle, log in to your account, go to the Bicycle Rentals section, choose your location and rental period, make the payment, and you'll receive instructions on picking up your bicycle.
-                        </div>
-                    </div>
-                </div>
+{# Partners and Investors #}
+<section class="partners py-5 bg-light">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary px-3 py-2 rounded-pill mb-3">Our Supporters</span>
+            <h2 class="display-5 fw-bold">Partners & Investors</h2>
+            <div class="mx-auto" style="max-width: 600px;">
+                <p class="lead text-muted">The organizations that help make our vision a reality.</p>
             </div>
+        </div>
+        
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-4 justify-content-center">
+            {% for i in 1..6 %}
+                <div class="col text-center">
+                    <div class="card border-0 shadow-sm h-100 p-4">
+                        <img src="https://via.placeholder.com/150x80/EEEEEE/555555?text=Partner+{{ i }}" alt="Partner Logo" class="img-fluid mx-auto" style="max-height: 80px; filter: grayscale(1);">
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{# CTA Section #}
+<section class="cta py-5 bg-primary text-white">
+    <div class="container py-4 text-center">
+        <h2 class="display-5 fw-bold mb-4">Join Our Journey</h2>
+        <p class="lead mb-4 mx-auto" style="max-width: 700px;">Whether you're looking for convenient transportation solutions or interested in career opportunities, we'd love to connect with you.</p>
+        <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
+            <a href="#" class="btn btn-light btn-lg px-4 py-2 fw-medium">Download Our Desktop App</a>
+            <a href="{{ path('app_front_contact') }}" class="btn btn-outline-light btn-lg px-4 py-2 fw-medium">Contact Us</a>
         </div>
     </div>
 </section>
 {% endblock %}
 
-{% block page_stylesheets %}
-<style>
-    .icon-circle {
-        width: 80px;
-        height: 80px;
-        background-color: rgba(13, 110, 253, 0.1);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto;
-    }
-    
-    .icon-circle i {
-        font-size: 32px;
-        color: #0d6efd;
-    }
-    
-    .office-hours li {
-        padding-bottom: 10px;
-        border-bottom: 1px dashed #dee2e6;
-    }
-    
-    .office-hours li:last-child {
-        border-bottom: none;
-    }
-</style>
+{% block stylesheets %}
+{{ parent() }}
+<link rel="stylesheet" href="{{ asset('css/front/about.css') }}?v={{ 'now'|date('YmdHi') }}">
 {% endblock %}
 
-{% block page_javascripts %}
+{% block javascripts %}
+{{ parent() }}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Contact form validation and submission
-        const contactForm = document.getElementById('contactForm');
-        if (contactForm) {
-            contactForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                // Basic validation
-                const name = document.getElementById('name').value;
-                const email = document.getElementById('email').value;
-                const subject = document.getElementById('subject').value;
-                const message = document.getElementById('message').value;
-                
-                if (!name || !email || !subject || !message) {
-                    alert('Please fill in all fields');
-                    return;
-                }
-                
-                // Here you would normally send the form to the server
-                // For now, just show a success message
-                alert('Thank you for your message! We will get back to you soon.');
-                contactForm.reset();
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        if (darkModeToggle) {
+            darkModeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                // Optional: save preference to localStorage
+                const isDarkMode = document.body.classList.contains('dark-mode');
+                localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
             });
+            
+            // Check for saved preference
+            if (localStorage.getItem('darkMode') === 'enabled') {
+                document.body.classList.add('dark-mode');
+            }
         }
+        
+        // Simple counter animation for statistics
+        const counters = document.querySelectorAll('.counter');
+        
+        counters.forEach(counter => {
+            const target = parseInt(counter.innerText);
+            const duration = 2000; // 2 seconds
+            const step = target / (duration / 16); // 60fps
+            
+            let current = 0;
+            const updateCounter = () => {
+                current += step;
+                if (current < target) {
+                    counter.innerText = Math.ceil(current);
+                    requestAnimationFrame(updateCounter);
+                } else {
+                    counter.innerText = target;
+                }
+            };
+            
+            // Start animation when element is in viewport
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    updateCounter();
+                    observer.disconnect();
+                }
+            }, { threshold: 0.5 });
+            
+            observer.observe(counter);
+        });
     });
 </script>
 {% endblock %}

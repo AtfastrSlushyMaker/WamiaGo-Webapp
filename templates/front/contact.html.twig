@@ -1,122 +1,249 @@
 {% extends 'front/base.html.twig' %}
+{%block meta%}
+<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}WamiaGo - Your transportation solution{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}transportation, ride sharing, mobility, taxi{% endblock %}">
+    <meta name="author" content="WamiaGo">
+    <meta property="og:title" content="{% block og_title %}WamiaGo{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Your transportation solution{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ absolute_url(asset('images/logo/logo.png')) }}{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ app.request.schemeAndHttpHost }}{{ app.request.requestUri }}{% endblock %}">
+    <meta name="twitter:card" content="summary_large_image">
+    <title>{% block title %}WamiaGo{% endblock %}</title>
+{% endblock %}
 
-{% block title %}{{ title }} - WamiaGo{% endblock %}
-
-{% block body %}
-    <section class="contact-header bg-light p-5 rounded-3 mb-5">
+{% block hero %}
+<section class="page-header bg-primary text-white py-5">
+    <div class="container">
         <div class="row">
             <div class="col-md-8 offset-md-2 text-center">
-                <h1 class="display-4">Contact Us</h1>
-                <p class="lead">Get in touch with our team. We're here to help and answer any questions you may have.</p>
+                <h1 class="display-4 fw-bold">Contact Us</h1>
+                <p class="lead">We'd love to hear from you! Get in touch with our team for any questions or feedback.</p>
             </div>
         </div>
-    </section>
+    </div>
+</section>
+{% endblock %}
 
-    <section class="contact-info mb-5">
-        <div class="row">
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-body text-center">
-                        <i class="fas fa-map-marker-alt fa-3x text-primary mb-3"></i>
-                        <h3>Our Location</h3>
-                        <p>123 Tech Street<br>Innovation City, IC 12345<br>Country</p>
+{% block content %}
+<section class="contact-info mb-5">
+    <div class="row">
+        <div class="col-md-4 mb-4 mb-md-0">
+            <div class="card h-100 contact-card">
+                <div class="card-body text-center p-4">
+                    <div class="icon-circle mb-4">
+                        <i class="fas fa-map-marker-alt"></i>
                     </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-body text-center">
-                        <i class="fas fa-phone-alt fa-3x text-primary mb-3"></i>
-                        <h3>Phone</h3>
-                        <p>General: +1 (555) 123-4567<br>Support: +1 (555) 765-4321</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-body text-center">
-                        <i class="fas fa-envelope fa-3x text-primary mb-3"></i>
-                        <h3>Email</h3>
-                        <p>info@wamiango.com<br>support@wamiango.com</p>
-                    </div>
+                    <h3 class="h4 mb-3">Our Location</h3>
+                    <p class="mb-0">123 Innovation Street<br>Tech City, TC 12345<br>Country</p>
                 </div>
             </div>
         </div>
-    </section>
+        <div class="col-md-4 mb-4 mb-md-0">
+            <div class="card h-100 contact-card">
+                <div class="card-body text-center p-4">
+                    <div class="icon-circle mb-4">
+                        <i class="fas fa-phone-alt"></i>
+                    </div>
+                    <h3 class="h4 mb-3">Phone Numbers</h3>
+                    <p class="mb-2">Main: +1 (234) 567-8900</p>
+                    <p class="mb-0">Support: +1 (234) 567-8901</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 contact-card">
+                <div class="card-body text-center p-4">
+                    <div class="icon-circle mb-4">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h3 class="h4 mb-3">Email Addresses</h3>
+                    <p class="mb-2">General: info@wamiango.com</p>
+                    <p class="mb-0">Support: support@wamiango.com</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
-    <section class="contact-form mb-5">
-        <div class="row">
-            <div class="col-md-7 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h3 class="card-title mb-4">Send Us a Message</h3>
-                        <form>
-                            <div class="mb-3">
+<section class="contact-form-section mb-5">
+    <div class="row">
+        <div class="col-lg-8 mb-5 mb-lg-0">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 p-md-5">
+                    <h2 class="mb-4">Send Us a Message</h2>
+                    <form id="contactForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
                                 <label for="name" class="form-label">Your Name</label>
                                 <input type="text" class="form-control" id="name" placeholder="Enter your name">
                             </div>
-                            <div class="mb-3">
+                            <div class="col-md-6 mb-4">
                                 <label for="email" class="form-label">Email Address</label>
                                 <input type="email" class="form-control" id="email" placeholder="Enter your email">
                             </div>
-                            <div class="mb-3">
-                                <label for="subject" class="form-label">Subject</label>
-                                <input type="text" class="form-control" id="subject" placeholder="Enter subject">
-                            </div>
-                            <div class="mb-3">
-                                <label for="message" class="form-label">Message</label>
-                                <textarea class="form-control" id="message" rows="5" placeholder="Enter your message"></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Send Message</button>
-                        </form>
+                        </div>
+                        <div class="mb-4">
+                            <label for="subject" class="form-label">Subject</label>
+                            <input type="text" class="form-control" id="subject" placeholder="Enter subject">
+                        </div>
+                        <div class="mb-4">
+                            <label for="message" class="form-label">Message</label>
+                            <textarea class="form-control" id="message" rows="6" placeholder="Enter your message"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg">Send Message</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <h3 class="mb-4">Office Hours</h3>
+                    <ul class="list-unstyled office-hours">
+                        <li class="d-flex justify-content-between mb-3">
+                            <span><strong>Monday - Friday:</strong></span>
+                            <span>9:00 AM - 6:00 PM</span>
+                        </li>
+                        <li class="d-flex justify-content-between mb-3">
+                            <span><strong>Saturday:</strong></span>
+                            <span>10:00 AM - 4:00 PM</span>
+                        </li>
+                        <li class="d-flex justify-content-between mb-3">
+                            <span><strong>Sunday:</strong></span>
+                            <span>Closed</span>
+                        </li>
+                    </ul>
+                    
+                    <hr class="my-4">
+                    
+                    <h3 class="mb-4">Follow Us</h3>
+                    <div class="social-icons">
+                        <a href="#" class="btn btn-outline-primary me-2"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="btn btn-outline-info me-2"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="btn btn-outline-danger me-2"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="btn btn-outline-primary me-2"><i class="fab fa-linkedin-in"></i></a>
                     </div>
                 </div>
             </div>
-            <div class="col-md-5 mb-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h3 class="card-title mb-4">Business Hours</h3>
-                        <ul class="list-unstyled">
-                            <li class="mb-2">
-                                <div class="d-flex justify-content-between">
-                                    <span><strong>Monday - Friday:</strong></span>
-                                    <span>9:00 AM - 5:00 PM</span>
-                                </div>
-                            </li>
-                            <li class="mb-2">
-                                <div class="d-flex justify-content-between">
-                                    <span><strong>Saturday:</strong></span>
-                                    <span>10:00 AM - 2:00 PM</span>
-                                </div>
-                            </li>
-                            <li class="mb-2">
-                                <div class="d-flex justify-content-between">
-                                    <span><strong>Sunday:</strong></span>
-                                    <span>Closed</span>
-                                </div>
-                            </li>
-                        </ul>
-                        <hr>
-                        <h3 class="card-title mb-4">Follow Us</h3>
-                        <div class="social-links">
-                            <a href="#" class="btn btn-outline-primary me-2"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#" class="btn btn-outline-primary me-2"><i class="fab fa-twitter"></i></a>
-                            <a href="#" class="btn btn-outline-primary me-2"><i class="fab fa-instagram"></i></a>
-                            <a href="#" class="btn btn-outline-primary me-2"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+    </div>
+</section>
+
+<section class="map mb-5">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <h3 class="visually-hidden">Map Location</h3>
+            <div class="ratio ratio-21x9">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3024.2219901290355!2d-74.00369368400567!3d40.71312937933185!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25a23e28c1191%3A0x49f75d3281df052a!2s150%20Park%20Row%2C%20New%20York%2C%20NY%2010007%2C%20USA!5e0!3m2!1sen!2sbg!4v1579767901424!5m2!1sen!2sbg" style="border:0;" allowfullscreen="" aria-hidden="false" title="Map showing the location of our office"></iframe>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="faq mb-5">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4 p-md-5">
+            <h2 class="text-center mb-5">Frequently Asked Questions</h2>
+            <div class="accordion" id="faqAccordion">
+                <div class="accordion-item">
+                    <h3 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                            How do I register for an account?
+                        </button>
+                    </h3>
+                    <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            You can register for an account by clicking the "Sign Up" button in the top right corner of the website. Fill out the registration form with your details and follow the verification process.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h3 class="accordion-header" id="headingTwo">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                            How does ride sharing work?
+                        </button>
+                    </h3>
+                    <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            With ride sharing, users can either offer a ride or find a ride. If you're offering a ride, you specify your route, date, time, and how many passengers you can take. If you're looking for a ride, you search for available rides matching your needs and request to join.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h3 class="accordion-header" id="headingThree">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                            How do I rent a bicycle?
+                        </button>
+                    </h3>
+                    <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            To rent a bicycle, log in to your account, go to the Bicycle Rentals section, choose your location and rental period, make the payment, and you'll receive instructions on picking up your bicycle.
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
+{% endblock %}
 
-    <section class="map mb-5">
-        <h3 class="text-center mb-4">Find Us on the Map</h3>
-        <div class="embed-responsive">
-            <!-- Replace with actual Google Maps embed code -->
-            <div class="bg-light text-center p-5 rounded-3">
-                <p class="mb-0">Google Maps would be embedded here</p>
-            </div>
-        </div>
-    </section>
+{% block page_stylesheets %}
+<style>
+    .icon-circle {
+        width: 80px;
+        height: 80px;
+        background-color: rgba(13, 110, 253, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+    
+    .icon-circle i {
+        font-size: 32px;
+        color: #0d6efd;
+    }
+    
+    .office-hours li {
+        padding-bottom: 10px;
+        border-bottom: 1px dashed #dee2e6;
+    }
+    
+    .office-hours li:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block page_javascripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Contact form validation and submission
+        const contactForm = document.getElementById('contactForm');
+        if (contactForm) {
+            contactForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Basic validation
+                const name = document.getElementById('name').value;
+                const email = document.getElementById('email').value;
+                const subject = document.getElementById('subject').value;
+                const message = document.getElementById('message').value;
+                
+                if (!name || !email || !subject || !message) {
+                    alert('Please fill in all fields');
+                    return;
+                }
+                
+                // Here you would normally send the form to the server
+                // For now, just show a success message
+                alert('Thank you for your message! We will get back to you soon.');
+                contactForm.reset();
+            });
+        }
+    });
+</script>
 {% endblock %}

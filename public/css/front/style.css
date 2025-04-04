@@ -1,0 +1,1218 @@
+/* WamiaGo Front Office Styles - Enhanced Version */
+
+/* ======================================================
+   TABLE OF CONTENTS:
+   
+   1. Root Variables & Base Styles
+   2. Typography
+   3. Utility Classes
+   4. Components
+      4.1 Cards
+      4.2 Icons
+      4.3 Buttons
+      4.4 Navigation & Dropdown
+      4.5 Carousel
+   5. Layout Sections
+      5.1 Header & Hero
+      5.2 Features
+      5.3 Testimonials
+      5.4 Contact
+      5.5 Footer
+   6. Dark Mode Styles
+   7. Responsive Styles
+   8. Animations
+   ====================================================== */
+
+/* ==================== 1. ROOT VARIABLES & BASE STYLES ==================== */
+:root {
+    /* Base colors */
+    --primary: #0d6efd;
+    --primary-light: rgba(13, 110, 253, 0.1);
+    --secondary: #6c757d;
+    --dark: #343a40;
+    --light: #f8f9fa;
+
+    /* Service-specific colors */
+    --taxi-color: #ffc107;
+    /* Yellow */
+    --bicycle-color: #66bb6a;
+    /* Balanced green */
+    --bicycle-color-hover: #4caf50;
+    --bicycle-color-light: rgba(102, 187, 106, 0.1);
+    --news-color: #0dcaf0;
+
+    /* UI elements */
+    --transition: all 0.3s ease;
+    --shadow-sm: 0 5px 15px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 15px 30px rgba(0, 0, 0, 0.1);
+    --border-radius: 15px;
+    --border-radius-sm: 8px;
+    --border-radius-lg: 20px;
+
+    /* Dark mode colors */
+    --dark-bg: #121212;
+    --dark-card-bg: #1e1e1e;
+    --dark-secondary-bg: #252525;
+    --dark-card-border: #2d2d2d;
+    --dark-text: #e0e0e0;
+    --dark-secondary-text: #aaaaaa;
+    --dark-light-bg: #1a1a1a;
+    --dark-input-bg: #2b3035;
+    --dark-input-border: #495057;
+    --dark-bicycle-glow: rgba(102, 187, 106, 0.3);
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+    line-height: 1.6;
+    transition: background-color 0.4s ease, color 0.4s ease;
+    position: relative;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+}
+
+a {
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+/* ==================== 2. TYPOGRAPHY ==================== */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.section-heading {
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+/* ==================== 3. UTILITY CLASSES ==================== */
+.min-vh-50 {
+    min-height: 50vh;
+}
+
+.text-bicycle {
+    color: var(--bicycle-color) !important;
+}
+
+.bg-bicycle {
+    background-color: var(--bicycle-color) !important;
+}
+
+/* ==================== 4. COMPONENTS ==================== */
+
+/* 4.1 Cards */
+.service-card {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+    height: 100%;
+    backface-visibility: hidden;
+    /* Performance improvement */
+}
+
+.service-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    transform: translateX(-100%);
+    transition: transform 0.4s ease;
+}
+
+.service-card:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-lg);
+}
+
+.service-card:hover::before {
+    transform: translateX(0);
+}
+
+/* Card type-specific styles */
+.ride-sharing-card::before {
+    background-color: var(--primary);
+}
+
+.taxi-card::before {
+    background-color: var(--taxi-color);
+}
+
+.bicycle-card::before {
+    background-color: var(--bicycle-color);
+}
+
+.news-card::before {
+    background-color: var(--news-color);
+}
+
+/* 4.2 Icons */
+.icon-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    transition: all 0.3s ease;
+}
+
+.ride-sharing-card .icon-wrapper {
+    background-color: var(--primary-light);
+}
+
+.taxi-card .icon-wrapper {
+    background-color: rgba(255, 193, 7, 0.1);
+}
+
+.bicycle-card .icon-wrapper {
+    background-color: var(--bicycle-color-light);
+}
+
+.news-card .icon-wrapper {
+    background-color: rgba(13, 202, 240, 0.1);
+}
+
+/* Card hover effects */
+.service-card:hover .icon-wrapper {
+    transform: translateY(-5px);
+}
+
+.ride-sharing-card:hover .icon-wrapper {
+    background-color: var(--primary);
+}
+
+.ride-sharing-card:hover .icon-wrapper i {
+    color: white !important;
+}
+
+.taxi-card:hover .icon-wrapper {
+    background-color: var(--taxi-color);
+}
+
+.taxi-card:hover .icon-wrapper i {
+    color: white !important;
+}
+
+.bicycle-card:hover .icon-wrapper {
+    background-color: var(--bicycle-color);
+}
+
+.bicycle-card:hover .icon-wrapper i {
+    color: white !important;
+}
+
+.news-card:hover .icon-wrapper {
+    background-color: var(--news-color);
+}
+
+.news-card:hover .icon-wrapper i {
+    color: white !important;
+}
+
+/* 4.3 Buttons */
+.btn {
+    border-radius: var(--border-radius-sm);
+    font-weight: 500;
+    padding: 0.5rem 1.25rem;
+}
+
+.btn-bicycle {
+    background-color: var(--bicycle-color);
+    border-color: var(--bicycle-color);
+    color: white;
+    box-shadow: 0 2px 8px rgba(102, 187, 106, 0.2);
+}
+
+.btn-bicycle:hover,
+.btn-bicycle:focus {
+    background-color: var(--bicycle-color-hover);
+    border-color: var(--bicycle-color-hover);
+    color: white;
+    box-shadow: 0 5px 15px rgba(102, 187, 106, 0.3);
+    transform: translateY(-2px);
+}
+
+.btn-outline-bicycle {
+    color: var(--bicycle-color);
+    border-color: var(--bicycle-color);
+}
+
+.btn-outline-bicycle:hover,
+.btn-outline-bicycle:focus {
+    background-color: var(--bicycle-color);
+    color: white;
+    box-shadow: 0 5px 15px rgba(102, 187, 106, 0.3);
+    transform: translateY(-2px);
+}
+
+/* 4.4 Navigation & Dropdown */
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.navbar .nav-link {
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    position: relative;
+}
+
+.navbar .nav-link.active {
+    color: var(--primary) !important;
+}
+
+
+/* Navbar link underline animation */
+.navbar .nav-link {
+    position: relative;
+    padding-bottom: 0.5rem !important;
+}
+
+.navbar .nav-link::before {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 50%;
+    background-color: var(--primary);
+    transition: var(--transition);
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+.navbar .nav-link:hover::before,
+.navbar .nav-link.active::before {
+    width: 70%;
+
+}
+
+.navbar .nav-link.bicycle-link::before {
+    background-color: var(--bicycle-color);
+}
+
+/* DROPDOWN MENU FIXES */
+/* Remove Bootstrap's default dropdown caret and borders */
+.navbar .dropdown-toggle::after,
+.navbar .nav-item.dropdown .nav-link::after {
+    display: none !important;
+}
+
+/* Custom dropdown toggle icon */
+.dropdown-toggle-arrow {
+    margin-left: 0.25em;
+    display: inline-block;
+    font-size: 0.75em;
+    opacity: 0.7;
+    transition: var(--transition);
+}
+
+/* Make arrow rotate on hover */
+.nav-item.dropdown:hover .dropdown-toggle-arrow {
+    transform: rotate(180deg);
+    opacity: 1;
+}
+
+/* Dropdown menu styling */
+.dropdown-menu {
+    border: none !important;
+    /* Remove border entirely */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border-radius: var(--border-radius-sm);
+    padding: 0.75rem 0;
+    margin-top: 0.5rem;
+    animation: fadeIn 0.2s ease-in-out;
+    overflow: hidden;
+}
+
+.dropdown-header {
+    font-weight: 600;
+    color: var(--primary);
+    padding: 0.5rem 1.5rem;
+    margin-top: 0.25rem;
+    border: none !important;
+}
+
+.dropdown-item {
+    padding: 0.6rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.25s ease;
+    position: relative;
+    border: none !important;
+    background: transparent !important;
+}
+
+.dropdown-item i {
+    margin-right: 0.75rem !important;
+    width: 20px !important;
+    text-align: center !important;
+    opacity: 0.7;
+    transition: all 0.25s ease;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: rgba(13, 110, 253, 0.08) !important;
+    color: var(--primary) !important;
+    transform: translateX(5px);
+    border: none !important;
+}
+
+.dropdown-item:hover i,
+.dropdown-item:focus i {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.dropdown-item.active,
+.dropdown-item:active {
+    background-color: var(--primary) !important;
+    color: white !important;
+    border: none !important;
+}
+
+.dropdown-divider {
+    margin: 0.5rem 0;
+    opacity: 0.1;
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-item .badge {
+    margin-left: 0.5rem;
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover .badge {
+    transform: scale(1.1);
+}
+
+/* Remove ALL dropdown borders and outlines */
+.dropdown-item::before,
+.dropdown-item::after,
+.dropdown-menu::before,
+.dropdown-menu::after,
+.dropdown-toggle::before,
+.dropdown-toggle::after {
+    display: none !important;
+    content: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: none !important;
+    background-color: transparent !important;
+    position: static !important;
+    border: none !important;
+    opacity: 0 !important;
+}
+
+/* 4.5 Carousel */
+.carousel-image-wrapper {
+    height: 350px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin: 0 auto;
+    position: relative;
+    border-radius: var(--border-radius);
+}
+
+.carousel-image {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+    will-change: transform;
+    /* Performance optimization */
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+    width: 5%;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.carousel-control-prev:hover,
+.carousel-control-next:hover {
+    opacity: 1;
+}
+
+/* ==================== 5. LAYOUT SECTIONS ==================== */
+
+/* 5.1 Header & Hero */
+.top-bar {
+    position: relative;
+    z-index: 1000;
+}
+
+.hero-slide {
+    padding: 80px 0;
+    position: relative;
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+
+.hero-slide::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0.1;
+    z-index: 0;
+}
+
+.hero-slide>div {
+    position: relative;
+    z-index: 1;
+}
+
+/* Page Header */
+.page-header {
+    position: relative;
+    background: linear-gradient(135deg, var(--primary) 0%, #0099ff 100%);
+}
+
+.page-header.bicycle-header {
+    background: linear-gradient(135deg, var(--bicycle-color) 0%, #43a047 100%);
+}
+
+.page-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('../images/front/pattern.svg') repeat;
+    opacity: 0.1;
+    z-index: 0;
+}
+
+.page-header>div {
+    position: relative;
+    z-index: 1;
+}
+
+/* 5.2 Features */
+.features h2.text-center {
+    position: relative;
+    margin-bottom: 3rem;
+    padding-bottom: 1rem;
+}
+
+.features h2.text-center::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background-color: var(--primary);
+}
+
+/* How it Works Section */
+.step-number {
+    width: 60px;
+    height: 60px;
+    background-color: var(--primary);
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 0 15px rgba(13, 110, 253, 0.3);
+}
+
+/* 5.3 Testimonials */
+.testimonial-card {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.testimonial-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.testimonial-avatar {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border: 3px solid var(--light);
+    box-shadow: var(--shadow-sm);
+}
+
+/* 5.4 Contact */
+.contact-card {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.contact-card:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-lg);
+}
+
+.contact-icon {
+    width: 70px;
+    height: 70px;
+    background-color: var(--primary-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    color: var(--primary);
+    font-size: 24px;
+    transition: var(--transition);
+}
+
+.contact-card:hover .contact-icon {
+    background-color: var(--primary);
+    color: white;
+    transform: rotateY(180deg);
+}
+
+.contact-card.bicycle-contact .contact-icon {
+    background-color: var(--bicycle-color-light);
+    color: var(--bicycle-color);
+}
+
+.contact-card.bicycle-contact:hover .contact-icon {
+    background-color: var(--bicycle-color);
+    color: white;
+}
+
+/* 5.5 Footer */
+footer {
+    background-color: var(--dark);
+    position: relative;
+}
+
+footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary) 0%, var(--taxi-color) 50%, var(--bicycle-color) 100%);
+}
+
+.footer-link {
+    color: rgba(255, 255, 255, 0.7);
+    transition: var(--transition);
+    display: inline-block;
+}
+
+.footer-link:hover {
+    color: white;
+    padding-left: 5px;
+}
+
+.social-icon {
+    width: 36px;
+    height: 36px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.social-icon:hover {
+    background-color: var(--primary);
+    color: white;
+    transform: translateY(-3px);
+}
+
+.social-icon.bicycle-icon:hover {
+    background-color: var(--bicycle-color);
+}
+
+/* Back to Top Button */
+#back-to-top {
+    display: none;
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 99;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    opacity: 0.7;
+    transition: var(--transition);
+}
+
+#back-to-top:hover {
+    opacity: 1;
+    transform: translateY(-5px);
+}
+
+/* Cookie Consent Banner */
+.cookie-consent-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(52, 58, 64, 0.95);
+    color: white;
+    z-index: 1000;
+    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* ==================== 6. DARK MODE STYLES ==================== */
+body.dark-mode {
+    background-color: var(--dark-bg);
+    color: var(--dark-text);
+}
+
+/* Text colors */
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6,
+body.dark-mode .card-title,
+body.dark-mode .section-heading {
+    color: var(--dark-text);
+}
+
+body.dark-mode p,
+body.dark-mode .card-text {
+    color: var(--dark-secondary-text);
+}
+
+body.dark-mode .text-dark {
+    color: var(--dark-text) !important;
+}
+
+/* Backgrounds */
+body.dark-mode .bg-white,
+body.dark-mode .bg-light {
+    background-color: var(--dark-light-bg) !important;
+}
+
+body.dark-mode .card {
+    background-color: var(--dark-card-bg);
+    border-color: var(--dark-card-border);
+}
+
+body.dark-mode .hero-slide {
+    background-color: var(--dark-secondary-bg);
+}
+
+body.dark-mode .hero-slide.bg-primary {
+    background: linear-gradient(135deg, #0d47a1 0%, var(--primary) 100%);
+    box-shadow: inset 0 0 100px rgba(13, 110, 253, 0.1);
+}
+
+body.dark-mode .hero-slide.bg-warning {
+    background: linear-gradient(135deg, #e65100 0%, var(--taxi-color) 100%);
+    box-shadow: inset 0 0 100px rgba(255, 193, 7, 0.1);
+}
+
+body.dark-mode .hero-slide.bg-info {
+    background: linear-gradient(135deg, #006064 0%, var(--news-color) 100%);
+    box-shadow: inset 0 0 100px rgba(13, 202, 240, 0.1);
+}
+
+body.dark-mode .hero-slide::before {
+    opacity: 0.05;
+}
+
+/* Navigation */
+body.dark-mode .navbar-light {
+    background-color: var(--dark-bg) !important;
+}
+
+body.dark-mode .navbar-dark {
+    background-color: #222222 !important;
+}
+
+body.dark-mode .navbar-light .navbar-brand,
+body.dark-mode .navbar-light .nav-link {
+    color: var(--dark-text) !important;
+}
+
+body.dark-mode .navbar-toggler {
+    border-color: var(--dark-card-border);
+}
+
+/* Dropdown dark mode */
+body.dark-mode .dropdown-menu {
+    background-color: var(--dark-card-bg);
+    border-color: transparent !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .dropdown-header {
+    color: var(--bicycle-color);
+}
+
+body.dark-mode .dropdown-item {
+    color: var(--dark-text);
+}
+
+body.dark-mode .dropdown-divider {
+    border-color: var(--dark-card-border);
+}
+
+body.dark-mode .dropdown-item:hover,
+body.dark-mode .dropdown-item:focus {
+    background-color: rgba(102, 187, 106, 0.1) !important;
+    color: var(--bicycle-color) !important;
+}
+
+body.dark-mode .dropdown-item.active,
+body.dark-mode .dropdown-item:active {
+    background-color: var(--bicycle-color) !important;
+    color: var(--dark-bg) !important;
+}
+
+/* Navbar link underline in dark mode */
+body.dark-mode .navbar .nav-link::before {
+    background-color: var(--bicycle-color);
+}
+
+/* Form Controls */
+body.dark-mode .form-control {
+    background-color: var(--dark-input-bg);
+    border-color: var(--dark-input-border);
+    color: var(--dark-text);
+}
+
+body.dark-mode .form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(102, 187, 106, 0.25);
+}
+
+body.dark-mode .form-select {
+    background-color: var(--dark-input-bg);
+    border-color: var(--dark-input-border);
+    color: var(--dark-text);
+}
+
+body.dark-mode .input-group-text {
+    background-color: #333;
+    border-color: var(--dark-input-border);
+    color: var(--dark-text);
+}
+
+/* Modals */
+body.dark-mode .modal-content {
+    background-color: var(--dark-card-bg);
+    color: var(--dark-text);
+}
+
+body.dark-mode .modal-header,
+body.dark-mode .modal-footer {
+    border-color: var(--dark-card-border);
+}
+
+/* Borders & Dividers */
+body.dark-mode .border {
+    border-color: var(--dark-card-border) !important;
+}
+
+body.dark-mode hr {
+    border-color: var(--dark-card-border);
+}
+
+/* Section-specific dark mode styles */
+body.dark-mode .page-header {
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .features h2.text-center::after {
+    background-color: var(--bicycle-color);
+}
+
+body.dark-mode .how-it-works {
+    background-color: var(--dark-secondary-bg) !important;
+}
+
+body.dark-mode .step-number {
+    background-color: var(--bicycle-color);
+    box-shadow: 0 0 15px rgba(102, 187, 106, 0.3);
+}
+
+body.dark-mode .cta {
+    background: linear-gradient(135deg, #0d47a1 0%, var(--primary) 100%) !important;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Testimonials dark mode */
+body.dark-mode .testimonial-card {
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode .testimonial-avatar {
+    border-color: #333;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Improved bicycle dark mode styles */
+body.dark-mode .text-bicycle {
+    color: var(--bicycle-color) !important;
+    text-shadow: 0 0 5px rgba(102, 187, 106, 0.2);
+}
+
+body.dark-mode .bicycle-card .icon-wrapper {
+    background-color: rgba(102, 187, 106, 0.15);
+    box-shadow: 0 0 10px rgba(102, 187, 106, 0.1);
+}
+
+body.dark-mode .bicycle-card:hover .icon-wrapper {
+    background-color: var(--bicycle-color);
+    box-shadow: 0 0 15px rgba(102, 187, 106, 0.4);
+}
+
+body.dark-mode .btn-outline-bicycle {
+    color: var(--bicycle-color);
+    border-color: var(--bicycle-color);
+    text-shadow: 0 0 3px rgba(102, 187, 106, 0.2);
+}
+
+body.dark-mode .btn-outline-bicycle:hover {
+    background-color: var(--bicycle-color);
+    color: var(--dark-bg);
+    box-shadow: 0 0 15px rgba(102, 187, 106, 0.4);
+    text-shadow: none;
+}
+
+body.dark-mode .btn-bicycle {
+    background-color: var(--bicycle-color);
+    border-color: var(--bicycle-color);
+    color: var(--dark-bg);
+    box-shadow: 0 0 10px rgba(102, 187, 106, 0.2);
+}
+
+body.dark-mode .btn-bicycle:hover {
+    box-shadow: 0 0 15px rgba(102, 187, 106, 0.4);
+}
+
+body.dark-mode .bg-bicycle {
+    background-color: var(--bicycle-color) !important;
+    box-shadow: 0 0 20px rgba(102, 187, 106, 0.3);
+}
+
+body.dark-mode .bg-success {
+    box-shadow: 0 0 20px rgba(102, 187, 106, 0.3);
+}
+
+body.dark-mode .hero-slide.bg-success {
+    background: linear-gradient(135deg, #2e7d32 0%, var(--bicycle-color) 100%);
+    box-shadow: inset 0 0 100px rgba(102, 187, 106, 0.1);
+}
+
+/* Dark Mode Toggle */
+#darkModeToggle {
+    background-color: transparent;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    transition: transform 0.2s;
+    outline: none !important;
+}
+
+#darkModeToggle:hover {
+    transform: scale(1.1);
+}
+
+#darkModeToggle:active {
+    transform: scale(0.95);
+}
+
+/* Dark mode carousel image support */
+body.dark-mode .carousel-image-wrapper {
+    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: var(--border-radius);
+}
+
+/* ==================== 7. RESPONSIVE STYLES ==================== */
+@media (max-width: 992px) {
+    .step::after {
+        display: none;
+    }
+
+    .navbar-collapse {
+        background-color: rgba(52, 58, 64, 0.95);
+        border-radius: var(--border-radius);
+        padding: 15px;
+        margin-top: 10px;
+    }
+
+    .hero-slide {
+        padding: 50px 0;
+        min-height: 450px;
+    }
+
+    .carousel-image-wrapper {
+        height: 300px;
+    }
+
+    body.dark-mode .navbar-collapse {
+        background-color: rgba(18, 18, 18, 0.95);
+    }
+
+    /* Responsive dropdown adjustments */
+    .dropdown-menu {
+        border: none;
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        box-shadow: none;
+        padding: 0;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .dropdown-item {
+        padding: 0.5rem 2rem;
+    }
+
+    .dropdown-divider {
+        margin: 0.25rem 0;
+    }
+
+    .dropdown-header {
+        padding-left: 2rem;
+    }
+
+    body.dark-mode .dropdown-menu {
+        background-color: rgba(0, 0, 0, 0.2) !important;
+        box-shadow: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .icon-wrapper {
+        width: 70px;
+        height: 70px;
+    }
+
+    .service-card {
+        margin-bottom: 20px;
+    }
+
+    .testimonial-card {
+        margin-bottom: 20px;
+    }
+
+    .team-card,
+    .contact-card {
+        margin-bottom: 30px;
+    }
+
+    .carousel-image-wrapper {
+        height: 250px;
+    }
+
+    .hero-slide {
+        min-height: 400px;
+    }
+
+    body.dark-mode .service-card {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    body.dark-mode .service-card:hover {
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+    }
+}
+
+@media (max-width: 576px) {
+    .top-bar {
+        text-align: center;
+    }
+
+    .top-bar .contact-info,
+    .top-bar .social-links {
+        margin-bottom: 5px;
+    }
+
+    .hero-slide {
+        padding: 30px 0;
+        min-height: 350px;
+    }
+
+    .hero-slide h1 {
+        font-size: 2rem;
+    }
+
+    .carousel-image-wrapper {
+        height: 200px;
+    }
+
+    .step-number {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+
+    .section-heading {
+        font-size: 1.75rem;
+    }
+
+    body.dark-mode .hero-slide h1 {
+        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    #back-to-top {
+        bottom: 20px;
+        right: 20px;
+        width: 36px;
+        height: 36px;
+    }
+}
+
+/* ==================== 8. ANIMATIONS ==================== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Apply animations to specific elements */
+.hero-slide h1 {
+    animation: fadeIn 0.8s ease-out;
+}
+
+/* ==================== CRITICAL DROPDOWN UNDERLINE FIX ==================== */
+
+/* Remove specific rule that's causing the conflict */
+.dropdown-toggle::before,
+.dropdown-item::before,
+.dropdown-menu::before,
+.dropdown-toggle::after {
+    display: initial !important;
+    /* Override the 'display: none !important' from earlier rules */
+    content: initial !important;
+    /* Reset content property */
+    width: initial !important;
+    /* Reset width property */
+    position: initial !important;
+    /* Reset position property */
+}
+
+/* Restore the underline specifically for nav-links/dropdown-toggles */
+.navbar .nav-link::before,
+.navbar .dropdown-toggle::before {
+    content: '' !important;
+    position: absolute !important;
+    display: block !important;
+    width: 0 !important;
+    height: 2px !important;
+    bottom: 0 !important;
+    left: 50% !important;
+    background-color: var(--primary) !important;
+    transition: width 0.3s ease !important;
+    transform: translateX(-50%) !important;
+    z-index: 5 !important;
+    opacity: 1 !important;
+}
+
+/* Ensure hover states work for all nav links, including dropdowns */
+.navbar .nav-link:hover::before,
+.navbar .dropdown-toggle:hover::before {
+    width: 70% !important;
+}
+
+/* Make sure dropdown-hover class works */
+.navbar .dropdown-toggle.dropdown-hover::before {
+    width: 70% !important;
+}
+
+/* Ensure active states show underline */
+.navbar .nav-link.active::before,
+.navbar .dropdown-toggle.active::before {
+    width: 70% !important;
+}
+
+/* ==================== NAVBAR HOVER COLOR FIX ==================== */
+
+/* Make nav links turn white on hover */
+.navbar .nav-link {
+    transition: color 0.3s ease, background-color 0.3s ease !important;
+}
+
+.navbar .nav-link:hover,
+.navbar .dropdown-toggle:hover {
+    color: white !important;
+}
+
+/* Ensure dropdown items maintain appropriate hover colors */
+.dropdown-menu .dropdown-item:hover {
+    color: var(--primary) !important;
+    /* Keep dropdown items blue on hover */
+}
+
+/* Maintain contrast in dark mode */
+body.dark-mode .navbar .nav-link:hover,
+body.dark-mode .navbar .dropdown-toggle:hover {
+    color: white !important;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
+
+/* Make sure active state has proper contrast */
+.navbar .nav-link.active:hover {
+    color: white !important;
+}

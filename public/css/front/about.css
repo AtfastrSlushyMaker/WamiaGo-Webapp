@@ -1,0 +1,302 @@
+/* ==================== ABOUT PAGE STYLES ==================== */
+
+/* ---- General Styles ---- */
+.page-header {
+    background: linear-gradient(135deg, var(--primary) 0%, #0d47a1 100%);
+    position: relative;
+    overflow: hidden;
+    color: white;
+}
+
+.text-white-75 {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+/* ---- Stats Counter ---- */
+.counter {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    display: inline-block;
+    position: relative;
+}
+
+/* ---- Icon Styles ---- */
+.icon-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.bg-primary-light {
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+/* ---- Team Section ---- */
+.team-card {
+    transition: all 0.3s ease;
+}
+
+.team-card:hover {
+    transform: translateY(-5px);
+}
+
+.team-card .team-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.team-card:hover .team-overlay {
+    opacity: 1;
+}
+
+.team-overlay .social-link {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: white;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 5px;
+    transition: all 0.3s ease;
+}
+
+.team-overlay .social-link:hover {
+    background-color: var(--primary);
+    color: white;
+    transform: translateY(-3px);
+}
+
+/* ---- Testimonial Section ---- */
+.testimonial-card {
+    transition: all 0.3s ease;
+}
+
+.testimonial-card:hover {
+    transform: translateY(-3px);
+}
+
+.testimonial-avatar {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* ---- Partner Section ---- */
+.partners .card {
+    transition: all 0.3s ease;
+}
+
+.partners .card:hover {
+    transform: translateY(-3px);
+}
+
+.partners .card img {
+    transition: all 0.3s ease;
+    opacity: 0.7;
+}
+
+.partners .card:hover img {
+    opacity: 1;
+    filter: grayscale(0) !important;
+}
+
+/* ---- Mission Vision Section ---- */
+.mission-vision .card {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.mission-vision .card:hover {
+    transform: translateY(-5px);
+}
+
+.mission-vision .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 0;
+    background-color: var(--primary);
+    transition: height 0.3s ease;
+}
+
+.mission-vision .card:hover::before {
+    height: 100%;
+}
+
+/* ---- CTA Section ---- */
+.cta {
+    position: relative;
+    overflow: hidden;
+}
+
+.cta::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+    opacity: 0.3;
+}
+
+/* ---- Animation ---- */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.our-story,
+.mission-vision,
+.core-values,
+.our-team,
+.testimonials,
+.partners {
+    animation: fadeIn 0.6s ease-out forwards;
+}
+
+/* ---- Badge Styles ---- */
+.badge {
+    font-weight: 500;
+    padding: 0.5em 1em;
+}
+
+/* ---- Responsive Adjustments ---- */
+@media (max-width: 767.98px) {
+    .counter {
+        font-size: 2rem;
+    }
+
+    .team-card,
+    .testimonial-card {
+        margin-bottom: 1.5rem;
+    }
+
+    .page-header {
+        text-align: center;
+    }
+}
+
+/* ==================== DARK MODE STYLES ==================== */
+
+body.dark-mode .page-header {
+    background: linear-gradient(135deg, #0d47a1 0%, var(--primary) 100%);
+}
+
+body.dark-mode .bg-light {
+    background-color: #222 !important;
+}
+
+body.dark-mode .card {
+    background-color: #333;
+    border-color: #444;
+}
+
+body.dark-mode .text-muted {
+    color: #aaa !important;
+}
+
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6 {
+    color: #fff;
+}
+
+body.dark-mode .dropdown-header,
+body.dark-mode p {
+    color: #ddd;
+}
+
+body.dark-mode .bg-primary-light {
+    background-color: rgba(13, 110, 253, 0.2);
+}
+
+body.dark-mode .team-overlay .social-link {
+    background-color: #444;
+    color: #fff;
+}
+
+body.dark-mode .team-overlay .social-link:hover {
+    background-color: var(--primary);
+}
+
+body.dark-mode .partners .card img {
+    filter: brightness(0.8) grayscale(1);
+}
+
+body.dark-mode .partners .card:hover img {
+    filter: brightness(1) grayscale(0) !important;
+}
+
+/* Dark mode testimonial card styling */
+body.dark-mode .testimonial-avatar {
+    border-color: #444;
+}
+
+body.dark-mode .testimonial-card {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Dark mode counter colors */
+body.dark-mode .counter {
+    color: var(--primary);
+    text-shadow: 0 0 10px rgba(13, 110, 253, 0.3);
+}
+
+/* Improved dark mode button contrast */
+body.dark-mode .btn-outline-light {
+    border-color: #aaa;
+    color: #fff;
+}
+
+body.dark-mode .btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Special elements in dark mode */
+body.dark-mode .icon-wrapper {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode .mission-vision .card::before {
+    box-shadow: 0 0 10px var(--primary);
+}
+
+/* Animation adjustments for dark mode */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --transition-speed: 0.5s;
+    }
+}

@@ -4,18 +4,18 @@
 
 {% block hero %}
 <section class="hero position-relative">
-    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
-        <div class="carousel-indicators">
-            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"></button>
-            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
-            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2"></button>
-            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="3"></button>
+    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" aria-label="Featured services carousel">
+        <div class="carousel-indicators" role="tablist">
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1" role="tab"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" aria-label="Slide 2" role="tab"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2" aria-label="Slide 3" role="tab"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="3" aria-label="Slide 4" role="tab"></button>
         </div>
         <div class="carousel-inner">
             <div class="carousel-item active">
                 <div class="hero-slide bg-primary">
                     <div class="container">
-                        <div class="row align-items-center min-vh-50">
+                        <div class="row align-items-center">
                             <div class="col-lg-6 text-white">
                                 <h1 class="display-4 fw-bold mb-4 animate__animated animate__fadeInUp">Ride Sharing Made Simple</h1>
                                 <p class="lead mb-4 animate__animated animate__fadeInUp animate__delay-1s">Connect with other travelers for a more sustainable and economical journey.</p>
@@ -25,7 +25,9 @@
                                 </div>
                             </div>
                             <div class="col-lg-6 d-none d-lg-block animate__animated animate__fadeInRight">
-                                <img src="{{ asset('images/front/hero-1.svg') }}" alt="Ride Sharing" class="img-fluid">
+                                <div class="carousel-image-wrapper">
+                                    <img src="{{ asset('images/front/carpool.png') }}" alt="Ride Sharing" class="carousel-image">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -34,14 +36,16 @@
             <div class="carousel-item">
                 <div class="hero-slide bg-warning">
                     <div class="container">
-                        <div class="row align-items-center min-vh-50">
+                        <div class="row align-items-center">
                             <div class="col-lg-6 text-white">
                                 <h1 class="display-4 fw-bold mb-4">Taxi On Demand</h1>
                                 <p class="lead mb-4">Get a reliable taxi at your doorstep with just a few taps.</p>
                                 <a href="#" class="btn btn-light btn-lg">Book Now</a>
                             </div>
                             <div class="col-lg-6 d-none d-lg-block">
-                                <img src="{{ asset('images/front/hero-taxi.svg') }}" alt="Taxi Services" class="img-fluid">
+                                <div class="carousel-image-wrapper">
+                                    <img src="{{ asset('images/front/taxi.png') }}" alt="Taxi Services" class="carousel-image">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -50,14 +54,16 @@
             <div class="carousel-item">
                 <div class="hero-slide bg-success">
                     <div class="container">
-                        <div class="row align-items-center min-vh-50">
+                        <div class="row align-items-center">
                             <div class="col-lg-6 text-white">
                                 <h1 class="display-4 fw-bold mb-4">Bicycle Rentals</h1>
                                 <p class="lead mb-4">Explore the city on two wheels with our convenient bicycle rental service.</p>
                                 <a href="#" class="btn btn-light btn-lg">Rent Now</a>
                             </div>
                             <div class="col-lg-6 d-none d-lg-block">
-                                <img src="{{ asset('images/front/hero-2.svg') }}" alt="Bicycle Rentals" class="img-fluid">
+                                <div class="carousel-image-wrapper">
+                                    <img src="{{ asset('images/front/bicycle.png') }}" alt="Bicycle Rentals" class="carousel-image">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -66,14 +72,16 @@
             <div class="carousel-item">
                 <div class="hero-slide bg-info">
                     <div class="container">
-                        <div class="row align-items-center min-vh-50">
+                        <div class="row align-items-center">
                             <div class="col-lg-6 text-white">
-                                <h1 class="display-4 fw-bold mb-4">Stay Updated</h1>
-                                <p class="lead mb-4">Get the latest transportation news and updates in your area.</p>
-                                <a href="#" class="btn btn-light btn-lg">Read Announcements</a>
+                                <h1 class="display-4 fw-bold mb-4">Moving Made Easy</h1>
+                                <p class="lead mb-4">Book relocation services for your moving needs with professional transport providers.</p>
+                                <a href="#" class="btn btn-light btn-lg">View Relocation Services</a>
                             </div>
                             <div class="col-lg-6 d-none d-lg-block">
-                                <img src="{{ asset('images/front/hero-3.svg') }}" alt="Transportation News" class="img-fluid">
+                                <div class="carousel-image-wrapper">
+                                    <img src="{{ asset('images/front/truck.png') }}" alt="Transportation Services" class="carousel-image">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -81,10 +89,12 @@
             </div>
         </div>
         <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon"></span>
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
         </button>
         <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon"></span>
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
         </button>
     </div>
 </section>
@@ -95,50 +105,50 @@
     <h2 class="text-center mb-5">Our Services</h2>
     <div class="row g-4">
         <div class="col-md-3">
-            <div class="card h-100 service-card">
-                <div class="card-body text-center p-4">
+            <div class="card h-100 service-card ride-sharing-card">
+                <div class="card-body text-center p-4 d-flex flex-column">
                     <div class="icon-wrapper mb-4">
                         <i class="fas fa-car fa-3x text-primary"></i>
                     </div>
                     <h3 class="card-title h4 mb-3">Ride Sharing</h3>
                     <p class="card-text">Share your journey with others going the same way. Save money, reduce emissions, and make connections.</p>
-                    <a href="#" class="btn btn-outline-primary mt-3">Learn More</a>
+                    <a href="#" class="btn btn-outline-primary mt-auto">Learn More</a>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card h-100 service-card">
-                <div class="card-body text-center p-4">
-                    <div class="icon-wrapper mb-4" style="background-color: rgba(255, 193, 7, 0.1);">
+            <div class="card h-100 service-card taxi-card">
+                <div class="card-body text-center p-4 d-flex flex-column">
+                    <div class="icon-wrapper mb-4">
                         <i class="fas fa-taxi fa-3x text-warning"></i>
                     </div>
                     <h3 class="card-title h4 mb-3">Taxi Service</h3>
                     <p class="card-text">Book a professional taxi with licensed drivers for safe and comfortable rides any time of day.</p>
-                    <a href="#" class="btn btn-outline-warning mt-3">Book a Taxi</a>
+                    <a href="#" class="btn btn-outline-warning mt-auto">Book a Taxi</a>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card h-100 service-card">
-                <div class="card-body text-center p-4">
-                    <div class="icon-wrapper mb-4" style="background-color: rgba(25, 135, 84, 0.1);">
-                        <i class="fas fa-bicycle fa-3x text-success"></i>
+            <div class="card h-100 service-card bicycle-card">
+                <div class="card-body text-center p-4 d-flex flex-column">
+                    <div class="icon-wrapper mb-4">
+                        <i class="fas fa-bicycle fa-3x text-bicycle"></i>
                     </div>
                     <h3 class="card-title h4 mb-3">Bicycle Rentals</h3>
                     <p class="card-text">Rent a bicycle and explore the city at your own pace. Eco-friendly and healthy transportation.</p>
-                    <a href="#" class="btn btn-outline-success mt-3">Rent Now</a>
+                    <a href="#" class="btn btn-outline-bicycle mt-auto">Rent Now</a>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card h-100 service-card">
-                <div class="card-body text-center p-4">
-                    <div class="icon-wrapper mb-4" style="background-color: rgba(13, 202, 240, 0.1);">
-                        <i class="fas fa-newspaper fa-3x text-info"></i>
+            <div class="card h-100 service-card news-card">
+                <div class="card-body text-center p-4 d-flex flex-column">
+                    <div class="icon-wrapper mb-4">
+                        <i class="fas fa-truck-moving fa-3x text-info"></i>
                     </div>
-                    <h3 class="card-title h4 mb-3">Announcements</h3>
-                    <p class="card-text">Stay informed about transportation news, events, and updates in your community.</p>
-                    <a href="#" class="btn btn-outline-info mt-3">View Announcements</a>
+                    <h3 class="card-title h4 mb-3">Relocation Services</h3>
+                    <p class="card-text">Book professional transport services for moving or relocating your belongings safely.</p>
+                    <a href="#" class="btn btn-outline-info mt-auto">Book Relocation</a>
                 </div>
             </div>
         </div>
@@ -223,7 +233,7 @@
                 <div class="step text-center">
                     <div class="step-number">2</div>
                     <h3 class="h4 mt-4 mb-3">Choose a Service</h3>
-                    <p>Select from ride sharing, bicycle rentals, or browse transportation announcements.</p>
+                    <p>Select from ride sharing, bicycle rentals, taxi services, or book relocation transport services.</p>
                 </div>
             </div>
             <div class="col-md-4">
@@ -245,7 +255,7 @@
                 <div class="card-body p-4">
                     <div class="d-flex mb-4">
                         <div class="flex-shrink-0">
-                            <img src="{{ asset('images/front/avatar-1.svg') }}" alt="User" class="rounded-circle testimonial-avatar">
+                            <img src="https://i.pravatar.cc/64?img=1" alt="User" class="rounded-circle testimonial-avatar">
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h5 class="mb-1">John Doe</h5>
@@ -267,7 +277,7 @@
                 <div class="card-body p-4">
                     <div class="d-flex mb-4">
                         <div class="flex-shrink-0">
-                            <img src="{{ asset('images/front/avatar-2.svg') }}" alt="User" class="rounded-circle testimonial-avatar">
+                            <img src="https://i.pravatar.cc/64?img=2" alt="User" class="rounded-circle testimonial-avatar">
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h5 class="mb-1">Jane Smith</h5>
@@ -289,10 +299,10 @@
                 <div class="card-body p-4">
                     <div class="d-flex mb-4">
                         <div class="flex-shrink-0">
-                            <img src="{{ asset('images/front/avatar-3.svg') }}" alt="User" class="rounded-circle testimonial-avatar">
+                            <img src="https://i.pravatar.cc/64?img=3" alt="User" class="rounded-circle testimonial-avatar">
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h5 class="mb-1">Robert Johnson</h5>
+                            <h5 class="mb-1">Sarah Johnson</h5>
                             <div class="text-warning mb-1">
                                 <i class="fas fa-star"></i>
                                 <i class="fas fa-star"></i>
@@ -302,7 +312,7 @@
                             </div>
                         </div>
                     </div>
-                    <p class="card-text">"The transportation announcements keep me informed about changes that might affect my travel plans. Very useful!"</p>
+                    <p class="card-text">"The relocation service made my move so much easier. The movers were professional and everything arrived safely at my new home."</p>
                 </div>
             </div>
         </div>
@@ -315,75 +325,4 @@
     <a href="#" class="btn btn-light btn-lg me-2">Sign Up Now</a>
     <a href="#" class="btn btn-outline-light btn-lg">Learn More</a>
 </section>
-{% endblock %}
-
-{% block page_stylesheets %}
-<style>
-    .min-vh-50 {
-        min-height: 50vh;
-    }
-    
-    .hero-slide {
-        padding: 80px 0;
-    }
-    
-    .step-number {
-        width: 60px;
-        height: 60px;
-        background-color: #0d6efd;
-        color: white;
-        font-size: 24px;
-        font-weight: bold;
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin: 0 auto;
-    }
-    
-    .testimonial-avatar {
-        width: 60px;
-        height: 60px;
-        object-fit: cover;
-    }
-    
-    .service-card:hover .icon-wrapper {
-        transform: scale(1.1);
-    }
-    
-    /* Taxi specific styles */
-    .service-card:hover .icon-wrapper .fa-taxi {
-        color: white !important;
-    }
-    
-    .service-card:hover .icon-wrapper.bg-warning-soft {
-        background-color: #ffc107 !important;
-    }
-</style>
-{% endblock %}
-
-{% block page_javascripts %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize taxi booking form
-        const quickTaxiForm = document.getElementById('quickTaxiForm');
-        if (quickTaxiForm) {
-            quickTaxiForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const pickup = document.getElementById('pickup').value;
-                const destination = document.getElementById('destination').value;
-                
-                if (!pickup || !destination) {
-                    alert('Please enter both pickup and destination addresses');
-                    return;
-                }
-                
-                // Here you would normally send the form to the server to calculate price
-                alert('Calculating price estimate for your journey...');
-                // In a real app, you'd show the price and booking options
-            });
-        }
-    });
-</script>
 {% endblock %}
