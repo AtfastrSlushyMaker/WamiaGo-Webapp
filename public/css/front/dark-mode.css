@@ -299,14 +299,20 @@ body .btn-danger {
 }
 
 body.dark-mode .btn-warning {
-    background-color: #f59e0b;
-    border-color: #f59e0b;
+    background-color: #ffc107;
+    border-color: #ffc107;
     color: #000000;
 }
 
+body.dark-mode .btn-warning:hover {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: white;
+}
+
 body .btn-warning {
-    background-color: #d97706;
-    border-color: #d97706;
+    background-color: #ffc107;
+    border-color: #ffc107;
     color: #ffffff;
 }
 

@@ -56,11 +56,13 @@
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
+                                <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
                             <a class="nav-link {% if app.request.attributes.get('_route') == 'app_front_home' %}active{% endif %}" 
-                               href="{{ path('app_front_home') }}">Home</a>
+                               href="{{ path('app_front_home') }}">
+                                <i class="fas fa-home me-1"></i> Home
+                            </a>
                         </li>
                         <li class="nav-item dropdown">
                             <button class="nav-link dropdown-toggle {% if app.request.attributes.get('_route') starts with 'app_front_service' %}active{% endif %}" 
@@ -69,25 +71,31 @@
                             </button>
                             <ul class="dropdown-menu">
                                 <li><h6 class="dropdown-header">Our Transportation Services</h6></li>
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-car"></i>Ride Sharing</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-taxi"></i>Taxi Service</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-bicycle"></i>Bicycle Rentals</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-car me-2"></i>Ride Sharing</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-taxi me-2"></i>Taxi Service</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-bicycle me-2"></i>Bicycle Rentals</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><h6 class="dropdown-header">Special Services</h6></li>
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-truck-moving"></i>Relocation Transport</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-info-circle"></i>All Services<span class="ms-2 badge bg-primary">New</span></a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-truck-moving me-2"></i>Relocation Transport</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-info-circle me-2"></i>All Services<span class="ms-2 badge bg-primary">New</span></a></li>
                             </ul>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if app.request.attributes.get('_route') == 'app_front_about' %}active{% endif %}" 
-                               href="{{ path('app_front_about') }}">About</a>
+                               href="{{ path('app_front_about') }}">
+                                <i class="fas fa-info-circle me-1"></i> About
+                            </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if app.request.attributes.get('_route') == 'app_front_contact' %}active{% endif %}" 
-                               href="{{ path('app_front_contact') }}">Contact</a>
+                               href="{{ path('app_front_contact') }}">
+                                <i class="fas fa-envelope me-1"></i> Contact
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link btn btn-outline-primary btn-sm mt-1 ms-2" href="#">Login</a>
+                            <a class="nav-link btn btn-outline-primary btn-sm mt-1 ms-2" href="#">
+                                <i class="fas fa-sign-in-alt me-1"></i> Login
+                            </a>
                         </li>
                     </ul>
                 </div>
