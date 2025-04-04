@@ -1,0 +1,275 @@
+/* WamiaGo Front Office Styles */
+
+/* General Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+    line-height: 1.6;
+}
+
+a {
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: 600;
+}
+
+/* Utility Classes */
+.min-vh-50 {
+    min-height: 50vh;
+}
+
+/* Header Styles */
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.navbar .nav-link {
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+}
+
+.navbar .nav-link.active {
+    color: #0d6efd !important;
+}
+
+/* Hero Section */
+.hero-slide {
+    padding: 80px 0;
+    position: relative;
+}
+
+.hero-slide::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('../images/front/pattern.svg') repeat;
+    opacity: 0.1;
+    z-index: 0;
+}
+
+.hero-slide>div {
+    position: relative;
+    z-index: 1;
+}
+
+/* Service Cards */
+.service-card {
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.service-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.icon-wrapper {
+    width: 80px;
+    height: 80px;
+    background-color: rgba(13, 110, 253, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    transition: all 0.3s ease;
+}
+
+.service-card:hover .icon-wrapper {
+    background-color: #0d6efd;
+    color: white !important;
+}
+
+.service-card:hover .icon-wrapper i {
+    color: white !important;
+}
+
+/* Taxi specific styles */
+.service-card:hover .icon-wrapper .fa-taxi+.text-warning {
+    color: white !important;
+}
+
+/* How it Works Section */
+.step {
+    position: relative;
+}
+
+.step::after {
+    content: '';
+    position: absolute;
+    top: 30px;
+    right: -50%;
+    width: 100%;
+    height: 2px;
+    background-color: #dee2e6;
+    z-index: -1;
+}
+
+.step:last-child::after {
+    display: none;
+}
+
+/* Testimonials */
+.testimonial-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.testimonial-avatar {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+}
+
+/* Team Section */
+.team-card {
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.team-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.team-img-wrapper {
+    transition: all 0.3s ease;
+}
+
+.team-card:hover .team-img-wrapper {
+    transform: scale(1.05);
+}
+
+/* Footer */
+footer {
+    background-color: #343a40;
+}
+
+.footer-link {
+    color: rgba(255, 255, 255, 0.7);
+    transition: all 0.3s ease;
+}
+
+.footer-link:hover {
+    color: white;
+    padding-left: 5px;
+}
+
+.social-icon {
+    width: 36px;
+    height: 36px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.social-icon:hover {
+    background-color: #0d6efd;
+    color: white;
+}
+
+/* Contact Page */
+.contact-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.contact-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Page Header */
+.page-header {
+    position: relative;
+}
+
+.page-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('../images/front/pattern.svg') repeat;
+    opacity: 0.1;
+    z-index: 0;
+}
+
+.page-header>div {
+    position: relative;
+    z-index: 1;
+}
+
+/* Taxi Booking Styles */
+.taxi-booking .list-unstyled li {
+    margin-bottom: 10px;
+}
+
+.taxi-booking .form-control {
+    border-radius: 8px;
+}
+
+.taxi-booking .btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+    font-weight: 600;
+}
+
+.taxi-booking .btn-warning:hover {
+    background-color: #ffca2c;
+    border-color: #ffc720;
+    color: #212529;
+}
+
+/* Login/Register Styles */
+.separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #6c757d;
+}
+
+.separator::before,
+.separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.separator span {
+    padding: 0 10px;
+}
+
+/* Responsive Styles */
+@media (max-width: 992px) {
+    .step::after {
+        display: none;
+    }
+}

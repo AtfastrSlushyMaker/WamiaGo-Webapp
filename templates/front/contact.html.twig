@@ -1,0 +1,122 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}{{ title }} - WamiaGo{% endblock %}
+
+{% block body %}
+    <section class="contact-header bg-light p-5 rounded-3 mb-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2 text-center">
+                <h1 class="display-4">Contact Us</h1>
+                <p class="lead">Get in touch with our team. We're here to help and answer any questions you may have.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="contact-info mb-5">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-map-marker-alt fa-3x text-primary mb-3"></i>
+                        <h3>Our Location</h3>
+                        <p>123 Tech Street<br>Innovation City, IC 12345<br>Country</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-phone-alt fa-3x text-primary mb-3"></i>
+                        <h3>Phone</h3>
+                        <p>General: +1 (555) 123-4567<br>Support: +1 (555) 765-4321</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-envelope fa-3x text-primary mb-3"></i>
+                        <h3>Email</h3>
+                        <p>info@wamiango.com<br>support@wamiango.com</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="contact-form mb-5">
+        <div class="row">
+            <div class="col-md-7 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title mb-4">Send Us a Message</h3>
+                        <form>
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Your Name</label>
+                                <input type="text" class="form-control" id="name" placeholder="Enter your name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" placeholder="Enter your email">
+                            </div>
+                            <div class="mb-3">
+                                <label for="subject" class="form-label">Subject</label>
+                                <input type="text" class="form-control" id="subject" placeholder="Enter subject">
+                            </div>
+                            <div class="mb-3">
+                                <label for="message" class="form-label">Message</label>
+                                <textarea class="form-control" id="message" rows="5" placeholder="Enter your message"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Send Message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title mb-4">Business Hours</h3>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span><strong>Monday - Friday:</strong></span>
+                                    <span>9:00 AM - 5:00 PM</span>
+                                </div>
+                            </li>
+                            <li class="mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span><strong>Saturday:</strong></span>
+                                    <span>10:00 AM - 2:00 PM</span>
+                                </div>
+                            </li>
+                            <li class="mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span><strong>Sunday:</strong></span>
+                                    <span>Closed</span>
+                                </div>
+                            </li>
+                        </ul>
+                        <hr>
+                        <h3 class="card-title mb-4">Follow Us</h3>
+                        <div class="social-links">
+                            <a href="#" class="btn btn-outline-primary me-2"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="btn btn-outline-primary me-2"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="btn btn-outline-primary me-2"><i class="fab fa-instagram"></i></a>
+                            <a href="#" class="btn btn-outline-primary me-2"><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="map mb-5">
+        <h3 class="text-center mb-4">Find Us on the Map</h3>
+        <div class="embed-responsive">
+            <!-- Replace with actual Google Maps embed code -->
+            <div class="bg-light text-center p-5 rounded-3">
+                <p class="mb-0">Google Maps would be embedded here</p>
+            </div>
+        </div>
+    </section>
+{% endblock %}

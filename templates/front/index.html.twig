@@ -1,0 +1,389 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}{{ title }} - WamiaGo{% endblock %}
+
+{% block hero %}
+<section class="hero position-relative">
+    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="3"></button>
+        </div>
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <div class="hero-slide bg-primary">
+                    <div class="container">
+                        <div class="row align-items-center min-vh-50">
+                            <div class="col-lg-6 text-white">
+                                <h1 class="display-4 fw-bold mb-4 animate__animated animate__fadeInUp">Ride Sharing Made Simple</h1>
+                                <p class="lead mb-4 animate__animated animate__fadeInUp animate__delay-1s">Connect with other travelers for a more sustainable and economical journey.</p>
+                                <div class="animate__animated animate__fadeInUp animate__delay-2s">
+                                    <a href="#" class="btn btn-light btn-lg me-2">Find a Ride</a>
+                                    <a href="#" class="btn btn-outline-light btn-lg">Offer a Ride</a>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 d-none d-lg-block animate__animated animate__fadeInRight">
+                                <img src="{{ asset('images/front/hero-1.svg') }}" alt="Ride Sharing" class="img-fluid">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="hero-slide bg-warning">
+                    <div class="container">
+                        <div class="row align-items-center min-vh-50">
+                            <div class="col-lg-6 text-white">
+                                <h1 class="display-4 fw-bold mb-4">Taxi On Demand</h1>
+                                <p class="lead mb-4">Get a reliable taxi at your doorstep with just a few taps.</p>
+                                <a href="#" class="btn btn-light btn-lg">Book Now</a>
+                            </div>
+                            <div class="col-lg-6 d-none d-lg-block">
+                                <img src="{{ asset('images/front/hero-taxi.svg') }}" alt="Taxi Services" class="img-fluid">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="hero-slide bg-success">
+                    <div class="container">
+                        <div class="row align-items-center min-vh-50">
+                            <div class="col-lg-6 text-white">
+                                <h1 class="display-4 fw-bold mb-4">Bicycle Rentals</h1>
+                                <p class="lead mb-4">Explore the city on two wheels with our convenient bicycle rental service.</p>
+                                <a href="#" class="btn btn-light btn-lg">Rent Now</a>
+                            </div>
+                            <div class="col-lg-6 d-none d-lg-block">
+                                <img src="{{ asset('images/front/hero-2.svg') }}" alt="Bicycle Rentals" class="img-fluid">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="hero-slide bg-info">
+                    <div class="container">
+                        <div class="row align-items-center min-vh-50">
+                            <div class="col-lg-6 text-white">
+                                <h1 class="display-4 fw-bold mb-4">Stay Updated</h1>
+                                <p class="lead mb-4">Get the latest transportation news and updates in your area.</p>
+                                <a href="#" class="btn btn-light btn-lg">Read Announcements</a>
+                            </div>
+                            <div class="col-lg-6 d-none d-lg-block">
+                                <img src="{{ asset('images/front/hero-3.svg') }}" alt="Transportation News" class="img-fluid">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+        </button>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section class="features mb-5">
+    <h2 class="text-center mb-5">Our Services</h2>
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="card h-100 service-card">
+                <div class="card-body text-center p-4">
+                    <div class="icon-wrapper mb-4">
+                        <i class="fas fa-car fa-3x text-primary"></i>
+                    </div>
+                    <h3 class="card-title h4 mb-3">Ride Sharing</h3>
+                    <p class="card-text">Share your journey with others going the same way. Save money, reduce emissions, and make connections.</p>
+                    <a href="#" class="btn btn-outline-primary mt-3">Learn More</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100 service-card">
+                <div class="card-body text-center p-4">
+                    <div class="icon-wrapper mb-4" style="background-color: rgba(255, 193, 7, 0.1);">
+                        <i class="fas fa-taxi fa-3x text-warning"></i>
+                    </div>
+                    <h3 class="card-title h4 mb-3">Taxi Service</h3>
+                    <p class="card-text">Book a professional taxi with licensed drivers for safe and comfortable rides any time of day.</p>
+                    <a href="#" class="btn btn-outline-warning mt-3">Book a Taxi</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100 service-card">
+                <div class="card-body text-center p-4">
+                    <div class="icon-wrapper mb-4" style="background-color: rgba(25, 135, 84, 0.1);">
+                        <i class="fas fa-bicycle fa-3x text-success"></i>
+                    </div>
+                    <h3 class="card-title h4 mb-3">Bicycle Rentals</h3>
+                    <p class="card-text">Rent a bicycle and explore the city at your own pace. Eco-friendly and healthy transportation.</p>
+                    <a href="#" class="btn btn-outline-success mt-3">Rent Now</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100 service-card">
+                <div class="card-body text-center p-4">
+                    <div class="icon-wrapper mb-4" style="background-color: rgba(13, 202, 240, 0.1);">
+                        <i class="fas fa-newspaper fa-3x text-info"></i>
+                    </div>
+                    <h3 class="card-title h4 mb-3">Announcements</h3>
+                    <p class="card-text">Stay informed about transportation news, events, and updates in your community.</p>
+                    <a href="#" class="btn btn-outline-info mt-3">View Announcements</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="taxi-booking py-5 bg-light rounded-3 mb-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h2>Need a ride now?</h2>
+                <p class="lead mb-4">Book a taxi with our reliable service and get to your destination safely and on time.</p>
+                <ul class="list-unstyled mb-4">
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Professional licensed drivers</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Clean and comfortable vehicles</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Real-time tracking and updates</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Multiple payment options</li>
+                </ul>
+                <a href="#" class="btn btn-warning btn-lg">Book a Taxi</a>
+            </div>
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h3 class="card-title mb-4">Quick Booking</h3>
+                        <form id="quickTaxiForm">
+                            <div class="mb-3">
+                                <label for="pickup" class="form-label">Pickup Location</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                    <input type="text" class="form-control" id="pickup" placeholder="Enter pickup address">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="destination" class="form-label">Destination</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-flag-checkered"></i></span>
+                                    <input type="text" class="form-control" id="destination" placeholder="Enter destination address">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="pickupTime" class="form-label">Pickup Time</label>
+                                    <select class="form-select" id="pickupTime">
+                                        <option value="now">Now</option>
+                                        <option value="later">Schedule for Later</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="passengers" class="form-label">Passengers</label>
+                                    <select class="form-select" id="passengers">
+                                        <option value="1">1 Person</option>
+                                        <option value="2">2 People</option>
+                                        <option value="3">3 People</option>
+                                        <option value="4">4 People</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-warning w-100">Get Price Estimate</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="how-it-works py-5 bg-light rounded-3 mb-5">
+    <div class="text-center mb-5">
+        <h2 class="mb-3">How It Works</h2>
+        <p class="lead">Simple steps to start using WamiaGo services</p>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-4 mb-md-0">
+                <div class="step text-center">
+                    <div class="step-number">1</div>
+                    <h3 class="h4 mt-4 mb-3">Create an Account</h3>
+                    <p>Sign up and complete your profile to get started with WamiaGo services.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4 mb-md-0">
+                <div class="step text-center">
+                    <div class="step-number">2</div>
+                    <h3 class="h4 mt-4 mb-3">Choose a Service</h3>
+                    <p>Select from ride sharing, bicycle rentals, or browse transportation announcements.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step text-center">
+                    <div class="step-number">3</div>
+                    <h3 class="h4 mt-4 mb-3">Enjoy the Journey</h3>
+                    <p>Travel with confidence knowing you've chosen a sustainable transportation option.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="testimonials mb-5">
+    <h2 class="text-center mb-5">What Our Users Say</h2>
+    <div class="row">
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 testimonial-card">
+                <div class="card-body p-4">
+                    <div class="d-flex mb-4">
+                        <div class="flex-shrink-0">
+                            <img src="{{ asset('images/front/avatar-1.svg') }}" alt="User" class="rounded-circle testimonial-avatar">
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="mb-1">John Doe</h5>
+                            <div class="text-warning mb-1">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="card-text">"WamiaGo has transformed my daily commute. I've saved money and made friends through ride sharing."</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 testimonial-card">
+                <div class="card-body p-4">
+                    <div class="d-flex mb-4">
+                        <div class="flex-shrink-0">
+                            <img src="{{ asset('images/front/avatar-2.svg') }}" alt="User" class="rounded-circle testimonial-avatar">
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="mb-1">Jane Smith</h5>
+                            <div class="text-warning mb-1">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="card-text">"The bicycle rental service is fantastic! Easy to use and the bikes are always in great condition."</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4 mx-auto">
+            <div class="card h-100 testimonial-card">
+                <div class="card-body p-4">
+                    <div class="d-flex mb-4">
+                        <div class="flex-shrink-0">
+                            <img src="{{ asset('images/front/avatar-3.svg') }}" alt="User" class="rounded-circle testimonial-avatar">
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="mb-1">Robert Johnson</h5>
+                            <div class="text-warning mb-1">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="card-text">"The transportation announcements keep me informed about changes that might affect my travel plans. Very useful!"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta bg-primary text-white p-5 rounded-3 text-center">
+    <h2 class="mb-3">Ready to Get Started?</h2>
+    <p class="lead mb-4">Join thousands of users who are already enjoying the benefits of WamiaGo.</p>
+    <a href="#" class="btn btn-light btn-lg me-2">Sign Up Now</a>
+    <a href="#" class="btn btn-outline-light btn-lg">Learn More</a>
+</section>
+{% endblock %}
+
+{% block page_stylesheets %}
+<style>
+    .min-vh-50 {
+        min-height: 50vh;
+    }
+    
+    .hero-slide {
+        padding: 80px 0;
+    }
+    
+    .step-number {
+        width: 60px;
+        height: 60px;
+        background-color: #0d6efd;
+        color: white;
+        font-size: 24px;
+        font-weight: bold;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto;
+    }
+    
+    .testimonial-avatar {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+    }
+    
+    .service-card:hover .icon-wrapper {
+        transform: scale(1.1);
+    }
+    
+    /* Taxi specific styles */
+    .service-card:hover .icon-wrapper .fa-taxi {
+        color: white !important;
+    }
+    
+    .service-card:hover .icon-wrapper.bg-warning-soft {
+        background-color: #ffc107 !important;
+    }
+</style>
+{% endblock %}
+
+{% block page_javascripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize taxi booking form
+        const quickTaxiForm = document.getElementById('quickTaxiForm');
+        if (quickTaxiForm) {
+            quickTaxiForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const pickup = document.getElementById('pickup').value;
+                const destination = document.getElementById('destination').value;
+                
+                if (!pickup || !destination) {
+                    alert('Please enter both pickup and destination addresses');
+                    return;
+                }
+                
+                // Here you would normally send the form to the server to calculate price
+                alert('Calculating price estimate for your journey...');
+                // In a real app, you'd show the price and booking options
+            });
+        }
+    });
+</script>
+{% endblock %}
