@@ -18,19 +18,44 @@ class BicycleStation
     #[ORM\Column(type: 'integer')]
     private ?int $id_station = null;
 
-    public function getId_station(): ?int
+    #[ORM\Column(type: 'string', nullable: false)]
+    private ?string $name = null;
+
+    #[ORM\ManyToOne(targetEntity: Location::class, inversedBy: 'bicycleStations')]
+    #[ORM\JoinColumn(name: 'id_location', referencedColumnName: 'id_location')]
+    private ?Location $location = null;
+
+    #[ORM\Column(type: 'integer', nullable: false)]
+    private ?int $total_docks = null;
+
+    #[ORM\Column(type: 'integer', nullable: false)]
+    private ?int $available_docks = null;
+
+    #[ORM\Column(type: 'integer', nullable: false)]
+    private ?int $available_bikes = null;
+
+    #[ORM\Column(type: 'integer', nullable: false)]
+    private ?int $charging_bikes = null;
+
+    #[ORM\Column(enumType: BICYCLE_STATION_STATUS::class)]
+    private ?BICYCLE_STATION_STATUS $status = null;
+
+    #[ORM\OneToMany(targetEntity: Bicycle::class, mappedBy: 'bicycleStation')]
+    private Collection $bicycles;
+
+    #[ORM\OneToMany(targetEntity: BicycleRental::class, mappedBy: 'bicycleStation')]
+    private Collection $bicycleRentals;
+
+    public function __construct()
+    {
+        $this->bicycles = new ArrayCollection();
+        $this->bicycleRentals = new ArrayCollection();
+    }
+
+    public function getIdStation(): ?int
     {
         return $this->id_station;
     }
-
-    public function setId_station(int $id_station): self
-    {
-        $this->id_station = $id_station;
-        return $this;
-    }
-
-    #[ORM\Column(type: 'string', nullable: false)]
-    private ?string $name = null;
 
     public function getName(): ?string
     {
@@ -43,10 +68,6 @@ class BicycleStation
         return $this;
     }
 
-    #[ORM\ManyToOne(targetEntity: Location::class, inversedBy: 'bicycleStations')]
-    #[ORM\JoinColumn(name: 'id_location', referencedColumnName: 'id_location')]
-    private ?Location $location = null;
-
     public function getLocation(): ?Location
     {
         return $this->location;
@@ -58,64 +79,49 @@ class BicycleStation
         return $this;
     }
 
-    #[ORM\Column(type: 'integer', nullable: false)]
-    private ?int $total_docks = null;
-
-    public function getTotal_docks(): ?int
+    public function getTotalDocks(): ?int
     {
         return $this->total_docks;
     }
 
-    public function setTotal_docks(int $total_docks): self
+    public function setTotalDocks(int $total_docks): self
     {
         $this->total_docks = $total_docks;
         return $this;
     }
 
-    #[ORM\Column(type: 'integer', nullable: false)]
-    private ?int $available_docks = null;
-
-    public function getAvailable_docks(): ?int
+    public function getAvailableDocks(): ?int
     {
         return $this->available_docks;
     }
 
-    public function setAvailable_docks(int $available_docks): self
+    public function setAvailableDocks(int $available_docks): self
     {
         $this->available_docks = $available_docks;
         return $this;
     }
 
-    #[ORM\Column(type: 'integer', nullable: false)]
-    private ?int $available_bikes = null;
-
-    public function getAvailable_bikes(): ?int
+    public function getAvailableBikes(): ?int
     {
         return $this->available_bikes;
     }
 
-    public function setAvailable_bikes(int $available_bikes): self
+    public function setAvailableBikes(int $available_bikes): self
     {
         $this->available_bikes = $available_bikes;
         return $this;
     }
 
-    #[ORM\Column(type: 'integer', nullable: false)]
-    private ?int $charging_bikes = null;
-
-    public function getCharging_bikes(): ?int
+    public function getChargingBikes(): ?int
     {
         return $this->charging_bikes;
     }
 
-    public function setCharging_bikes(int $charging_bikes): self
+    public function setChargingBikes(int $charging_bikes): self
     {
         $this->charging_bikes = $charging_bikes;
         return $this;
     }
-
-    #[ORM\Column(enumType: BICYCLE_STATION_STATUS::class)]
-    private ?BICYCLE_STATION_STATUS $status = null;
 
     public function getStatus(): ?BICYCLE_STATION_STATUS
     {
@@ -127,9 +133,6 @@ class BicycleStation
         $this->status = $status;
         return $this;
     }
-
-    #[ORM\OneToMany(targetEntity: Bicycle::class, mappedBy: 'bicycleStation')]
-    private Collection $bicycles;
 
     /**
      * @return Collection<int, Bicycle>
@@ -156,15 +159,6 @@ class BicycleStation
         return $this;
     }
 
-    #[ORM\OneToMany(targetEntity: BicycleRental::class, mappedBy: 'bicycleStation')]
-    private Collection $bicycleRentals;
-
-    public function __construct()
-    {
-        $this->bicycles = new ArrayCollection();
-        $this->bicycleRentals = new ArrayCollection();
-    }
-
     /**
      * @return Collection<int, BicycleRental>
      */
@@ -187,59 +181,6 @@ class BicycleStation
     public function removeBicycleRental(BicycleRental $bicycleRental): self
     {
         $this->getBicycleRentals()->removeElement($bicycleRental);
-        return $this;
-    }
-
-    public function getIdStation(): ?int
-    {
-        return $this->id_station;
-    }
-
-    public function getTotalDocks(): ?int
-    {
-        return $this->total_docks;
-    }
-
-    public function setTotalDocks(int $total_docks): static
-    {
-        $this->total_docks = $total_docks;
-
-        return $this;
-    }
-
-    public function getAvailableDocks(): ?int
-    {
-        return $this->available_docks;
-    }
-
-    public function setAvailableDocks(int $available_docks): static
-    {
-        $this->available_docks = $available_docks;
-
-        return $this;
-    }
-
-    public function getAvailableBikes(): ?int
-    {
-        return $this->available_bikes;
-    }
-
-    public function setAvailableBikes(int $available_bikes): static
-    {
-        $this->available_bikes = $available_bikes;
-
-        return $this;
-    }
-
-    public function getChargingBikes(): ?int
-    {
-        return $this->charging_bikes;
-    }
-
-    public function setChargingBikes(int $charging_bikes): static
-    {
-        $this->charging_bikes = $charging_bikes;
-
         return $this;
     }
 }

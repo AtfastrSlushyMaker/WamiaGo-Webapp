@@ -3,6 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\BicycleRental;
+use Doctrine\ORM\EntityRepository;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -15,6 +17,17 @@ class BicycleRentalRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, BicycleRental::class);
     }
+
+    public function findActiveRentalsByUser(User $user): array
+{
+    return $this->createQueryBuilder('r')
+        ->andWhere('r.user = :user')  // Use the proper association field
+        ->andWhere('r.end_time IS NULL')
+        ->setParameter('user', $user)  // Pass the user entity directly
+        ->orderBy('r.start_time', 'DESC')
+        ->getQuery()
+        ->getResult();
+}
 
     //    /**
     //     * @return BicycleRental[] Returns an array of BicycleRental objects

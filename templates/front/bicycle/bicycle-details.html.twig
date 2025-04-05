@@ -1,0 +1,341 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}{{ bicycle.idBike }} - {{ bicycleType }} Details - WamiaGo{% endblock %}
+
+{% block page_stylesheets %}
+<link href="{{ asset('css/front/Bicycle/bicycle-rental.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
+<style>
+    .feature-list li {
+        margin-bottom: 0.75rem;
+    }
+    
+    .spec-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .spec-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: var(--bicycle-color-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .spec-icon i {
+        font-size: 1.5rem;
+        color: var(--bicycle-color);
+    }
+    
+    .battery-indicator {
+        height: 12px;
+        border-radius: 6px;
+    }
+    
+    .bicycle-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 8px;
+        display: block;
+    }
+    
+    .bicycle-image-container {
+        height: 400px;
+        overflow: hidden;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    {% set isPremium = bicycle.batteryLevel > 40 %}
+    {% set bicycleType = isPremium ? 'Premium E-Bike' : 'Standard E-Bike' %}
+    
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_front_services_bicycle') }}">Bicycle Rentals</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_front_services_bicycle_station', {'id': bicycle.bicycleStation.idStation}) }}">{{ bicycle.bicycleStation.name }}</a></li>
+            <li class="breadcrumb-item active">{{ bicycleType }} Details</li>
+        </ol>
+    </nav>
+
+    <div class="row mb-5">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-0 position-relative">
+                    {% if isPremium %}
+                        <img src="https://images.unsplash.com/photo-1618987688327-dc0b28888fe4?q=80&w=2103&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="bicycle-image" alt="Premium E-Bike">
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <span class="badge bg-bicycle px-3 py-2">Premium</span>
+                        </div>
+                    {% else %}
+                        <img src="https://images.unsplash.com/photo-1619678786641-23eb19f27924?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="bicycle-image" alt="Standard E-Bike">
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <span class="badge bg-secondary px-3 py-2">Standard</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <h1 class="mb-3">{{ bicycleType }}</h1>
+            
+            <div class="d-flex align-items-center mb-4">
+                <div class="me-4">
+                     <span class="badge bg-bicycle px-3 py-2 fs-6">{% if bicycleType == 'Premium E-Bike' %}15.00{% else %}10.50{% endif %} TND/hour</span>
+                </div>
+                <div>
+                    <span class="badge {% if bicycle.status.value == 'AVAILABLE' %}bg-success{% else %}bg-danger{% endif %} px-3 py-2 fs-6">
+                        <i class="fas {% if bicycle.status.value == 'AVAILABLE' %}fa-check-circle{% else %}fa-times-circle{% endif %} me-1"></i>
+                        {{ bicycle.status.value == 'AVAILABLE' ? 'Available' : 'Unavailable' }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <h5>Battery Status</h5>
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Current battery level</span>
+                    <span class="fw-bold">{{ bicycle.batteryLevel }}%</span>
+                </div>
+                <progress 
+                    class="battery-indicator w-100 mb-3
+                    {% if bicycle.batteryLevel > 70 %} progress-success
+                    {% elseif bicycle.batteryLevel > 30 %} progress-warning
+                    {% else %} progress-danger{% endif %}" 
+                    value="{{ bicycle.batteryLevel }}" 
+                    max="100">
+                    {{ bicycle.batteryLevel }}%
+                </progress>
+            </div>
+            
+            <p class="lead mb-4">
+                {% if isPremium %}
+                    Our high-end electric bicycle with extended range and premium features for a superior riding experience.
+                {% else %}
+                    Reliable electric bicycle perfect for daily commuting and exploring the city at a comfortable pace.
+                {% endif %}
+            </p>
+            
+            {% if bicycle.status.value == 'AVAILABLE' %}
+                <a href="{{ path('app_front_reserve_bicycle', {'id': bicycle.idBike}) }}" class="btn btn-bicycle btn-lg mb-4">
+                    <i class="fas fa-check-circle me-2"></i> Reserve Now
+                </a>
+            {% else %}
+                <button class="btn btn-secondary btn-lg mb-4" disabled>
+                    <i class="fas fa-times-circle me-2"></i> Currently Unavailable
+                </button>
+            {% endif %}
+            
+            <div class="card bg-light border-0 mb-4">
+                <div class="card-body">
+                    <h5 class="mb-3">Bicycle Location</h5>
+                    <p class="mb-2">
+                        <i class="fas fa-map-marker-alt text-bicycle me-2"></i>
+                        <strong>{{ bicycle.bicycleStation.name }}</strong>
+                    </p>
+                    <p class="text-muted mb-0">
+                        {% if bicycle.bicycleStation.location %}
+                            {{ bicycle.bicycleStation.location.address }}
+                        {% else %}
+                            Address not available
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-5">
+        <div class="col-md-6 mb-4 mb-md-0">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-bicycle text-white py-3">
+                    <h3 class="h5 mb-0">Technical Specifications</h3>
+                </div>
+                <div class="card-body">
+                    <div class="spec-item">
+                        <div class="spec-icon">
+                            <i class="fas fa-road"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">Maximum Range</h5>
+                            <p class="mb-0">{{ bicycle.rangeKm }} kilometers on a full charge</p>
+                        </div>
+                    </div>
+                    
+                    <div class="spec-item">
+                        <div class="spec-icon">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">Top Speed</h5>
+                            <p class="mb-0">
+                                {% if bicycleType == 'Premium E-Bike' %}
+                                    30 km/h with pedal assist
+                                {% else %}
+                                    25 km/h with pedal assist
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="spec-item">
+                        <div class="spec-icon">
+                            <i class="fas fa-battery-full"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">Battery</h5>
+                            <p class="mb-0">
+                                {% if bicycleType == 'Premium E-Bike' %}
+                                    48V 14Ah Lithium-ion battery (672Wh)
+                                {% else %}
+                                    36V 10Ah Lithium-ion battery (360Wh)
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="spec-item mb-0">
+                        <div class="spec-icon">
+                            <i class="fas fa-weight"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">Weight</h5>
+                            <p class="mb-0">
+                                {% if bicycleType == 'Premium E-Bike' %}
+                                    22 kg including battery
+                                {% else %}
+                                    20 kg including battery
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-bicycle text-white py-3">
+                    <h3 class="h5 mb-0">Features & Equipment</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="feature-list list-unstyled">
+                        {% if bicycleType == 'Premium E-Bike' %}
+                            <li><i class="fas fa-check-circle text-bicycle me-2"></i> LCD display with speedometer and battery indicator</li>
+                            <li><i class="fas fa-check-circle text-bicycle me-2"></i> 5 levels of pedal assist</li>
+                            <li><i class="fas fa-check-circle text-bicycle me-2"></i> Front suspension fork for smoother rides</li>
+                            <li><i class="fas fa-check-circle text-bicycle me-2"></i> Hydraulic disc brakes for superior stopping power</li>
+                            <li><i class="fas fa-check-circle text-bicycle me-2"></i> Integrated front and rear LED lights</li>
+                            <li><i class="fas fa-check-circle text-bicycle me-2"></i> Comfortable ergonomic saddle</li>
+                            <li><i class="fas fa-check-circle text-bicycle me-2"></i> 9-speed Shimano gears</li>
+                            <li><i class="fas fa-check-circle text-bicycle me-2"></i> Rear rack for carrying items</li>
+                            <li><i class="fas fa-check-circle text-bicycle me-2"></i> Puncture-resistant tires</li>
+                        {% else %}
+                            <li><i class="fas fa-check-circle text-bicycle me-2"></i> LED display with basic battery indicator</li>
+                            <li><i class="fas fa-check-circle text-bicycle me-2"></i> 3 levels of pedal assist</li>
+                            <li><i class="fas fa-check-circle text-bicycle me-2"></i> Mechanical disc brakes</li>
+                            <li><i class="fas fa-check-circle text-bicycle me-2"></i> Integrated front LED light</li>
+                            <li><i class="fas fa-check-circle text-bicycle me-2"></i> Standard comfortable saddle</li>
+                            <li><i class="fas fa-check-circle text-bicycle me-2"></i> 7-speed Shimano gears</li>
+                            <li><i class="fas fa-check-circle text-bicycle me-2"></i> Front basket for carrying items</li>
+                            <li><i class="fas fa-check-circle text-bicycle me-2"></i> Standard city tires</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-header bg-bicycle text-white py-3">
+            <h3 class="h5 mb-0">Rental Information</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-4 mb-md-0">
+                    <h5>Pricing</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Duration</th>
+                                <th scope="col">Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1 hour</td>
+                                <td>{% if bicycleType == 'Premium E-Bike' %}15.00 TND{% else %}10.50 TND{% endif %}</td>
+                            </tr>
+                            <tr>
+                                <td>3 hours</td>
+                                <td>{% if bicycleType == 'Premium E-Bike' %}39.00 TND{% else %}27.00 TND{% endif %}</td>
+                            </tr>
+                            <tr>
+                                <td>Full day (24 hours)</td>
+                                <td>{% if bicycleType == 'Premium E-Bike' %}105.00 TND{% else %}72.00 TND{% endif %}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h5>What's Included</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-helmet-safety text-bicycle me-2"></i> Helmet</li>
+                        <li><i class="fas fa-lock text-bicycle me-2"></i> Security lock</li>
+                        <li><i class="fas fa-shield-alt text-bicycle me-2"></i> Basic insurance</li>
+                        <li><i class="fas fa-map text-bicycle me-2"></i> City map (digital)</li>
+                        <li><i class="fas fa-tools text-bicycle me-2"></i> Emergency repair kit</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-center">
+        <h3 class="mb-4">Ready to Rent This Bicycle?</h3>
+        {% if bicycle.status.value == 'AVAILABLE' %}
+            <a href="{{ path('app_front_reserve_bicycle', {'id': bicycle.idBike}) }}" class="btn btn-bicycle btn-lg px-5">
+                <i class="fas fa-check-circle me-2"></i> Reserve Now
+            </a>
+        {% else %}
+            <div class="alert alert-warning d-inline-block">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                This bicycle is currently unavailable. Please check back later or choose another bicycle.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block page_javascripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add any bicycle details page specific JavaScript here
+        
+        // Example: Smooth scroll to reserve button when "Reserve Now" is clicked at bottom
+        const bottomReserveBtn = document.querySelector('.text-center .btn-bicycle');
+        if (bottomReserveBtn) {
+            bottomReserveBtn.addEventListener('click', function(e) {
+                const topReserveBtn = document.querySelector('.col-lg-6 .btn-bicycle');
+                if (topReserveBtn) {
+                    e.preventDefault();
+                    topReserveBtn.scrollIntoView({ behavior: 'smooth' });
+                    // Add a small delay before triggering the click
+                    setTimeout(() => {
+                        topReserveBtn.click();
+                    }, 800);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
