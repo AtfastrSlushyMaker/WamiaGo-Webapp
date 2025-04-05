@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,182 +5,711 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}AdminLTE v4 | Dashboard{% endblock %}</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text></svg>">
-    
+
     {% block stylesheets %}
         <!-- Fonts -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css" 
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css"
               integrity="sha256-tXJfXfp6Ewt1ilPzLDtQnJV4hclT9XuaZUKyUvmyr+Q=" crossorigin="anonymous">
-        
+
         <!-- OverlayScrollbars -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/styles/overlayscrollbars.min.css" 
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/styles/overlayscrollbars.min.css"
               integrity="sha256-tZHrRjVqNSRyWg2wbppGnT833E/Ys0DHWGwT04GiqQg=" crossorigin="anonymous">
-        
+
         <!-- Bootstrap Icons -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" 
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
               integrity="sha256-9kPW/n5nn53j4WMRYAxe9c1rCY96Oogo/MKSVdKzPmI=" crossorigin="anonymous">
-        
+
         <!-- Charts CSS -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css" 
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css"
               integrity="sha256-4MX+61mt9NVvvuPjUWdUdyfZfxSB1/Rf9WtqRHgG5S0=" crossorigin="anonymous">
-        
+
         <!-- Vector Maps -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/css/jsvectormap.min.css" 
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/css/jsvectormap.min.css"
               integrity="sha256-+uGLJmmTKOqBr+2E6KDYs/NRsHxSkONXFHUL0fy2O/4=" crossorigin="anonymous">
-        
+
         <!-- AdminLTE CSS -->
         <link rel="stylesheet" href="{{ asset('adminlte/css/adminlte.min.css') }}">
 
         <style>
-        /* CSS Personnalisé pour la navbar */
-        .navbar-nav .nav-link {
-            padding: 0.5rem 1rem;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
+            /* Sidebar core styles */
+            #sidebar {
+                width: 280px;
+                background: #0d6efd;
+                color: #fff;
+                position: fixed;
+                height: 100vh;
+                top: 0;
+                left: 0;
+                z-index: 999;
+                transition: all 0.3s ease;
+                box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
+            }
 
-        .navbar-nav .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-        }
+            /* Hidden sidebar state */
+            #sidebar.active {
+                margin-left: -280px;
+            }
 
-        .navbar-nav .nav-item.dropdown:hover .dropdown-menu {
-            display: block;
-        }
+            /* Main content area spacing */
+            .app-main {
+                margin-left: 280px;
+                transition: margin-left 0.3s ease;
+            }
 
-        .dropdown-menu {
-            border: none;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-        }
+            body.sidebar-collapsed .app-main {
+                margin-left: 0;
+            }
 
-        .user-header {
-            padding: 10px;
-            text-align: center;
-            background: linear-gradient(135deg, #3c8dbc 0%, #367fa9 100%);
-        }
+            body.sidebar-collapsed .app-header {
+                left: 0;
+            }
 
-        .user-image {
-            width: 45px;
-            height: 45px;
-            object-fit: cover;
-        }
+            /* Custom menu for toggle button */
+            .custom-menu {
+                position: absolute;
+                top: 20px;
+                right: -60px;
+                z-index: 1000;
+                transition: all 0.3s;
+            }
 
-        .nav-icon {
-            margin-right: 8px;
-            font-size: 1.1rem;
-        }
+            /* Toggle button styling */
+            #sidebarCollapse {
+                width: 45px;
+                height: 45px;
+                background: #0d6efd;
+                color: white;
+                border: none;
+                border-radius: 50%;
+                cursor: pointer;
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s;
+            }
 
-        /* Style pour le menu actif */
-        .nav-item.active .nav-link {
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-        }
-    </style>
+            #sidebarCollapse:hover {
+                background: #0b5ed7;
+                transform: rotate(90deg);
+            }
+
+            #sidebarCollapse i {
+                font-size: 1.2rem;
+            }
+
+            /* Sidebar content styling */
+            .sidebar-content {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                padding: 20px 15px;
+                overflow-y: auto;
+                scrollbar-width: thin;
+                scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+            }
+
+            .sidebar-content::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .sidebar-content::-webkit-scrollbar-thumb {
+                background-color: rgba(255, 255, 255, 0.2);
+                border-radius: 3px;
+            }
+
+            /* Logo styling */
+            .logo-container {
+                padding: 10px 5px 25px 5px;
+            }
+
+            .logo {
+                display: flex;
+                align-items: center;
+                text-decoration: none;
+                color: white;
+            }
+
+            .logo:hover {
+                color: white;
+                opacity: 0.9;
+            }
+
+            .logo img {
+                height: 40px;
+                width: auto;
+                transition: all 0.3s ease;
+            }
+
+            .logo span {
+                font-size: 1.2rem;
+                margin-left: 10px;
+            }
+
+            /* Navigation items */
+            .nav-list {
+                list-style: none;
+                padding: 0;
+                margin: 0 0 30px 0;
+            }
+
+            .nav-item {
+                margin-bottom: 8px;
+            }
+
+            .nav-link {
+                display: flex;
+                align-items: center;
+                padding: 12px 15px;
+                color: rgba(255, 255, 255, 0.85);
+                text-decoration: none;
+                border-radius: 10px;
+                transition: all 0.2s ease;
+                position: relative;
+                background: rgba(255, 255, 255, 0.08);
+            }
+
+            .nav-link:hover {
+                background: rgba(255, 255, 255, 0.15);
+                color: #fff;
+                transform: translateX(5px);
+            }
+
+            .nav-item.active .nav-link {
+                background: rgba(255, 255, 255, 0.2);
+                color: #fff;
+                font-weight: 600;
+            }
+
+            .nav-icon {
+                font-size: 1.2rem;
+                min-width: 24px;
+                margin-right: 10px;
+                text-align: center;
+            }
+
+            /* Logout button styling */
+            .logout-container {
+                margin-top: auto;
+                padding: 20px 0;
+            }
+
+            .logout-btn {
+                display: flex;
+                align-items: center;
+                padding: 12px 15px;
+                background-color: #dc3545;
+                color: white;
+                border-radius: 10px;
+                text-decoration: none;
+                transition: all 0.2s ease;
+                width: auto;
+                max-width: 150px;
+            }
+
+            .logout-btn:hover {
+                background-color: #bb2d3b;
+                color: white;
+                transform: translateX(5px);
+            }
+
+            .logout-btn i {
+                font-size: 1.2rem;
+                margin-right: 10px;
+            }
+
+            /* Footer */
+            .sidebar-footer {
+                padding-top: 15px;
+                text-align: center;
+                font-size: 0.8rem;
+                color: rgba(255, 255, 255, 0.5);
+            }
+
+            /* Topbar specific styles */
+            .app-header {
+                position: sticky;
+                top: 0;
+                right: 0;
+                left: 280px;
+                z-index: 998;
+                height: 60px;
+                padding: 0;
+                transition: all 0.3s ease;
+            }
+
+            /* Logo styles */
+            .logo-link {
+                display: flex !important;
+                align-items: center;
+                padding: 0.5rem 1rem;
+                text-decoration: none;
+            }
+
+            .topbar-logo {
+                height: 36px;
+                width: auto;
+                margin-right: 0.5rem;
+            }
+
+            .logo-text {
+                color: #0d6efd;
+                font-size: 1.2rem;
+            }
+
+            .app-header .navbar-nav .nav-link {
+                padding: 0.5rem 1rem;
+                color: #6c757d;
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+
+            .app-header .navbar-nav .nav-link:hover {
+                color: #0d6efd;
+            }
+
+            /* Badge positioning */
+            .navbar-badge {
+                position: absolute;
+                top: 0;
+                right: 2px;
+                font-size: 0.6rem;
+                padding: 2px 4px;
+            }
+
+            /* User dropdown menu */
+            .user-image {
+                width: 32px;
+                height: 32px;
+                object-fit: cover;
+                transition: all 0.2s ease;
+            }
+
+            .user-menu .dropdown-menu {
+                border: none;
+                padding: 0;
+                width: 280px;
+            }
+
+            .user-header {
+                border-top-left-radius: 0.375rem;
+                border-top-right-radius: 0.375rem;
+            }
+
+            .user-footer {
+                background-color: #f8f9fa;
+                border-bottom-left-radius: 0.375rem;
+                border-bottom-right-radius: 0.375rem;
+            }
+
+            /* Dropdown positioning */
+            .dropdown-menu {
+                animation: dropdown-animation 0.2s ease forwards;
+            }
+
+            /* Notifications styling */
+            .dropdown-item {
+                padding: 0.5rem 1rem;
+                white-space: normal;
+            }
+
+            .dropdown-header {
+                font-weight: 600;
+                padding: 0.5rem 1rem;
+            }
+
+            .dropdown-footer {
+                font-weight: 500;
+                color: #0d6efd;
+                text-align: center;
+                padding: 0.5rem;
+                display: block;
+            }
+
+            .dropdown-divider {
+                margin: 0;
+            }
+
+            /* Live clock */
+            #live-clock {
+                font-size: 0.85rem;
+            }
+
+            /* Responsiveness adjustments */
+            @media (max-width: 991.98px) {
+                #sidebar {
+                    width: 280px;
+                    margin-left: -280px;
+                }
+
+                #sidebar.active {
+                    margin-left: 0;
+                }
+
+                .app-header {
+                    left: 0;
+                }
+
+                .app-main {
+                    margin-left: 0;
+                }
+
+                body.sidebar-active .app-main {
+                    margin-left: 0;
+                }
+
+                body.sidebar-active::before {
+                    content: '';
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.5);
+                    z-index: 998;
+                }
+
+                .custom-menu {
+                    right: -45px;
+                }
+            }
+
+            @keyframes dropdown-animation {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        </style>
     {% endblock %}
 
     {% block javascripts_head %}{% endblock %}
 </head>
-<body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
-    {% block body %}{% endblock %}
+<body class="layout-fixed sidebar-expand-lg bg-body-tertiary sidebar-collapsed">
+<div class="app-wrapper">
+    <!-- Topbar -->
+    <nav class="app-header navbar navbar-expand bg-white shadow-sm">
+        <div class="container-fluid">
+            <!-- Left navbar links -->
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <button id="sidebarToggle" class="btn btn-link nav-link d-lg-none" type="button">
+                        <i class="bi bi-list"></i>
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ path('admin_dashboard') }}" class="nav-link logo-link">
+                        <img src="{{ asset('images/logo/logo.png') }}" alt="WamiaGo" class="topbar-logo">
+                        <span class="logo-text fw-bold">WamiaGo</span>
+                    </a>
+                </li>
+            </ul>
 
-    {% block javascripts %}
-        <!-- Core JS -->
-        <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/browser/overlayscrollbars.browser.es6.min.js" 
-                integrity="sha256-dghWARbRe2eLlIJ56wNB+b760ywulqK3DzZYEpsg2fQ=" 
-                crossorigin="anonymous"></script>
-        
-        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" 
-                integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" 
-                crossorigin="anonymous"></script>
-        
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" 
-                integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" 
-                crossorigin="anonymous"></script>
-        
-        <!-- AdminLTE JS -->
-        <script src="{{ asset('adminlte/js/adminlte.min.js') }}"></script>
-        
-        <!-- Charts JS -->
-        <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js" 
-                integrity="sha256-+vh8GkaU7C9/wbSLIcwq82tQ2wTf44aOHA8HlBMwRI8=" 
-                crossorigin="anonymous"></script>
-        
-        <!-- Vector Maps JS -->
-        <script src="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/js/jsvectormap.min.js" 
-                integrity="sha256-/t1nN2956BT869E6H4V1dnt0X5pAQHPytli+1nTZm2Y=" 
-                crossorigin="anonymous"></script>
-        
-        <script src="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/maps/world.js" 
-                integrity="sha256-XPpPaZlU8S/HWf7FZLAncLg2SAkP8ScUTII89x9D3lY=" 
-                crossorigin="anonymous"></script>
-        
-        <!-- Scripts d'initialisation -->
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // Configuration OverlayScrollbars
-                const sidebarWrapper = document.querySelector('.sidebar-wrapper');
-                if (sidebarWrapper && typeof OverlayScrollbarsGlobal?.OverlayScrollbars !== 'undefined') {
-                    OverlayScrollbarsGlobal.OverlayScrollbars(sidebarWrapper, {
-                        scrollbars: {
-                            theme: 'os-theme-light',
-                            autoHide: 'leave',
-                            clickScroll: true,
-                        },
-                    });
+            <!-- Right navbar links -->
+            <ul class="navbar-nav ms-auto">
+                <!-- Live Clock -->
+                <li class="nav-item d-none d-md-block me-3">
+                    <div class="nav-link text-muted">
+                        <i class="bi bi-clock me-1"></i>
+                        <span id="live-clock">Loading...</span>
+                    </div>
+                </li>
+                <!-- Notifications Dropdown Menu -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link" data-bs-toggle="dropdown" href="#">
+                        <i class="bi bi-bell"></i>
+                        <span class="badge bg-danger navbar-badge">3</span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end shadow">
+                        <span class="dropdown-header">3 Notifications</span>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item">
+                            <i class="bi bi-envelope me-2"></i> 4 new messages
+                            <span class="float-end text-muted text-sm">3 mins</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item">
+                            <i class="bi bi-people me-2"></i> 8 friend requests
+                            <span class="float-end text-muted text-sm">12 hours</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item">
+                            <i class="bi bi-file-earmark-text me-2"></i> 3 new reports
+                            <span class="float-end text-muted text-sm">2 days</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
+                    </div>
+                </li>
+
+                <!-- Messages Dropdown Menu -->
+                <li class="nav-item dropdown mx-2">
+                    <a class="nav-link" data-bs-toggle="dropdown" href="#">
+                        <i class="bi bi-chat-text"></i>
+                        <span class="badge bg-success navbar-badge">4</span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end shadow">
+                        <span class="dropdown-header">4 Messages</span>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item d-flex align-items-center">
+                            <img src="https://ui-avatars.com/api/?name=John+Doe&background=198754&color=ffffff&size=48" class="rounded-circle me-2" width="40" height="40" alt="User">
+                            <div>
+                                <h6 class="fw-bold mb-0">John Doe</h6>
+                                <p class="text-sm text-muted mb-0">Call me whenever you can...</p>
+                                <p class="text-sm text-muted mb-0"><i class="bi bi-clock-history me-1"></i> 4 Hours Ago</p>
+                            </div>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item dropdown-footer">See All Messages</a>
+                    </div>
+                </li>
+
+                <!-- User Menu Dropdown -->
+                <li class="nav-item dropdown user-menu">
+                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                        <img src="https://ui-avatars.com/api/?name=Admin+User&background=0d6efd&color=ffffff&size=64" class="user-image rounded-circle" alt="User Image">
+                        <span class="d-none d-md-inline ms-1">Admin User</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end shadow">
+                        <li class="user-header bg-primary text-white p-3 rounded-top">
+                            <img src="https://ui-avatars.com/api/?name=Admin+User&background=0d6efd&color=ffffff&size=128" class="rounded-circle mx-auto d-block mb-3" width="90" height="90" alt="User Image">
+                            <p class="mb-0">
+                                Admin User
+                                <small>Member since Nov. 2023</small>
+                            </p>
+                        </li>
+                        <li class="user-footer d-flex justify-content-between p-3">
+                            <a href="#" class="btn btn-light btn-sm">Profile</a>
+                            <a href="#" class="btn btn-danger btn-sm">Sign out</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <nav id="sidebar" class="app-sidebar shadow" data-bs-theme="light">
+        <div class="custom-menu">
+            <button type="button" id="sidebarCollapse" class="btn btn-primary">
+                <i class="bi bi-list"></i>
+            </button>
+        </div>
+        <div class="sidebar-content">
+            <div class="logo-container">
+                <a href="#" class="logo">
+                    <img src="{{ asset('images/logo/logo.png') }}" alt="WamiaGo Logo">
+                    <span>WamiaGo &copy;</span>
+                </a>
+            </div>
+
+            <ul class="nav-list">
+                <li class="nav-item active">
+                    <a href="{{ path('admin_dashboard') }}" class="nav-link">
+                        <i class="bi bi-speedometer2 nav-icon"></i>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="bi bi-people nav-icon"></i>
+                        <span class="nav-text">Users</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="bi bi-car-front nav-icon"></i>
+                        <span class="nav-text">Ride Sharing</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="bi bi-taxi-front nav-icon"></i>
+                        <span class="nav-text">Taxi Service</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="bi bi-bicycle nav-icon"></i>
+                        <span class="nav-text">Bicycle Rentals</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="bi bi-truck nav-icon"></i>
+                        <span class="nav-text">Relocations</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="bi bi-gear nav-icon"></i>
+                        <span class="nav-text">Settings</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="logout-container">
+                <a href="#" class="logout-btn">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+
+            <div class="sidebar-footer">
+                <p>&copy; 2024 WamiaGo. All Rights Reserved.</p>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="app-main">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer bg-white border-top py-3">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">Copyright &copy; {{ "now"|date("Y") }} WamiaGo. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">Powered by <a href="#" class="text-decoration-none">WamiaGo Admin</a></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+
+{% block javascripts %}
+    <!-- Core JS -->
+    <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/browser/overlayscrollbars.browser.es6.min.js"
+            integrity="sha256-dghWARbRe2eLlIJ56wNB+b760ywulqK3DzZYEpsg2fQ="
+            crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+            integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+            crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
+            integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
+            crossorigin="anonymous"></script>
+
+    <!-- AdminLTE JS -->
+    <script src="{{ asset('adminlte/js/adminlte.min.js') }}"></script>
+
+    <!-- Charts JS -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"
+            integrity="sha256-+vh8GkaU7C9/wbSLIcwq82tQ2wTf44aOHA8HlBMwRI8="
+            crossorigin="anonymous"></script>
+
+    <!-- Vector Maps JS -->
+    <script src="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/js/jsvectormap.min.js"
+            integrity="sha256-/t1nN2956BT869E6H4V1dnt0X5pAQHPytli+1nTZm2Y="
+            crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/maps/world.js"
+            integrity="sha256-XPpPaZlU8S/HWf7FZLAncLg2SAkP8ScUTII89x9D3lY="
+            crossorigin="anonymous"></script>
+
+    <!-- Live Clock JS -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Live clock functionality with date
+            function updateClock() {
+                const now = new Date();
+
+                // Format time
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const seconds = now.getSeconds().toString().padStart(2, '0');
+                const timeString = `${hours}:${minutes}:${seconds}`;
+
+                // Format date
+                const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+                const dateString = now.toLocaleDateString('en-US', options);
+
+                // Update the clock element
+                const clockElement = document.getElementById('live-clock');
+                if (clockElement) {
+                    clockElement.innerHTML = `<span class="date me-2">${dateString}</span><span class="time">${timeString}</span>`;
                 }
-                
-                // Initialisation SortableJS
-                const connectedSortables = document.querySelectorAll('.connectedSortable');
-                connectedSortables.forEach((connectedSortable) => {
-                    new Sortable(connectedSortable, {
-                        group: 'shared',
-                        handle: '.card-header',
-                    });
-                });
-                
-                // Configuration des graphiques
-                if (typeof ApexCharts !== 'undefined' && document.querySelector('#revenue-chart')) {
-                    const salesChart = new ApexCharts(
-                        document.querySelector('#revenue-chart'),
-                        {
-                            series: [{
-                                name: 'Digital Goods',
-                                data: [28, 48, 40, 19, 86, 27, 90]
-                            }, {
-                                name: 'Electronics',
-                                data: [65, 59, 80, 81, 56, 55, 40]
-                            }],
-                            chart: {
-                                height: 300,
-                                type: 'area',
-                                toolbar: { show: false }
-                            },
-                            colors: ['#0d6efd', '#20c997'],
-                            dataLabels: { enabled: false },
-                            stroke: { curve: 'smooth' },
-                            xaxis: {
-                                type: 'datetime',
-                                categories: [
-                                    '2023-01-01', '2023-02-01', '2023-03-01',
-                                    '2023-04-01', '2023-05-01', '2023-06-01', '2023-07-01'
-                                ]
-                            },
-                            tooltip: {
-                                x: { format: 'MMMM yyyy' }
-                            }
-                        }
-                    );
-                    salesChart.render();
+            }
+
+            // Update clock immediately
+            updateClock();
+
+            // Then update every second
+            setInterval(updateClock, 1000);
+        });
+    </script>
+
+    <!-- Sidebar Toggle JS -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarCollapse');
+            const body = document.body;
+
+            // Initialize sidebar - hidden on load
+            sidebar.classList.add('active');
+            body.classList.add('sidebar-collapsed');
+
+            // Toggle sidebar function
+            function toggleSidebar(e) {
+                e.preventDefault();
+                sidebar.classList.toggle('active');
+                body.classList.toggle('sidebar-collapsed');
+
+                // On mobile, add overlay effect
+                if (window.innerWidth <= 991.98) {
+                    body.classList.toggle('sidebar-active');
                 }
-                
-                // Configuration de la carte vectorielle
-                if (typeof jsVectorMap !== 'undefined' && document.querySelector('#world-map')) {
-                    new jsVectorMap({
-                        selector: '#world-map',
-                        map: 'world'
-                    });
+            }
+
+            // Add event listener to toggle button
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', toggleSidebar);
+            }
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(e) {
+                if (
+                    window.innerWidth <= 991.98 &&
+                    !sidebar.classList.contains('active') &&
+                    !sidebar.contains(e.target) &&
+                    e.target !== sidebarToggle &&
+                    !sidebarToggle.contains(e.target) &&
+                    body.classList.contains('sidebar-active')
+                ) {
+                    sidebar.classList.add('active');
+                    body.classList.remove('sidebar-active');
                 }
             });
-        </script>
-    {% endblock %}
+
+            // Close sidebar on window resize if mobile
+            window.addEventListener('resize', function() {
+                if (window.innerWidth <= 991.98) {
+                    sidebar.classList.add('active');
+                    body.classList.remove('sidebar-active');
+                }
+            });
+        });
+    </script>
+
+{% endblock %}
+
+{% block page_javascripts %}{% endblock %}
 </body>
 </html>
