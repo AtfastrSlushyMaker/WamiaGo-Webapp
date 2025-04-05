@@ -600,3 +600,40 @@ footer::before {
 .navbar .nav-link.active:hover {
     color: white !important;
 }
+
+/* User dropdown specific styles */
+.navbar .btn-outline-primary.dropdown-toggle {
+    display: flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+}
+
+.navbar .dropdown-menu {
+    min-width: 220px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-item {
+    padding: 0.5rem 1rem;
+    transition: all 0.2s;
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+    background-color: #f8f9fa;
+    color: #0d6efd;
+}
+
+.dropdown-item i {
+    width: 20px;
+    text-align: center;
+    margin-right: 10px;
+}
+
+.dropdown-header {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6c757d;
+    padding: 0.5rem 1rem;
+    text-transform: uppercase;
+}
