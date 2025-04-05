@@ -90,7 +90,7 @@
             
             <div class="d-flex align-items-center mb-4">
                 <div class="me-4">
-                    <span class="badge bg-bicycle px-3 py-2 fs-6">${{ hourlyRate }}/hour</span>
+                     <span class="badge bg-bicycle px-3 py-2 fs-6">{% if bicycleType == 'Premium E-Bike' %}15.00{% else %}10.50{% endif %} TND/hour</span>
                 </div>
                 <div>
                     <span class="badge {% if bicycle.status.value == 'AVAILABLE' %}bg-success{% else %}bg-danger{% endif %} px-3 py-2 fs-6">
@@ -273,15 +273,15 @@
                         <tbody>
                             <tr>
                                 <td>1 hour</td>
-                                <td>${{ hourlyRate }}</td>
+                                <td>{% if bicycleType == 'Premium E-Bike' %}15.00 TND{% else %}10.50 TND{% endif %}</td>
                             </tr>
                             <tr>
                                 <td>3 hours</td>
-                                <td>{% if bicycleType == 'Premium E-Bike' %}$13.00{% else %}$9.00{% endif %}</td>
+                                <td>{% if bicycleType == 'Premium E-Bike' %}39.00 TND{% else %}27.00 TND{% endif %}</td>
                             </tr>
                             <tr>
                                 <td>Full day (24 hours)</td>
-                                <td>{% if bicycleType == 'Premium E-Bike' %}$35.00{% else %}$24.00{% endif %}</td>
+                                <td>{% if bicycleType == 'Premium E-Bike' %}105.00 TND{% else %}72.00 TND{% endif %}</td>
                             </tr>
                         </tbody>
                     </table>

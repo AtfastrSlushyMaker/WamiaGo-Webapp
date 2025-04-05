@@ -151,56 +151,62 @@
     <div class="container">
         <h2 class="text-center mb-5">Our Bicycle Types</h2>
         <div class="row g-4">
-            <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="row g-0">
-                        <div class="col-md-5">
-                            <div class="bicycle-type-img h-100">
-                                <img src="{{ asset('images/bicycle/bicycle-model-1.jpg') }}" class="img-fluid rounded-start h-100 w-100" alt="Standard E-Bike" style="object-fit: cover;">
-                            </div>
+    <div class="col-md-6">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="row g-0">
+                <div class="col-md-5">
+                    <div class="bicycle-type-img h-100 d-flex align-items-center justify-content-center bg-bicycle-light">
+                        <i class="fas fa-bicycle text-bicycle" style="font-size: 6rem;"></i>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h4 class="card-title">
+                                <i class="fas fa-bolt me-2 text-bicycle"></i>Standard E-Bike
+                            </h4>
+                            <span class="badge bg-bicycle">10.50 TND/hr</span>
                         </div>
-                        <div class="col-md-7">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h4 class="card-title">Standard E-Bike</h4>
-                                    <span class="badge bg-bicycle">$3.50/hr</span>
-                                </div>
-                                <p class="card-text text-muted">Perfect for everyday urban commuting with reliable battery life and comfortable design.</p>
-                                <ul class="list-unstyled mt-3">
-                                    <li class="mb-2"><i class="fas fa-check-circle text-bicycle me-2"></i> Up to 30km range</li>
-                                    <li class="mb-2"><i class="fas fa-check-circle text-bicycle me-2"></i> 25 km/h top speed</li>
-                                    <li class="mb-2"><i class="fas fa-check-circle text-bicycle me-2"></i> Basket included</li>
-                                </ul>
-                            </div>
-                        </div>
+                        <p class="card-text text-muted">Perfect for everyday urban commuting with reliable battery life and comfortable design.</p>
+                        <ul class="list-unstyled mt-3">
+                            <li class="mb-2"><i class="fas fa-check-circle text-bicycle me-2"></i> Up to 30km range</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-bicycle me-2"></i> 25 km/h top speed</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-bicycle me-2"></i> Basket included</li>
+                        </ul>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="row g-0">
-                        <div class="col-md-5">
-                            <div class="bicycle-type-img h-100">
-                                <img src="{{ asset('images/bicycle/bicycle-model-2.jpg') }}" class="img-fluid rounded-start h-100 w-100" alt="Premium E-Bike" style="object-fit: cover;">
-                            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="row g-0">
+                <div class="col-md-5">
+                    <div class="bicycle-type-img h-100 d-flex align-items-center justify-content-center bg-bicycle-light position-relative">
+                        <i class="fas fa-bicycle text-bicycle" style="font-size: 6rem;"></i>
+                        <i class="fas fa-star text-warning position-absolute" style="font-size: 2rem; top: 10px; right: 10px;"></i>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h4 class="card-title">
+                                <i class="fas fa-star me-2 text-warning"></i>Premium E-Bike
+                            </h4>
+                            <span class="badge bg-bicycle">15.00 TND/hr</span>
                         </div>
-                        <div class="col-md-7">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h4 class="card-title">Premium E-Bike</h4>
-                                    <span class="badge bg-bicycle">$5.00/hr</span>
-                                </div>
-                                <p class="card-text text-muted">Our high-end model with extended range, faster speed and premium features for demanding riders.</p>
-                                <ul class="list-unstyled mt-3">
-                                    <li class="mb-2"><i class="fas fa-check-circle text-bicycle me-2"></i> Up to 45km range</li>
-                                    <li class="mb-2"><i class="fas fa-check-circle text-bicycle me-2"></i> 30 km/h top speed</li>
-                                    <li class="mb-2"><i class="fas fa-check-circle text-bicycle me-2"></i> Smart LED display</li>
-                                </ul>
-                            </div>
-                        </div>
+                        <p class="card-text text-muted">Our high-end model with extended range, faster speed and premium features for demanding riders.</p>
+                        <ul class="list-unstyled mt-3">
+                            <li class="mb-2"><i class="fas fa-check-circle text-bicycle me-2"></i> Up to 45km range</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-bicycle me-2"></i> 30 km/h top speed</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-bicycle me-2"></i> Smart LED display</li>
+                        </ul>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
         </div>
     </div>
 </section>
@@ -224,18 +230,18 @@
                             <tbody>
                                 <tr>
                                     <td>1 hour</td>
-                                    <td>$3.50</td>
-                                    <td>$5.00</td>
+                                    <td>10.50 TND</td>
+                                    <td>15.00 TND</td>
                                 </tr>
                                 <tr>
                                     <td>3 hours</td>
-                                    <td>$9.00</td>
-                                    <td>$13.00</td>
+                                    <td>27.00 TND</td>
+                                    <td>39.00 TND</td>
                                 </tr>
                                 <tr>
                                     <td>Full day (24 hours)</td>
-                                    <td>$24.00</td>
-                                    <td>$35.00</td>
+                                    <td>72.00 TND</td>
+                                    <td>105.00 TND</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -287,7 +293,7 @@
                                     </p>
                                     <p class="mb-3">
                                         <i class="fas fa-tag me-2 text-bicycle"></i>
-                                        ${{ rental.cost|number_format(2) }}
+                                        {{ rental.cost|number_format(2) }} TND
                                     </p>
                                     <div class="d-flex justify-content-between">
                                         <a href="{{ path('app_front_show_rental_code', {'id': rental.idUserRental}) }}" class="btn btn-outline-bicycle btn-sm me-2">
