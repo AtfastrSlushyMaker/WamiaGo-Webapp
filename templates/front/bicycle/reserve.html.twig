@@ -1,0 +1,274 @@
+
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Reserve a Bicycle - WamiaGo{% endblock %}
+
+{% block page_stylesheets %}
+    <link href="{{ asset('css/front/Bicycle/bicycle-rental.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
+    <style>
+        .bicycle-details {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .battery-indicator {
+            width: 100%;
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .battery-level {
+            height: 100%;
+            background-color: #28a745;
+        }
+        
+        .reservation-form {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        
+        .price-calculation {
+            background-color: #e9f7ef;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .btn-reserve {
+            background-color: #28a745;
+            border-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            font-weight: bold;
+        }
+        
+        .weather-info {
+            background-color: #f0f8ff;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .weather-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+        }
+        
+        .rental-info-box {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+        
+        .rental-info-label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .estimated-return-info {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #ccc;
+        }
+        
+        .return-station-selector {
+            margin-top: 15px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+        <div class="row mb-4">
+            <div class="col">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ path('app_front_services_bicycle') }}">Bicycle Rentals</a></li>
+                        <li class="breadcrumb-item"><a href="{{ path('app_front_services_bicycle_station', {'id': bicycle.bicycleStation.idStation}) }}">{{ bicycle.bicycleStation.name }}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Reserve Bicycle</li>
+                    </ol>
+                </nav>
+                <h1>Reserve a Bicycle</h1>
+            </div>
+        </div>
+
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-danger">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="bicycle-details">
+                    <h3>{{ bicycleType }}</h3>
+                    <p class="text-muted">ID: #{{ bicycle.idBike }}</p>
+                    
+                    <div class="mt-4">
+                        <p><strong>Battery Level:</strong></p>
+                        <div class="battery-indicator">
+                            <div class="battery-level" style="width: {{ bicycle.batteryLevel }}%;"></div>
+                        </div>
+                        <p>{{ bicycle.batteryLevel }}%</p>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <p><strong>Estimated Range:</strong> {{ bicycle.rangeKm }} km</p>
+                        <p><strong>Station:</strong> {{ bicycle.bicycleStation.name }}</p>
+                        <p><strong>Hourly Rate:</strong> {{ (hourlyRate)|number_format(3) }} TND</p>
+                    </div>
+                    
+                    <div class="weather-info">
+                        <div class="weather-icon">☀️</div>
+                        <div>
+                            <p class="mb-0"><strong>Current Weather:</strong> Sunny</p>
+                            <p class="mb-0">26°C, Light breeze</p>
+                            <small class="text-muted">Perfect conditions for cycling!</small>
+                        </div>
+                    </div>
+                    
+                    <div class="rental-info-box mt-4">
+                        <p class="mb-2"><span class="rental-info-label">How it works:</span></p>
+                        <ol>
+                            <li>Reserve the bicycle now</li>
+                            <li>Unlock it at the station using your reservation code</li>
+                            <li>Use it for as long as you need</li>
+                            <li>Return it to any available station</li>
+                            <li>The final cost will be calculated when you return the bicycle</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="reservation-form">
+                    <h3>Reservation Details</h3>
+                    
+                    <form method="post" id="reservationForm">
+                        <div class="form-group mb-3">
+                            <label>Current Date and Time:</label>
+                            <input type="text" class="form-control" 
+                                   value="{{ "now"|date('Y-m-d H:i') }}" readonly>
+                            <small class="form-text text-muted">Your rental will start when you unlock the bicycle.</small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="estimatedDuration">Estimated Rental Duration (hours):</label>
+                            <select class="form-control" id="estimatedDuration" name="estimatedDuration" required>
+                                {% for i in 1..24 %}
+                                    <option value="{{ i }}">{{ i }} hour{% if i > 1 %}s{% endif %}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">This is just an estimate to help calculate the deposit amount.</small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="estimatedDistance">Estimated Distance (km):</label>
+                            <input type="number" class="form-control" id="estimatedDistance" name="estimatedDistance" 
+                                   value="5" min="1" max="{{ bicycle.rangeKm }}">
+                            <small class="form-text text-muted">Maximum range with current battery: {{ bicycle.rangeKm }} km</small>
+                        </div>
+                        
+                        <div class="return-station-selector mb-3">
+                            <label>Estimated Return Station (Optional):</label>
+                            <select class="form-control" id="estimatedReturnStation" name="estimatedReturnStation">
+                                <option value="">-- Select a station --</option>
+                                <option value="{{ bicycle.bicycleStation.idStation }}">{{ bicycle.bicycleStation.name }} (same station)</option>
+                                <!-- Other stations would be populated here from available stations -->
+                                <option value="2">Central Station</option>
+                                <option value="3">Harbor View Station</option>
+                                <option value="4">University Campus</option>
+                            </select>
+                            <small class="form-text text-muted">You can return the bicycle to any station.</small>
+                        </div>
+                        
+                        <div class="price-calculation">
+                            <p><strong>Hourly Rate:</strong> {{ hourlyRate|number_format(3) }} TND</p>
+                            <p><strong>Weather Conditions:</strong> <span id="weatherCondition">Good (no surcharge)</span></p>
+                            <p class="font-italic">The final price will be calculated when you return the bicycle.</p>
+                            <hr>
+                            <p class="h5"><strong>Estimated Deposit:</strong> <span id="totalCost">{{ hourlyRate|number_format(3) }}</span> TND</p>
+                            <p class="small text-muted">This is a pre-authorization amount. You'll only be charged for the actual time used.</p>
+                            <input type="hidden" name="estimatedCost" id="estimatedCost" value="{{ hourlyRate }}">
+                            <input type="hidden" name="duration" id="duration" value="1">
+                        </div>
+                        
+                        <div class="form-group">
+                            <p class="text-muted small">By reserving this bicycle, you agree to our <a href="#">Terms and Conditions</a>.</p>
+                            <button type="submit" class="btn btn-reserve btn-lg w-100">Reserve Now</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block page_javascripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const estimatedDurationSelect = document.getElementById('estimatedDuration');
+            const distanceInput = document.getElementById('estimatedDistance');
+            const totalCostSpan = document.getElementById('totalCost');
+            const estimatedCostInput = document.getElementById('estimatedCost');
+            const durationInput = document.getElementById('duration');
+            const weatherConditionSpan = document.getElementById('weatherCondition');
+            const estimatedReturnStationSelect = document.getElementById('estimatedReturnStation');
+            
+            const hourlyRate = {{ hourlyRate }};
+            
+            // Apply weather factor (simulated for now)
+            const weatherFactor = 1.0; // Normal rate
+            
+            function updatePriceCalculation() {
+                // Get estimated duration
+                const duration = parseInt(estimatedDurationSelect.value);
+                
+                // Apply distance factor (optional, can be adjusted as needed)
+                const distance = parseFloat(distanceInput.value) || 5;
+                const distanceFactor = distance > 20 ? 1.1 : 1.0; // 10% extra for longer trips
+                
+                // Check if return station is different from pickup station
+                const differentStation = estimatedReturnStationSelect.value && 
+                                         estimatedReturnStationSelect.value !== "{{ bicycle.bicycleStation.idStation }}";
+                const stationFactor = differentStation ? 1.05 : 1.0; // 5% surcharge for different station
+                
+                // Calculate estimated deposit (for pre-authorization)
+                // We use a multiplier to ensure there's enough deposit for longer rentals
+                const depositMultiplier = 1.5; // 50% buffer for unexpected extended usage
+                const estimatedDeposit = (duration * hourlyRate * weatherFactor * distanceFactor * stationFactor * depositMultiplier).toFixed(3);
+                
+                // Update display
+                totalCostSpan.textContent = estimatedDeposit;
+                estimatedCostInput.value = estimatedDeposit;
+                durationInput.value = duration;
+                
+                // Update weather condition text
+                if (weatherFactor > 1) {
+                    weatherConditionSpan.textContent = 'Challenging (10% surcharge)';
+                } else {
+                    weatherConditionSpan.textContent = 'Good (no surcharge)';
+                }
+            }
+            
+            // Add event listeners to all inputs
+            estimatedDurationSelect.addEventListener('change', updatePriceCalculation);
+            distanceInput.addEventListener('input', updatePriceCalculation);
+            estimatedReturnStationSelect.addEventListener('change', updatePriceCalculation);
+            
+            // Initialize calculation
+            updatePriceCalculation();
+        });
+    </script>
+{% endblock %}

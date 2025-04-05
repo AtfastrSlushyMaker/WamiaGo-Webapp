@@ -109,7 +109,6 @@ class BicycleRentalsController extends AbstractController
     }
 
     #[Route('/bicycle/{id}/reserve', name: 'app_front_reserve_bicycle', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_USER', message: 'You need to be logged in to reserve a bicycle')]
     public function reserveBicycle(Request $request, int $id): Response
     {
         $bicycle = $this->bicycleService->getBicycle($id);
@@ -180,12 +179,12 @@ class BicycleRentalsController extends AbstractController
     }
 
     #[Route('/rental/{id}/confirmation', name: 'app_front_rental_confirmation')]
-    #[IsGranted('ROLE_USER')]
     public function rentalConfirmation(int $id): Response
     {
         $rental = $this->entityManager->getRepository(BicycleRental::class)->find($id);
+        $user = $this->entityManager->getRepository(User::class)->find(1);
 
-        if (!$rental || $rental->getUser() !== $this->getUser()) {
+        if (!$rental || $rental->getUser() !== $user) {
             throw $this->createNotFoundException('Rental not found');
         }
 
@@ -196,12 +195,12 @@ class BicycleRentalsController extends AbstractController
     }
 
     #[Route('/rental/{id}/code', name: 'app_front_show_rental_code')]
-    #[IsGranted('ROLE_USER')]
     public function showRentalCode(int $id): Response
     {
         $rental = $this->entityManager->getRepository(BicycleRental::class)->find($id);
+        $user = $this->entityManager->getRepository(User::class)->find(1);
 
-        if (!$rental || $rental->getUser() !== $this->getUser()) {
+        if (!$rental || $rental->getUser() !== $user) {
             throw $this->createNotFoundException('Rental not found');
         }
 
@@ -212,12 +211,12 @@ class BicycleRentalsController extends AbstractController
     }
 
     #[Route('/rental/{id}/cancel', name: 'app_front_cancel_rental', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_USER')]
     public function cancelRental(Request $request, int $id): Response
     {
         $rental = $this->entityManager->getRepository(BicycleRental::class)->find($id);
+        $user = $this->entityManager->getRepository(User::class)->find(1);
 
-        if (!$rental || $rental->getUser() !== $this->getUser()) {
+        if (!$rental || $rental->getUser() !== $user) {
             throw $this->createNotFoundException('Rental not found');
         }
 
@@ -233,7 +232,6 @@ class BicycleRentalsController extends AbstractController
     }
 
     #[Route('/my-reservations', name: 'app_front_my_reservations')]
-    #[IsGranted('ROLE_USER')]
     public function myReservations(): Response
     {
         $activeRentals = $this->rentalService->getActiveRentalsForUser(
@@ -339,7 +337,6 @@ class BicycleRentalsController extends AbstractController
     }
 
     #[Route('/reserve/{id}', name: 'app_api_reserve_bicycle', methods: ['POST'])]
-    #[IsGranted('ROLE_USER', message: 'You need to be logged in to reserve a bicycle')]
     public function apiReserveBicycle(int $id, Request $request): JsonResponse
     {
         // Use Symfony Assert to validate input
@@ -379,7 +376,8 @@ class BicycleRentalsController extends AbstractController
         }
 
         try {
-            $user = $this->security->getUser();
+            // Replace this line using security->getUser() with a static user ID 1
+            // $user = $this->security->getUser();
             $rental = $this->rentalService->reserveBicycle(
                 $this->entityManager->getRepository(User::class)->find(1),
                 $bicycle,
@@ -398,16 +396,16 @@ class BicycleRentalsController extends AbstractController
     }
 
     #[Route('/api/rental/{id}/cancel', name: 'app_api_cancel_rental', methods: ['POST'])]
-    #[IsGranted('ROLE_USER')]
     public function apiCancelRental(int $id): JsonResponse
     {
         $rental = $this->entityManager->getRepository(BicycleRental::class)->find($id);
+        $user = $this->entityManager->getRepository(User::class)->find(1);
 
         if (!$rental) {
             return new JsonResponse(['error' => 'Rental not found'], 404);
         }
 
-        if ($rental->getUser() !== $this->getUser()) {
+        if ($rental->getUser() !== $user) {
             return new JsonResponse(['error' => 'You can only cancel your own reservations'], 403);
         }
 

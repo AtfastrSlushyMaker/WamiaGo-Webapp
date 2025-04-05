@@ -1,4 +1,4 @@
-{# filepath: d:\Github\WamiaGo-Webapp\templates\front\bicycle\bicycle-rental.html.twig #}
+
 {% extends 'front/base.html.twig' %}
 
 {% block title %}Bicycle Rentals - WamiaGo{% endblock %}
@@ -38,7 +38,6 @@
 {% endblock %}
 
 {% block content %}
-{# How It Works Section #}
 <section id="how-it-works" class="py-5">
     <div class="container">
         <h2 class="text-center mb-5">How It Works</h2>
@@ -260,12 +259,7 @@
 {% if app.user %}
     <section class="py-5">
         <div class="container">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="mb-0">My Active Reservations</h2>
-                <a href="{{ path('app_front_my_reservations') }}" class="btn btn-outline-bicycle">
-                    <i class="fas fa-list me-2"></i> View All Reservations
-                </a>
-            </div>
+
             
             {% if activeRentals is defined and activeRentals|length > 0 %}
                 <div class="row g-4">
@@ -403,84 +397,186 @@
         {% endif %}
     </div>
 </section>
+<div id="reservationsButton" style="position: fixed; bottom: 30px; right: 30px; z-index: 9999; transition: all 0.3s ease;">
+    <a href="{{ path('app_front_my_reservations') }}" class="btn btn-success btn-lg rounded-circle shadow-lg d-flex align-items-center justify-content-center" style="width: 65px; height: 65px;">
+        <i class="fas fa-bicycle" style="font-size: 1.8rem;"></i>
+    </a>
+</div>
 {% endblock %}
 
 {% block page_javascripts %}
 <!-- Load Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize the map
-        const map = L.map('bicycleMap').setView([40.7128, -74.006], 13);
-        
-        // Add OpenStreetMap tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 19
-        }).addTo(map);
-        
-        // Define a reusable bicycle icon using Font Awesome class (no need for external images)
-        setTimeout(function() {
-    map.invalidateSize();
-}, 100);
+// Map initialization
+document.addEventListener('DOMContentLoaded', function() {
+    initializeMap();
+    initializeFloatingButton();
+});
 
-// Ensure map fills container on window resize
-window.addEventListener('resize', function() {
+function initializeMap() {
+    const mapElement = document.getElementById('bicycleMap');
+    if (!mapElement) return;
+    
+    console.log("Initializing map...");
+    
+    const map = L.map('bicycleMap').setView([40.7128, -74.006], 13);
+    
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19
+    }).addTo(map);
+    
+    // Make sure map renders properly
     setTimeout(function() {
         map.invalidateSize();
     }, 100);
-});
-
-// Replace your stationIcon definition with this:
-const stationIcon = L.divIcon({
-    className: 'station-marker-icon',
-    html: '<div><i class="fas fa-bicycle"></i></div>',
-    iconSize: [36, 36],
-    iconAnchor: [18, 18]
-});
-        // Bounds for auto-zoom
-        const bounds = L.latLngBounds();
-        
-        // Add station markers
-        {% for station in stations %}
-            {% if station.location %}
-                // Create marker
-                const marker{{ station.idStation }} = L.marker(
-                    [{{ station.location.latitude|default(0) }}, {{ station.location.longitude|default(0) }}], 
-                    {
-                        icon: stationIcon,
-                        title: "{{ station.name }}"
-                    }
-                ).addTo(map);
-                
-                // Extend bounds for auto-zoom
-                bounds.extend([{{ station.location.latitude|default(0) }}, {{ station.location.longitude|default(0) }}]);
-                
-                // Create popup
-                marker{{ station.idStation }}.bindPopup(`
-    <div class="station-info p-2">
-        <h5>{{ station.name }}</h5>
-        <p>{{ station.location.address|default('No address available') }}</p>
-        <div class="d-flex justify-content-between mb-2">
-            <span>Available bikes:</span>
-            <span class="fw-bold">{{ station.availableBikes }}</span>
-        </div>
-        <div class="d-flex justify-content-between mb-2">
-            <span>Available docks:</span>
-            <span class="fw-bold">{{ station.availableDocks }}</span>
-        </div>
-        <a href="{{ path('app_front_services_bicycle_station', {'id': station.idStation}) }}" class="btn btn-sm btn-bicycle mt-2 w-100">
-            View Station Details
-        </a>
-    </div>
-`);
-            {% endif %}
-        {% endfor %}
-        
-        // Fit map to bounds if we have stations
-        if(bounds.isValid()) {
-            map.fitBounds(bounds);
-        }
+    
+    // Ensure map fills container on window resize
+    window.addEventListener('resize', function() {
+        setTimeout(function() {
+            map.invalidateSize();
+        }, 100);
     });
+    
+    // Station icon definition
+    const stationIcon = L.divIcon({
+        className: 'station-marker-icon',
+        html: '<div><i class="fas fa-bicycle"></i></div>',
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
+    });
+    
+    // Bounds for auto-zoom
+    const bounds = L.latLngBounds();
+    
+    // Add station markers
+    {% for station in stations %}
+        {% if station.location %}
+            // Create marker
+            const marker{{ station.idStation }} = L.marker(
+                [{{ station.location.latitude|default(0) }}, {{ station.location.longitude|default(0) }}], 
+                {
+                    icon: stationIcon,
+                    title: "{{ station.name }}"
+                }
+            ).addTo(map);
+            
+            // Extend bounds for auto-zoom
+            bounds.extend([{{ station.location.latitude|default(0) }}, {{ station.location.longitude|default(0) }}]);
+            
+            // Create popup
+            marker{{ station.idStation }}.bindPopup(`
+                <div class="station-info p-2">
+                    <h5>{{ station.name }}</h5>
+                    <p>{{ station.location.address|default('No address available') }}</p>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Available bikes:</span>
+                        <span class="fw-bold">{{ station.availableBikes }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Available docks:</span>
+                        <span class="fw-bold">{{ station.availableDocks }}</span>
+                    </div>
+                    <a href="{{ path('app_front_services_bicycle_station', {'id': station.idStation}) }}" class="btn btn-sm btn-bicycle mt-2 w-100">
+                        View Station Details
+                    </a>
+                </div>
+            `);
+        {% endif %}
+    {% endfor %}
+    
+    // Fit map to bounds if we have stations
+    if(bounds.isValid()) {
+        map.fitBounds(bounds);
+    }
+    
+    console.log("Map initialized successfully");
+}
+
+function initializeFloatingButton() {
+    console.log("Initializing floating button...");
+    
+    const reservationsBtn = document.getElementById('reservationsButton');
+    if (!reservationsBtn) {
+        console.error("Floating button element not found");
+        return;
+    }
+    
+    // Apply direct styling for visibility
+    reservationsBtn.style.opacity = '0';
+    reservationsBtn.style.transform = 'translateY(20px)';
+    
+    // Add hover effect to button
+    const buttonLink = reservationsBtn.querySelector('a');
+    if (buttonLink) {
+        buttonLink.style.transition = 'transform 0.2s ease';
+        
+        buttonLink.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.1)';
+        });
+        
+        buttonLink.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1.0)';
+        });
+    }
+    
+    // Function to update button visibility based on scroll position
+    function updateButtonVisibility() {
+        const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+        if (scrollPosition > 300) {
+            reservationsBtn.style.opacity = '1';
+            reservationsBtn.style.transform = 'translateY(0)';
+        } else {
+            reservationsBtn.style.opacity = '0';
+            reservationsBtn.style.transform = 'translateY(20px)';
+        }
+    }
+    
+    // Set initial state
+
+    
+    // Add scroll event listener
+    window.addEventListener('scroll', updateButtonVisibility);
+    
+    console.log("Floating button initialized successfully");
+    
+    // Force a refresh of the button state after a short delay
+    setTimeout(updateButtonVisibility, 200);
+}   
+</script>
+<script>
+// Force floating button to appear
+document.addEventListener('DOMContentLoaded', function() {
+    const forceButton = function() {
+        const btn = document.getElementById('reservationsButton');
+        if (btn) {
+            btn.style.position = 'fixed';
+            btn.style.bottom = '30px';
+            btn.style.right = '30px';
+            btn.style.zIndex = '100000';
+            btn.style.backgroundColor = '#28a745';
+            btn.style.borderRadius = '50%';
+            btn.style.width = '65px';
+            btn.style.height = '65px';
+            btn.style.display = 'flex';
+            btn.style.alignItems = 'center';
+            btn.style.justifyContent = 'center';
+            btn.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
+            btn.style.opacity = '1';
+            btn.style.transform = 'none';
+            
+            console.log('FORCE APPLIED TO BUTTON');
+        } else {
+            console.error('Button not found for force fix');
+        }
+    };
+    
+    setTimeout(forceButton, 1000);
+    document.addEventListener('scroll', function() {
+        forceButton();
+    });
+});
 </script>
 {% endblock %}

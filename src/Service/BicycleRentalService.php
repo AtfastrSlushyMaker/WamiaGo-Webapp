@@ -146,4 +146,19 @@ class BicycleRentalService
 
         $this->entityManager->flush();
     }
+
+
+    public function getActiveRidesForUser(User $user): array
+    {
+        return $this->entityManager->createQueryBuilder()
+            ->select('r')
+            ->from('App\Entity\BicycleRental', 'r')
+            ->andWhere('r.user = :user')
+            ->andWhere('r.start_time IS NOT NULL')  // Changed from startTime to start_time
+            ->andWhere('r.end_time IS NULL')        // Changed from endTime to end_time  
+            ->setParameter('user', $user)
+            ->orderBy('r.start_time', 'DESC')       // Changed from startTime to start_time
+            ->getQuery()
+            ->getResult();
+    }
 }

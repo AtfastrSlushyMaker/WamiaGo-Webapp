@@ -19,15 +19,25 @@ class BicycleRentalRepository extends ServiceEntityRepository
     }
 
     public function findActiveRentalsByUser(User $user): array
-{
-    return $this->createQueryBuilder('r')
-        ->andWhere('r.user = :user')  // Use the proper association field
-        ->andWhere('r.end_time IS NULL')
-        ->setParameter('user', $user)  // Pass the user entity directly
-        ->orderBy('r.start_time', 'DESC')
-        ->getQuery()
-        ->getResult();
-}
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.user = :user')  // Use the proper association field
+            ->andWhere('r.end_time IS NULL')
+            ->setParameter('user', $user)  // Pass the user entity directly
+            ->orderBy('r.start_time', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+    public function findPastRentalsByUser(int $userId): array
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.user = :userId')
+            ->andWhere('r.end_time IS NOT NULL')
+            ->setParameter('userId', $userId)
+            ->orderBy('r.end_time', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 
     //    /**
     //     * @return BicycleRental[] Returns an array of BicycleRental objects

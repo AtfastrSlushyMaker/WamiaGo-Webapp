@@ -695,3 +695,64 @@ body:not(.dark-mode) .pricing-table tr:nth-child(odd) {
         margin-bottom: 1rem;
     }
 }
+
+
+
+.station-marker-icon {
+    background-color: #28a745;
+    border-radius: 50%;
+    text-align: center;
+    color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.station-marker-icon div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.station-marker-icon i {
+    font-size: 20px;
+}
+
+.floating-reservation-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 9999;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.floating-reservation-btn.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.floating-reservation-btn a {
+    width: 65px;
+    height: 65px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+}
+
+.floating-reservation-btn a i {
+    font-size: 1.8rem;
+}
+
+.floating-reservation-btn a:hover {
+    transform: scale(1.1);
+}
+
+#reservationsButton {
+    position: sticky !important;
+    bottom: 30px !important;
+    float: right !important;
+    margin-right: 30px !important;
+}

@@ -1,0 +1,199 @@
+
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Bicycle Reserved - WamiaGo{% endblock %}
+
+{% block page_stylesheets %}
+    <link href="{{ asset('css/front/Bicycle/bicycle-rental.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
+    <style>
+        .confirmation-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .confirmation-card {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .success-icon {
+            font-size: 48px;
+            color: #28a745;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .reservation-code {
+            background-color: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        
+        .bicycle-details {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .battery-indicator {
+            width: 100%;
+            height: 15px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .battery-level {
+            height: 100%;
+            background-color: #28a745;
+        }
+        
+        .info-section {
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+        
+        .qr-code {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .qr-code img {
+            max-width: 200px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn-outline-success {
+            border-width: 2px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+        <div class="confirmation-container">
+            <div class="confirmation-card">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                
+                <h1 class="text-center mb-4">Bicycle Reserved Successfully!</h1>
+                
+                <p class="lead text-center">Your bicycle is reserved and waiting for you at the station. Use the reservation code below to unlock it.</p>
+                
+                <div class="reservation-code" id="reservationCode">
+                    {{ reservationCode }}
+                </div>
+                
+                <div class="qr-code">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ reservationCode }}" alt="QR Code">
+                    <p class="text-muted text-center mt-2">Scan this code at the station to unlock your bicycle</p>
+                </div>
+                
+                <div class="info-section">
+                    <h4>Reservation Details</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Reservation ID:</strong> #{{ rental.idUserRental }}</p>
+                            <p><strong>Reserved On:</strong> {{ rental.dateCreated|date('Y-m-d H:i') }}</p>
+                            <p><strong>Estimated Cost:</strong> {{ rental.estimatedCost|number_format(3) }} TND</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Status:</strong> <span class="badge bg-success">Reserved</span></p>
+                            <p><strong>Pickup Station:</strong> {{ rental.bicycle.bicycleStation.name }}</p>
+                            <p><strong>Reservation Valid Until:</strong> {{ rental.dateCreated|date_modify('+30 minutes')|date('Y-m-d H:i') }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bicycle-details">
+                    <h4>Bicycle Information</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Bicycle ID:</strong> #{{ rental.bicycle.idBike }}</p>
+                            <p><strong>Type:</strong> {{ rental.bicycle.batteryLevel > 90 ? 'Premium E-Bike' : 'Standard E-Bike' }}</p>
+                            
+                            <p><strong>Battery Level:</strong></p>
+                            <div class="battery-indicator">
+                                <div class="battery-level" style="width: {{ rental.bicycle.batteryLevel }}%;"></div>
+                            </div>
+                            <p>{{ rental.bicycle.batteryLevel }}%</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Estimated Range:</strong> {{ rental.bicycle.rangeKm }} km</p>
+                            <p><strong>Hourly Rate:</strong> {{ (rental.bicycle.batteryLevel > 90 ? 5.000 : 3.500)|number_format(3) }} TND</p>
+                            <p><strong>Station Address:</strong> {{ rental.bicycle.bicycleStation.location ? rental.bicycle.bicycleStation.location.address : 'Address not available' }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-section">
+                    <h4>Important Information</h4>
+                    <ul>
+                        <li>Your reservation is valid for 30 minutes. After that, the bicycle will be available for other users.</li>
+                        <li>You will only be charged for the actual time you use the bicycle.</li>
+                        <li>The final cost will be calculated when you return the bicycle to any station.</li>
+                        <li>Make sure to properly dock the bicycle at a station when returning it.</li>
+                        <li>For assistance, please call our support team at +216 71 123 456.</li>
+                    </ul>
+                </div>
+                
+                <div class="action-buttons">
+                    <a href="{{ path('app_front_show_rental_code', {'id': rental.idUserRental}) }}" class="btn btn-success flex-grow-1">
+                        <i class="fas fa-unlock-alt me-2"></i> Show Unlock Code
+                    </a>
+                    <a href="{{ path('app_front_cancel_rental', {'id': rental.idUserRental}) }}" class="btn btn-outline-danger flex-grow-1">
+                        <i class="fas fa-times me-2"></i> Cancel Reservation
+                    </a>
+                </div>
+            </div>
+            
+            <div class="text-center">
+                <a href="{{ path('app_front_my_reservations') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-list me-2"></i> View All My Reservations
+                </a>
+                <a href="{{ path('app_front_services_bicycle') }}" class="btn btn-outline-success ms-3">
+                    <i class="fas fa-bicycle me-2"></i> Back to Bicycle Rentals
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block page_javascripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // For copying reservation code to clipboard
+            const reservationCode = document.getElementById('reservationCode');
+            
+            reservationCode.addEventListener('click', function() {
+                const code = this.innerText.trim();
+                navigator.clipboard.writeText(code).then(function() {
+                    // Add a temporary "Copied" message
+                    const originalText = reservationCode.innerText;
+                    reservationCode.innerText = 'Copied!';
+                    setTimeout(function() {
+                        reservationCode.innerText = originalText;
+                    }, 1000);
+                });
+            });
+        });
+    </script>
+{% endblock %}

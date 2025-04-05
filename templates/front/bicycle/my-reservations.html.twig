@@ -1,0 +1,716 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}My Bicycle Reservations - WamiaGo{% endblock %}
+
+{% block page_stylesheets %}
+    <link href="{{ asset('css/front/Bicycle/bicycle-rental.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
+    <style>
+        /* Modern color scheme */
+        :root {
+            --primary: #28a745;
+            --primary-dark: #218838;
+            --primary-light: #e9f7ef;
+            --accent: #5c7cfa;
+            --gray-light: #f8f9fa;
+            --gray-medium: #e9ecef;
+            --gray-dark: #495057;
+        }
+        
+        /* Page container */
+        .reservations-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        .page-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--gray-medium);
+            padding-bottom: 1rem;
+        }
+        
+        .page-header h1 {
+            font-weight: 700;
+            font-size: 2rem;
+            margin-bottom: 0;
+            margin-right: auto;
+            color: var(--gray-dark);
+        }
+        
+        .page-header-btn {
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Improved tabs */
+        .reservation-tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--gray-medium);
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        
+        .reservation-tab {
+            flex: 1;
+            text-align: center;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            background: transparent;
+            border: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--gray-dark);
+        }
+        
+        .reservation-tab.active {
+            color: var(--primary);
+            background-color: var(--primary-light);
+        }
+        
+        .reservation-tab:not(.active):hover {
+            background-color: rgba(0,0,0,0.02);
+        }
+        
+        .reservation-tab::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary);
+            transform: scaleX(0);
+            transition: transform 0.2s ease;
+        }
+        
+        .reservation-tab.active::after {
+            transform: scaleX(1);
+        }
+        
+        .tab-badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            margin-left: 0.5rem;
+            background: var(--gray-medium);
+            color: var(--gray-dark);
+        }
+        
+        .tab-badge.has-items {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* Improved cards */
+        .reservation-card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            height: 100%;
+        }
+        
+        .reservation-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        .card-header-premium {
+            background: linear-gradient(45deg, #28a745, #20c997);
+        }
+        
+        .card-header-standard {
+            background: linear-gradient(45deg, #5c7cfa, #4dabf7);
+        }
+        
+        .card-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+        }
+        
+        .card-status-reserved {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.75rem 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .info-grid .label {
+            color: var(--gray-dark);
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .info-grid .value {
+            font-weight: 600;
+            text-align: right;
+        }
+        
+        /* Timer badge */
+        .timer-badge {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-weight: 600;
+        }
+        
+        /* Button styles */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        
+        .btn-bicycle {
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 0.5rem 1.25rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-bicycle-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-bicycle-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
+        }
+        
+        .btn-bicycle-outline {
+            background-color: white;
+            border: 1px solid #dee2e6;
+            color: var(--gray-dark);
+        }
+        
+        .btn-bicycle-outline:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        /* Empty state styling */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            background: var(--gray-light);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: #adb5bd;
+            font-size: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .empty-state h4 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--gray-dark);
+        }
+        
+        .empty-state p {
+            max-width: 400px;
+            margin: 0 auto 1.5rem auto;
+            color: #6c757d;
+        }
+        
+        /* Station select */
+        .station-select {
+            padding: 0.75rem 1rem;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            width: 100%;
+            font-size: 0.95rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 16px 12px;
+        }
+        
+        .station-select:focus {
+            border-color: #86b7fe;
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
+        }
+        
+        /* History table */
+        .history-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .history-table thead th {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            font-weight: 600;
+            color: var(--gray-dark);
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .history-table tbody td {
+            padding: 1rem;
+            border-bottom: 1px solid #f1f3f5;
+            vertical-align: middle;
+        }
+        
+        .history-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .history-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* For mobile */
+        @media (max-width: 767px) {
+            .reservation-tabs {
+                flex-direction: column;
+            }
+            
+            .btn-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+                text-align: left;
+            }
+            
+            .info-grid .value {
+                text-align: left;
+            }
+            
+            .history-table {
+                display: block;
+                width: 100%;
+                overflow-x: auto;
+            }
+            
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .page-header h1 {
+                margin-right: 0;
+            }
+        }
+        .modern-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modern-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #212529;
+            margin: 0;
+            padding-bottom: 0.5rem;
+            position: relative;
+        }
+        
+        .modern-title:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 50px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+        
+        .btn-find-bicycle {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            border: none;
+            border-radius: 50px;
+            padding: 0.5rem 1.25rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .btn-find-bicycle:hover {
+            background-color: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.15);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="reservations-container">
+    <!-- Modern header with improved styling -->
+    <div class="modern-header mb-4">
+        <h1 class="modern-title">My Bicycle Rentals</h1>
+    </div>
+
+    <div class="mb-4">
+        <div class="reservation-tabs" role="tablist">
+            <button class="reservation-tab active" id="reservations-tab" data-bs-toggle="tab" data-bs-target="#reservations" type="button" role="tab" aria-controls="reservations" aria-selected="true">
+                Reservations
+                <span class="tab-badge {% if activeRentals|length > 0 %}has-items{% endif %}">{{ activeRentals|length }}</span>
+            </button>
+            <button class="reservation-tab" id="my-bikes-tab" data-bs-toggle="tab" data-bs-target="#my-bikes" type="button" role="tab" aria-controls="my-bikes" aria-selected="false">
+                Active Rides
+                <span class="tab-badge {% if activeRides|length > 0 %}has-items{% endif %}">{{ activeRides|length }}</span>
+            </button>
+            <button class="reservation-tab" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">
+                History
+                <span class="tab-badge {% if pastRentals|length > 0 %}has-items{% endif %}">{{ pastRentals|length }}</span>
+            </button>
+        </div>
+    </div>
+    
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+    
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+    
+    <div class="tab-content p-0" id="rentalTabsContent">
+            <!-- Reservations Tab -->
+            <div class="tab-pane fade show active" id="reservations" role="tabpanel" aria-labelledby="reservations-tab">
+                {% if activeRentals is empty %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-bicycle"></i>
+                        </div>
+                        <h4>No Active Reservations</h4>
+                        <p>You don't have any active bicycle reservations at the moment.</p>
+                        <a href="{{ path('app_front_services_bicycle') }}" class="btn btn-bicycle btn-bicycle-primary">
+                            <i class="fas fa-bicycle"></i> Find a Bicycle
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="row g-4">
+                        {% for rental in activeRentals %}
+                            {% if rental.startTime is null %}
+                                {% set isPremium = rental.bicycle.batteryLevel > 90 %}
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="reservation-card">
+                                        <div class="card-header {{ isPremium ? 'card-header-premium' : 'card-header-standard' }} text-white p-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h5 class="mb-0 fw-bold">#{{ rental.idUserRental }}</h5>
+                                                <span class="card-status card-status-reserved">
+                                                    <i class="fas fa-clock"></i> Reserved
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="card-body p-4">
+                                            <div class="info-grid">
+                                                <div class="label">
+                                                    <i class="fas fa-bicycle text-primary"></i> Bicycle
+                                                </div>
+                                                <div class="value">
+                                                    {{ isPremium ? 'Premium' : 'Standard' }} E-Bike #{{ rental.bicycle.idBike }}
+                                                </div>
+                                                
+                                                <div class="label">
+                                                    <i class="fas fa-map-marker-alt text-danger"></i> Station
+                                                </div>
+                                                <div class="value">
+                                                    {{ rental.bicycle.bicycleStation.name }}
+                                                </div>
+                                                
+                                                <div class="label">
+                                                    <i class="fas fa-calendar text-info"></i> Reserved
+                                                </div>
+                                                <div class="value">
+                                                    {{ rental.dateCreated|date('M d, Y, h:i a') }}
+                                                </div>
+                                                
+                                                <div class="label">
+                                                    <i class="fas fa-tag text-success"></i> Est. Cost
+                                                </div>
+                                                <div class="value">
+                                                    {{ rental.estimatedCost|number_format(3) }} TND
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="btn-grid">
+                                                <a href="{{ path('app_bicycle_verify_code', {'code': 'B' ~ rental.idUserRental}) }}" class="btn btn-bicycle btn-bicycle-primary">
+                                                    <i class="fas fa-unlock"></i> Unlock
+                                                </a>
+                                                <form method="post" action="{{ path('app_rental_cancel', {'id': rental.idUserRental}) }}">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ rental.idUserRental) }}">
+                                                    <button type="submit" class="btn btn-bicycle btn-bicycle-outline w-100" onclick="return confirm('Are you sure you want to cancel this reservation?');">
+                                                        <i class="fas fa-times"></i> Cancel
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- My Bikes Tab (Current Rides) -->
+            <div class="tab-pane fade" id="my-bikes" role="tabpanel" aria-labelledby="my-bikes-tab">
+                {% if activeRides is empty %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-biking"></i>
+                        </div>
+                        <h4>No Current Rides</h4>
+                        <p>You don't have any bicycles checked out right now.</p>
+                        <a href="{{ path('app_front_services_bicycle') }}" class="btn btn-bicycle btn-bicycle-primary">
+                            <i class="fas fa-bicycle"></i> Rent a Bicycle
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="row g-4">
+                        {% for rental in activeRides %}
+                            {% set isPremium = rental.bicycle.batteryLevel > 90 %}
+                            {% set startTime = rental.startTime %}
+                            {% set duration = date().diff(date(startTime)) %}
+                            {% set hours = duration.h + (duration.d * 24) %}
+                            {% set minutes = duration.i %}
+                            {% set hourlyRate = isPremium ? 5.000 : 3.500 %}
+                            {% set currentCost = ((hours + (minutes / 60)) * hourlyRate)|round(3) %}
+                            
+                            <div class="col-md-6">
+                                <div class="reservation-card">
+                                    <div class="card-header {{ isPremium ? 'card-header-premium' : 'card-header-standard' }} text-white p-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h5 class="mb-0 fw-bold">Active Ride #{{ rental.idUserRental }}</h5>
+                                            <div class="timer-badge">
+                                                <i class="fas fa-stopwatch"></i>
+                                                <span>{{ hours }}h {{ minutes }}m</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <div class="info-grid">
+                                            <div class="label">
+                                                <i class="fas fa-bicycle text-primary"></i> Bicycle
+                                            </div>
+                                            <div class="value">
+                                                {{ isPremium ? 'Premium' : 'Standard' }} E-Bike #{{ rental.bicycle.idBike }}
+                                            </div>
+                                            
+                                            <div class="label">
+                                                <i class="fas fa-calendar text-info"></i> Started
+                                            </div>
+                                            <div class="value">
+                                                {{ rental.startTime|date('M d, Y, h:i a') }}
+                                            </div>
+                                            
+                                            <div class="label">
+                                                <i class="fas fa-tag text-success"></i> Current Cost
+                                            </div>
+                                            <div class="value">
+                                                {{ currentCost|number_format(3) }} TND
+                                            </div>
+                                            
+                                            <div class="label">
+                                                <i class="fas fa-dollar-sign text-warning"></i> Rate
+                                            </div>
+                                            <div class="value">
+                                                {{ hourlyRate|number_format(3) }} TND/hour
+                                            </div>
+                                        </div>
+                                        
+                                        <form method="post" action="{{ path('app_rental_return_bike', {'id': rental.idUserRental}) }}">
+                                            <div class="form-group mb-3">
+                                                <label for="station_id" class="form-label fw-semibold mb-2">Return to Station:</label>
+                                                <select name="station_id" id="station_id" class="station-select" required>
+                                                    <option value="">-- Select a station --</option>
+                                                    {% for station in stations %}
+                                                        <option value="{{ station.idStation }}">{{ station.name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            
+                                            <button type="submit" class="btn btn-bicycle btn-bicycle-primary w-100" onclick="return confirm('Are you sure you want to return this bicycle?');">
+                                                <i class="fas fa-check-circle"></i> Return Bicycle
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Rental History Tab -->
+            <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+                {% if pastRentals is empty %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <h4>No Rental History</h4>
+                        <p>You haven't completed any bicycle rentals yet.</p>
+                        <a href="{{ path('app_front_services_bicycle') }}" class="btn btn-bicycle btn-bicycle-primary">
+                            <i class="fas fa-bicycle"></i> Rent Your First Bicycle
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Bicycle</th>
+                                    <th>Rental Period</th>
+                                    <th>Duration</th>
+                                    <th>Stations</th>
+                                    <th>Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rental in pastRentals %}
+                                    {% set isPremium = rental.bicycle.batteryLevel > 90 %}
+                                    <tr>
+                                        <td class="fw-semibold">#{{ rental.idUserRental }}</td>
+                                        <td>
+                                            <strong>{{ isPremium ? 'Premium' : 'Standard' }} E-Bike</strong><br>
+                                            <small class="text-muted">ID: #{{ rental.bicycle.idBike }}</small>
+                                        </td>
+                                        <td>
+                                            {{ rental.startTime|date('M d, Y') }}<br>
+                                            <small class="text-muted">{{ rental.startTime|date('h:i a') }} - {{ rental.endTime|date('h:i a') }}</small>
+                                        </td>
+                                        <td>
+                                            {% if rental.startTime and rental.endTime %}
+                                                {% set duration = date(rental.endTime).diff(date(rental.startTime)) %}
+                                                {% set hours = duration.h + (duration.d * 24) %}
+                                                {% set minutes = duration.i %}
+                                                <span class="fw-semibold">{{ hours }}h {{ minutes }}m</span>
+                                            {% else %}
+                                                <span class="text-muted">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if rental.endStation %}
+                                                {{ rental.bicycle.bicycleStation.name }} 
+                                                <i class="fas fa-arrow-right mx-1 text-muted small"></i> 
+                                                {{ rental.endStation.name }}
+                                            {% else %}
+                                                {{ rental.bicycle.bicycleStation.name }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <strong class="text-success">{{ rental.cost|number_format(3) }} TND</strong>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_javascripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the tabs
+        const triggerTabList = [].slice.call(document.querySelectorAll('.reservation-tab'));
+        triggerTabList.forEach(function (triggerEl) {
+            const tabTrigger = new bootstrap.Tab(triggerEl);
+            triggerEl.addEventListener('click', function (event) {
+                event.preventDefault();
+                tabTrigger.show();
+            });
+        });
+        
+        // Animate the cards when they appear
+        const cards = document.querySelectorAll('.reservation-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.4s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100 * index);
+        });
+    });
+</script>
+{% endblock %}
