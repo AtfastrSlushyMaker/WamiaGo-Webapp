@@ -1,0 +1,697 @@
+/* Modern Bicycle Rental Styling - Enhanced Version */
+
+/* Color Palette */
+:root {
+    /* Bicycle specific colors - matched with your existing styles */
+    --bicycle-primary: #66bb6a;
+    --bicycle-secondary: #4caf50;
+    --bicycle-hover: #2e7d32;
+    --bicycle-light: rgba(102, 187, 106, 0.1);
+    --bicycle-gradient: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);
+    --bicycle-box-shadow: 0 4px 15px rgba(102, 187, 106, 0.2);
+    --bicycle-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+
+    /* Consistent with existing WamiaGo theme */
+    --shadow-sm: 0 5px 15px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 15px 30px rgba(0, 0, 0, 0.1);
+    --border-radius: 15px;
+    --border-radius-sm: 8px;
+    --border-radius-lg: 20px;
+    --transition: all 0.3s ease;
+
+    /* Neutral colors - for better consistency */
+    --neutral-50: #f8fafc;
+    --neutral-100: #f1f5f9;
+    --neutral-200: #e2e8f0;
+    --neutral-300: #cbd5e1;
+    --neutral-400: #94a3b8;
+    --neutral-500: #64748b;
+    --neutral-600: #475569;
+    --neutral-700: #334155;
+    --neutral-800: #1e293b;
+    --neutral-900: #0f172a;
+
+    /* Dark mode colors - consistent with your existing theme */
+    --dark-bg: #121212;
+    --dark-card-bg: #1e1e1e;
+    --dark-secondary-bg: #252525;
+    --dark-card-border: #2d2d2d;
+    --dark-text: #e0e0e0;
+    --dark-secondary-text: #aaaaaa;
+    --dark-bicycle-glow: rgba(102, 187, 106, 0.3);
+}
+
+/* Base Elements */
+.bg-bicycle {
+    background: var(--bicycle-gradient) !important;
+}
+
+.bg-bicycle-light {
+    background-color: var(--bicycle-light) !important;
+}
+
+.text-bicycle {
+    color: var(--bicycle-primary) !important;
+}
+
+/* Buttons - Matching existing website button styles */
+.btn-bicycle {
+    background-color: var(--bicycle-primary);
+    border-color: var(--bicycle-primary);
+    color: white;
+    box-shadow: 0 2px 8px rgba(102, 187, 106, 0.2);
+    transition: var(--transition);
+    border-radius: var(--border-radius-sm);
+    font-weight: 500;
+    position: relative;
+}
+
+.btn-bicycle:hover,
+.btn-bicycle:focus {
+    background-color: var(--bicycle-hover);
+    border-color: var(--bicycle-hover);
+    color: white;
+    box-shadow: 0 5px 15px rgba(102, 187, 106, 0.3);
+    transform: translateY(-2px);
+}
+
+.btn-outline-bicycle {
+    color: var(--bicycle-primary);
+    border-color: var(--bicycle-primary);
+    border-radius: var(--border-radius-sm);
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.btn-outline-bicycle:hover,
+.btn-outline-bicycle:focus {
+    background-color: var(--bicycle-primary);
+    color: white;
+    box-shadow: 0 5px 15px rgba(102, 187, 106, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Hero Section */
+.hero-section {
+    position: relative;
+    overflow: hidden;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+}
+
+.hero-section::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 200%;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: rotate(-15deg);
+    z-index: 0;
+}
+
+.hero-section .container {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-image {
+    max-height: 350px;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2));
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+/* Icon Boxes */
+.icon-box {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    background-color: var(--bicycle-light);
+    color: var(--bicycle-primary);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    margin: 0 auto;
+}
+
+.icon-box i {
+    color: var(--bicycle-primary);
+}
+
+.icon-box:hover {
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* Map Container Fixes */
+.map-container {
+    height: 500px;
+    position: relative;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    width: 100%;
+    /* Ensure full width */
+}
+
+.map-container:hover {
+    box-shadow: var(--shadow-md);
+}
+
+/* Fix for Leaflet map to fill container */
+.leaflet-container {
+    font-family: inherit;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    height: 100% !important;
+    /* Force full height */
+    width: 100% !important;
+    /* Force full width */
+    position: absolute;
+    /* Position absolutely within container */
+    top: 0;
+    left: 0;
+}
+
+/* Station List */
+.station-list {
+    max-height: 500px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--bicycle-primary) var(--neutral-100);
+}
+
+.station-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.station-list::-webkit-scrollbar-track {
+    background: var(--neutral-100);
+}
+
+.station-list::-webkit-scrollbar-thumb {
+    background-color: var(--bicycle-primary);
+    border-radius: 6px;
+}
+
+.station-item {
+    border-left: 4px solid transparent;
+    transition: var(--transition);
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+    border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+}
+
+.station-item:hover {
+    background-color: var(--bicycle-light);
+    border-left-color: var(--bicycle-primary);
+    transform: translateX(3px);
+}
+
+/* Bicycle Cards */
+.bicycle-card {
+    transition: var(--transition);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    border: none;
+    box-shadow: var(--shadow-sm);
+}
+
+.bicycle-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg);
+}
+
+.bicycle-img-container {
+    position: relative;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: var(--bicycle-light);
+}
+
+.bicycle-img {
+    max-height: 100%;
+    object-fit: contain;
+    transform: scale(0.9);
+    transition: var(--transition);
+}
+
+.bicycle-card:hover .bicycle-img {
+    transform: scale(1);
+}
+
+.bicycle-status {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 5px 12px;
+    border-radius: 30px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+}
+
+.bicycle-specs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.bicycle-specs .badge {
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: var(--transition);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    background-color: var(--neutral-100);
+    color: var(--neutral-700);
+}
+
+.bicycle-specs .badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Pricing Table */
+.pricing-table {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    color: var(--neutral-700);
+}
+
+.pricing-table th,
+.pricing-table td {
+    padding: 18px;
+    text-align: center;
+    border: none;
+}
+
+.pricing-table th {
+    background: var(--bicycle-gradient);
+    color: white;
+    font-weight: 600;
+    text-shadow: var(--bicycle-text-shadow);
+}
+
+.pricing-table tr:nth-child(even) {
+    background-color: var(--bicycle-light);
+}
+
+/* Confirmation Elements */
+.confirmation-icon {
+    width: 100px;
+    height: 100px;
+    background: var(--bicycle-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: var(--bicycle-primary);
+    margin: 0 auto 2.5rem;
+    box-shadow: var(--bicycle-box-shadow);
+}
+
+/* QR Code Container */
+.qr-container {
+    background-color: white;
+    padding: 1.5rem;
+    display: inline-block;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+}
+
+/* Station Map Markers */
+.station-marker-icon {
+    filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.3));
+}
+
+.station-marker-icon div {
+    background-color: var(--bicycle-primary) !important;
+    /* Force the color */
+    color: white !important;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3) !important;
+    border: 2px solid white;
+}
+
+.station-marker-icon i {
+    color: white !important;
+    font-size: 1.2rem;
+}
+
+.station-marker-icon.active div {
+    animation: markerPulse 2s infinite;
+}
+
+@keyframes markerPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(102, 187, 106, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(102, 187, 106, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(102, 187, 106, 0);
+    }
+}
+
+/* Map Improvements */
+.leaflet-container {
+    font-family: inherit;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.leaflet-popup-content-wrapper {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    padding: 0;
+}
+
+.leaflet-popup-content {
+    margin: 0;
+    width: 280px !important;
+}
+
+.station-info {
+    padding: 1rem !important;
+}
+
+.station-info h5 {
+    margin-bottom: 0.5rem;
+    color: var(--neutral-800) !important;
+    font-weight: 600;
+}
+
+.station-info p {
+    color: var(--neutral-600) !important;
+    margin-bottom: 1rem;
+}
+
+.station-info .btn {
+    margin-top: 0.5rem;
+}
+
+/* Bicycle type display */
+.bicycle-type-img {
+    border-radius: var(--border-radius) 0 0 var(--border-radius);
+    overflow: hidden;
+}
+
+/* Accordion styling */
+.accordion-item {
+    border: none;
+    margin-bottom: 0.5rem;
+    border-radius: var(--border-radius-sm) !important;
+    overflow: hidden;
+}
+
+.accordion-button {
+    border-radius: var(--border-radius-sm) !important;
+    font-weight: 500;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: var(--bicycle-light);
+    color: var(--bicycle-primary);
+}
+
+.accordion-button:focus {
+    box-shadow: 0 0 0 0.25rem rgba(102, 187, 106, 0.25);
+    border-color: var(--bicycle-primary);
+}
+
+/* Dark Mode Adjustments */
+body.dark-mode .bg-bicycle-light {
+    background-color: rgba(102, 187, 106, 0.15) !important;
+}
+
+body.dark-mode .bicycle-card {
+    background-color: var(--dark-card-bg);
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode .bicycle-img-container {
+    background: linear-gradient(135deg, rgba(102, 187, 106, 0.15) 0%, rgba(46, 125, 50, 0.1) 100%);
+}
+
+body.dark-mode .icon-box {
+    background-color: rgba(102, 187, 106, 0.15);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode .icon-box i {
+    color: var(--bicycle-primary);
+    text-shadow: 0 0 10px rgba(102, 187, 106, 0.5);
+}
+
+body.dark-mode .bicycle-specs .badge {
+    background-color: var(--dark-card-border);
+    color: var(--dark-text);
+}
+
+body.dark-mode .station-item {
+    background-color: var(--dark-card-bg);
+    border: 1px solid var(--dark-card-border);
+    border-left: 4px solid transparent;
+}
+
+body.dark-mode .station-item:hover {
+    background-color: rgba(102, 187, 106, 0.15);
+    border-left-color: var(--bicycle-primary);
+}
+
+body.dark-mode .station-item h5 {
+    color: var(--dark-text);
+}
+
+body.dark-mode .station-item p {
+    color: var(--dark-secondary-text);
+}
+
+body.dark-mode .station-list::-webkit-scrollbar-track {
+    background: var(--dark-card-border);
+}
+
+body.dark-mode .confirmation-icon {
+    background: linear-gradient(135deg, rgba(102, 187, 106, 0.25) 0%, rgba(46, 125, 50, 0.15) 100%);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .qr-container {
+    background-color: var(--dark-card-bg);
+    border: 1px solid var(--dark-card-border);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Dark Mode Pricing Table */
+body.dark-mode .pricing-table {
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode .pricing-table td {
+    color: var(--dark-text);
+    background-color: var(--dark-card-bg);
+}
+
+body.dark-mode .pricing-table tr:nth-child(even) td {
+    background-color: var(--dark-secondary-bg);
+}
+
+/* Dark Mode Accordion */
+body.dark-mode .accordion-item {
+    background-color: var(--dark-card-bg);
+    border-color: var(--dark-card-border);
+}
+
+body.dark-mode .accordion-button {
+    background-color: var(--dark-card-bg);
+    color: var(--dark-text);
+}
+
+body.dark-mode .accordion-button:not(.collapsed) {
+    background-color: var(--dark-secondary-bg);
+    color: var(--bicycle-primary);
+}
+
+body.dark-mode .accordion-button:focus {
+    box-shadow: 0 0 0 0.25rem rgba(102, 187, 106, 0.25);
+    border-color: var(--bicycle-primary);
+}
+
+body.dark-mode .accordion-body {
+    background-color: var(--dark-card-bg);
+    color: var(--dark-secondary-text);
+}
+
+/* Dark Mode Map Improvements */
+body.dark-mode .map-container {
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .leaflet-container {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .leaflet-tile {
+    filter: brightness(0.7) invert(1) contrast(0.9) hue-rotate(180deg) saturate(0.7);
+}
+
+body.dark-mode .leaflet-control,
+body.dark-mode .leaflet-popup-content-wrapper,
+body.dark-mode .leaflet-popup-tip {
+    background-color: var(--dark-card-bg);
+    color: var(--dark-text);
+    border-color: var(--dark-card-border);
+}
+
+body.dark-mode .station-info h5 {
+    color: var(--dark-text) !important;
+}
+
+body.dark-mode .station-info p,
+body.dark-mode .station-info span {
+    color: var(--dark-secondary-text) !important;
+}
+
+body.dark-mode .leaflet-bar a {
+    background-color: var(--dark-secondary-bg);
+    color: var(--dark-text);
+    border-color: var(--dark-card-border);
+}
+
+body.dark-mode .leaflet-bar a:hover {
+    background-color: var(--dark-card-border);
+}
+
+body.dark-mode .leaflet-control-attribution {
+    background-color: rgba(18, 18, 18, 0.7) !important;
+    color: var(--dark-secondary-text) !important;
+}
+
+body.dark-mode .leaflet-control-attribution a {
+    color: var(--bicycle-primary) !important;
+}
+
+body.dark-mode .station-marker-icon div {
+    border: 2px solid var(--dark-bg);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+/* Improved contrast for cards in dark mode */
+body.dark-mode .card {
+    background-color: var(--dark-card-bg);
+    border-color: var(--dark-card-border);
+}
+
+body.dark-mode .card-header.bg-bicycle {
+    border-bottom: 1px solid var(--dark-card-border);
+}
+
+body.dark-mode .card-body {
+    color: var(--dark-text);
+}
+
+/* Button hover effects in dark mode */
+body.dark-mode .btn-bicycle {
+    box-shadow: 0 4px 15px rgba(102, 187, 106, 0.2);
+}
+
+body.dark-mode .btn-bicycle:hover {
+    box-shadow: 0 5px 20px rgba(102, 187, 106, 0.4);
+}
+
+body.dark-mode .btn-outline-bicycle {
+    color: var(--bicycle-primary);
+    border-color: var(--bicycle-primary);
+    text-shadow: 0 0 3px rgba(102, 187, 106, 0.2);
+}
+
+body.dark-mode .btn-outline-bicycle:hover {
+    background-color: var(--bicycle-primary);
+    color: var(--dark-bg);
+    text-shadow: none;
+    box-shadow: 0 5px 15px rgba(102, 187, 106, 0.4);
+}
+
+/* Light mode specific improvements */
+body:not(.dark-mode) .station-item {
+    border: 1px solid var(--neutral-200);
+    border-left: 4px solid transparent;
+}
+
+body:not(.dark-mode) .pricing-table tr:nth-child(odd) {
+    background-color: white;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .station-list {
+        max-height: 300px;
+    }
+
+    .map-container {
+        height: 400px;
+    }
+
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+
+    .icon-box {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-section .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .hero-image {
+        max-height: 250px;
+    }
+
+    .bicycle-card {
+        margin-bottom: 1rem;
+    }
+}

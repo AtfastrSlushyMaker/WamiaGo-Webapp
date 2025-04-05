@@ -62,12 +62,12 @@ class Bicycle
     #[ORM\Column(type: 'float', nullable: true)]
     private ?float $battery_level = null;
 
-    public function getBattery_level(): ?float
+    public function getBatteryLevel(): ?float
     {
         return $this->battery_level;
     }
 
-    public function setBattery_level(?float $battery_level): self
+    public function setBatteryLevel(?float $battery_level): self
     {
         $this->battery_level = $battery_level;
         return $this;
@@ -139,17 +139,7 @@ class Bicycle
         return $this->id_bike;
     }
 
-    public function getBatteryLevel(): ?float
-    {
-        return $this->battery_level;
-    }
-
-    public function setBatteryLevel(?float $battery_level): static
-    {
-        $this->battery_level = $battery_level;
-
-        return $this;
-    }
+    // These methods are now defined above
 
     public function getRangeKm(): ?float
     {

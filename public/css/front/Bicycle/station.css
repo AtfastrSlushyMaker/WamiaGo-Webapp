@@ -1,0 +1,288 @@
+.leaflet-container {
+    height: 250px;
+    width: 100%;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    z-index: 1;
+}
+
+* Dark mode map improvements */ body.dark-mode .leaflet-container {
+    background-color: #242424;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .map-footer {
+    background-color: #1e1e1e;
+    border-top: 1px solid #333;
+}
+
+/* Style the tiles in dark mode */
+body.dark-mode .leaflet-tile {
+    filter: brightness(0.8) invert(1) contrast(0.9) hue-rotate(180deg) saturate(0.7);
+}
+
+/* Improve controls and popup visibility in dark mode */
+body.dark-mode .leaflet-control,
+body.dark-mode .leaflet-popup-content-wrapper,
+body.dark-mode .leaflet-popup-tip {
+    background-color: #2a2a2a;
+    color: #e2e8f0;
+    border-color: #444;
+}
+
+body.dark-mode .leaflet-bar a {
+    background-color: #333;
+    color: #fff;
+    border-color: #444;
+}
+
+body.dark-mode .leaflet-bar a:hover {
+    background-color: #444;
+}
+
+body.dark-mode .leaflet-control-attribution {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    color: #aaa !important;
+}
+
+body.dark-mode .leaflet-control-attribution a {
+    color: #8ab4f8 !important;
+}
+
+/* Station header and info section */
+.station-header {
+    position: relative;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.station-status-badges .badge {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 30px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    margin-right: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.station-status-badges .badge i {
+    margin-right: 0.35rem;
+}
+
+.station-status-badges .badge:hover {
+    transform: translateY(-2px);
+}
+
+.station-address {
+    font-size: 1.1rem;
+    color: #555;
+}
+
+/* Bicycle card styling */
+.bicycle-card {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: none !important;
+    box-shadow: var(--shadow-sm);
+}
+
+.bicycle-card:hover {
+    transform: translateY(-7px);
+    box-shadow: var(--shadow-lg);
+}
+
+.bicycle-icon-container {
+    position: relative;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.bicycle-icon-container i {
+    transition: all 0.3s ease;
+    filter: drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.15));
+}
+
+.bicycle-card:hover .bicycle-icon-container i {
+    transform: scale(1.1);
+}
+
+.bicycle-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 0.4rem 0.8rem;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.bicycle-card:hover .bicycle-badge {
+    transform: translateX(-3px) translateY(-2px);
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
+}
+
+.bicycle-status {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    padding: 0.4rem 0.8rem;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.bicycle-card:hover .bicycle-status {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
+}
+
+.premium-bike-bg {
+    background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+}
+
+.standard-bike-bg {
+    background: linear-gradient(135deg, #78909c 0%, #546e7a 100%);
+}
+
+.bicycle-card .progress {
+    border-radius: 10px;
+    overflow: hidden;
+    height: 8px;
+    background-color: rgba(0, 0, 0, 0.05);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.bicycle-card .progress-bar {
+    border-radius: 10px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.bicycle-specs .badge {
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    transition: all 0.2s ease;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+}
+
+.bicycle-specs .badge:hover {
+    background-color: #e9ecef;
+    transform: translateY(-2px);
+}
+
+.bicycle-card h5 {
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.bicycle-card .btn {
+    padding: 0.5rem 1rem;
+    border-radius: 30px;
+    font-weight: 500;
+    text-transform: none;
+}
+
+.map-container {
+    position: relative;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+}
+
+.map-container:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-5px);
+}
+
+.map-footer {
+    text-align: center;
+    padding: 1.25rem;
+    background-color: white;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+}
+
+.section-heading {
+    position: relative;
+    margin-bottom: 2rem;
+    padding-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.section-heading::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background-color: var(--bicycle-color);
+}
+
+body.dark-mode .bicycle-icon-container {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .bicycle-card {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode .bicycle-card:hover {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .station-address {
+    color: #cbd5e1;
+}
+
+body.dark-mode .bicycle-specs .badge {
+    background-color: #334155;
+    border-color: #475569;
+    color: #e2e8f0;
+}
+
+body.dark-mode .bicycle-specs .badge:hover {
+    background-color: #475569;
+}
+
+/* Add this to improve badge visibility in the bicycle specs section */
+.bicycle-specs .badge {
+    background-color: #f0f0f0;
+    color: #333;
+    border: 1px solid #ddd;
+    padding: 0.4rem 0.8rem;
+    font-weight: 500;
+}
+
+/* Ensure proper contrast in dark mode */
+body.dark-mode .bicycle-specs .badge {
+    background-color: #333;
+    color: #fff;
+    border-color: #444;
+}
+
+/* Make sure bicycle specs stand out better */
+.bicycle-specs {
+    background-color: rgba(246, 246, 246, 0.5);
+    padding: 0.75rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+body.dark-mode .bicycle-specs {
+    background-color: rgba(30, 30, 30, 0.5);
+}

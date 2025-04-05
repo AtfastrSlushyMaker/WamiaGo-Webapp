@@ -24,6 +24,7 @@
     <link rel="icon" type="image/x-icon" href="{{ asset('images/logo/logo.png') }}">
     {% block page_stylesheets %}{% endblock %}
     {% endblock %}
+    <meta name="csrf-token" content="{{ csrf_token('bicycle_reservation') }}">
 </head>
 <body>
     {% block header %}
@@ -73,7 +74,7 @@
                                 <li><h6 class="dropdown-header">Our Transportation Services</h6></li>
                                 <li><a class="dropdown-item" href="#"><i class="fas fa-car me-2"></i>Ride Sharing</a></li>
                                 <li><a class="dropdown-item" href="#"><i class="fas fa-taxi me-2"></i>Taxi Service</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-bicycle me-2"></i>Bicycle Rentals</a></li>
+                                <li><a class="dropdown-item" href="{{ path('app_front_services_bicycle') }}"><i class="fas fa-bicycle me-2"></i>Bicycle Rentals</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><h6 class="dropdown-header">Special Services</h6></li>
                                 <li><a class="dropdown-item" href="#"><i class="fas fa-truck-moving me-2"></i>Relocation Transport</a></li>

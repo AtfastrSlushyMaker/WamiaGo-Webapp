@@ -8,6 +8,10 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
 use App\Repository\BicycleRentalRepository;
+use App\Entity\User;
+use App\Entity\Bicycle;
+use App\Entity\BicycleStation;
+
 
 #[ORM\Entity(repositoryClass: BicycleRentalRepository::class)]
 #[ORM\Table(name: 'bicycle_rental')]
@@ -63,9 +67,9 @@ class BicycleRental
     #[ORM\JoinColumn(name: 'id_start_station', referencedColumnName: 'id_station')]
     private ?BicycleStation $start_station = null;
 
-    public function getBicycleStation(): ?BicycleStation
+    public function getStartBicycleStation(): ?BicycleStation
     {
-        return $this->bicycleStation;
+        return $this->start_station;
     }
 
     public function setStartStation(?BicycleStation $bicycleStation): self
@@ -93,10 +97,10 @@ class BicycleRental
         $this->end_station = $end_station;
     }
 
-public function getStart_station(): ?BicycleStation
-{
-    return $this->start_station;
-}
+    public function getStart_station(): ?BicycleStation
+    {
+        return $this->start_station;
+    }
     #[ORM\Column(type: 'datetime', nullable: false)]
     private ?\DateTimeInterface $start_time = null;
 
@@ -219,5 +223,4 @@ public function getStart_station(): ?BicycleStation
 
         return $this;
     }
-
 }

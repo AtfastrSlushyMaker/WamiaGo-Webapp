@@ -128,39 +128,6 @@ class Ride
         return $this;
     }
 
-    #[ORM\OneToMany(targetEntity: RideHistory::class, mappedBy: 'ride')]
-    private Collection $rideHistories;
-
-    public function __construct()
-    {
-        $this->rideHistories = new ArrayCollection();
-    }
-
-    /**
-     * @return Collection<int, RideHistory>
-     */
-    public function getRideHistories(): Collection
-    {
-        if (!$this->rideHistories instanceof Collection) {
-            $this->rideHistories = new ArrayCollection();
-        }
-        return $this->rideHistories;
-    }
-
-    public function addRideHistory(RideHistory $rideHistory): self
-    {
-        if (!$this->getRideHistories()->contains($rideHistory)) {
-            $this->getRideHistories()->add($rideHistory);
-        }
-        return $this;
-    }
-
-    public function removeRideHistory(RideHistory $rideHistory): self
-    {
-        $this->getRideHistories()->removeElement($rideHistory);
-        return $this;
-    }
-
     public function getIdRide(): ?int
     {
         return $this->id_ride;

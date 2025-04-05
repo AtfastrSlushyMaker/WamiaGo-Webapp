@@ -1,0 +1,123 @@
+/* My Reservations CSS */
+
+:root {
+    --bicycle-color: #66BB6A;
+    --bicycle-color-hover: #43a047;
+    --bicycle-color-light: rgba(102, 187, 106, 0.15);
+}
+
+/* Hero Section */
+.hero-section {
+    padding: 4rem 0;
+    background-image: linear-gradient(135deg, rgba(38, 50, 56, 0.95), rgba(38, 50, 56, 0.8)),
+        url('../../images/bicycle/bicycle-bg.jpg');
+    background-size: cover;
+    background-position: center;
+}
+
+/* Reservation Tabs */
+.reservation-tabs .nav-link {
+    color: #495057;
+    border-radius: 0;
+    padding: 0.75rem 1.25rem;
+}
+
+.reservation-tabs .nav-link.active {
+    color: var(--bicycle-color);
+    border-color: var(--bicycle-color);
+    border-bottom: 3px solid var(--bicycle-color);
+    font-weight: 600;
+    background-color: transparent;
+}
+
+.reservation-tabs .nav-link:hover:not(.active) {
+    border-color: transparent;
+    color: var(--bicycle-color-hover);
+}
+
+/* Reservation Cards */
+.reservation-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.reservation-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.reservation-card .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.reservation-details li {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+/* Reservation Table */
+.reservation-table th {
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+.reservation-table td {
+    vertical-align: middle;
+}
+
+/* Button Styles */
+.btn-bicycle {
+    background-color: var(--bicycle-color);
+    border-color: var(--bicycle-color);
+    color: white;
+    box-shadow: 0 2px 8px rgba(102, 187, 106, 0.2);
+}
+
+.btn-bicycle:hover,
+.btn-bicycle:focus {
+    background-color: var(--bicycle-color-hover);
+    border-color: var(--bicycle-color-hover);
+    color: white;
+    box-shadow: 0 5px 15px rgba(102, 187, 106, 0.3);
+    transform: translateY(-2px);
+}
+
+.btn-outline-bicycle {
+    background-color: transparent;
+    color: var(--bicycle-color);
+    border-color: var(--bicycle-color);
+}
+
+.btn-outline-bicycle:hover,
+.btn-outline-bicycle:focus {
+    background-color: var(--bicycle-color);
+    color: white;
+    box-shadow: 0 5px 15px rgba(102, 187, 106, 0.3);
+    transform: translateY(-2px);
+}
+
+/* QR Code container */
+.qr-container {
+    padding: 1rem;
+    background-color: white;
+    display: inline-block;
+}
+
+/* Badge Colors */
+.bg-bicycle {
+    background-color: var(--bicycle-color) !important;
+}
+
+/* Pagination styling */
+.pagination .page-item.active .page-link {
+    background-color: var(--bicycle-color);
+    border-color: var(--bicycle-color);
+}
+
+.pagination .page-link {
+    color: var(--bicycle-color);
+}
+
+.pagination .page-link:hover {
+    color: var(--bicycle-color-hover);
+}
