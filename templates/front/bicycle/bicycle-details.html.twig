@@ -39,8 +39,15 @@
     
     .bicycle-image {
         width: 100%;
-        height: 400px;
+        height: 100%;
         object-fit: cover;
+        border-radius: 8px;
+        display: block;
+    }
+    
+    .bicycle-image-container {
+        height: 400px;
+        overflow: hidden;
         border-radius: 8px;
     }
 </style>
@@ -48,6 +55,9 @@
 
 {% block content %}
 <div class="container py-5">
+    {% set isPremium = bicycle.batteryLevel > 40 %}
+    {% set bicycleType = isPremium ? 'Premium E-Bike' : 'Standard E-Bike' %}
+    
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ path('app_front_services_bicycle') }}">Bicycle Rentals</a></li>
@@ -60,13 +70,13 @@
         <div class="col-lg-6 mb-4 mb-lg-0">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body p-0 position-relative">
-                    {% if bicycleType == 'Premium E-Bike' %}
-                        <img src="https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=800&q=80" class="bicycle-image" alt="Premium E-Bike">
+                    {% if isPremium %}
+                        <img src="https://images.unsplash.com/photo-1618987688327-dc0b28888fe4?q=80&w=2103&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="bicycle-image" alt="Premium E-Bike">
                         <div class="position-absolute top-0 end-0 m-3">
                             <span class="badge bg-bicycle px-3 py-2">Premium</span>
                         </div>
                     {% else %}
-                        <img src="https://images.unsplash.com/photo-1596495578065-6af0ded45dca?auto=format&fit=crop&w=800&q=80" class="bicycle-image" alt="Standard E-Bike">
+                        <img src="https://images.unsplash.com/photo-1619678786641-23eb19f27924?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="bicycle-image" alt="Standard E-Bike">
                         <div class="position-absolute top-0 end-0 m-3">
                             <span class="badge bg-secondary px-3 py-2">Standard</span>
                         </div>
@@ -96,22 +106,19 @@
                     <span>Current battery level</span>
                     <span class="fw-bold">{{ bicycle.batteryLevel }}%</span>
                 </div>
-                <div class="progress battery-indicator mb-3">
-                    <div class="progress-bar 
-                        {% if bicycle.batteryLevel > 70 %}bg-success
-                        {% elseif bicycle.batteryLevel > 30 %}bg-warning
-                        {% else %}bg-danger{% endif %}" 
-                        role="progressbar" 
-                        style="width: {{ bicycle.batteryLevel }}%" 
-                        aria-valuenow="{{ bicycle.batteryLevel }}" 
-                        aria-valuemin="0" 
-                        aria-valuemax="100">
-                    </div>
-                </div>
+                <progress 
+                    class="battery-indicator w-100 mb-3
+                    {% if bicycle.batteryLevel > 70 %} progress-success
+                    {% elseif bicycle.batteryLevel > 30 %} progress-warning
+                    {% else %} progress-danger{% endif %}" 
+                    value="{{ bicycle.batteryLevel }}" 
+                    max="100">
+                    {{ bicycle.batteryLevel }}%
+                </progress>
             </div>
             
             <p class="lead mb-4">
-                {% if bicycleType == 'Premium E-Bike' %}
+                {% if isPremium %}
                     Our high-end electric bicycle with extended range and premium features for a superior riding experience.
                 {% else %}
                     Reliable electric bicycle perfect for daily commuting and exploring the city at a comfortable pace.
@@ -257,6 +264,12 @@
                 <div class="col-md-6 mb-4 mb-md-0">
                     <h5>Pricing</h5>
                     <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Duration</th>
+                                <th scope="col">Price</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             <tr>
                                 <td>1 hour</td>

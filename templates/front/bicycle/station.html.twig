@@ -115,7 +115,7 @@
     {% else %}
         <div class="row g-4">
         {% for bicycle in bicycles %}
-            {% set isPremium = bicycle.batteryLevel > 90 %}
+            {% set isPremium = bicycle.batteryLevel > 40 %}
             <div class="col-md-6 col-lg-4">
                 <div class="bicycle-card h-100">
                     <!-- Continue with existing bicycle card HTML -->
@@ -157,13 +157,12 @@
                                 <span class="fw-bold">{{ bicycle.batteryLevel }}%</span>
                             </div>
                             <div class="progress">
-                                <div class="progress-bar bg-{{ bicycle.batteryLevel > 70 ? 'success' : (bicycle.batteryLevel > 30 ? 'warning' : 'danger') }}"
-                                     role="progressbar" 
-                                     style="width: {{ bicycle.batteryLevel }}%" 
-                                     aria-valuenow="{{ bicycle.batteryLevel }}" 
-                                     aria-valuemin="0" 
-                                     aria-valuemax="100">
-                                </div>
+                                <progress 
+                                     class="progress-bar bg-{{ bicycle.batteryLevel > 70 ? 'success' : (bicycle.batteryLevel > 30 ? 'warning' : 'danger') }}"
+                                     value="{{ bicycle.batteryLevel }}" 
+                                     max="100">
+                                     {{ bicycle.batteryLevel }}%
+                                </progress>
                             </div>
                         </div>
                         
