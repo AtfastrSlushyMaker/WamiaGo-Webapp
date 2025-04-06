@@ -1,0 +1,264 @@
+/* Station Dashboard - Enhanced Styling */
+
+/* Station Stats Cards */
+.station-stat-card {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
+}
+
+.station-stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.stats-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stats-icon i {
+    font-size: 24px;
+}
+
+/* Map Styling */
+.station-map {
+    height: 500px;
+    width: 100%;
+    border-radius: 0.5rem;
+}
+
+/* Station marker styling */
+.station-marker-icon {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.station-marker-icon.highlight div {
+    transform: scale(1.2);
+    box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Enhanced markers with pulse effect */
+@keyframes markerPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(102, 187, 106, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(102, 187, 106, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(102, 187, 106, 0);
+    }
+}
+
+/* Popup styling */
+.station-popup .leaflet-popup-content-wrapper {
+    border-radius: 10px;
+    overflow: hidden;
+    padding: 0;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+}
+
+.station-popup .leaflet-popup-content {
+    margin: 0;
+    width: 300px !important;
+}
+
+.station-popup .station-info {
+    padding: 15px !important;
+}
+
+.station-popup .station-info h5 {
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+/* Stats grid in popups */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.stat-item {
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 8px;
+    padding: 8px 5px;
+}
+
+.stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #444;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #777;
+}
+
+/* Station list styling */
+.station-list-item {
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+    border: none !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.station-list-item:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.station-list-item:last-child {
+    border-bottom: none !important;
+}
+
+.station-quick-list {
+    max-height: 500px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
+}
+
+.station-quick-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.station-quick-list::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.station-quick-list::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+/* Station icon in table */
+.station-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.station-icon i {
+    font-size: 16px;
+}
+
+/* Status indicators */
+.station-status-badge {
+    padding: 6px 12px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-success {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-warning {
+    background-color: #fff8e1;
+    color: #f57c00;
+}
+
+.status-danger {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+/* Map control buttons */
+.map-controls .btn {
+    border-radius: 0;
+}
+
+.map-controls .btn:first-child {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+
+.map-controls .btn:last-child {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.map-controls .btn.active {
+    background-color: #6c757d;
+    color: white;
+    border-color: #6c757d;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.station-locate-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.station-locate-btn:hover {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .station-map {
+        height: 400px;
+    }
+
+    .station-quick-list {
+        max-height: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .station-map {
+        height: 350px;
+    }
+
+    .stats-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .stats-icon i {
+        font-size: 18px;
+    }
+}   

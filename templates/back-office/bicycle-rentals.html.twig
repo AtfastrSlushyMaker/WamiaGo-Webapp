@@ -1,10 +1,389 @@
 {% extends 'back-office/base.html.twig' %}
 
+{% block title %}Bicycle Management Dashboard{% endblock %}
+
 {% block content %}
+{% set active_tab = app.request.get('tab', 'rentals') %}
 
+<div class="container-fluid">
+    <!-- Dashboard Header with Stats Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-2">Bicycle Management Dashboard</h1>
+                    <p class="text-muted">Manage your bicycle rentals, stations and fleet</p>
+                </div>
+                <div class="d-flex">
+                    <div class="dropdown me-2">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-download me-2"></i>Export
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-file-excel me-2 text-success"></i>Excel</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2 text-danger"></i>PDF</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-file-csv me-2 text-primary"></i>CSV</a></li>
+                        </ul>
+                    </div>
+                    <a href="#" class="btn btn-primary d-inline-flex align-items-center">
+                        <i class="fas fa-plus me-2"></i> New Entry
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistics Overview -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Active Rentals</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
+                            <div class="small text-muted mt-2">
+                                <span class="text-success"><i class="fas fa-arrow-up me-1"></i>12%</span> since yesterday
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-bicycle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Available Bicycles</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">42</div>
+                            <div class="small text-muted mt-2">
+                                <span class="text-danger"><i class="fas fa-arrow-down me-1"></i>3%</span> since yesterday
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Active Stations</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">8</div>
+                            <div class="small text-muted mt-2">
+                                <span class="text-success"><i class="fas fa-equals me-1"></i>No change</span> since yesterday
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-map-marker-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Total Revenue (Month)</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">1,285 TND</div>
+                            <div class="small text-muted mt-2">
+                                <span class="text-success"><i class="fas fa-arrow-up me-1"></i>18%</span> since last month
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Management Navigation Tabs - Enhanced Design -->
+    <div class="card mb-4">
+        <div class="card-body p-0">
+            <ul class="nav nav-tabs-custom" id="bicycleManagementTabs" role="tablist">
+                <li class="nav-item flex-fill text-center">
+                    <a class="nav-link d-flex flex-column align-items-center py-3 {{ active_tab == 'rentals' ? 'active' : '' }}" 
+                       href="{{ path('admin_bicycle_dashboard', {'tab': 'rentals'}) }}">
+                        <i class="fas fa-receipt mb-1 tab-icon"></i>
+                        <span>Rentals</span>
+                    </a>
+                </li>
+                <li class="nav-item flex-fill text-center">
+                    <a class="nav-link d-flex flex-column align-items-center py-3 {{ active_tab == 'bicycles' ? 'active' : '' }}" 
+                       href="{{ path('admin_bicycle_dashboard', {'tab': 'bicycles'}) }}">
+                        <i class="fas fa-bicycle mb-1 tab-icon"></i>
+                        <span>Bicycles</span>
+                    </a>
+                </li>
+                <li class="nav-item flex-fill text-center">
+                    <a class="nav-link d-flex flex-column align-items-center py-3 {{ active_tab == 'stations' ? 'active' : '' }}" 
+                       href="{{ path('admin_bicycle_dashboard', {'tab': 'stations'}) }}">
+                        <i class="fas fa-map-marker-alt mb-1 tab-icon"></i>
+                        <span>Stations</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Tab Content with Animation -->
+    <div class="tab-content fade-in" id="bicycleManagementTabsContent">
+        {% if active_tab == 'rentals' %}
+            <div class="tab-pane fade show active">
+                {% include 'back-office/bicycle/rental.html.twig' %}
+            </div>
+        {% elseif active_tab == 'bicycles' %}
+            <div class="tab-pane fade show active">
+                {% include 'back-office/bicycle/bicycle.html.twig' %}
+            </div>
+        {% elseif active_tab == 'stations' %}
+            <div class="tab-pane fade show active">
+                {% include 'back-office/bicycle/station.html.twig' %}
+            </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}
 
-{% block title %}
-
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    /* Enhanced Tab Styling */
+    .nav-tabs-custom {
+        border-bottom: none;
+        display: flex;
+        width: 100%;
+    }
+    
+    .nav-tabs-custom .nav-item {
+        margin-bottom: 0;
+        border-right: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .nav-tabs-custom .nav-item:last-child {
+        border-right: none;
+    }
+    
+    .nav-tabs-custom .nav-link {
+        border: none;
+        border-radius: 0;
+        color: #6c757d;
+        font-weight: 500;
+        padding: 1rem 1.5rem;
+        transition: all 0.25s ease;
+        position: relative;
+    }
+    
+    .nav-tabs-custom .nav-link .tab-icon {
+        font-size: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-tabs-custom .nav-link:hover {
+        color: #495057;
+        background-color: rgba(13, 110, 253, 0.05);
+    }
+    
+    .nav-tabs-custom .nav-link:hover .tab-icon {
+        transform: translateY(-3px);
+    }
+    
+    .nav-tabs-custom .nav-link.active {
+        color: #0d6efd;
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+    
+    .nav-tabs-custom .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background-color: #0d6efd;
+    }
+    
+    .nav-tabs-custom .nav-link.active .tab-icon {
+        transform: translateY(-3px);
+        color: #0d6efd;
+    }
+    
+    /* Bicycle-specific styling for active tab */
+    .nav-tabs-custom .nav-link.active[href*="tab=bicycles"] {
+        color: #66bb6a;
+        background-color: rgba(102, 187, 106, 0.1);
+    }
+    
+    .nav-tabs-custom .nav-link.active[href*="tab=bicycles"]::after {
+        background-color: #66bb6a;
+    }
+    
+    .nav-tabs-custom .nav-link.active[href*="tab=bicycles"] .tab-icon {
+        color: #66bb6a;
+    }
+    
+    /* Stations-specific styling for active tab */
+    .nav-tabs-custom .nav-link.active[href*="tab=stations"] {
+        color: #ff9800;
+        background-color: rgba(255, 152, 0, 0.1);
+    }
+    
+    .nav-tabs-custom .nav-link.active[href*="tab=stations"]::after {
+        background-color: #ff9800;
+    }
+    
+    .nav-tabs-custom .nav-link.active[href*="tab=stations"] .tab-icon {
+        color: #ff9800;
+    }
+    
+    /* Animation for tab transitions */
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Card enhancements */
+    .card {
+        border-radius: 0.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        transition: all 0.2s;
+    }
+    
+    .card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Border-left cards styling */
+    .border-left-primary {
+        border-left: 4px solid #0d6efd;
+    }
+    
+    .border-left-success {
+        border-left: 4px solid #66bb6a;
+    }
+    
+    .border-left-warning {
+        border-left: 4px solid #ff9800;
+    }
+    
+    .border-left-info {
+        border-left: 4px solid #0dcaf0;
+    }
+    
+    /* Battery level styling */
+    .battery-indicator {
+        width: 100%;
+        height: 10px;
+        background-color: #e9ecef;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+    
+    .battery-level {
+        height: 100%;
+        transition: width 0.3s ease;
+    }
+    
+    /* Status badges */
+    .status-badge {
+        padding: 0.35em 0.65em;
+        font-size: 0.75em;
+        font-weight: 700;
+        border-radius: 50rem;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .status-badge i {
+        margin-right: 0.25rem;
+    }
+    
+    .status-available {
+        background-color: rgba(102, 187, 106, 0.1);
+        color: #2e7d32;
+    }
+    
+    .status-in-use {
+        background-color: rgba(33, 150, 243, 0.1);
+        color: #0d47a1;
+    }
+    
+    .status-maintenance {
+        background-color: rgba(255, 152, 0, 0.1);
+        color: #e65100;
+    }
+    
+    .status-inactive {
+        background-color: rgba(158, 158, 158, 0.1);
+        color: #424242;
+    }
+</style>
 {% endblock %}
 
+{% block javascripts %}
+{{ parent() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize DataTables with enhanced styling
+        const tables = document.querySelectorAll('.datatable');
+        tables.forEach(table => {
+            new DataTable(table, {
+                responsive: true,
+                lengthChange: true,
+                pageLength: 10,
+                dom: '<"top d-flex justify-content-between align-items-center mb-3"<"d-flex align-items-center"l><"d-flex"f>>rt<"bottom d-flex justify-content-between align-items-center"<"d-flex"i><"d-flex"p>>',
+                language: {
+                    search: "",
+                    searchPlaceholder: "Search records..."
+                },
+                initComplete: function() {
+                    // Enhance search input
+                    const searchInput = document.querySelector('.dataTables_filter input');
+                    if (searchInput) {
+                        searchInput.classList.add('form-control');
+                        searchInput.style.marginLeft = '10px';
+                    }
+                    
+                    // Enhance length select
+                    const lengthSelect = document.querySelector('.dataTables_length select');
+                    if (lengthSelect) {
+                        lengthSelect.classList.add('form-select');
+                        lengthSelect.style.width = 'auto';
+                        lengthSelect.style.marginLeft = '5px';
+                        lengthSelect.style.marginRight = '5px';
+                    }
+                }
+            });
+        });
+        
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}

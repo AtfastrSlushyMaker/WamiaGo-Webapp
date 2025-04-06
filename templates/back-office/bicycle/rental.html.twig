@@ -1,0 +1,215 @@
+<div class="rentals-dashboard">
+    <!-- Filters & Actions Row -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Rental Filters</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Status</label>
+                            <select class="form-select">
+                                <option value="">All Statuses</option>
+                                <option value="active">Active</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Date Range</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="From">
+                                <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                <input type="text" class="form-control" placeholder="To">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Station</label>
+                            <select class="form-select">
+                                <option value="">All Stations</option>
+                                <option value="1">Downtown Station</option>
+                                <option value="2">University Campus</option>
+                                <option value="3">Beach Front</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <button class="btn btn-primary me-2">
+                                <i class="fas fa-filter me-2"></i>Apply Filters
+                            </button>
+                            <button class="btn btn-outline-secondary">
+                                <i class="fas fa-redo me-2"></i>Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Quick Analytics</h5>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div>
+                            <p class="text-muted mb-1">Today's Rentals</p>
+                            <h4 class="mb-0">24</h4>
+                        </div>
+                        <div>
+                            <p class="text-muted mb-1">Avg. Duration</p>
+                            <h4 class="mb-0">1.5h</h4>
+                        </div>
+                        <div>
+                            <p class="text-muted mb-1">Completion Rate</p>
+                            <h4 class="mb-0">92%</h4>
+                        </div>
+                    </div>
+                    <div class="mt-auto pt-3">
+                        <a href="#" class="btn btn-sm btn-outline-primary w-100">
+                            <i class="fas fa-chart-line me-2"></i>Detailed Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Rentals Table -->
+    <div class="card mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0">Bicycle Rentals</h5>
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="rentalActions" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-cog me-2"></i>Actions
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="rentalActions">
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-file-export me-2"></i>Export Data</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-print me-2"></i>Print List</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover datatable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Bicycle</th>
+                        <th>Start Station</th>
+                        <th>End Station</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Duration</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="fw-bold">B00124</span></td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="https://via.placeholder.com/32" class="rounded-circle me-2" alt="User Avatar">
+                                <div>John Smith</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-bicycle me-2 text-primary"></i>
+                                <span>Bike #42</span>
+                            </div>
+                        </td>
+                        <td>Downtown Station</td>
+                        <td>University Campus</td>
+                        <td>2025-04-06 09:15</td>
+                        <td>2025-04-06 10:30</td>
+                        <td>1h 15min</td>
+                        <td>4.25 TND</td>
+                        <td>
+                            <span class="badge bg-success">Completed</span>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Print Receipt">
+                                    <i class="fas fa-print"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="fw-bold">B00123</span></td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="https://via.placeholder.com/32" class="rounded-circle me-2" alt="User Avatar">
+                                <div>Alex Johnson</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-bicycle me-2 text-primary"></i>
+                                <span>Bike #15</span>
+                            </div>
+                        </td>
+                        <td>Beach Front</td>
+                        <td>-</td>
+                        <td>2025-04-06 11:00</td>
+                        <td>-</td>
+                        <td>Active</td>
+                        <td>3.50 TND (est.)</td>
+                        <td>
+                            <span class="badge bg-primary">In Progress</span>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="tooltip" title="Track Location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="fw-bold">B00122</span></td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="https://via.placeholder.com/32" class="rounded-circle me-2" alt="User Avatar">
+                                <div>Sarah Miller</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-bicycle me-2 text-success"></i>
+                                <span>Bike #28</span>
+                            </div>
+                        </td>
+                        <td>University Campus</td>
+                        <td>-</td>
+                        <td>2025-04-07 14:30</td>
+                        <td>-</td>
+                        <td>Scheduled</td>
+                        <td>5.00 TND (est.)</td>
+                        <td>
+                            <span class="badge bg-warning text-dark">Reserved</span>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Cancel">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

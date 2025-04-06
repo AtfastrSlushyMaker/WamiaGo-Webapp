@@ -1,0 +1,781 @@
+/**
+ * WamiaGo - Station Detail Styles
+ * Clean implementation with proper dropdown support
+ */
+
+/* Core Variables */
+:root {
+    /* Main Colors */
+    --primary: #6571ff;
+    --secondary: #7987a1;
+    --success: #05a34a;
+    --danger: #ff3366;
+    --warning: #fbbc06;
+    --info: #66d1d1;
+    --light: #f8f9fa;
+    --dark: #212130;
+
+    /* Status Colors */
+    --available: #05a34a;
+    --maintenance: #fbbc06;
+    --inactive: #7987a1;
+    --charging: #ff9747;
+    --in-use: #3f6ad8;
+
+    /* Shadows */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.15);
+
+    /* Transitions */
+    --transition-fast: all 0.2s ease;
+    --transition-normal: all 0.3s ease;
+    --transition-slow: all 0.5s ease;
+}
+
+/* ============= BASE STYLES ============= */
+body {
+    overflow-x: hidden;
+}
+
+/* ============= STATION HEADER ============= */
+.station-header {
+    position: relative;
+}
+
+.breadcrumb-item a {
+    color: var(--secondary);
+    transition: var(--transition-fast);
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--primary);
+}
+
+.breadcrumb-item.active {
+    color: var(--dark);
+    font-weight: 500;
+}
+
+.station-avatar {
+    width: 54px;
+    height: 54px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-normal);
+}
+
+.station-avatar i {
+    font-size: 26px;
+}
+
+.status-badge {
+    padding: 0.3rem 0.75rem;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    transition: var(--transition-fast);
+}
+
+.status-badge i {
+    margin-right: 0.35rem;
+    font-size: 0.9rem;
+}
+
+.status-available {
+    background-color: rgba(5, 163, 74, 0.1);
+    color: var(--available);
+}
+
+.status-maintenance {
+    background-color: rgba(251, 188, 6, 0.1);
+    color: var(--maintenance);
+}
+
+.status-inactive {
+    background-color: rgba(121, 135, 161, 0.1);
+    color: var(--inactive);
+}
+
+.status-charging {
+    background-color: rgba(255, 151, 71, 0.1);
+    color: var(--charging);
+}
+
+.status-in-use {
+    background-color: rgba(63, 106, 216, 0.1);
+    color: var(--in-use);
+}
+
+/* ============= METRIC CARDS ============= */
+.metric-card {
+    box-shadow: var(--shadow-sm);
+    border-radius: 10px;
+    transition: var(--transition-normal);
+    overflow: hidden;
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.metric-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    color: var(--secondary);
+    margin-bottom: 0.5rem;
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.metric-info {
+    font-size: 0.75rem;
+    color: var(--secondary);
+}
+
+.metric-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.metric-icon i {
+    font-size: 24px;
+}
+
+.metric-card:hover .metric-icon {
+    transform: scale(1.1);
+}
+
+.change-indicator {
+    display: flex;
+    align-items: center;
+}
+
+.change-positive {
+    color: var(--success);
+}
+
+.change-negative {
+    color: var(--danger);
+}
+
+.change-neutral {
+    color: var(--info);
+}
+
+/* ============= MAP SECTION ============= */
+.station-map {
+    height: 400px;
+    width: 100%;
+    border-radius: 0 0 10px 10px;
+    z-index: 1;
+    background-color: #f5f5f5;
+}
+
+.leaflet-container {
+    height: 100% !important;
+    width: 100% !important;
+}
+
+.map-controls .btn-group {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.map-controls .btn {
+    border: none;
+}
+
+.map-controls .btn.active {
+    background-color: var(--primary);
+    color: white;
+}
+
+/* Custom Map Marker */
+.custom-div-icon {
+    background: none;
+    border: none;
+}
+
+.custom-marker-pin {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    border: 3px solid white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+/* ============= POPUP STYLING ============= */
+.station-custom-popup .leaflet-popup-content-wrapper {
+    border-radius: 8px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.station-custom-popup .leaflet-popup-content {
+    margin: 0;
+    width: 250px !important;
+}
+
+.popup-header {
+    background-color: var(--primary);
+    color: white;
+    padding: 10px 15px;
+}
+
+.popup-body {
+    padding: 15px;
+}
+
+.popup-info-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.popup-info-label {
+    color: var(--secondary);
+    font-size: 0.85rem;
+}
+
+.popup-info-value {
+    font-weight: 500;
+}
+
+/* ============= NO DATA PLACEHOLDER ============= */
+.no-data-placeholder {
+    min-height: 300px;
+    background-color: rgba(0, 0, 0, 0.02);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.placeholder-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.placeholder-icon i {
+    font-size: 32px;
+    color: var(--secondary);
+}
+
+/* ============= STATION INFO PANEL ============= */
+.station-info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.info-label {
+    display: flex;
+    align-items: center;
+    color: var(--secondary);
+    font-size: 0.875rem;
+}
+
+.info-value {
+    font-size: 1rem;
+    color: var(--dark);
+}
+
+/* Mini chart for analytics */
+.mini-chart {
+    display: flex;
+    align-items: flex-end;
+    height: 50px;
+    gap: 5px;
+}
+
+.chart-bar {
+    flex: 1;
+    border-radius: 2px;
+    background: var(--primary);
+    transition: var(--transition-fast);
+}
+
+.chart-bar:hover {
+    background: var(--info);
+}
+
+/* ============= TABS NAVIGATION ============= */
+.nav-tabs {
+    border-bottom: 0;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    padding: 0.75rem 1.25rem;
+    color: var(--secondary);
+    font-weight: 500;
+    border-radius: 0;
+    position: relative;
+    transition: var(--transition-fast);
+}
+
+.nav-tabs .nav-link::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: transparent;
+    transition: var(--transition-fast);
+}
+
+.nav-tabs .nav-link:hover::after {
+    background-color: rgba(101, 113, 255, 0.3);
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--primary);
+    background-color: transparent;
+}
+
+.nav-tabs .nav-link.active::after {
+    background-color: var(--primary);
+}
+
+/* ============= TABLES STYLING ============= */
+.table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    font-weight: 600;
+    color: var(--secondary);
+    border-top: 0;
+    background-color: rgba(0, 0, 0, 0.02);
+    padding: 0.75rem 1rem;
+}
+
+.table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+.table tbody tr {
+    transition: var(--transition-fast);
+}
+
+.table tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Table-specific styles */
+.table .bicycle-type-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.table .battery-indicator {
+    width: 100px;
+    height: 8px;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.table .battery-level {
+    height: 100%;
+    border-radius: 4px;
+}
+
+.table .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+/* ============= TABLE RESPONSIVE FIX ============= */
+/* CRITICAL: This ensures dropdowns in tables are visible */
+.table-responsive {
+    overflow: visible !important;
+}
+
+/* ============= DROPDOWN MENU FIXES ============= */
+/* These styles ensure dropdowns work correctly throughout the app */
+.dropdown-toggle::after {
+    display: inline-block !important;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    z-index: 1050;
+    min-width: 10rem;
+    padding: 0.5rem 0;
+    color: #212529;
+    text-align: left;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0.25rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+.dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    clear: both;
+    font-weight: 400;
+    color: #212529;
+    text-align: inherit;
+    text-decoration: none;
+    white-space: nowrap;
+    background-color: transparent;
+    border: 0;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    color: #16181b;
+    background-color: #f8f9fa;
+    text-decoration: none;
+}
+
+.dropdown-item i {
+    margin-right: 0.5rem;
+    width: 1rem;
+    text-align: center;
+}
+
+/* Fix for dropdowns in table cells */
+.table td .dropdown .dropdown-menu,
+.table th .dropdown .dropdown-menu {
+    right: 0;
+    left: auto;
+}
+
+/* ============= BICYCLE TYPE SELECTOR ============= */
+.bicycle-type-selector {
+    width: 100%;
+    display: flex;
+}
+
+.bicycle-type-option {
+    position: relative;
+    flex-grow: 1;
+}
+
+.bicycle-type-option:first-child {
+    margin-right: 1rem;
+}
+
+.bicycle-type-input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    width: 0;
+    height: 0;
+}
+
+.bicycle-type-label {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.bicycle-type-input:checked+.bicycle-type-label {
+    border-color: var(--primary);
+    background-color: rgba(101, 113, 255, 0.05);
+    box-shadow: var(--shadow-sm);
+}
+
+.bicycle-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    transition: var(--transition-fast);
+}
+
+.bicycle-icon.premium {
+    background-color: rgba(101, 113, 255, 0.1);
+    color: var(--primary);
+}
+
+.bicycle-type-input:checked+.bicycle-type-label .bicycle-icon {
+    background-color: var(--primary);
+    color: white;
+    transform: scale(1.1);
+}
+
+.bicycle-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.bicycle-name {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.bicycle-desc {
+    font-size: 0.75rem;
+    color: var(--secondary);
+}
+
+/* ============= MAINTENANCE TIMELINE ============= */
+.maintenance-timeline {
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.maintenance-timeline::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 7px;
+    border-left: 2px dashed rgba(0, 0, 0, 0.1);
+    z-index: 1;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.timeline-item-marker {
+    position: absolute;
+    left: -1.5rem;
+    top: 0;
+    z-index: 2;
+}
+
+.timeline-item-marker-indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    box-shadow: var(--shadow-sm);
+}
+
+.timeline-item-content {
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.02);
+    transition: var(--transition-fast);
+}
+
+.timeline-item-content:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* ============= QR CODE PLACEHOLDER ============= */
+.qr-code-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    margin: 0 auto;
+    max-width: 250px;
+}
+
+.station-qr-placeholder {
+    width: 200px;
+    height: 200px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+    margin: 0 auto;
+    overflow: hidden; /* Ensure QR code doesn't overflow */
+}
+
+.station-qr-placeholder img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+/* For print modal styling */
+.qr-container {
+    text-align: center;
+    padding: 10px;
+    background: white;
+    border-radius: 5px;
+    margin: 0 auto;
+    max-width: 250px;
+}
+
+.qr-image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+/* ============= MODAL STYLING ============= */
+.modal-content {
+    border: none;
+    border-radius: 10px;
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1.25rem 1.5rem;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1.25rem 1.5rem;
+}
+
+.modal-icon {
+    font-size: 48px;
+    margin-bottom: 1rem;
+}
+
+/* Delete confirmation styling */
+#confirmDelete:checked~#deleteStationBtn:disabled {
+    opacity: 1;
+    cursor: pointer;
+}
+
+/* ============= RESPONSIVE ADJUSTMENTS ============= */
+@media (max-width: 992px) {
+    .station-map {
+        height: 350px;
+    }
+
+    .metric-icon {
+        width: 48px;
+        height: 48px;
+    }
+
+    .metric-icon i {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .station-avatar {
+        width: 48px;
+        height: 48px;
+    }
+
+    .station-avatar i {
+        font-size: 22px;
+    }
+
+    .station-map {
+        height: 300px;
+    }
+
+    .bicycle-type-selector {
+        flex-direction: column;
+    }
+
+    .bicycle-type-option:first-child {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .metric-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .metric-icon i {
+        font-size: 18px;
+    }
+
+    .station-map {
+        height: 250px;
+    }
+
+    /* Ensure dropdowns work well on mobile */
+    .dropdown-menu {
+        position: absolute;
+        width: auto;
+        min-width: 10rem;
+        max-width: 16rem;
+    }
+
+    .dropdown-item {
+        white-space: normal;
+        word-break: normal;
+    }
+}

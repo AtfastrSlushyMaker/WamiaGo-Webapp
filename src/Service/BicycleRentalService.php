@@ -161,4 +161,12 @@ class BicycleRentalService
             ->getQuery()
             ->getResult();
     }
+    public function getRentalsByStation(BicycleStation $station): array
+    {
+        return $this->rentalRepository->findBy(['start_station' => $station]);
+    }
+    public function getRentalsByUser(User $user): array
+    {
+        return $this->rentalRepository->findBy(['user' => $user]);
+    }
 }

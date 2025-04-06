@@ -1,0 +1,699 @@
+{% block title %}Bicycle Stations Dashboard | WamiaGo{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="{{ asset('css/back/bicycle/station.css') }}?v={{ 'now'|date('YmdHi') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.32.0/tabler-icons.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="layout-container">
+    <div class="layout-page">
+        <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+                <!-- Dashboard Header with summary cards -->
+                <div class="stations-dashboard">
+                    <div class="header-section mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h1 class="h3 mb-0 fw-bold">Bicycle Station Network</h1>
+                                <p class="text-muted">Live overview of all bicycle stations in the network</p>
+                            </div>
+                            <div class="header-actions">
+                                <button class="btn btn-outline-secondary me-2" id="refreshStations">
+                                    <i class="ti ti-refresh"></i> Refresh Data
+                                </button>
+                                <a href="{{ path('admin_bicycle_station_new') }}" class="btn btn-primary">
+                                    <i class="ti ti-plus"></i> Add Station
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Enhanced stats with visual indicators -->
+                    <div class="row g-4 mb-4">
+                        <!-- Active stations card -->
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card station-stat-card border-0 h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="text-muted fw-semibold d-block">Active Stations</span>
+                                            <h3 class="mt-2 mb-0 fw-bold">{{ stationCounts.active }}</h3>
+                                            {% set activePercentage = (stationCounts.active / stations|length * 100)|round %}
+                                            <div class="small mt-2">
+                                                <span class="text-success">
+                                                    <i class="ti ti-trending-up me-1"></i> {{ activePercentage }}%
+                                                </span> of network
+                                            </div>
+                                        </div>
+                                        <div class="stats-icon bg-success-subtle">
+                                            <i class="ti ti-map-pin-check text-success"></i>
+                                        </div>
+                                    </div>
+                                    <div class="progress mt-3" style="height: 6px">
+                                        <div class="progress-bar bg-success" style="width: {{ activePercentage }}%" role="progressbar"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total bicycle capacity -->
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card station-stat-card border-0 h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="text-muted fw-semibold d-block">Total Docks</span>
+                                            <h3 class="mt-2 mb-0 fw-bold">{{ totalCapacity|default(0) }}</h3>
+                                            <div class="small mt-2">
+                                                <span class="text-info">
+                                                    <i class="ti ti-arrow-right me-1"></i> {{ (totalCapacity / stations|length)|round(1) }} avg per station
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="stats-icon bg-primary-subtle">
+                                            <i class="ti ti-bike text-primary"></i>
+                                        </div>
+                                    </div>
+                                    {% set availableBikesTotal = stations|reduce((sum, station) => sum + station.availableBikes, 0) %}
+                                    {% set bikeUsagePercentage = (availableBikesTotal / totalCapacity * 100)|round %}
+                                    <div class="progress mt-3" style="height: 6px">
+                                        <div class="progress-bar bg-primary" style="width: {{ bikeUsagePercentage }}%" role="progressbar"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Maintenance stations -->
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card station-stat-card border-0 h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="text-muted fw-semibold d-block">Under Maintenance</span>
+                                            <h3 class="mt-2 mb-0 fw-bold">{{ stationCounts.maintenance }}</h3>
+                                            {% set maintenancePercentage = (stationCounts.maintenance / stations|length * 100)|round %}
+                                            <div class="small mt-2">
+                                                <span class="text-warning">
+                                                    <i class="ti ti-tools me-1"></i> {{ maintenancePercentage }}%
+                                                </span> of network
+                                            </div>
+                                        </div>
+                                        <div class="stats-icon bg-warning-subtle">
+                                            <i class="ti ti-barrier-block text-warning"></i>
+                                        </div>
+                                    </div>
+                                    <div class="progress mt-3" style="height: 6px">
+                                        <div class="progress-bar bg-warning" style="width: {{ maintenancePercentage }}%" role="progressbar"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Available bikes -->
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card station-stat-card border-0 h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="text-muted fw-semibold d-block">Available Bikes</span>
+                                            <h3 class="mt-2 mb-0 fw-bold">{{ stations|reduce((sum, station) => sum + station.availableBikes, 0) }}</h3>
+                                            {% set availabilityPercentage = (stations|reduce((sum, station) => sum + station.availableBikes, 0) / totalCapacity * 100)|round %}
+                                            <div class="small mt-2">
+                                                <span class="{% if availabilityPercentage < 30 %}text-danger{% else %}text-success{% endif %}">
+                                                    <i class="ti ti-percentage me-1"></i> {{ availabilityPercentage }}%
+                                                </span> availability
+                                            </div>
+                                        </div>
+                                        <div class="stats-icon bg-info-subtle">
+                                            <i class="ti ti-bike-off text-info"></i>
+                                        </div>
+                                    </div>
+                                    <div class="progress mt-3" style="height: 6px">
+                                        <div class="progress-bar bg-info" style="width: {{ availabilityPercentage }}%" role="progressbar"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Enhanced map and list view in tabs -->
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">
+                                        <i class="ti ti-map-2 me-2"></i> Interactive Network Map
+                                    </h5>
+                                    <div class="map-controls">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-outline-secondary" id="showAllStations">
+                                                <i class="ti ti-map-pins"></i> All
+                                            </button>
+                                            <button type="button" class="btn btn-outline-success" id="showActiveStations">
+                                                <i class="ti ti-circle-check"></i> Active
+                                            </button>
+                                            <button type="button" class="btn btn-outline-warning" id="showMaintenanceStations">
+                                                <i class="ti ti-tools"></i> Maintenance
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div id="stationsMap" class="station-map"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-4">
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-header bg-transparent">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0">
+                                            <i class="ti ti-list-details me-2"></i> Station Status
+                                        </h5>
+                                        <div class="input-group input-group-sm" style="width: 140px;">
+                                            <span class="input-group-text border-end-0 bg-transparent">
+                                                <i class="ti ti-search text-muted"></i>
+                                            </span>
+                                            <input type="text" id="quickStationSearch" class="form-control border-start-0" placeholder="Find...">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="station-quick-list">
+                                        <ul class="list-group list-group-flush">
+                                            {% for station in stations|sort((a, b) => a.name <=> b.name) %}
+                                                <li class="list-group-item station-list-item p-3" data-station-id="{{ station.idStation }}">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div class="station-info">
+                                                            <h6 class="mb-1 station-name">{{ station.name }}</h6>
+                                                            <p class="mb-1 small text-muted station-address">
+                                                                <i class="ti ti-map-pin me-1"></i>
+                                                                {{ station.location ? station.location.address|slice(0, 40) ~ (station.location.address|length > 40 ? '...' : '') : 'No address set' }}
+                                                            </p>
+                                                            <div class="d-flex align-items-center mt-2">
+                                                                <div class="me-3">
+                                                                    <span class="badge bg-primary-subtle text-primary">
+                                                                        <i class="ti ti-bike me-1"></i> {{ station.availableBikes }}/{{ station.totalDocks }}
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span class="status-indicator 
+                                                                    {% if station.status.value == 'active' %}status-success{% 
+                                                                    elseif station.status.value == 'maintenance' %}status-warning{% 
+                                                                    else %}status-danger{% endif %}">
+                                                                        {{ station.status.value|capitalize }}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <button class="btn btn-sm btn-icon btn-outline-primary station-locate-btn" 
+                                                                data-station-id="{{ station.idStation }}">
+                                                            <i class="ti ti-crosshair"></i>
+                                                        </button>
+                                                    </div>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Enhanced stations data table with actions -->
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="ti ti-table me-2"></i> Stations Management
+                            </h5>
+                            <div class="actions">
+                                <div class="input-group input-group-sm" style="width: 250px;">
+                                    <span class="input-group-text border-end-0 bg-transparent">
+                                        <i class="ti ti-search text-muted"></i>
+                                    </span>
+                                    <input type="text" id="stationSearch" class="form-control border-start-0" placeholder="Search stations...">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover table-striped align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="py-3">ID</th>
+                                            <th class="py-3">Station Name</th>
+                                            <th class="py-3">Location</th>
+                                            <th class="py-3">Capacity</th>
+                                            <th class="py-3">Status</th>
+                                            <th class="py-3">Utilization</th>
+                                            <th class="py-3">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for station in stations %}
+                                        <tr class="station-row" data-station-id="{{ station.idStation }}">
+                                            <td>
+                                                <span class="fw-semibold text-primary">ST-{{ '%04d'|format(station.idStation) }}</span>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="station-icon me-2 
+                                                        {% if station.status.value == 'active' %}bg-success{% 
+                                                        elseif station.status.value == 'maintenance' %}bg-warning{% 
+                                                        else %}bg-secondary{% endif %}">
+                                                        <i class="ti ti-map-pin"></i>
+                                                    </div>
+                                                    <div>
+                                                        <span class="fw-medium d-block">{{ station.name }}</span>
+                                                        <small class="text-muted">{{ station.availableBikes }} bikes available</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="text-muted">{{ station.location ? station.location.address|slice(0, 30) ~ (station.location.address|length > 30 ? '...' : '') : 'No location set' }}</span>
+                                                    {% if station.location %}
+                                                    <button class="btn btn-sm btn-icon ms-2 view-on-map-btn" data-station-id="{{ station.idStation }}" title="View on map">
+                                                        <i class="ti ti-map text-primary"></i>
+                                                    </button>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                                                                        <td>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="ti ti-bike me-2 text-primary"></i> {{ station.totalDocks }}
+                                                    {% if station.chargingDocks is defined %}
+                                                    <span class="ms-2 text-muted small">
+                                                        ({{ station.chargingDocks }} charging)
+                                                    </span>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="station-status-badge 
+                                                    {% if station.status.value == 'active' %}bg-success-subtle text-success{% 
+                                                    elseif station.status.value == 'maintenance' %}bg-warning-subtle text-warning{% 
+                                                    else %}bg-secondary-subtle text-secondary{% endif %}">
+                                                    <i class="ti ti-{% if station.status.value == 'active' %}check-circle{% 
+                                                        elseif station.status.value == 'maintenance' %}tools{% 
+                                                        else %}circle-x{% endif %} me-1"></i>
+                                                    {{ station.status.value|capitalize }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% set utilizationPercentage = (station.availableBikes / station.totalDocks * 100)|round %}
+                                                <div class="d-flex align-items-center">
+                                                    <div class="utilization-bar me-2">
+                                                        <div class="progress" style="height: 8px; width: 100px;">
+                                                            <div class="progress-bar 
+                                                                {% if utilizationPercentage > 70 %}bg-success
+                                                                {% elseif utilizationPercentage > 30 %}bg-info
+                                                                {% else %}bg-danger{% endif %}" 
+                                                                style="width: {{ utilizationPercentage }}%">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <span class="small">{{ utilizationPercentage }}%</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm btn-icon btn-outline-secondary dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                                        <i class="ti ti-dots-vertical"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-menu-end">
+                                                        <li>
+                                                            <a class="dropdown-item d-flex align-items-center" href="{{ path('admin_bicycle_station_detail', {'id': station.idStation}) }}">
+                                                                <i class="ti ti-info-circle me-2"></i> View Details
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item d-flex align-items-center" href="{{ path('admin_bicycle_station_edit', {'id': station.idStation}) }}">
+                                                                <i class="ti ti-edit me-2"></i> Edit Station
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <hr class="dropdown-divider">
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item d-flex align-items-center text-danger" href="#" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-station-id="{{ station.idStation }}">
+                                                                <i class="ti ti-trash me-2"></i> Delete
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete confirmation modal -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <i class="ti ti-alert-triangle text-warning" style="font-size: 3rem;"></i>
+                    <h4 class="mt-3">Are you sure?</h4>
+                    <p class="text-muted">Do you really want to delete this station? This process cannot be undone.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" id="confirmDeleteBtn" class="btn btn-danger">Yes, Delete It</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if map container exists
+    const mapElement = document.getElementById('stationsMap');
+    if (!mapElement) return;
+
+    // Initialize map with enhanced configuration
+    const map = L.map('stationsMap', {
+        zoomControl: false,
+        attributionControl: false
+    }).setView([36.8065, 10.1815], 13);
+    
+    // Add custom zoom control
+    L.control.zoom({
+        position: 'bottomright'
+    }).addTo(map);
+    
+    // Add premium-looking tile layer
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        subdomains: 'abcd'
+    }).addTo(map);
+    
+    // Define custom marker icons based on station status
+    const createStationIcon = (status) => {
+        const iconColor = status === 'active' ? '#66bb6a' : 
+                         status === 'maintenance' ? '#ff9800' : '#9e9e9e';
+        
+        return L.divIcon({
+            className: 'station-marker-icon',
+            html: `<div style="background-color: ${iconColor}; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); border: 2px solid white;">
+                    <i class="ti ti-map-pin" style="color: white; font-size: 20px;"></i>
+                  </div>`,
+            iconSize: [36, 36],
+            iconAnchor: [18, 36],
+            popupAnchor: [0, -36]
+        });
+    };
+    
+    // Add stations with enhanced markers and popups
+    const stations = [
+        {% for station in stations %}
+            {% if station.location %}
+            { 
+                id: {{ station.idStation }},
+                name: "{{ station.name|e('js') }}", 
+                lat: {{ station.location.latitude }}, 
+                lng: {{ station.location.longitude }},
+                status: "{{ station.status.value }}",
+                address: "{{ station.location.address|e('js')|raw }}",
+                totalDocks: {{ station.totalDocks }},
+                availableBikes: {{ station.availableBikes }}
+                {% if station.chargingDocks is defined %},chargingDocks: {{ station.chargingDocks }}{% endif %}
+            }{% if not loop.last %},{% endif %}
+            {% endif %}
+        {% endfor %}
+    ];
+    
+    // Store markers for interaction
+    const markers = {};
+    
+    // Create and add enhanced markers
+    stations.forEach(station => {
+        // Create marker with custom icon
+        const marker = L.marker([station.lat, station.lng], {
+            title: station.name,
+            icon: createStationIcon(station.status),
+            riseOnHover: true
+        }).addTo(map);
+        
+        // Store marker reference
+        markers[station.id] = marker;
+        
+        // Create rich popup content
+        const utilizationPercentage = Math.round((station.availableBikes / station.totalDocks) * 100);
+        const progressClass = utilizationPercentage > 70 ? 'bg-success' : 
+                             utilizationPercentage > 30 ? 'bg-info' : 'bg-danger';
+        
+        const popupContent = `
+            <div class="station-info p-2">
+                <h5 class="mb-2">${station.name}</h5>
+                <p class="text-muted mb-2"><i class="ti ti-map-pin me-1"></i> ${station.address}</p>
+                
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge ${station.status === 'active' ? 'bg-success' : 
+                                         station.status === 'maintenance' ? 'bg-warning' : 'bg-secondary'}">
+                        ${station.status.charAt(0).toUpperCase() + station.status.slice(1)}
+                    </span>
+                    <span class="text-muted small">ID: ST-${String(station.id).padStart(4, '0')}</span>
+                </div>
+                
+                <div class="stats-grid mb-3">
+                    <div class="stat-item">
+                        <div class="stat-value">${station.availableBikes}</div>
+                        <div class="stat-label">Available</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${station.totalDocks}</div>
+                        <div class="stat-label">Capacity</div>
+                    </div>
+                    ${station.chargingDocks !== undefined ? `
+                    <div class="stat-item">
+                        <div class="stat-value">${station.chargingDocks}</div>
+                        <div class="stat-label">Charging</div>
+                    </div>
+                    ` : ''}
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label d-flex justify-content-between mb-1">
+                        <span>Utilization</span>
+                        <span>${utilizationPercentage}%</span>
+                    </label>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar ${progressClass}" style="width: ${utilizationPercentage}%"></div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="/admin/bicycle/station/${station.id}" class="btn btn-sm btn-primary">
+                        <i class="ti ti-info-circle me-1"></i> Details
+                    </a>
+                    <a href="/admin/bicycle/station/${station.id}/edit" class="btn btn-sm btn-outline-secondary">
+                        <i class="ti ti-edit me-1"></i> Edit
+                    </a>
+                </div>
+            </div>
+        `;
+        
+        // Bind popup with custom class
+        marker.bindPopup(popupContent, {
+            className: 'station-popup',
+            maxWidth: 300,
+            minWidth: 280
+        });
+    });
+    
+    // Fit bounds if we have markers
+    if (stations.length > 0) {
+        const bounds = stations.map(station => [station.lat, station.lng]);
+        map.fitBounds(bounds);
+    }
+    
+    // Add station filtering functionality
+    document.getElementById('showAllStations').addEventListener('click', function() {
+        stations.forEach(station => {
+            markers[station.id].addTo(map);
+        });
+        
+        if (stations.length > 0) {
+            const bounds = stations.map(station => [station.lat, station.lng]);
+            map.fitBounds(bounds);
+        }
+        
+        setActiveFilterButton(this);
+    });
+    
+    document.getElementById('showActiveStations').addEventListener('click', function() {
+        const activeStations = stations.filter(station => station.status === 'active');
+        
+        stations.forEach(station => {
+            if (station.status === 'active') {
+                markers[station.id].addTo(map);
+            } else {
+                map.removeLayer(markers[station.id]);
+            }
+        });
+        
+        if (activeStations.length > 0) {
+            const bounds = activeStations.map(station => [station.lat, station.lng]);
+            map.fitBounds(bounds);
+        }
+        
+        setActiveFilterButton(this);
+    });
+    
+    document.getElementById('showMaintenanceStations').addEventListener('click', function() {
+        const maintenanceStations = stations.filter(station => station.status === 'maintenance');
+        
+        stations.forEach(station => {
+            if (station.status === 'maintenance') {
+                markers[station.id].addTo(map);
+            } else {
+                map.removeLayer(markers[station.id]);
+            }
+        });
+        
+        if (maintenanceStations.length > 0) {
+            const bounds = maintenanceStations.map(station => [station.lat, station.lng]);
+            map.fitBounds(bounds);
+        }
+        
+        setActiveFilterButton(this);
+    });
+    
+    function setActiveFilterButton(button) {
+        document.querySelectorAll('.map-controls .btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        button.classList.add('active');
+    }
+    
+    // Station search functionality
+    const stationSearch = document.getElementById('stationSearch');
+    if (stationSearch) {
+        stationSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            document.querySelectorAll('.station-row').forEach(row => {
+                const stationName = row.querySelector('.fw-medium').textContent.toLowerCase();
+                const stationAddress = row.querySelector('.text-muted').textContent.toLowerCase();
+                
+                if (stationName.includes(searchTerm) || stationAddress.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    const quickStationSearch = document.getElementById('quickStationSearch');
+    if (quickStationSearch) {
+        quickStationSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            document.querySelectorAll('.station-list-item').forEach(item => {
+                const stationName = item.querySelector('.station-name').textContent.toLowerCase();
+                const stationAddress = item.querySelector('.station-address').textContent.toLowerCase();
+                
+                if (stationName.includes(searchTerm) || stationAddress.includes(searchTerm)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // Handle station locate button clicks
+    document.querySelectorAll('.station-locate-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const stationId = parseInt(this.getAttribute('data-station-id'), 10);
+            if (markers[stationId]) {
+                map.setView(markers[stationId].getLatLng(), 16);
+                markers[stationId].openPopup();
+            }
+        });
+    });
+    
+    // Handle view on map button clicks
+    document.querySelectorAll('.view-on-map-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const stationId = parseInt(this.getAttribute('data-station-id'), 10);
+            if (markers[stationId]) {
+                map.setView(markers[stationId].getLatLng(), 16);
+                markers[stationId].openPopup();
+                
+                // Scroll to map
+                document.getElementById('stationsMap').scrollIntoView({
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+    
+    // Force map to render correctly
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 200);
+    
+    // Handle delete confirmation
+    const deleteModal = document.getElementById('confirmDeleteModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const stationId = button.getAttribute('data-station-id');
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            
+            confirmBtn.href = `/admin/bicycle/station/${stationId}/delete`;
+        });
+    }
+    
+    // Add refresh station data functionality
+    document.getElementById('refreshStations').addEventListener('click', function() {
+        this.disabled = true;
+        const icon = this.querySelector('i');
+        icon.classList.add('fa-spin');
+        
+        // Simulate refresh with timeout
+        setTimeout(() => {
+            window.location.reload();
+        }, 800);
+    });
+    
+    // Add row highlighting on hover for better UX
+    document.querySelectorAll('.station-row').forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            const stationId = parseInt(this.getAttribute('data-station-id'), 10);
+            if (markers[stationId]) {
+                markers[stationId].getElement().classList.add('highlight');
+            }
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            const stationId = parseInt(this.getAttribute('data-station-id'), 10);
+            if (markers[stationId]) {
+                markers[stationId].getElement().classList.remove('highlight');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
