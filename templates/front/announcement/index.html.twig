@@ -1,0 +1,205 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Available Announcements | WamiaGo{% endblock %}
+
+{% block page_stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/front/announcement/announcement.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="announcement-container">
+    {# Header Section #}
+    <div class="announcement-header">
+        <div class="header-content">
+            <div class="title-container">
+                <img src="{{ asset('images/icons/annonce.png') }}" alt="Announcements" class="header-icon">
+                <h1>Available Announcements</h1>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="#" class="action-button">
+                    <img src="{{ asset('images/icons/reservation.png') }}" alt="Reservations">
+                    <span>See Reservations</span>
+                </a>
+                
+                <a href="#" class="action-button">
+                    <img src="{{ asset('images/icons/relocation.png') }}" alt="Relocations">
+                    <span>See Relocations</span>
+                </a>
+            </div>
+        </div>
+        
+        {# Filters Section #}
+        <div class="filters-section">
+            <div class="search-filter">
+                <input type="text" placeholder="Search announcements..." class="search-input">
+                <button class="search-button">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            
+            <div class="zone-filter">
+                <select class="zone-select">
+                    <option value="">All Zones</option>
+                    {% for zone in zones %}
+                        <option value="{{ zone.name }}" {% if selectedZone is defined and selectedZone == zone %}selected{% endif %}>
+                            {{ zone.value }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    {# Announcements List #}
+    <div class="announcement-list">
+        {% if announcements is empty %}
+            <div class="empty-state">
+                <img src="{{ asset('images/icons/empty-announcement.png') }}" alt="No announcements">
+                <h3>No announcements available</h3>
+                <p>There are currently no active announcements. Please check back later.</p>
+            </div>
+        {% else %}
+            {% for announcement in announcements %}
+                <div class="announcement-card">
+                    <div class="card-header">
+                        <h3 class="announcement-title">{{ announcement.title }}</h3>
+                        <span class="status-badge {% if announcement.status %}active{% else %}inactive{% endif %}">
+                            {% if announcement.status %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="card-content">
+                        <p class="announcement-text">{{ announcement.content|length > 150 ? announcement.content|slice(0, 150) ~ '...' : announcement.content }}</p>
+                        
+                        <div class="announcement-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>{{ announcement.zone.value }}</span>
+                            </div>
+                            
+                            <div class="meta-item">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>{{ announcement.date|date('d M Y, H:i') }}</span>
+                            </div>
+                            
+                            <div class="meta-item">
+                                <i class="fas fa-user"></i>
+                                <span>{{ announcement.driver.user.name ?? 'Unknown driver' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-actions">
+                        <a href="{{ path('app_front_announcement_details', {'id': announcement.id_announcement}) }}" 
+                           class="details-button"
+                           data-announcement-id="{{ announcement.id_announcement }}">
+                            <i class="fas fa-eye"></i> Details
+                        </a>
+                        
+                        <a href="{{ path('app_front_announcement_reserve', {'id': announcement.id_announcement}) }}" 
+                           class="reserve-button"
+                           data-announcement-id="{{ announcement.id_announcement }}">
+                            <i class="fas fa-calendar-check"></i> Reserve
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    
+    {# Pagination #}
+    {% if announcements|length > 0 %}
+        <div class="pagination-container">
+            <nav aria-label="Announcements pagination">
+                <ul class="pagination">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    {% endif %}
+</div>
+
+{# Details Modal #}
+<div class="modal fade" id="announcementModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Announcement Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalBodyContent">
+                {# Content will be loaded via AJAX #}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" class="btn btn-primary" id="modalReserveButton">Reserve</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle details button clicks
+    document.querySelectorAll('.details-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const announcementId = this.getAttribute('data-announcement-id');
+            
+            // Fetch announcement details via AJAX
+            fetch(`/announcements/${announcementId}/modal`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('modalBodyContent').innerHTML = data.content;
+                    document.getElementById('modalReserveButton').href = `/announcements/${announcementId}/reserve`;
+                    
+                    // Show modal
+                    const modal = new bootstrap.Modal(document.getElementById('announcementModal'));
+                    modal.show();
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    });
+
+    // Zone filter change handler
+    document.querySelector('.zone-select').addEventListener('change', function() {
+        const zone = this.value;
+        if (zone) {
+            window.location.href = `/announcements/zone/${zone}`;
+        } else {
+            window.location.href = '/announcements';
+        }
+    });
+
+    // Search functionality
+    document.querySelector('.search-button').addEventListener('click', function() {
+        const keyword = document.querySelector('.search-input').value.trim();
+        if (keyword) {
+            window.location.href = `/announcements/search?keyword=${encodeURIComponent(keyword)}`;
+        }
+    });
+
+    // Allow search on Enter key
+    document.querySelector('.search-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.querySelector('.search-button').click();
+        }
+    });
+});
+</script>
+{% endblock %}
