@@ -234,6 +234,91 @@
             </div>
         </div>
     </div>
+
+{# FAQ Section  #}
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Frequently Asked Questions</h2>
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="accordion" id="transportFaq">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                How do I reserve a transport service?
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#transportFaq">
+                            <div class="accordion-body">
+                                Simply browse the available announcements, select the one that matches your needs, and click the "Reserve" button. You'll receive a confirmation with all the details of your reservation.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                Can I cancel my reservation?
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#transportFaq">
+                            <div class="accordion-body">
+                                Yes, you can cancel your reservation up to 24 hours before the scheduled transport date without any fees. Cancellations made less than 24 hours in advance may be subject to charges.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                What types of goods can be transported?
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#transportFaq">
+                            <div class="accordion-body">
+                                Our transporters can handle most types of goods except hazardous materials, illegal items, or extremely fragile objects requiring special handling. Please check with the transporter for any specific requirements.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingFour">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                How are payments handled?
+                            </button>
+                        </h2>
+                        <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#transportFaq">
+                            <div class="accordion-body">
+                                Payments are securely processed through our platform. You'll be charged only after the transport is successfully completed. We accept all major credit cards and mobile payment methods.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# Call to Action Section  #}
+<section class="py-5 bg-announcement text-white text-center">
+    <div class="container">
+        <h2 class="mb-3">Need Reliable Transport Services?</h2>
+        <p class="lead mb-4">Join thousands of satisfied customers who trust WamiaGo for their transport needs.</p>
+        {% if not app.user %}
+            <div class="d-flex justify-content-center">
+                 <a href="#" class="btn btn-light btn-lg me-3">
+                    <i class="fas fa-user-plus me-2"></i> Sign Up
+                </a>
+                <a href="#" class="btn btn-outline-light btn-lg">
+                    <i class="fas fa-sign-in-alt me-2"></i> Log In
+                </a>
+            </div>
+        {% else %}
+            <a href="#announcements-section" class="btn btn-light btn-lg">
+                <i class="fas fa-truck me-2"></i> View Available Transports
+            </a>
+        {% endif %}
+    </div>
+</section>
+
+
 {% endblock %}
 
 {% block page_javascripts %}
