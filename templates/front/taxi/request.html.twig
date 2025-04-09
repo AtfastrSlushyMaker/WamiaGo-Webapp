@@ -17,7 +17,9 @@
     .hero-section .container {
         padding-top: 60px;
     }
-
+.form-label {
+    color: #999;  /* Une couleur claire (gris clair) */
+}
     .form-container {
         background: #fff;
         padding: 30px;
@@ -91,26 +93,23 @@
                     <!-- Pickup Location -->
                     <div class="mb-3">
                         <label for="pickupLocation" class="form-label">Pickup Location</label>
-                        <select class="form-control" id="pickupLocation" name="pickupLocation" required>
-                            <option value="">Select Pickup Location</option>
-                            <option value="36.8065,10.1815">Tunis</option>
-                            <option value="37.2767,9.8766">Sfax</option>
-                            <option value="35.8256,10.6406">Sousse</option>
-                        </select>
+                        <input type="text" class="form-control" id="pickupLocation" name="pickupLocation" required readonly>
                     </div>
+                    <!-- Pickup Latitude and Longitude (hidden) -->
+                    <input type="hidden" id="pickupLat" name="pickupLat">
+                    <input type="hidden" id="pickupLng" name="pickupLng">
 
                     <!-- Arrival Location -->
                     <div class="mb-3">
                         <label for="arrivalLocation" class="form-label">Arrival Location</label>
-                        <select class="form-control" id="arrivalLocation" name="arrivalLocation" required>
-                            <option value="">Select Arrival Location</option>
-                            <option value="36.8065,10.1815">Tunis</option>
-                            <option value="37.2767,9.8766">Sfax</option>
-                            <option value="35.8256,10.6406">Sousse</option>
-                        </select>
+                        <input type="text" class="form-control" id="arrivalLocation" name="arrivalLocation" required readonly>
                     </div>
+                    <!-- Arrival Latitude and Longitude (hidden) -->
+                    <input type="hidden" id="arrivalLat" name="arrivalLat">
+                    <input type="hidden" id="arrivalLng" name="arrivalLng">
 
                     <button type="submit" class="btn btn-primary w-100">Submit Request</button>
+                    <button type="button" id="resetMap" class="btn btn-secondary w-100 mt-3">Reset Map</button>
                 </form>
             </div>
         </div>
@@ -127,38 +126,43 @@
 {{ parent() }}
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
-    // Initialize the map (Leaflet.js example centered on Tunisia)
-    var map = L.map('map').setView([33.8869, 9.5375], 6); // Default center: Tunisia (latitude: 33.8869, longitude: 9.5375)
+    // Initialiser la carte (Leaflet.js, centrée sur la Grande Tunis)
+    var map = L.map('map').setView([36.8065, 10.1815], 12); // Centré sur la Grande Tunis (latitude: 36.8065, longitude: 10.1815)
 
+    // Ajouter les tuiles OpenStreetMap à la carte
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    // Function to update the map with the selected locations
-    function updateMap(pickupCoords, arrivalCoords) {
-        // Clear existing markers (if any)
-        map.eachLayer(function(layer) {
-            if (layer instanceof L.Marker) {
-                map.removeLayer(layer);
-            }
-        });
+    // Variables pour stocker les marqueurs de Pickup et Arrival
+    var pickupMarker, arrivalMarker;
 
-        // Add markers for the selected pickup and arrival locations
+    // Fonction pour mettre à jour la carte avec les lieux sélectionnés
+    function updateMap(pickupCoords, arrivalCoords) {
+        // Supprimer les marqueurs existants (si présents)
+        if (pickupMarker) {
+            map.removeLayer(pickupMarker);
+        }
+        if (arrivalMarker) {
+            map.removeLayer(arrivalMarker);
+        }
+
+        // Ajouter les marqueurs pour les emplacements de prise en charge et d'arrivée
         var pickupLocation = pickupCoords.split(',');
         var arrivalLocation = arrivalCoords.split(',');
 
-        // Add pickup marker
-        L.marker([parseFloat(pickupLocation[0]), parseFloat(pickupLocation[1])])
+        // Ajouter le marqueur pour le lieu de prise en charge
+        pickupMarker = L.marker([parseFloat(pickupLocation[0]), parseFloat(pickupLocation[1])])
             .addTo(map)
             .bindPopup('Pickup Location')
             .openPopup();
 
-        // Add arrival marker
-        L.marker([parseFloat(arrivalLocation[0]), parseFloat(arrivalLocation[1])])
+        // Ajouter le marqueur pour le lieu d'arrivée
+        arrivalMarker = L.marker([parseFloat(arrivalLocation[0]), parseFloat(arrivalLocation[1])])
             .addTo(map)
             .bindPopup('Arrival Location');
 
-        // Adjust map view to fit both markers
+        // Ajuster la vue de la carte pour inclure les deux marqueurs
         var bounds = [
             [parseFloat(pickupLocation[0]), parseFloat(pickupLocation[1])],
             [parseFloat(arrivalLocation[0]), parseFloat(arrivalLocation[1])]
@@ -166,7 +170,70 @@
         map.fitBounds(bounds);
     }
 
-    // Listen for form submission to update map
+    // Écouter le clic sur la carte pour mettre à jour le formulaire
+    map.on('click', function(e) {
+        var lat = e.latlng.lat;  // Latitude du point cliqué
+        var lon = e.latlng.lng;  // Longitude du point cliqué
+
+        // Utiliser l'API de géocodage inverse pour obtenir l'adresse
+        var geocodeUrl = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
+
+        fetch(geocodeUrl)
+            .then(response => response.json())
+            .then(data => {
+                var address = data.display_name || 'Adresse inconnue'; // Récupérer l'adresse ou une valeur par défaut
+
+                // Vérifier si l'adresse sélectionnée est pour Pickup ou Arrival
+                if (!document.getElementById('pickupLocation').value) {
+                    // Si le champ Pickup est vide, assigner l'adresse au Pickup Location
+                    document.getElementById('pickupLocation').value = address;
+                    document.getElementById('pickupLat').value = lat; // Enregistrer la latitude du pickup
+                    document.getElementById('pickupLng').value = lon; // Enregistrer la longitude du pickup
+                    updateMap(lat + ',' + lon, lat + ',' + lon);  // Mettre à jour uniquement le Pickup
+                } else {
+                    // Sinon, assigner l'adresse au Arrival Location
+                    document.getElementById('arrivalLocation').value = address;
+                    document.getElementById('arrivalLat').value = lat; // Enregistrer la latitude de l'arrivée
+                    document.getElementById('arrivalLng').value = lon; // Enregistrer la longitude de l'arrivée
+                    updateMap(document.getElementById('pickupLocation').value, lat + ',' + lon);  // Mettre à jour avec Pickup et Arrival
+                }
+
+                // Après avoir sélectionné l'adresse, zoomer sur la Grande Tunis
+                map.setView([36.8065, 10.1815], 12);  // Centrer sur la Grande Tunis et faire un zoom arrière
+            })
+            .catch(error => {
+                console.error('Erreur lors du géocodage inverse:', error);
+            });
+    });
+
+    // Fonction pour réinitialiser la carte
+    function resetMap() {
+        // Supprimer les marqueurs existants (si présents)
+        if (pickupMarker) {
+            map.removeLayer(pickupMarker);
+        }
+        if (arrivalMarker) {
+            map.removeLayer(arrivalMarker);
+        }
+
+        // Réinitialiser les champs de l'adresse
+        document.getElementById('pickupLocation').value = '';
+        document.getElementById('arrivalLocation').value = '';
+
+        // Réinitialiser les coordonnées
+        document.getElementById('pickupLat').value = '';
+        document.getElementById('pickupLng').value = '';
+        document.getElementById('arrivalLat').value = '';
+        document.getElementById('arrivalLng').value = '';
+
+        // Recentrer la carte sur la Grande Tunis avec un zoom adapté
+        map.setView([36.8065, 10.1815], 12);
+    }
+
+    // Ajout de l'écouteur pour le bouton de réinitialisation de la carte
+    document.getElementById('resetMap').addEventListener('click', resetMap);
+
+    // Écouter la soumission du formulaire pour mettre à jour la carte avec les données
     document.getElementById('requestForm').addEventListener('submit', function(event) {
         event.preventDefault();
 
@@ -175,10 +242,10 @@
 
         if (pickupLocation && arrivalLocation) {
             updateMap(pickupLocation, arrivalLocation);
+
+            // Après avoir sélectionné l'adresse, zoomer sur la Grande Tunis
+            map.setView([36.8065, 10.1815], 12);  // Centrer sur la Grande Tunis et faire un zoom arrière
         }
     });
-
-
-
 </script>
 {% endblock %}
