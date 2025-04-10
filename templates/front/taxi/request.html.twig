@@ -1,59 +1,17 @@
 {# filepath: d:\WamiaGo-Webapp - Copie (3)\templates\front\taxi\taxi-management.html.twig #}
 {% extends 'front/base.html.twig' %}
 
-{% block title %}Taxi Management - WamiaGo{% endblock %}
+{% block title %}Request a Taxi - WamiaGo{% endblock %}
 
 {% block page_stylesheets %}
-<link href="{{ asset('css/front/taxi/taxi-management.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
+<link href="{{ asset('css/front/taxi/request.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
 <link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet">
 <style>
-    .hero-section {
-        background-image: url('{{ asset('images/front/taxi/hero-bg.jpg') }}');
-        background-size: cover;
-        background-position: center;
-        padding: 50px 0;
-    }
-
-    .hero-section .container {
-        padding-top: 60px;
-    }
-
     .form-container {
         background: #fff;
         padding: 30px;
         border-radius: 8px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .form-container h3 {
-        font-size: 1.8rem;
-        margin-bottom: 20px;
-    }
-
-    .form-control {
-        border-radius: 5px;
-        border: 1px solid #ddd;
-        padding: 10px;
-        margin-bottom: 15px;
-    }
-
-    .form-control:focus {
-        border-color: #007bff;
-        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-    }
-
-    .btn-primary {
-        background-color: #66b3ff;  /* Light blue background */
-        border: none;
-        padding: 12px 24px;
-        font-size: 16px;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-
-    .btn-primary:hover {
-        background-color: #3380cc;  /* Darker blue on hover */
     }
 
     .map-container {
@@ -73,45 +31,39 @@
             <a href="#requests-section" class="btn btn-light btn-lg me-3">
                 <i class="fas fa-taxi me-2"></i> Back to Request List <i class="fas fa-chevron-right ms-2"></i>
             </a>
-
         </div>
     </div>
 </div>
 {% endblock %}
 
-
-
 {% block content %}
-<div class="container py-5" id="requests-section">
+<div class="container py-5">
     <div class="row">
         <div class="col-md-6">
             <div class="form-container">
                 <h3>Request a Taxi</h3>
-                <form id="requestForm" action="#" method="POST">
+                <form id="requestForm" action="{{ path('app_taxi_request') }}" method="POST" onsubmit="return handleFormSubmit(event)">
                     <!-- Pickup Location -->
                     <div class="mb-3">
                         <label for="pickupLocation" class="form-label">Pickup Location</label>
-                        <select class="form-control" id="pickupLocation" name="pickupLocation" required>
-                            <option value="">Select Pickup Location</option>
-                            <option value="36.8065,10.1815">Tunis</option>
-                            <option value="37.2767,9.8766">Sfax</option>
-                            <option value="35.8256,10.6406">Sousse</option>
-                        </select>
+                        <input type="text" class="form-control" id="pickupLocation" name="pickupLocation" placeholder="Select on the map" required readonly>
                     </div>
+                    <!-- Pickup Latitude and Longitude (hidden) -->
+                    <input type="hidden" id="pickupLat" name="pickupLat">
+                    <input type="hidden" id="pickupLng" name="pickupLng">
 
                     <!-- Arrival Location -->
                     <div class="mb-3">
                         <label for="arrivalLocation" class="form-label">Arrival Location</label>
-                        <select class="form-control" id="arrivalLocation" name="arrivalLocation" required>
-                            <option value="">Select Arrival Location</option>
-                            <option value="36.8065,10.1815">Tunis</option>
-                            <option value="37.2767,9.8766">Sfax</option>
-                            <option value="35.8256,10.6406">Sousse</option>
-                        </select>
+                        <input type="text" class="form-control" id="arrivalLocation" name="arrivalLocation" placeholder="Select on the map" required readonly>
                     </div>
+                    <!-- Arrival Latitude and Longitude (hidden) -->
+                    <input type="hidden" id="arrivalLat" name="arrivalLat">
+                    <input type="hidden" id="arrivalLng" name="arrivalLng">
 
                     <button type="submit" class="btn btn-primary w-100">Submit Request</button>
                 </form>
+                <button class="btn btn-secondary mt-3" onclick="resetFormAndMap()">Reset Map</button>
             </div>
         </div>
 
@@ -126,59 +78,135 @@
 {% block javascripts %}
 {{ parent() }}
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // Initialize the map (Leaflet.js example centered on Tunisia)
-    var map = L.map('map').setView([33.8869, 9.5375], 6); // Default center: Tunisia (latitude: 33.8869, longitude: 9.5375)
+    // Initialize the map centered on Grand Tunis with restricted bounds and zoom levels
+    var map = L.map('map', {
+        center: [36.8065, 10.1815], // Grand Tunis coordinates
+        zoom: 12,
+        minZoom: 12, // Minimum zoom level to prevent zooming out too far
+        maxZoom: 16, // Maximum zoom level to prevent zooming in too far
+        maxBounds: [
+            [36.6, 9.9], // Southwest corner of the bounding box
+            [37.0, 10.5] // Northeast corner of the bounding box
+        ],
+        maxBoundsViscosity: 1.0 // Prevents the map from panning outside the bounds
+    });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    // Function to update the map with the selected locations
-    function updateMap(pickupCoords, arrivalCoords) {
-        // Clear existing markers (if any)
-        map.eachLayer(function(layer) {
-            if (layer instanceof L.Marker) {
-                map.removeLayer(layer);
-            }
-        });
+    var pickupMarker, arrivalMarker;
 
-        // Add markers for the selected pickup and arrival locations
-        var pickupLocation = pickupCoords.split(',');
-        var arrivalLocation = arrivalCoords.split(',');
+    // Function to handle map clicks and update the form fields
+    map.on('click', function(e) {
+        var lat = e.latlng.lat;
+        var lon = e.latlng.lng;
 
-        // Add pickup marker
-        L.marker([parseFloat(pickupLocation[0]), parseFloat(pickupLocation[1])])
-            .addTo(map)
-            .bindPopup('Pickup Location')
-            .openPopup();
-
-        // Add arrival marker
-        L.marker([parseFloat(arrivalLocation[0]), parseFloat(arrivalLocation[1])])
-            .addTo(map)
-            .bindPopup('Arrival Location');
-
-        // Adjust map view to fit both markers
-        var bounds = [
-            [parseFloat(pickupLocation[0]), parseFloat(pickupLocation[1])],
-            [parseFloat(arrivalLocation[0]), parseFloat(arrivalLocation[1])]
-        ];
-        map.fitBounds(bounds);
-    }
-
-    // Listen for form submission to update map
-    document.getElementById('requestForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-
-        var pickupLocation = document.getElementById('pickupLocation').value;
-        var arrivalLocation = document.getElementById('arrivalLocation').value;
-
-        if (pickupLocation && arrivalLocation) {
-            updateMap(pickupLocation, arrivalLocation);
+        // Check if the clicked location is within the Grand Tunis bounds
+        if (lat < 36.6 || lat > 37.0 || lon < 9.9 || lon > 10.5) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Location',
+                text: 'Please select a location within the Grand Tunis area.',
+                confirmButtonText: 'OK'
+            });
+            return;
         }
+
+        // Reverse geocoding to get the address
+        var geocodeUrl = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
+
+        fetch(geocodeUrl)
+            .then(response => response.json())
+            .then(data => {
+                var address = data.display_name || 'Unknown Address';
+
+                // Check if the pickup location is already set
+                if (!document.getElementById('pickupLocation').value) {
+                    // Set pickup location
+                    document.getElementById('pickupLocation').value = address;
+                    document.getElementById('pickupLat').value = lat;
+                    document.getElementById('pickupLng').value = lon;
+
+                    // Add or update the pickup marker
+                    if (pickupMarker) {
+                        map.removeLayer(pickupMarker);
+                    }
+                    pickupMarker = L.marker([lat, lon]).addTo(map).bindPopup('Pickup Location').openPopup();
+                } else {
+                    // Set arrival location
+                    document.getElementById('arrivalLocation').value = address;
+                    document.getElementById('arrivalLat').value = lat;
+                    document.getElementById('arrivalLng').value = lon;
+
+                    // Add or update the arrival marker
+                    if (arrivalMarker) {
+                        map.removeLayer(arrivalMarker);
+                    }
+                    arrivalMarker = L.marker([lat, lon]).addTo(map).bindPopup('Arrival Location').openPopup();
+                }
+            })
+            .catch(error => {
+                console.error('Reverse geocoding error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Unable to fetch the address. Please try again.',
+                    confirmButtonText: 'OK'
+                });
+            });
     });
 
+    // Function to reset the form and map markers
+    function resetFormAndMap() {
+        document.getElementById('pickupLocation').value = '';
+        document.getElementById('arrivalLocation').value = '';
+        document.getElementById('pickupLat').value = '';
+        document.getElementById('pickupLng').value = '';
+        document.getElementById('arrivalLat').value = '';
+        document.getElementById('arrivalLng').value = '';
 
+        if (pickupMarker) {
+            map.removeLayer(pickupMarker);
+        }
+        if (arrivalMarker) {
+            map.removeLayer(arrivalMarker);
+        }
 
+        map.setView([36.8065, 10.1815], 12); // Reset map to Grand Tunis
+    }
+
+    // Function to handle form submission
+    function handleFormSubmit(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const pickupLocation = document.getElementById('pickupLocation').value;
+        const arrivalLocation = document.getElementById('arrivalLocation').value;
+
+        if (!pickupLocation || !arrivalLocation) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Incomplete Form',
+                text: 'Please select both pickup and arrival locations on the map.',
+                confirmButtonText: 'OK'
+            });
+            return false; // Prevent form submission
+        }
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Request Submitted!',
+            text: 'Your taxi request has been successfully submitted.',
+            showConfirmButton: false,
+            timer: 2000
+        });
+
+        // Simulate form submission delay
+        setTimeout(() => {
+            event.target.submit();
+        }, 2000);
+    }
 </script>
 {% endblock %}

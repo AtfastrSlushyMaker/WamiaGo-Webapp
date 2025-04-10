@@ -3,7 +3,7 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #fffbea; /* Light yellow background */
+    background-color: white; /* Light yellow background */
     color: #333; /* Dark gray text for readability */
 }
 
@@ -83,7 +83,7 @@ body {
     border: none;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    background-color: #fff;
+    background-color: #fffbea;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -163,7 +163,7 @@ section p {
 }
 
 #drivers-section .card {
-    background-color: #fff;
+    background-color: #fffbea;
 }
 
 /* Footer Call-to-Action */
@@ -234,7 +234,7 @@ section p {
         gap: 15px;
     }
     .card-pending {
-        background-color: #fff3cd; /* jaune clair */
+        background-color: white; /* jaune clair */
     }
     
     .card-accepted {
@@ -248,10 +248,12 @@ section p {
     .card-default {
         background-color: #cfe2ff; /* bleu clair */
     }
-    background-color: #dc3545; /* rouge */
-    border-radius: 5px;
-    padding: 5px 10px;
-    transition: background-color 0.3s;
+    .card-error {
+        background-color: #dc3545; /* rouge */
+        border-radius: 5px;
+        padding: 5px 10px;
+        transition: background-color 0.3s;
+    }
 
 
 }

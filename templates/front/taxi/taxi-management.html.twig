@@ -278,35 +278,34 @@
 </script>
 
 
-<section id="requests-section" class="py-5">
+<section id="requests-section" class="py-4">
     <div class="container">
-        <h2 class="text-center mb-5">Taxi Requests</h2>
+        <h3 class="text-center mb-4">Taxi Requests</h3>
         <div class="row justify-content-center">
             {% if requests is empty %}
-                <div class="text-center py-5">
+                <div class="text-center py-4">
                     <p class="text-muted">No active taxi requests at the moment.</p>
                 </div>
             {% else %}
                 {% for request in requests %}
-                    <div id="request-{{ request.id }}" class="col-md-6 col-lg-4 mb-4">
-                        <div class="card request-card h-100 border-0 bg-white" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
-                            <div class="card-header" style="background-color: white; text-align: center;">
-                                <h5 class="mb-0 request-status" style="color: #6c757d;">
-                                    {{ request.status }}
-                                </h5>
+                    <div id="request-{{ request.id }}" class="col-md-4 mb-3">
+                        <div class="card request-card border-0" style="background-color: #e3f2fd; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                            <div class="card-header text-center" style="background-color: #bbdefb;">
+                                <h6 class="mb-0 text-secondary">{{ request.status }}</h6>
                             </div>
-                            <div class="card-body">
-                                <p><i class="fas fa-map-marker-alt me-2 text-taxi"></i> Pickup: {{ request.pickupLocation ? request.pickupLocation : 'Unknown' }}</p>
-                                <p><i class="fas fa-map-marker-alt me-2 text-taxi"></i> Destination: {{ request.destination ? request.destination : 'Unknown' }}</p>
-                                <p><i class="fas fa-clock me-2 text-taxi"></i> {{ request.requestTime|date('Y-m-d H:i:s') }}</p>
-
+                            <div class="card-body p-3">
+                                <p class="mb-2"><i class="fas fa-map-marker-alt me-2 text-primary"></i> Pickup: {{ request.pickupLocation ?: 'Unknown' }}</p>
+                                <p class="mb-2"><i class="fas fa-map-marker-alt me-2 text-primary"></i> Destination: {{ request.destination ?: 'Unknown' }}</p>
+                                <p class="mb-2"><i class="fas fa-clock me-2 text-primary"></i> {{ request.requestTime|date('Y-m-d H:i') }}</p>
                                 <div class="d-flex justify-content-between">
-                                    <!-- Delete button -->
-                                    <form class="delete-request-form" action="{{ path('delete_request', { 'id': request.id }) }}" method="POST" style="display: inline;">
-                                        <button type="submit" class="btn btn-danger btn-sm rounded-3" data-request-id="{{ request.id }}">
-                                            <i class="fas fa-trash-alt me-1 text-white"></i> Delete
+                                    <form class="delete-request-form" action="#" method="POST">
+                                        <button type="submit" class="btn btn-danger btn-sm d-flex align-items-center" data-request-id="{{ request.id }}">
+                                            <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </form>
+                                    <a href="#" class="btn btn-primary btn-md px-3 py-2 d-flex align-items-center">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -361,23 +360,16 @@
                             if (requestCard) {
                                 requestCard.remove();
                             }
-                        } else {
-                            alert(data.message || 'An error occurred while deleting the request.');
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        alert('An error occurred while deleting the request.');
                     });
                 });
             });
         });
     </script>
 {% endblock %}
-
-
-
-
 
 
 
