@@ -1,847 +1,185 @@
-{% extends 'back-office/base.html.twig' %}
-
-{% block title %}{{ title }}{% endblock %}
-
-{% block stylesheets %}
-{{ parent() }}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-<!-- Use unpkg instead of jsdelivr for overlay scrollbars to avoid integrity issues -->
-<link rel="stylesheet" href="https://unpkg.com/overlayscrollbars@2.10.1/styles/overlayscrollbars.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.32.0/tabler-icons.min.css">
-<link rel="stylesheet" href="{{ asset('css/back/bicycle/station-form.css') }}?v={{ 'now'|date('YmdHi') }}">
-{% endblock %}
-
-{% block content %}
-<div class="container-fluid">
-    <!-- Header Section -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <div>
-            <h1 class="h3 mb-0 text-gray-800">{{ title }}</h1>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ path('admin_dashboard') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_stations') }}">Bicycle Stations</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">{{ is_new ? 'Create' : 'Edit' }} Station</li>
-                </ol>
-            </nav>
-        </div>
-        <a href="{{ path('admin_bicycle_stations') }}" class="d-none d-sm-inline-block btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i> Back to Stations
-        </a>
-    </div>
-
-    <!-- Main Content Row -->
-    <div class="row">
-        <!-- Form Column -->
-        <div class="col-xl-8 col-lg-7">
-            <!-- Station Form Card -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-map-marker-alt me-2"></i> Station Details
-                    </h6>
-                    <div class="dropdown no-arrow">
-                        <a class="dropdown-toggle" href="#" role="button" id="formActionsDropdown" 
-                           data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="formActionsDropdown">
-                            <div class="dropdown-header">Form Actions:</div>
-                            <a class="dropdown-item" href="#" id="resetFormBtn">
-                                <i class="fas fa-undo fa-sm fa-fw me-2 text-gray-400"></i>Reset Form
-                            </a>
-                            {% if not is_new %}
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item text-danger" href="#" id="deleteStationBtn">
-                                <i class="fas fa-trash fa-sm fa-fw me-2"></i>Delete Station
-                            </a>
-                            {% endif %}
-                        </div>
-                    </div>
+<div class="modal fade" id="stationFormModal" tabindex="-1" aria-labelledby="stationFormModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-gradient-primary-to-secondary text-white">
+        <h5 class="modal-title" id="stationFormModalLabel">
+          <i class="ti ti-map-pin me-2"></i> {{ is_new ? 'Add New Station' : 'Edit Station' }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="container-fluid">
+          <div class="row g-0">
+            <!-- Left Column: Map & Location -->
+            <div class="col-lg-7 p-4 border-end">
+              <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="fw-bold mb-0"><i class="ti ti-map-2 text-primary me-2"></i> Station Location</h6>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="showOtherStations" checked>
+                    <label class="form-check-label small" for="showOtherStations">Show other stations</label>
+                  </div>
                 </div>
-                <div class="card-body">
-                    {{ form_start(form, {'attr': {'class': 'needs-validation', 'id': 'stationForm'}}) }}
-                    
-                    <!-- Hidden fields for location data -->
-                    <input type="hidden" id="station_latitude" name="station_latitude" value="{{ station.location ? station.location.latitude : '' }}">
-<input type="hidden" id="station_longitude" name="station_longitude" value="{{ station.location ? station.location.longitude : '' }}">
-<input type="hidden" id="station_address" name="station_address" value="{{ station.location ? station.location.address : '' }}">
-                    <!-- Map for Location Selection -->
-                    <div class="map-section mb-4">
-                        <label class="form-label fw-bold mb-2">Station Location</label>
-                        <p class="text-muted small mb-3">
-                            <i class="fas fa-info-circle me-1"></i>
-                            Click anywhere on the map to set the station location or search for an address.
-                        </p>
-                        
-                        <div class="input-group mb-3">
-                            <input type="text" class="form-control" id="locationSearch" 
-                                   placeholder="Search for a location...">
-                            <button class="btn btn-outline-secondary" type="button" id="searchLocationBtn">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
-                        
-                        <div class="station-map-container">
-                            <div id="stationMap"></div>
-                            <div class="hover-indicator" id="mapHoverIndicator">
-                                <i class="fas fa-map-pin me-2"></i>Click to place station
-                            </div>
-                            <div class="map-overlay">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="showOtherStations" checked>
-                                    <label class="form-check-label" for="showOtherStations">Show other stations</label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="location-preview" id="locationPreview">
-                            <div class="d-flex align-items-center mb-2">
-                                <i class="fas fa-map-marker-alt text-danger me-2"></i>
-                                <span class="fw-bold">Selected Location</span>
-                            </div>
-                            <div id="selectedAddress" class="text-muted mb-2">
-                                {% if station.location.address|default('') %}
-                                    {{ station.location.address }}
-                                {% else %}
-                                    No location selected
-                                {% endif %}
-                            </div>
-                            <div class="d-flex text-muted small">
-                                <div class="me-3" id="selectedLatitude">
-                                    <strong>Lat:</strong> {{ station.location.latitude|default('--') }}
-                                </div>
-                                <div id="selectedLongitude">
-                                    <strong>Lng:</strong> {{ station.location.longitude|default('--') }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Form Fields in Multiple Columns -->
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <div class="form-floating mb-3">
-                                {{ form_widget(form.name, {'attr': {'class': 'form-control', 'placeholder': 'Station Name'}}) }}
-                                {{ form_label(form.name) }}
-                                {{ form_errors(form.name) }}
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-floating mb-3">
-                                {{ form_widget(form.totalDocks, {'attr': {'class': 'form-control', 'placeholder': 'Total Docks'}}) }}
-                                {{ form_label(form.totalDocks) }}
-                                {{ form_errors(form.totalDocks) }}
-                                <div class="form-text">Total number of docking spots available</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold mb-2">{{ form_label(form.status) }}</label>
-                            {{ form_widget(form.status, {'attr': {'class': 'form-select status-select'}}) }}
-                            {{ form_errors(form.status) }}
-                            <div class="form-text">Determines if the station appears in the app</div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="form-floating mb-3">
-                                <input type="number" class="form-control" id="availableBikes" 
-                                       name="availableBikes" min="0" max="{{ form.totalDocks.vars.value|default(0) }}"
-                                       value="{{ station.availableBikes|default(0) }}" placeholder="Available Bikes">
-                                <label for="availableBikes">Available Bikes</label>
-                                <div class="form-text">Number of bikes currently available at this station</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="alert alert-info" role="alert">
-                        <div class="d-flex">
-                            <div class="me-3">
-                                <i class="fas fa-info-circle fa-2x"></i>
-                            </div>
-                            <div>
-                                <h5 class="alert-heading">Location Selection</h5>
-                                <p class="mb-0">The station's location will be used to display it on the map for users to find and rent bicycles. Ensure the location is accurate and accessible.</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between mt-4">
-                        <button type="button" class="btn btn-outline-secondary" id="cancelBtn">
-                            <i class="fas fa-times me-2"></i> Cancel
-                        </button>
-                        <button type="submit" class="btn btn-primary" id="saveStationBtn">
-                            <i class="fas fa-save me-2"></i> {{ submitButtonText }}
-                        </button>
-                    </div>
-                    <div class="mb-3">
-    <label class="form-label">Location</label>
-    <div class="row">
-        <div class="col-md-6">
-            {{ form_widget(form.location, {'attr': {'class': 'form-select mb-2'}}) }}
-            <small class="form-text text-muted">Select an existing location or click on the map to create a new one.</small>
-        </div>
-        <div class="col-md-6">
-            {# This div will show the selected location info #}
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h6 class="card-subtitle mb-2 text-muted">Selected Location</h6>
-                    <p class="mb-1" id="selectedLatitude"><strong>Lat:</strong> {{ station.location ? station.location.latitude : '--' }}</p>
-                    <p class="mb-1" id="selectedLongitude"><strong>Lng:</strong> {{ station.location ? station.location.longitude : '--' }}</p>
-                    <p class="mb-0 text-truncate" id="selectedAddress">{{ station.location ? station.location.address : 'No location selected' }}</p>
+                
+                <div class="input-group mb-3">
+                  <input type="text" class="form-control" id="locationSearch" placeholder="Search for a location...">
+                  <button class="btn btn-primary" type="button" id="searchLocationBtn">
+                    <i class="ti ti-search"></i>
+                  </button>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-                    {{ form_end(form) }}
+                
+                <div class="station-map-container rounded-3 overflow-hidden shadow-sm">
+                  <div id="stationMap" style="height: 320px;"></div>
+                  <div class="hover-indicator" id="mapHoverIndicator">
+                    <i class="ti ti-map-pin me-2"></i>Click to place station
+                  </div>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Sidebar Column -->
-        <div class="col-xl-4 col-lg-5">
-            <!-- Station Information Card -->
-            <div class="card shadow mb-4 info-card name-card">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="icon-circle bg-primary text-white me-3">
-                            <i class="fas fa-info-circle"></i>
-                        </div>
-                        <div>
-                            <h6 class="font-weight-bold text-primary mb-0">Station Information</h6>
-                        </div>
+                
+                <div class="location-preview mt-3 p-3 rounded-3 bg-light shadow-sm">
+                  <div class="d-flex align-items-center mb-2">
+                    <div class="location-marker me-2">
+                      <i class="ti ti-map-pin text-danger"></i>
                     </div>
-                    <p class="mb-0">Configure your bicycle station with the essential details needed for operations:</p>
-                    <ul class="list-group list-group-flush mt-3">
-                        <li class="list-group-item d-flex align-items-center">
-                            <i class="fas fa-signature text-primary me-3"></i>
-                            <div>
-                                <strong>Name</strong>
-                                <p class="text-muted mb-0 small">A clear, identifiable name for users to recognize the station</p>
-                            </div>
-                        </li>
-                        <li class="list-group-item d-flex align-items-center">
-                            <i class="fas fa-map-marked-alt text-danger me-3"></i>
-                            <div>
-                                <strong>Location</strong>
-                                <p class="text-muted mb-0 small">Click on the map to set precise latitude, longitude and address</p>
-                            </div>
-                        </li>
-                        <li class="list-group-item d-flex align-items-center">
-                            <i class="fas fa-plug text-success me-3"></i>
-                            <div>
-                                <strong>Docking Capacity</strong>
-                                <p class="text-muted mb-0 small">How many bicycles can be docked at this station</p>
-                            </div>
-                        </li>
-                        <li class="list-group-item d-flex align-items-center">
-                            <i class="fas fa-toggle-on text-warning me-3"></i>
-                            <div>
-                                <strong>Status</strong>
-                                <p class="text-muted mb-0 small">The current operational status of the station</p>
-                            </div>
-                        </li>
-                    </ul>
+                    <div class="flex-grow-1">
+                      <p class="mb-0 fw-bold">Selected Location</p>
+                      <p id="selectedAddress" class="text-muted mb-0 small">
+                        {% if station.location.address is defined and station.location.address %}
+                          {{ station.location.address }}
+                        {% else %}
+                          No location selected
+                        {% endif %}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="d-flex text-muted small">
+                    <div class="me-3" id="selectedLatitude">
+                      <strong>Lat:</strong> 
+                      {% if station.location is defined and station.location.latitude %}
+                        {{ station.location.latitude }}
+                      {% else %}
+                        --
+                      {% endif %}
+                    </div>
+                    <div id="selectedLongitude">
+                      <strong>Lng:</strong> 
+                      {% if station.location is defined and station.location.longitude %}
+                        {{ station.location.longitude }}
+                      {% else %}
+                        --
+                      {% endif %}
+                    </div>
+                  </div>
                 </div>
+              </div>
+              
+              <!-- Hidden fields for location data -->
+              <input type="hidden" id="station_latitude" name="station_latitude" value="{% if station.location is defined %}{{ station.location.latitude|default('') }}{% endif %}">
+              <input type="hidden" id="station_longitude" name="station_longitude" value="{% if station.location is defined %}{{ station.location.longitude|default('') }}{% endif %}">
+              <input type="hidden" id="station_address" name="station_address" value="{% if station.location is defined %}{{ station.location.address|default('') }}{% endif %}">
+              <input type="hidden" id="station_location_id" name="station_location_id" value="{% if station.location is defined %}{{ station.location.id|default('') }}{% endif %}">
             </div>
             
-            <!-- Capacity Visualization Card -->
-            <div class="card shadow mb-4 info-card capacity-card">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Capacity Distribution</h6>
+            <!-- Right Column: Form Fields -->
+            <div class="col-lg-5 p-4 bg-light">
+              <form id="stationForm" class="needs-validation" method="post" action="{{ is_new ? path('admin_bicycle_station_new') : path('admin_bicycle_station_edit', {'id': station.idStation|default(0)}) }}">
+                <div class="form-floating mb-3">
+                  <input type="text" class="form-control" id="station_name" name="name" placeholder="Station Name" 
+                         value="{% if station.name is defined %}{{ station.name }}{% endif %}" required>
+                  <label for="station_name">Station Name</label>
+                  <div class="invalid-feedback">Please provide a station name.</div>
                 </div>
-                <div class="card-body">
-                    <div class="capacity-distribution">
-                        <div class="distribution-segment bike-segment" id="bikeSegment" style="width: 40%"></div>
-                        <div class="distribution-segment dock-segment" id="dockSegment" style="width: 50%"></div>
-                        <div class="distribution-segment charging-segment" id="chargingSegment" style="width: 10%"></div>
+                
+                <div class="row g-3 mb-3">
+                  <div class="col-md-6">
+                    <div class="form-floating">
+                      <select class="form-select status-select" id="station_status" name="status" required>
+                        <option value="active" {% if station.status is defined and station.status.value == 'active' %}selected{% endif %}>Active</option>
+                        <option value="maintenance" {% if station.status is defined and station.status.value == 'maintenance' %}selected{% endif %}>Maintenance</option>
+                        <option value="inactive" {% if station.status is defined and station.status.value == 'inactive' %}selected{% endif %}>Inactive</option>
+                        <option value="disabled" {% if station.status is defined and station.status.value == 'disabled' %}selected{% endif %}>Disabled</option>
+                      </select>
+                      <label for="station_status">Status</label>
                     </div>
-                    
-                    <div class="row mt-3">
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h2 class="font-weight-bold" id="availableBikesValue">0</h2>
-                                <p class="text-muted mb-0">Available Bikes</p>
-                                <div class="d-flex align-items-center justify-content-center mt-2">
-                                    <div class="distribution-segment bike-segment me-2" style="width: 12px; height: 12px;"></div>
-                                    <span class="small text-muted">Bikes</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h2 class="font-weight-bold" id="availableDocksValue">0</h2>
-                                <p class="text-muted mb-0">Empty Docks</p>
-                                <div class="d-flex align-items-center justify-content-center mt-2">
-                                    <div class="distribution-segment dock-segment me-2" style="width: 12px; height: 12px;"></div>
-                                    <span class="small text-muted">Docks</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h2 class="font-weight-bold" id="chargingBikesValue">0</h2>
-                                <p class="text-muted mb-0">Charging</p>
-                                <div class="d-flex align-items-center justify-content-center mt-2">
-                                    <div class="distribution-segment charging-segment me-2" style="width: 12px; height: 12px;"></div>
-                                    <span class="small text-muted">Charging</span>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="form-text small">Determines if the station appears in the app</div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-floating">
+                      <input type="number" class="form-control" id="station_totalDocks" name="totalDocks" 
+                             min="1" value="{% if station.totalDocks is defined %}{{ station.totalDocks }}{% else %}5{% endif %}" 
+                             placeholder="Total Docks" required>
+                      <label for="station_totalDocks">Total Docks</label>
+                      <div class="invalid-feedback">Please specify at least 1 dock.</div>
                     </div>
+                    <div class="form-text small">Total docking spots available</div>
+                  </div>
                 </div>
+                
+                <div class="form-floating mb-4">
+                  <input type="number" class="form-control" id="availableBikes" 
+                         name="availableBikes" min="0" 
+                         max="{% if station.totalDocks is defined %}{{ station.totalDocks }}{% else %}5{% endif %}"
+                         value="{% if station.availableBikes is defined %}{{ station.availableBikes }}{% else %}0{% endif %}" 
+                         placeholder="Available Bikes">
+                  <label for="availableBikes">Available Bikes</label>
+                  <div class="form-text small">Number of bikes currently available</div>
+                </div>
+                
+                <!-- Capacity Visualization -->
+                <div class="capacity-card p-3 mb-4 bg-white rounded-3 shadow-sm">
+                  <h6 class="fw-bold mb-3"><i class="ti ti-chart-pie text-primary me-2"></i> Capacity Visualization</h6>
+                  <div class="capacity-distribution rounded-pill overflow-hidden mb-3" style="height: 12px;">
+                    <div class="distribution-segment bike-segment" id="bikeSegment" style="width: 0%; height: 100%; float: left;"></div>
+                    <div class="distribution-segment dock-segment" id="dockSegment" style="width: 100%; height: 100%; float: left;"></div>
+                    <div class="distribution-segment charging-segment" id="chargingSegment" style="width: 0%; height: 100%; float: left;"></div>
+                  </div>
+                  
+                  <div class="row text-center">
+                    <div class="col-4">
+                      <h3 class="mb-0" id="availableBikesValue">0</h3>
+                      <p class="text-muted small mb-0">Bikes</p>
+                    </div>
+                    <div class="col-4">
+                      <h3 class="mb-0" id="availableDocksValue">0</h3>
+                      <p class="text-muted small mb-0">Empty Docks</p>
+                    </div>
+                    <div class="col-4">
+                      <h3 class="mb-0" id="chargingBikesValue">0</h3>
+                      <p class="text-muted small mb-0">Charging</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="alert alert-info d-flex" role="alert">
+                  <i class="ti ti-info-circle me-2 mt-1"></i>
+                  <div class="small">
+                    Place stations in accessible locations with high foot traffic. Balance the number of docks with the expected demand in the area.
+                  </div>
+                </div>
+                
+                <!-- Include CSRF token if needed -->
+                {% if csrf_token is defined %}
+                <input type="hidden" name="_token" value="{{ csrf_token('station_form') }}">
+                {% endif %}
+              </form>
             </div>
-            
-            <!-- Quick Tips Card -->
-            <div class="card shadow mb-4 info-card docks-card">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Quick Tips</h6>
-                </div>
-                <div class="card-body">
-                    <div class="tip-item mb-3">
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="icon-circle bg-success text-white me-2" style="width: 24px; height: 24px;">
-                                <i class="fas fa-map-marker-alt" style="font-size: 12px;"></i>
-                            </div>
-                            <div class="fw-bold">Location Matters</div>
-                        </div>
-                        <p class="text-muted small mb-0">Place stations in convenient, accessible locations with high foot traffic.</p>
-                    </div>
-                    
-                    <div class="tip-item mb-3">
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="icon-circle bg-info text-white me-2" style="width: 24px; height: 24px;">
-                                <i class="fas fa-bicycle" style="font-size: 12px;"></i>
-                            </div>
-                            <div class="fw-bold">Optimal Capacity</div>
-                        </div>
-                        <p class="text-muted small mb-0">Balance the number of docks with expected demand in the area.</p>
-                    </div>
-                    
-                    <div class="tip-item">
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="icon-circle bg-warning text-white me-2" style="width: 24px; height: 24px;">
-                                <i class="fas fa-bolt" style="font-size: 12px;"></i>
-                            </div>
-                            <div class="fw-bold">Charging Stations</div>
-                        </div>
-                        <p class="text-muted small mb-0">Consider adding charging capability for e-bikes at key locations.</p>
-                    </div>
-                </div>
-            </div>
+          </div>
         </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="ti ti-x me-1"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-primary" id="saveStationBtn">
+          <i class="ti ti-device-floppy me-1"></i> {{ is_new ? 'Create Station' : 'Update Station' }}
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 
-<!-- Confirmation Modal -->
-<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="confirmationModalLabel">Confirm Action</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="confirmationModalBody">
-                Are you sure you want to proceed with this action?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirm</button>
-            </div>
-        </div>
-    </div>
+<!-- Loading Overlay for the Modal -->
+<div id="modalLoadingOverlay" class="modal-loading-overlay" style="display: none;">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
 </div>
-
-<!-- Loading Overlay -->
-<div class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" 
-     id="loadingOverlay" style="background-color: rgba(0,0,0,0.5); z-index: 9999; display: none;">
-    <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;" >
-        <span class="visually-hidden">Loading...</span>
-    </div>
-</div>
-{% endblock %}
-
-{% block javascripts %}
-{{ parent() }}
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM content loaded, initializing station form');
-    
-    // Get DOM elements
-    const stationMapDiv = document.getElementById('stationMap');
-    const loadingOverlay = document.getElementById('loadingOverlay');
-    const locationSearch = document.getElementById('locationSearch');
-    const searchLocationBtn = document.getElementById('searchLocationBtn');
-    const showOtherStations = document.getElementById('showOtherStations');
-    const mapHoverIndicator = document.getElementById('mapHoverIndicator');
-    
-    // Form fields
-    const stationForm = document.getElementById('stationForm');
-    const locationIdInput = document.getElementById('station_location_id');
-    const latitudeInput = document.getElementById('station_latitude');
-    const longitudeInput = document.getElementById('station_longitude');
-    const addressInput = document.getElementById('station_address');
-    const selectedLatitudeText = document.getElementById('selectedLatitude');
-    const selectedLongitudeText = document.getElementById('selectedLongitude');
-    const selectedAddressText = document.getElementById('selectedAddress');
-    const availableBikesInput = document.getElementById('availableBikes');
-    const totalDocksInput = document.getElementById('{{ form.totalDocks.vars.id }}');
-    
-    // Capacity visualization elements
-    const bikeSegment = document.getElementById('bikeSegment');
-    const dockSegment = document.getElementById('dockSegment');
-    const chargingSegment = document.getElementById('chargingSegment');
-    const availableBikesValue = document.getElementById('availableBikesValue');
-    const availableDocksValue = document.getElementById('availableDocksValue');
-    const chargingBikesValue = document.getElementById('chargingBikesValue');
-    
-    // Global variables
-    let map = null;
-    let marker = null;
-    let stationMarkers = [];
-    
-    // Safety timeout to hide loading overlay
-    setTimeout(() => {
-        if (loadingOverlay) loadingOverlay.style.display = 'none';
-    }, 3000);
-
-    function showLoadingOverlay() {
-        if (loadingOverlay) loadingOverlay.style.display = 'flex';
-    }
-    
-    function hideLoadingOverlay() {
-        console.log('Hiding loading overlay');
-        if (loadingOverlay) {
-            loadingOverlay.style.display = 'none';
-        }
-    }
-
-    // Initialize map
-    function initMap() {
-        console.log('Initializing map');
-        
-        if (!stationMapDiv) {
-            console.error('Map container not found');
-            hideLoadingOverlay();
-            return;
-        }
-        
-        // Set explicit height for map container
-        stationMapDiv.style.height = '400px';
-        
-        // Create map
-        map = L.map('stationMap').setView([36.8065, 10.1815], 13);
-        
-        // Add tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-            maxZoom: 19
-        }).addTo(map);
-        
-        // Click on map to set location
-        map.on('click', function(e) {
-            setMarkerPosition(e.latlng.lat, e.latlng.lng);
-            reverseGeocode(e.latlng.lat, e.latlng.lng);
-        });
-        
-        // Show hover indicator
-        map.on('mouseover', function() {
-            if (mapHoverIndicator) mapHoverIndicator.style.opacity = '1';
-        });
-        
-        map.on('mouseout', function() {
-            if (mapHoverIndicator) mapHoverIndicator.style.opacity = '0';
-        });
-        
-        // Initialize with existing data if available
-        if (latitudeInput && latitudeInput.value && longitudeInput && longitudeInput.value) {
-            const lat = parseFloat(latitudeInput.value);
-            const lng = parseFloat(longitudeInput.value);
-            if (!isNaN(lat) && !isNaN(lng)) {
-                setMarkerPosition(lat, lng);
-                map.setView([lat, lng], 15);
-            }
-        }
-        
-        // Force map refresh
-        setTimeout(() => {
-            map.invalidateSize();
-        }, 100);
-        
-        // Load other stations if option is checked
-        if (showOtherStations && showOtherStations.checked) {
-            setTimeout(() => {
-                loadStationsFromAPI();
-            }, 500);
-        }
-        
-        hideLoadingOverlay();
-    }
-    
-    // Set marker position and update form fields
-    function setMarkerPosition(lat, lng) {
-        if (!map) return;
-        
-        if (marker) {
-            marker.setLatLng([lat, lng]);
-        } else {
-            // Create a custom marker
-            const stationIcon = L.divIcon({
-                className: 'station-marker-icon',
-                html: `<div style="background-color:#66bb6a; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; box-shadow:0 0 0 rgba(102,187,106,0.4);">
-                        <i class="fas fa-bicycle"></i>
-                      </div>`,
-                iconSize: [36, 36],
-                iconAnchor: [18, 18]
-            });
-            
-            marker = L.marker([lat, lng], { icon: stationIcon, draggable: true }).addTo(map);
-            
-            // Update position when marker is dragged
-            marker.on('dragend', function(e) {
-                const position = e.target.getLatLng();
-                updateLocationFields(position.lat, position.lng);
-                reverseGeocode(position.lat, position.lng);
-            });
-        }
-        
-        // Update form fields
-        updateLocationFields(lat, lng);
-        
-        // When we set a new position, clear any existing location ID to create a new one
-        if (locationIdInput) locationIdInput.value = '';
-    }
-    
-    // Update location fields in the form
-    function updateLocationFields(lat, lng) {
-        if (latitudeInput) latitudeInput.value = lat.toFixed(6);
-        if (longitudeInput) longitudeInput.value = lng.toFixed(6);
-        
-        if (selectedLatitudeText) selectedLatitudeText.innerHTML = '<strong>Lat:</strong> ' + lat.toFixed(6);
-        if (selectedLongitudeText) selectedLongitudeText.innerHTML = '<strong>Lng:</strong> ' + lng.toFixed(6);
-        
-        // Reset location dropdown
-        const locationSelect = document.getElementById('{{ form.location.vars.id }}');
-        if (locationSelect) locationSelect.selectedIndex = 0;
-    }
-    
-    // Reverse geocoding to get address
-    function reverseGeocode(lat, lng) {
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`)
-            .then(response => response.json())
-            .then(data => {
-                if (data && data.display_name) {
-                    if (addressInput) addressInput.value = data.display_name;
-                    if (selectedAddressText) selectedAddressText.textContent = data.display_name;
-                }
-            })
-            .catch(error => {
-                console.error('Error during reverse geocoding:', error);
-                if (selectedAddressText) selectedAddressText.textContent = 'Could not determine address';
-            });
-    }
-    
-    // Search for a location
-    function searchLocation(query) {
-        showLoadingOverlay();
-        
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data && data.length > 0) {
-                    const result = data[0];
-                    const lat = parseFloat(result.lat);
-                    const lon = parseFloat(result.lon);
-                    
-                    setMarkerPosition(lat, lon);
-                    map.setView([lat, lon], 15);
-                    
-                    if (addressInput) addressInput.value = result.display_name;
-                    if (selectedAddressText) selectedAddressText.textContent = result.display_name;
-                } else {
-                    alert('No results found for your search.');
-                }
-            })
-            .catch(error => {
-                console.error('Error searching for location:', error);
-                alert('An error occurred while searching for the location.');
-            })
-            .finally(() => {
-                hideLoadingOverlay();
-            });
-    }
-    
-    // Load other stations
-    function loadStationsFromAPI() {
-        showLoadingOverlay();
-        
-        // Clear existing markers
-        stationMarkers.forEach(marker => map.removeLayer(marker));
-        stationMarkers = [];
-        
-        fetch('{{ path('api_bicycle_stations') }}')
-            .then(response => response.json())
-            .then(stations => {
-                console.log("API response received:", stations);
-                
-                if (!Array.isArray(stations) || stations.length === 0) {
-                    console.warn("No stations found in API response");
-                    return;
-                }
-                
-                let markersAdded = 0;
-                const currentStationId = parseInt('{{ station.idStation|default(0) }}');
-                
-                stations.forEach(station => {
-                    // Skip if this is the current station being edited
-                    if ((station.id === currentStationId) && currentStationId !== 0) {
-                        return;
-                    }
-                    
-                    // Get location data from station
-                    const stationLoc = station.location;
-                    if (!stationLoc || !stationLoc.latitude || !stationLoc.longitude) {
-                        return;
-                    }
-                    
-                    const lat = parseFloat(stationLoc.latitude);
-                    const lng = parseFloat(stationLoc.longitude);
-                    
-                    if (isNaN(lat) || isNaN(lng)) {
-                        return;
-                    }
-                    
-                    // Create marker icon
-                    const stationIcon = L.divIcon({
-                        className: 'other-station-marker',
-                        html: `<div style="background-color:#42a5f5; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; border:2px solid white;">
-                                <i class="fas fa-bicycle" style="font-size:14px;"></i>
-                              </div>`,
-                        iconSize: [30, 30],
-                        iconAnchor: [15, 15]
-                    });
-                    
-                    const stationMarker = L.marker([lat, lng], { icon: stationIcon }).addTo(map);
-                    
-                    stationMarker.bindPopup(`
-                        <b>${station.name || 'Unnamed Station'}</b>
-                        <br>Available bikes: ${station.availableBikes || 0}
-                        <br>Empty docks: ${station.availableDocks || 0}
-                    `);
-                    
-                    stationMarkers.push(stationMarker);
-                    markersAdded++;
-                });
-                
-                console.log(`Added ${markersAdded} station markers to map`);
-            })
-            .catch(error => {
-                console.error('Error loading stations:', error);
-            })
-            .finally(() => {
-                hideLoadingOverlay();
-            });
-    }
-    
-    // Update capacity visualization
-    function updateCapacityVisualization() {
-        if (!totalDocksInput || !availableBikesInput) return;
-        
-        const totalDocks = parseInt(totalDocksInput.value) || 0;
-        const availableBikes = parseInt(availableBikesInput.value) || 0;
-        const chargingBikes = Math.floor(totalDocks * 0.1);
-        const emptyDocks = Math.max(0, totalDocks - availableBikes - chargingBikes);
-        
-        // Update visualization
-        if (totalDocks > 0) {
-            const bikePercentage = (availableBikes / totalDocks) * 100;
-            const dockPercentage = (emptyDocks / totalDocks) * 100;
-            const chargingPercentage = (chargingBikes / totalDocks) * 100;
-            
-            if (bikeSegment) bikeSegment.style.width = bikePercentage + '%';
-            if (dockSegment) dockSegment.style.width = dockPercentage + '%';
-            if (chargingSegment) chargingSegment.style.width = chargingPercentage + '%';
-        } else {
-            if (bikeSegment) bikeSegment.style.width = '0%';
-            if (dockSegment) dockSegment.style.width = '0%';
-            if (chargingSegment) chargingSegment.style.width = '0%';
-        }
-        
-        // Update text values
-        if (availableBikesValue) availableBikesValue.textContent = availableBikes;
-        if (availableDocksValue) availableDocksValue.textContent = emptyDocks;
-        if (chargingBikesValue) chargingBikesValue.textContent = chargingBikes;
-    }
-    
-    // Set up event handlers
-    function setupEventHandlers() {
-        // Search location
-        if (searchLocationBtn) {
-            searchLocationBtn.addEventListener('click', function() {
-                if (!locationSearch) return;
-                const query = locationSearch.value.trim();
-                if (query) {
-                    searchLocation(query);
-                }
-            });
-        }
-        
-        // Press Enter to search
-        if (locationSearch) {
-            locationSearch.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const query = this.value.trim();
-                    if (query) {
-                        searchLocation(query);
-                    }
-                }
-            });
-        }
-        
-        // Toggle other stations
-        if (showOtherStations) {
-            showOtherStations.addEventListener('change', function() {
-                if (this.checked) {
-                    loadStationsFromAPI();
-                } else {
-                    stationMarkers.forEach(marker => map.removeLayer(marker));
-                    stationMarkers = [];
-                }
-            });
-        }
-        
-        // Form submission
-        if (stationForm) {
-            stationForm.addEventListener('submit', function(e) {
-                const formLocationSelect = document.getElementById('{{ form.location.vars.id }}');
-                const hasMapLocation = latitudeInput && latitudeInput.value && longitudeInput && longitudeInput.value;
-                const hasDropdownLocation = formLocationSelect && formLocationSelect.value;
-                
-                if (!hasMapLocation && !hasDropdownLocation) {
-                    e.preventDefault();
-                    alert('Please select a location for the station by clicking on the map or selecting one from the dropdown.');
-                    return;
-                }
-                
-                showLoadingOverlay();
-            });
-        }
-        
-        // Reset form button
-        const resetFormBtn = document.getElementById('resetFormBtn');
-        if (resetFormBtn) {
-            resetFormBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                document.getElementById('confirmationModalLabel').textContent = 'Reset Form';
-                document.getElementById('confirmationModalBody').textContent = 'Are you sure you want to reset the form? All unsaved changes will be lost.';
-                document.getElementById('confirmActionBtn').className = 'btn btn-warning';
-                
-                const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
-                document.getElementById('confirmActionBtn').onclick = function() {
-                    if (stationForm) stationForm.reset();
-                    
-                    // Reset map marker
-                    if (marker) {
-                        map.removeLayer(marker);
-                        marker = null;
-                    }
-                    
-                    // Reset location preview
-                    if (selectedLatitudeText) selectedLatitudeText.innerHTML = '<strong>Lat:</strong> --';
-                    if (selectedLongitudeText) selectedLongitudeText.innerHTML = '<strong>Lng:</strong> --';
-                    if (selectedAddressText) selectedAddressText.textContent = 'No location selected';
-                    
-                    // Reset hidden fields
-                    if (locationIdInput) locationIdInput.value = '';
-                    if (latitudeInput) latitudeInput.value = '';
-                    if (longitudeInput) longitudeInput.value = '';
-                    if (addressInput) addressInput.value = '';
-                    
-                    // Update capacity visualization
-                    updateCapacityVisualization();
-                    
-                    confirmationModal.hide();
-                };
-                
-                confirmationModal.show();
-            });
-        }
-        
-        // Cancel button
-        const cancelBtn = document.getElementById('cancelBtn');
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', function() {
-                if (confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
-                    window.location.href = "{{ path('admin_bicycle_stations') }}";
-                }
-            });
-        }
-        
-        {% if not is_new %}
-        // Delete station button
-        const deleteStationBtn = document.getElementById('deleteStationBtn');
-        if (deleteStationBtn) {
-            deleteStationBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                document.getElementById('confirmationModalLabel').textContent = 'Delete Station';
-                document.getElementById('confirmationModalBody').innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        Are you sure you want to delete this station? This action cannot be undone.
-                    </div>
-                    <p>All data associated with this station will be permanently removed, including its location data.</p>
-                `;
-                document.getElementById('confirmActionBtn').className = 'btn btn-danger';
-                
-                const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
-                document.getElementById('confirmActionBtn').onclick = function() {
-                    showLoadingOverlay();
-                    window.location.href = "{{ path('admin_bicycle_station_delete', {'id': station.idStation|default(0)}) }}";
-                };
-                
-                confirmationModal.show();
-            });
-        }
-        {% endif %}
-        
-        // Initialize capacity visualization listeners
-        if (totalDocksInput) {
-            totalDocksInput.addEventListener('input', function() {
-                const maxBikes = parseInt(this.value) || 0;
-                if (availableBikesInput) {
-                    availableBikesInput.setAttribute('max', maxBikes);
-                    if (parseInt(availableBikesInput.value) > maxBikes) {
-                        availableBikesInput.value = maxBikes;
-                    }
-                }
-                updateCapacityVisualization();
-            });
-        }
-        
-        if (availableBikesInput) {
-            availableBikesInput.addEventListener('input', updateCapacityVisualization);
-        }
-    }
-    
-    // Initialize everything
-    showLoadingOverlay();
-    setTimeout(() => {
-        try {
-            initMap();
-            setupEventHandlers();
-            updateCapacityVisualization();
-        } catch (error) {
-            console.error('Error initializing:', error);
-            hideLoadingOverlay();
-        }
-    }, 100);
-});
-</script>
-{% endblock %}

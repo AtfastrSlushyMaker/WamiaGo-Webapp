@@ -1,0 +1,136 @@
+{# filepath: d:\Github\WamiaGo-Webapp\templates\back-office\bicycle\station-edit-modal.html.twig #}
+<div class="modal fade" id="stationEditModal" tabindex="-1" aria-labelledby="stationEditModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-gradient-primary-to-secondary text-white">
+        <h5 class="modal-title" id="stationEditModalLabel">
+          <i class="ti ti-edit me-2"></i> Edit Station: <span id="editStationName">{{ station.name|default('Station') }}</span>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="container-fluid">
+          <div class="row g-0">
+            <!-- Left Column: Map & Location -->
+            <div class="col-lg-7 p-4 border-end">
+              <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="fw-bold mb-0"><i class="ti ti-map-2 text-primary me-2"></i> Station Location</h6>
+                </div>
+                <div class="station-map-container">
+                  <div id="stationEditMap" style="height: 350px; border-radius: 8px;"></div>
+                  <div class="hover-indicator">
+                    <i class="ti ti-hand-finger me-1"></i> Click to place marker or drag to adjust
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mb-4">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <div class="form-floating">
+                      <input type="text" class="form-control" id="edit_latitude" name="latitude" 
+                        value="{{ station.location.latitude|default('') }}" required>
+                      <label for="edit_latitude">Latitude</label>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-floating">
+                      <input type="text" class="form-control" id="edit_longitude" name="longitude" 
+                        value="{{ station.location.longitude|default('') }}" required>
+                      <label for="edit_longitude">Longitude</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="form-floating mb-4">
+                <input type="text" class="form-control" id="edit_address" name="address" 
+                  value="{{ station.location.address|default('') }}" placeholder="Station address">
+                <label for="edit_address">Address</label>
+              </div>
+            </div>
+            
+            <!-- Right Column: Station Details -->
+            <div class="col-lg-5 p-4">
+              <form id="stationEditForm" method="post" action="{{ path('admin_bicycle_station_edit', {'id': station.idStation|default(0)}) }}">
+                <h6 class="fw-bold mb-3"><i class="ti ti-info-circle text-primary me-2"></i> Station Details</h6>
+                
+                <div class="form-floating mb-3">
+                  <input type="text" class="form-control" id="edit_name" name="name" 
+                    value="{{ station.name|default('') }}" required>
+                  <label for="edit_name">Station Name</label>
+                </div>
+                
+                <div class="form-floating mb-3">
+                  <select class="form-select" id="edit_status" name="status" required>
+                    {% if statuses is defined %}
+                      {% for status in statuses %}
+                        <option value="{{ status.value }}" {% if station.status is defined and station.status == status %}selected{% endif %}>
+                          {{ status.value|capitalize }}
+                        </option>
+                      {% endfor %}
+                    {% else %}
+                      <option value="active">Active</option>
+                      <option value="maintenance">Maintenance</option>
+                      <option value="inactive">Inactive</option>
+                    {% endif %}
+                  </select>
+                  <label for="edit_status">Status</label>
+                </div>
+                
+                <div class="form-floating mb-3">
+                  <input type="number" class="form-control" id="edit_totalDocks" name="totalDocks" 
+                    value="{{ station.totalDocks|default(0) }}" required min="1">
+                  <label for="edit_totalDocks">Total Docks</label>
+                </div>
+                
+                <div class="form-floating mb-3">
+                  <input type="number" class="form-control" id="edit_availableBikes" name="availableBikes" 
+                    value="{{ station.availableBikes|default(0) }}" required min="0">
+                  <label for="edit_availableBikes">Available Bikes</label>
+                  <div class="form-text small">Must be less than or equal to total docks</div>
+                </div>
+                
+                <div class="row mt-4">
+                  <div class="col-12">
+                    <h6 class="fw-bold text-muted mb-2">Distribution</h6>
+                    <div class="d-flex align-items-center mt-2">
+                      <div class="distribution-bar d-flex rounded overflow-hidden" style="height: 24px; width: 100%;">
+                        {% set bikePercentage = station is defined and station.totalDocks > 0 ? (station.availableBikes / station.totalDocks * 100)|round : 0 %}
+                        {% set dockPercentage = station is defined and station.totalDocks > 0 ? ((station.totalDocks - station.availableBikes) / station.totalDocks * 100)|round : 100 %}
+                        <div class="distribution-segment bike-segment" style="width: {{ bikePercentage }}%"></div>
+                        <div class="distribution-segment dock-segment" style="width: {{ dockPercentage }}%"></div>
+                      </div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2 text-muted small">
+                      <div>{{ station.availableBikes|default(0) }} Bikes</div>
+                      <div>{{ station.totalDocks is defined ? station.totalDocks - station.availableBikes : 0 }} Empty Docks</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <input type="hidden" name="stationId" value="{{ station.idStation|default(0) }}">
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="ti ti-x me-1"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-primary" id="updateStationBtn">
+          <i class="ti ti-device-floppy me-1"></i> Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Overlay for the Modal -->
+<div id="editModalLoadingOverlay" class="modal-loading-overlay" style="display: none;">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
