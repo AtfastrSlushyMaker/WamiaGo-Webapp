@@ -19,7 +19,7 @@ class Request
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'requests')]
     #[ORM\JoinColumn(name: 'id_client', referencedColumnName: 'id_user')]
-    private ?int $user = null;
+    private ?User $user = null;
 
     #[ORM\ManyToOne(targetEntity: Location::class, inversedBy: 'requests')]
     #[ORM\JoinColumn(name: 'id_departure_location', referencedColumnName: 'id_location')]

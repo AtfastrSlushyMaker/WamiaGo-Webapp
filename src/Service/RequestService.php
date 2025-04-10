@@ -21,62 +21,33 @@ class RequestService
         $this->requestRepository = $requestRepository;
     }
 
-    public function createRequest(int $userId, string $pickupAddress, float $pickupLat, float $pickupLng,
-                                  string $arrivalAddress, float $arrivalLat, float $arrivalLng,
-                                  \DateTimeInterface $requestDate, string $status): Request
+    // Create a new request
+    public function createRequest(int $userId, int $departureLocationId, int $arrivalLocationId, \DateTimeInterface $requestDate, string $status): Request
     {
-        // Créer ou récupérer la location de départ (pickup)
-        $departureLocation = $this->getOrCreateLocation($pickupAddress, $pickupLat, $pickupLng);
-
-        // Créer ou récupérer la location d'arrivée (arrival)
-        $arrivalLocation = $this->getOrCreateLocation($arrivalAddress, $arrivalLat, $arrivalLng);
-
-        // Récupérer l'utilisateur à partir de son ID
+        // Retrieve the User and Location entities by their IDs
         $user = $this->entityManager->getRepository(User::class)->find($userId);
+        $departureLocation = $this->entityManager->getRepository(Location::class)->find($departureLocationId);
+        $arrivalLocation = $this->entityManager->getRepository(Location::class)->find($arrivalLocationId);
 
-        if (!$user) {
-            throw new \Exception("User not found");
+        if (!$user || !$departureLocation || !$arrivalLocation) {
+            throw new NotFoundHttpException('User or Location not found.');
         }
 
-        // Créer la nouvelle entité Request
+        // Create the new Request entity
         $request = new Request();
-        $request->setUser($user)  // Optionnel : ici, vous pouvez directement assigner l'utilisateur si nécessaire
-        ->setDepartureLocation($departureLocation)
-            ->setArrivalLocation($arrivalLocation)
-            ->setRequest_date($requestDate)
-            ->setStatus(REQUEST_STATUS::from($status));
+        $request->setUser($user)
+                ->setDepartureLocation($departureLocation)
+                ->setArrivalLocation($arrivalLocation)
+                ->setRequest_date($requestDate)
+                ->setStatus(REQUEST_STATUS::from($status));
 
-        // Persister la demande dans la base de données
+        // Persist the entity to the database
         $this->entityManager->persist($request);
         $this->entityManager->flush();
 
         return $request;
     }
 
-    // Méthode pour créer une location si elle n'existe pas encore
-    private function getOrCreateLocation(string $address, float $latitude, float $longitude): Location
-    {
-        // Vérifier si la location existe déjà dans la base de données
-        $existingLocation = $this->entityManager->getRepository(Location::class)->findOneBy([
-            'address' => $address,
-            'latitude' => $latitude,
-            'longitude' => $longitude
-        ]);
-
-        // Si la location n'existe pas, créer une nouvelle
-        if (!$existingLocation) {
-            $existingLocation = new Location();
-            $existingLocation->setAddress($address);
-            $existingLocation->setLatitude($latitude);
-            $existingLocation->setLongitude($longitude);
-
-            // Persister la nouvelle location
-            $this->entityManager->persist($existingLocation);
-            $this->entityManager->flush();
-        }
-
-        return $existingLocation;
-    }
     // Read a request by ID
     public function getRequestById(int $id): ?Request
     {
