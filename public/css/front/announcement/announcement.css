@@ -635,3 +635,205 @@ body.dark-mode .accordion-body {
     background-color: var(--dark-card-bg);
     color: var(--dark-text);
 }
+
+/* Modal Styles */
+#announcementModal .modal-content {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+#announcementModal .modal-header {
+    border-bottom: none;
+    padding: 1.5rem;
+    position: relative;
+}
+
+#announcementModal .modal-title {
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+
+#announcementModal .modal-body {
+    padding: 2rem;
+}
+
+#announcementModal .modal-footer {
+    border-top: none;
+    background-color: #f8f9fa;
+    padding: 1rem 1.5rem;
+}
+
+/* Content Styles */
+.announcement-modal {
+    --modal-animation-duration: 0.3s;
+}
+
+.announcement-modal-content h6 {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+}
+
+.announcement-modal-content h6 i {
+    margin-right: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.announcement-modal-content .text-muted {
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.announcement-modal .modal-content {
+    border: none;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all var(--modal-animation-duration) ease-out;
+}
+
+.announcement-modal.show .modal-content {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    #announcementModal .modal-dialog {
+        margin: 1rem auto;
+    }
+    
+    #announcementModal .modal-body {
+        padding: 1.5rem;
+    }
+    
+    .announcement-modal-content .row > div {
+        margin-bottom: 1.5rem;
+    }
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.announcement-modal-content {
+    animation: fadeIn 0.3s ease forwards;
+}
+
+/* Enhanced Modal Styles */
+#announcementModal {
+    --modal-animation-duration: 0.3s;
+}
+
+#announcementModal .modal-content {
+    border: none;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all var(--modal-animation-duration) ease-out;
+}
+
+#announcementModal.show .modal-content {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+#announcementModal .modal-header {
+    padding: 1.75rem;
+    background: linear-gradient(135deg, #5A6BE5 0%, #3F51B5 100%);
+}
+
+#announcementModal .modal-title {
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+#announcementModal .modal-body {
+    padding: 2rem;
+}
+
+#announcementModal .card {
+    transition: transform 0.2s;
+    border-radius: 12px;
+}
+
+#announcementModal .card:hover {
+    transform: translateY(-5px);
+}
+
+/* Responsive Tweaks */
+@media (max-width: 992px) {
+    #announcementModal .modal-dialog {
+        max-width: 95%;
+        margin: 1rem auto;
+    }
+}
+
+@media (max-width: 768px) {
+    #announcementModal .modal-body {
+        padding: 1.5rem;
+    }
+    
+    #announcementModal .modal-header {
+        padding: 1.25rem;
+    }
+    
+    #announcementModal .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Accessibility Focus Styles */
+#announcementModal :focus-visible {
+    outline: 3px solid var(--bs-primary);
+    outline-offset: 3px;
+}
+
+/* Modal Content Styles */
+.detail-card {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.25rem;
+    height: 100%;
+}
+
+.detail-title {
+    color: var(--bs-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+}
+
+.detail-content {
+    color: #495057;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .modal-body {
+        padding: 1.25rem;
+    }
+    
+    .detail-card {
+        padding: 1rem;
+    }
+    
+    .row.g-4 > [class*="col-"] {
+        margin-bottom: 1rem;
+    }
+}
