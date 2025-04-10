@@ -1,13 +1,13 @@
 <?php
 
 namespace App\Controller\front\Announcement;
+
 use App\Entity\Announcement;
 use App\Entity\User;
 use App\Enum\Zone;
 use App\Service\AnnouncementService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -69,7 +69,7 @@ class AnnouncementClientController extends AbstractController
         ]);
     }
 
- /*   #[Route('/{id}', name: 'app_front_announcement_details')]
+    #[Route('/{id}', name: 'app_front_announcement_details')]
     public function details(int $id): Response
     {
         $announcement = $this->entityManager->getRepository(Announcement::class)->find($id);
@@ -81,7 +81,7 @@ class AnnouncementClientController extends AbstractController
         return $this->render('front/announcement/details.html.twig', [
             'announcement' => $announcement
         ]);
-    }*/
+    }
 
     /*
      * À implémenter plus tard quand on aura le ReservationService
@@ -93,26 +93,13 @@ class AnnouncementClientController extends AbstractController
         return $this->redirectToRoute('app_front_announcements');
     }
 
-   
+    /*
+     * À implémenter plus tard pour la modale
+     */
     #[Route('/{id}/modal', name: 'app_front_announcement_modal')]
-    public function announcementModal(int $id): JsonResponse
+    public function announcementModal(int $id): Response
     {
-        $announcement = $this->entityManager->getRepository(Announcement::class)->find($id);
-    
-        if (!$announcement) {
-            return $this->json(['error' => 'Announcement not found'], 404);
-        }
-    
-        $html = $this->renderView('front/announcement/_modal_content.html.twig', [
-            'announcement' => $announcement
-        ]);
-    
-        return $this->json([
-            'content' => $html,
-            'reserveUrl' => $this->generateUrl('app_front_announcement_reserve', ['id' => $id])
-        ], 200, [
-            'Content-Type' => 'application/json',
-            'Cache-Control' => 'no-store'
-        ]);
+        // À compléter ultérieurement
+        return $this->json(['message' => 'To be implemented']);
     }
 }
