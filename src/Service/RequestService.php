@@ -69,4 +69,33 @@ class RequestService
     {
         return $this->requestRepository->findBy(['user' => $userId]);
     }
+
+
+    public function updateRequest(
+        int $requestId,
+        User $user,
+        Location $pickupLocation,
+        Location $arrivalLocation,
+        string $status
+    ): Request {
+        // Find the existing request
+        $request = $this->requestRepository->find($requestId);
+    
+        if (!$request) {
+            throw new NotFoundHttpException('Request not found.');
+        }
+    
+        // Update the request details
+        $request->setUser($user)
+            ->setDepartureLocation($pickupLocation)
+            ->setArrivalLocation($arrivalLocation)
+            ->setStatus($status) // Update the status
+            ->setRequest_date(new \DateTime()); // Update the request date to the current date/time
+    
+        // Persist the updated request
+        $this->entityManager->persist($request);
+        $this->entityManager->flush();
+    
+        return $request;
+    }
 }
