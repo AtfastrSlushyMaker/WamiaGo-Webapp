@@ -57,10 +57,10 @@
                         <tbody>
                             {% for announcement in announcements %}
                             <tr>
-                                <td>{{ announcement.id_announcement }}</td>
+                               <td>{{ announcement.id_announcement }}</td>
                                 <td>{{ announcement.title }}</td>
                                 <td>{{ announcement.zone.getDisplayName() }}
-{{ annonce.zone.getColor() }}</td>
+</td>
                                 <td>{{ announcement.date|date('d/m/Y H:i') }}</td>
                                 <td>
                                     <img src="{{ asset('adminlte/images/icons/' ~ (announcement.status ? 'active' : 'inactive') ~ '.png') }}" 
@@ -68,19 +68,20 @@
                                          width="20"
                                          title="{{ announcement.status ? 'Active' : 'Inactive' }}">
                                 </td>
-                                <td>{{ announcement.driver.firstName }} {{ announcement.driver.lastName }}</td>
+                                <td>{{ announcement.driver.user.name }}</td>
                                 <td>
-                                    <a href="{{ path('admin_announcements_show', {'id': announcement.id}) }}" 
-                                       class="btn btn-sm btn-info" title="Voir">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <button class="btn btn-sm btn-danger delete-btn" 
-                                            data-id="{{ announcement.id }}"
-                                            data-toggle="modal" 
-                                            data-target="#deleteModal"
-                                            title="Supprimer">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    <a href="{{ path('admin_announcements_show', {'id': announcement.id_announcement}) }}" 
+   class="btn btn-sm btn-info" title="Voir">
+   <i class="fas fa-eye"></i>
+</a>
+
+<button class="btn btn-sm btn-danger delete-btn" 
+        data-id="{{ announcement.id_announcement }}"
+        data-toggle="modal" 
+        data-target="#deleteModal"
+        title="Supprimer">
+    <i class="fas fa-trash"></i>
+</button>
                                 </td>
                             </tr>
                             {% endfor %}
