@@ -8,12 +8,10 @@ use App\Form\DataTransformer\ZoneTransformer;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\NotNull;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\EnumType;
 
 class TransporterAnnouncementType extends AbstractType
 {
@@ -21,34 +19,37 @@ class TransporterAnnouncementType extends AbstractType
     {
         $builder
             ->add('title', TextType::class, [
-                'label' => 'Titre',
+                'label' => 'Service Title',
                 'attr' => [
                     'class' => 'form-control',
-                    'placeholder' => 'Titre de votre annonce...'
+                    'placeholder' => ' '
                 ]
             ])
             ->add('content', TextareaType::class, [
-                'label' => 'Contenu',
+                'label' => 'Service Description',
                 'attr' => [
                     'class' => 'form-control',
-                    'rows' => 8,
-                    'placeholder' => 'Décrivez votre service de transport...'
+                    'rows' => 6,
+                    'placeholder' => ' '
                 ]
             ])
             ->add('zone', ChoiceType::class, [
+                'label' => 'Service Area',
                 'choices' => array_combine(
                     array_map(fn(Zone $zone) => $zone->getDisplayName(), Zone::cases()),
                     array_map(fn(Zone $zone) => $zone->value, Zone::cases())
                 ),
+                'attr' => [
+                    'class' => 'form-select'
+                ]
             ])
             ->add('status', CheckboxType::class, [
-                'label' => 'Activer cette annonce',
+                'label' => 'Activate this service',
                 'required' => false,
                 'attr' => ['class' => 'form-check-input'],
                 'label_attr' => ['class' => 'form-check-label']
             ]);
 
-        // Ajoutez le transformer directement dans le FormType
         $builder->get('zone')->addModelTransformer(new ZoneTransformer());
     }
 

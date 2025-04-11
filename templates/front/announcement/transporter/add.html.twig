@@ -1,56 +1,90 @@
 {% extends 'front/base.html.twig' %}
 
-{% block title %}Nouvelle Annonce | WamiaGo{% endblock %}
+{% block title %}Create New Announcement | WamiaGo{% endblock %}
 
 {% block page_stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/front/announcement/transporter.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 {% endblock %}
 
 {% block content %}
-<div class="announcement-container">
-    <div class="announcement-header">
-        <h1><i class="fas fa-truck-moving me-2"></i>Nouvelle Annonce de Transport</h1>
-        <p>Remplissez les détails de votre service de transport</p>
+<!-- Hero Section with 3D Effect -->
+<div class="announcement-hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content animate__animated animate__fadeIn">
+        <h1>Create Your Transport Announcement</h1>
+        <p class="lead">Connect with clients looking for reliable transport services across Tunisia</p>
+        <div class="scroll-indicator">
+            <i class="fas fa-chevron-down"></i>
+        </div>
     </div>
+</div>
 
+<!-- Main Form Section -->
+<div class="announcement-container">
     <div class="announcement-form-container">
+        <div class="form-intro">
+            <h2><i class="fas fa-truck-moving me-2"></i>Transport Service Details</h2>
+            <p>Fill in all required information to create an attractive announcement</p>
+        </div>
+
         {{ form_start(form, {'attr': {'id': 'announcement-form', 'class': 'announcement-form'}}) }}
             <div class="form-card">
-                <div class="form-group">
+                <!-- Title Field -->
+                <div class="form-group floating-label">
+                    {{ form_widget(form.title, {'attr': {
+                        'class': 'form-control' ~ (form.title.vars.valid ? '' : ' is-invalid'),
+                        'placeholder': ' ',
+                        'data-3d': 'true'
+                    }}) }}
                     {{ form_label(form.title) }}
-                    {{ form_widget(form.title) }}
-                    <div class="invalid-feedback">{{ form_errors(form.title) }}</div>
+                    <div class="invalid-feedback">{{ form_errors(form.title)|striptags }}</div>
                 </div>
 
-                <div class="form-group">
+                <!-- Content Field -->
+                <div class="form-group floating-label">
+                    {{ form_widget(form.content, {'attr': {
+                        'class': 'form-control' ~ (form.content.vars.valid ? '' : ' is-invalid'),
+                        'placeholder': ' ',
+                        'rows': 6,
+                        'data-3d': 'true'
+                    }}) }}
                     {{ form_label(form.content) }}
-                    {{ form_widget(form.content) }}
-                    <div class="invalid-feedback">{{ form_errors(form.content) }}</div>
+                    <div class="invalid-feedback">{{ form_errors(form.content)|striptags }}</div>
                 </div>
 
+                <!-- Zone and Status Fields -->
                 <div class="form-row">
-                    <div class="form-group col-md-6">
-                    {{ form_label(form.zone) }}
-                    {{ form_widget(form.zone, {'attr': {'class': 'form-select' ~ (form.zone.vars.valid ? '' : ' is-invalid')}}) }}
-                    <div class="invalid-feedback">
-                        {{ form_errors(form.zone)|striptags }}
+                    <div class="form-group col-md-6 floating-label">
+                        {{ form_widget(form.zone, {'attr': {
+                            'class': 'form-select' ~ (form.zone.vars.valid ? '' : ' is-invalid'),
+                            'data-3d': 'true'
+                        }}) }}
+                        {{ form_label(form.zone) }}
+                        <div class="invalid-feedback">{{ form_errors(form.zone)|striptags }}</div>
                     </div>
-                </div>
 
                     <div class="form-group col-md-6">
                         <div class="form-check form-switch">
-                            {{ form_widget(form.status) }}
-                            {{ form_label(form.status) }}
+                            {{ form_widget(form.status, {'attr': {
+                                'class': 'form-check-input',
+                                'role': 'switch',
+                                'data-3d': 'true'
+                            }}) }}
+                            {{ form_label(form.status, null, {
+                                'label_attr': {'class': 'form-check-label'}
+                            }) }}
                         </div>
                     </div>
                 </div>
 
+                <!-- Form Actions -->
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        <i class="fas fa-check-circle me-2"></i>Publier l'annonce
+                    <button type="submit" class="btn btn-primary btn-lg btn-3d">
+                        <i class="fas fa-paper-plane me-2"></i>Publish Announcement
                     </button>
-                    <a href="{{ path('app_transporter_announcement_list') }}" class="btn btn-outline-secondary btn-lg">
-                        <i class="fas fa-times-circle me-2"></i>Annuler
+                    <a href="{{ path('app_transporter_announcement_list') }}" class="btn btn-outline-secondary btn-lg btn-3d">
+                        <i class="fas fa-times me-2"></i>Cancel
                     </a>
                 </div>
             </div>
@@ -60,8 +94,19 @@
 {% endblock %}
 
 {% block page_javascripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanilla-tilt@1.7.0/dist/vanilla-tilt.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize 3D tilt effect
+    VanillaTilt.init(document.querySelectorAll("[data-3d]"), {
+        max: 5,
+        speed: 400,
+        glare: true,
+        "max-glare": 0.2,
+    });
+
+    // Form submission handling
     const form = document.getElementById('announcement-form');
     
     form.addEventListener('submit', function(e) {
@@ -72,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const originalText = submitButton.innerHTML;
         
         submitButton.disabled = true;
-        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Publication en cours...';
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Publishing...';
         
         fetch(form.action, {
             method: 'POST',
@@ -93,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => {
-            showToast('error', 'Une erreur est survenue');
+            showToast('error', 'An error occurred while processing your request');
         })
         .finally(() => {
             submitButton.disabled = false;
@@ -102,11 +147,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     function displayFormErrors(errors) {
-        // Reset previous errors
         document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
         document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
         
-        // Add new errors
         errors.forEach(error => {
             const field = error.split('"')[1] || '';
             const errorMessage = error.replace(`"${field}"`, '').trim();
@@ -127,8 +170,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function showToast(type, message) {
-        // Implement your toast notification here
-        alert(`${type.toUpperCase()}: ${message}`);
+        // Implement a proper toast notification here
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        toast.innerHTML = `<span>${message}</span>`;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }, 100);
     }
 });
 </script>
