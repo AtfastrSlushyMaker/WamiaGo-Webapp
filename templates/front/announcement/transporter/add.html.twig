@@ -1,0 +1,135 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Nouvelle Annonce | WamiaGo{% endblock %}
+
+{% block page_stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/front/announcement/transporter.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="announcement-container">
+    <div class="announcement-header">
+        <h1><i class="fas fa-truck-moving me-2"></i>Nouvelle Annonce de Transport</h1>
+        <p>Remplissez les détails de votre service de transport</p>
+    </div>
+
+    <div class="announcement-form-container">
+        {{ form_start(form, {'attr': {'id': 'announcement-form', 'class': 'announcement-form'}}) }}
+            <div class="form-card">
+                <div class="form-group">
+                    {{ form_label(form.title) }}
+                    {{ form_widget(form.title) }}
+                    <div class="invalid-feedback">{{ form_errors(form.title) }}</div>
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(form.content) }}
+                    {{ form_widget(form.content) }}
+                    <div class="invalid-feedback">{{ form_errors(form.content) }}</div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                    {{ form_label(form.zone) }}
+                    {{ form_widget(form.zone, {'attr': {'class': 'form-select' ~ (form.zone.vars.valid ? '' : ' is-invalid')}}) }}
+                    <div class="invalid-feedback">
+                        {{ form_errors(form.zone)|striptags }}
+                    </div>
+                </div>
+
+                    <div class="form-group col-md-6">
+                        <div class="form-check form-switch">
+                            {{ form_widget(form.status) }}
+                            {{ form_label(form.status) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-check-circle me-2"></i>Publier l'annonce
+                    </button>
+                    <a href="{{ path('app_transporter_announcement_list') }}" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-times-circle me-2"></i>Annuler
+                    </a>
+                </div>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}
+
+{% block page_javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('announcement-form');
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalText = submitButton.innerHTML;
+        
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Publication en cours...';
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('success', data.message);
+                setTimeout(() => {
+                    window.location.href = data.redirectUrl;
+                }, 1500);
+            } else {
+                displayFormErrors(data.errors);
+            }
+        })
+        .catch(error => {
+            showToast('error', 'Une erreur est survenue');
+        })
+        .finally(() => {
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalText;
+        });
+    });
+    
+    function displayFormErrors(errors) {
+        // Reset previous errors
+        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+        
+        // Add new errors
+        errors.forEach(error => {
+            const field = error.split('"')[1] || '';
+            const errorMessage = error.replace(`"${field}"`, '').trim();
+            
+            if (field) {
+                const input = form.querySelector(`[name*="${field.toLowerCase()}"]`);
+                if (input) {
+                    input.classList.add('is-invalid');
+                    const feedback = input.closest('.form-group').querySelector('.invalid-feedback');
+                    if (feedback) {
+                        feedback.textContent = errorMessage;
+                    }
+                }
+            } else {
+                showToast('error', errorMessage);
+            }
+        });
+    }
+    
+    function showToast(type, message) {
+        // Implement your toast notification here
+        alert(`${type.toUpperCase()}: ${message}`);
+    }
+});
+</script>
+{% endblock %}

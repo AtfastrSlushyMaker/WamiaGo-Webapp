@@ -163,7 +163,7 @@
                         </div>
                         
                         <div class="card-actions">
-                            <a href="{{ path('app_front_announcement_details', {'id': announcement.id_announcement}) }}" 
+                            <a href="{{ path('app_front_announcement_modal', {'id': announcement.id_announcement}) }}" 
                             class="details-button"
                             data-announcement-id="{{ announcement.id_announcement }}">
                                 <i class="fas fa-eye"></i> Details
@@ -216,21 +216,13 @@
         {% endif %}
     </div>
 
-    {# Details Modal #}
-    <div class="modal fade" id="announcementModal" tabindex="-1" aria-hidden="true">
+
+    {# Modal Structure #}
+    <div class="modal fade announcement-modal" id="announcementModal" tabindex="-1" aria-modal="true" role="dialog">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Announcement Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="modalBodyContent">
-                    {# Content will be loaded via AJAX #}
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <a href="#" class="btn btn-primary" id="modalReserveButton">Reserve</a>
-                </div>
+                {# Le contenu sera entièrement chargé via AJAX #}
+                <div id="modalBodyContent"></div>
             </div>
         </div>
     </div>
@@ -324,51 +316,128 @@
 {% block page_javascripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize modal avec des options spécifiques
+    const modalEl = document.getElementById('announcementModal');
+    const modal = new bootstrap.Modal(modalEl, {
+        focus: true // Important pour la gestion du focus
+    });
+    
+    // Gestion personnalisée du focus pour résoudre le problème ARIA
+    modalEl.addEventListener('shown.bs.modal', function() {
+        // Trouver le premier élément focusable
+        const focusableElements = modalEl.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (focusableElements.length > 0) {
+            focusableElements[0].focus();
+        }
+    });
+
     // Handle details button clicks
     document.querySelectorAll('.details-button').forEach(button => {
-        button.addEventListener('click', function(e) {
+        button.addEventListener('click', async function(e) {
             e.preventDefault();
-            const announcementId = this.getAttribute('data-announcement-id');
+            const announcementId = this.dataset.announcementId;
             
-            // Fetch announcement details via AJAX
-            fetch(`/announcements/${announcementId}/modal`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('modalBodyContent').innerHTML = data.content;
-                    document.getElementById('modalReserveButton').href = `/announcements/${announcementId}/reserve`;
-                    
-                    // Show modal
-                    const modal = new bootstrap.Modal(document.getElementById('announcementModal'));
-                    modal.show();
-                })
-                .catch(error => console.error('Error:', error));
+            try {
+                // Show loading state
+                document.getElementById('modalBodyContent').innerHTML = `
+                    <div class="d-flex justify-content-center align-items-center py-5">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading details...</p>
+                        </div>
+                    </div>
+                `;
+                
+                // Show modal avec gestion du focus
+                modal.show();
+                
+                // Fetch content
+                const response = await fetch(`/announcements/${announcementId}/modal`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const data = await response.json();
+                
+                // Handle JSON response
+                let modalContent = data;
+                if (typeof data === 'object' && data.content) {
+                    modalContent = data.content;
+                } else if (typeof data === 'string') {
+                    try {
+                        modalContent = JSON.parse(data).content;
+                    } catch (e) {
+                        console.error('JSON parsing error:', e);
+                        throw new Error('Invalid response format');
+                    }
+                }
+                
+                // Inject content
+                document.getElementById('modalBodyContent').innerHTML = modalContent;
+                
+                // Update reserve button URL if exists
+                const reserveButton = document.getElementById('modalReserveButton');
+                if (reserveButton && data.reserveUrl) {
+                    reserveButton.href = data.reserveUrl;
+                }
+                
+                // Gestion du focus après chargement
+                setTimeout(() => {
+                    const firstFocusable = modalEl.querySelector('[autofocus], button, [href], input, [tabindex]:not([tabindex="-1"])');
+                    if (firstFocusable) {
+                        firstFocusable.focus();
+                    }
+                }, 100);
+                
+            } catch (error) {
+                document.getElementById('modalBodyContent').innerHTML = `
+                    <div class="alert alert-danger m-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error loading details: ${error.message}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" autofocus>
+                            Close
+                        </button>
+                    </div>
+                `;
+                console.error('Error:', error);
+            }
         });
     });
 
-    // Zone filter change handler
-    document.querySelector('.zone-select').addEventListener('change', function() {
-        const zone = this.value;
-        if (zone) {
-            window.location.href = `/announcements/zone/${zone}`;
-        } else {
-            window.location.href = '/announcements';
+    // Zone filter handler
+    function setupZoneFilter() {
+        const zoneSelect = document.querySelector('.zone-select');
+        if (zoneSelect) {
+            zoneSelect.addEventListener('change', function() {
+                const zone = this.value;
+                window.location.href = zone ? `/announcements/zone/${zone}` : '/announcements';
+            });
         }
-    });
+    }
 
-    // Search functionality
-    document.querySelector('.search-button').addEventListener('click', function() {
-        const keyword = document.querySelector('.search-input').value.trim();
-        if (keyword) {
-            window.location.href = `/announcements/search?keyword=${encodeURIComponent(keyword)}`;
+    // Search handler
+    function setupSearch() {
+        const searchButton = document.querySelector('.search-button');
+        const searchInput = document.querySelector('.search-input');
+        
+        if (searchButton && searchInput) {
+            searchButton.addEventListener('click', searchHandler);
+            searchInput.addEventListener('keypress', (e) => e.key === 'Enter' && searchHandler());
+            
+            function searchHandler() {
+                const keyword = searchInput.value.trim();
+                if (keyword) {
+                    window.location.href = `/announcements/search?keyword=${encodeURIComponent(keyword)}`;
+                }
+            }
         }
-    });
+    }
 
-    // Allow search on Enter key
-    document.querySelector('.search-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            document.querySelector('.search-button').click();
-        }
-    });
+    // Initialize all handlers
+    setupZoneFilter();
+    setupSearch();
 });
 </script>
 {% endblock %}

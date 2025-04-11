@@ -22,7 +22,7 @@ class AnnouncementService
     }
 
     // CRUD de base
-    public function createAnnouncement(
+   /* public function createAnnouncement(
         Driver $driver,
         string $title,
         string $content,
@@ -42,7 +42,7 @@ class AnnouncementService
         $this->entityManager->flush();
 
         return $announcement;
-    }
+    }*/
 
     public function updateAnnouncement(Announcement $announcement): Announcement
     {
@@ -93,4 +93,74 @@ class AnnouncementService
         return $announcement->isStatus() 
             && $announcement->getDate() >= new \DateTime('now');
     }
+
+    public function getAnnouncementsForDatatable(int $start, int $length, ?string $search, ?array $order): array
+{
+    $qb = $this->entityManager->createQueryBuilder()
+        ->select('a', 'd')
+        ->from(Announcement::class, 'a')
+        ->join('a.driver', 'd');
+
+    if ($search) {
+        $qb->where('a.title LIKE :search OR a.content LIKE :search OR d.firstName LIKE :search OR d.lastName LIKE :search')
+           ->setParameter('search', '%' . $search . '%');
+    }
+
+    if ($order) {
+        $column = $order['column'] ?? 0;
+        $dir = $order['dir'] ?? 'asc';
+        
+        $columns = ['a.id', 'a.title', 'a.content', 'a.zone', 'a.date', 'a.status', 'd.firstName'];
+        $orderBy = $columns[$column] ?? $columns[0];
+        
+        $qb->orderBy($orderBy, $dir);
+    }
+
+    $qb->setFirstResult($start)
+       ->setMaxResults($length);
+
+    $results = $qb->getQuery()->getResult();
+
+    $data = [];
+    foreach ($results as $announcement) {
+        $data[] = [
+            'id' => $announcement->getIdAnnouncement(),
+            'title' => $announcement->getTitle(),
+            'content' => $announcement->getContent(),
+            'zone' => $announcement->getZone()->value,
+            'date' => $announcement->getDate()->format('Y-m-d H:i:s'),
+            'status' => $announcement->isStatus(),
+            'driver' => [
+                'firstName' => $announcement->getDriver()->getFirstName(),
+                'lastName' => $announcement->getDriver()->getLastName(),
+            ],
+        ];
+    }
+
+    return $data;
+}
+
+public function countAllAnnouncements(): int
+{
+    return $this->entityManager->createQueryBuilder()
+        ->select('COUNT(a.id)')
+        ->from(Announcement::class, 'a')
+        ->getQuery()
+        ->getSingleScalarResult();
+}
+
+public function countFilteredAnnouncements(?string $search): int
+{
+    $qb = $this->entityManager->createQueryBuilder()
+        ->select('COUNT(a.id)')
+        ->from(Announcement::class, 'a')
+        ->join('a.driver', 'd');
+
+    if ($search) {
+        $qb->where('a.title LIKE :search OR a.content LIKE :search OR d.firstName LIKE :search OR d.lastName LIKE :search')
+           ->setParameter('search', '%' . $search . '%');
+    }
+
+    return $qb->getQuery()->getSingleScalarResult();
+}
 }

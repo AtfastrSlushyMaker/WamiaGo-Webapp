@@ -1,0 +1,104 @@
+{% extends 'back-office/base.html.twig' %}
+
+{% block title %}Admin | Détails Annonce #{{ announcement.id }}{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>Détails de l'annonce</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{{ path('admin_dashboard') }}">Accueil</a></li>
+                        <li class="breadcrumb-item"><a href="{{ path('admin_announcements_index') }}">Annonces</a></li>
+                        <li class="breadcrumb-item active">Détails</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card card-primary">
+                        <div class="card-header">
+                            <h3 class="card-title">Informations principales</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center mb-4">
+                                <img src="{{ asset('adminlte/images/icons/announcement.png') }}" 
+                                     alt="Announcement" 
+                                     width="100">
+                            </div>
+                            <dl class="row">
+                                <dt class="col-sm-4">ID</dt>
+                                <dd class="col-sm-8">{{ announcement.id }}</dd>
+
+                                <dt class="col-sm-4">Titre</dt>
+                                <dd class="col-sm-8">{{ announcement.title }}</dd>
+
+                                <dt class="col-sm-4">Contenu</dt>
+                                <dd class="col-sm-8">{{ announcement.content }}</dd>
+
+                                <dt class="col-sm-4">Zone</dt>
+<dd class="col-sm-8">{{ announcement.zone.getDisplayName() }}
+{{ annonce.zone.getColor() }}</dd>
+
+                                <dt class="col-sm-4">Date</dt>
+                                <dd class="col-sm-8">{{ announcement.date|date('d/m/Y H:i') }}</dd>
+
+                                <dt class="col-sm-4">Statut</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge badge-{{ announcement.status ? 'success' : 'danger' }}">
+                                        {{ announcement.status ? 'Active' : 'Inactive' }}
+                                    </span>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card card-info">
+                        <div class="card-header">
+                            <h3 class="card-title">Informations conducteur</h3>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row">
+                                <dt class="col-sm-4">Nom complet</dt>
+                                <dd class="col-sm-8">{{ announcement.driver.firstName }} {{ announcement.driver.lastName }}</dd>
+
+                                <dt class="col-sm-4">Email</dt>
+                                <dd class="col-sm-8">{{ announcement.driver.email }}</dd>
+
+                                <dt class="col-sm-4">Téléphone</dt>
+                                <dd class="col-sm-8">{{ announcement.driver.phoneNumber }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-12">
+                    <form method="post" action="{{ path('admin_announcements_delete', {'id': announcement.id}) }}" 
+                          onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette annonce?');">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ announcement.id) }}">
+                        <button class="btn btn-danger float-right">
+                            <i class="fas fa-trash"></i> Supprimer l'annonce
+                        </button>
+                    </form>
+                    <a href="{{ path('admin_announcements_index') }}" class="btn btn-secondary mr-2">
+                        <i class="fas fa-arrow-left"></i> Retour à la liste
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

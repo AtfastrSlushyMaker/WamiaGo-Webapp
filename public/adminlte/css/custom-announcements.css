@@ -1,0 +1,38 @@
+/* Table styling */
+.table-hover tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Card header styling */
+.card-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Action buttons */
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Status badges */
+.badge-success {
+  background-color: #28a745;
+}
+
+.badge-danger {
+  background-color: #dc3545;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .card-body {
+      padding: 0.75rem;
+  }
+  
+  .table-responsive {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+  }
+}

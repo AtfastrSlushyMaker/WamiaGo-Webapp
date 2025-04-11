@@ -2,9 +2,9 @@
 namespace App\Enum;
 
 enum Zone: string
-{
+{case NOT_SPECIFIED = '';
     case ARIANA = 'Ariana';
-    case BEJA = 'Béja';
+    case BEJA = 'Béja';                        
     case BEN_AROUS = 'Ben_Arous';
     case BIZERTE = 'Bizerte';
     case GABES = 'Gabès';
@@ -27,4 +27,14 @@ enum Zone: string
     case TOZEUR = 'Tozeur';
     case TUNIS = 'Tunis';
     case ZAGHOUAN = 'Zaghouan';
+
+
+
+    public function getDisplayName(): string
+    {
+        return match($this) {
+            self::NOT_SPECIFIED => 'Non spécifié',
+            default => $this->value
+        };
+    }
 }

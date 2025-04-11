@@ -1,0 +1,104 @@
+{% extends 'back-office/base.html.twig' %}
+
+{% block title %}Admin | Gestion des Annonces{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('adminlte/css/custom-announcements.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>Gestion des Annonces</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{{ path('admin_dashboard') }}">Accueil</a></li>
+                        <li class="breadcrumb-item active">Annonces</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="card card-primary card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Liste des Annonces</h3>
+                    <div class="card-tools">
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" placeholder="Rechercher...">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body table-responsive p-0">
+                    <table class="table table-hover text-nowrap">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Titre</th>
+                                <th>Zone</th>
+                                <th>Date</th>
+                                <th>Statut</th>
+                                <th>Conducteur</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for announcement in announcements %}
+                            <tr>
+                                <td>{{ announcement.id_announcement }}</td>
+                                <td>{{ announcement.title }}</td>
+                                <td>{{ announcement.zone.getDisplayName() }}
+{{ annonce.zone.getColor() }}</td>
+                                <td>{{ announcement.date|date('d/m/Y H:i') }}</td>
+                                <td>
+                                    <img src="{{ asset('adminlte/images/icons/' ~ (announcement.status ? 'active' : 'inactive') ~ '.png') }}" 
+                                         alt="{{ announcement.status ? 'Active' : 'Inactive' }}"
+                                         width="20"
+                                         title="{{ announcement.status ? 'Active' : 'Inactive' }}">
+                                </td>
+                                <td>{{ announcement.driver.firstName }} {{ announcement.driver.lastName }}</td>
+                                <td>
+                                    <a href="{{ path('admin_announcements_show', {'id': announcement.id}) }}" 
+                                       class="btn btn-sm btn-info" title="Voir">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-danger delete-btn" 
+                                            data-id="{{ announcement.id }}"
+                                            data-toggle="modal" 
+                                            data-target="#deleteModal"
+                                            title="Supprimer">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer clearfix">
+                    {# Pagination à ajouter ici si nécessaire #}
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+{% include 'back-office/Announcements/_partials/_delete_modal.html.twig' %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('adminlte/js/announcements.js') }}"></script>
+{% endblock %}

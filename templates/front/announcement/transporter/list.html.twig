@@ -1,0 +1,53 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}My Announcements | WamiaGo{% endblock %}
+
+{% block page_stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/front/announcement/transporter-announcement.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="transporter-announcements">
+    <div class="container">
+        <div class="announcements-header">
+            <h1>My Transport Announcements</h1>
+            
+        </div>
+
+        {% if announcements is empty %}
+            <div class="empty-state">
+                <p>You have no announcements yet.</p>
+                <a href="{{ path('app_transporter_announcement_new') }}" class="btn-primary">
+                    Create your first announcement
+                </a>
+            </div>
+        {% else %}
+            <div class="announcements-list">
+                {% for announcement in announcements %}
+                    <div class="announcement-card">
+                        <div class="card-header">
+                            <h3>{{ announcement.title }}</h3>
+                            <span class="status-badge {% if announcement.status %}active{% else %}inactive{% endif %}">
+                                {% if announcement.status %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </div>
+                        <div class="card-content">
+                            <p>{{ announcement.content|length > 150 ? announcement.content|slice(0, 150) ~ '...' : announcement.content }}</p>
+                            <div class="card-meta">
+                                <span class="meta-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    {{ announcement.zone.value }}
+                                </span>
+                                <span class="meta-item">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    {{ announcement.date|date('d M Y, H:i') }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

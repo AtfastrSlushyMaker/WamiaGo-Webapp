@@ -89,12 +89,12 @@ class Announcement
     }
 
     #[ORM\Column(enumType: Zone::class)]
-    private ?Zone $zone = null;
+private Zone $zone = Zone::NOT_SPECIFIED;
 
-    public function getZone(): ?Zone
-    {
-        return $this->zone;
-    }
+public function getZone(): Zone
+{
+    return $this->zone ?? Zone::NOT_SPECIFIED;
+}
 
     public function setZone(Zone $zone): self
     {
