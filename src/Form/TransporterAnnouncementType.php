@@ -35,12 +35,11 @@ class TransporterAnnouncementType extends AbstractType
                     'placeholder' => 'Décrivez votre service de transport...'
                 ]
             ])
-            ->add('zone', EnumType::class, [
-                'class' => Zone::class,
-                'choice_label' => fn (Zone $zone) => $zone->getDisplayName(),
-                'placeholder' => 'Sélectionnez une zone',
-                'required' => false,
-                'empty_data' => Zone::NOT_SPECIFIED,
+            ->add('zone', ChoiceType::class, [
+                'choices' => array_combine(
+                    array_map(fn(Zone $zone) => $zone->getDisplayName(), Zone::cases()),
+                    array_map(fn(Zone $zone) => $zone->value, Zone::cases())
+                ),
             ])
             ->add('status', CheckboxType::class, [
                 'label' => 'Activer cette annonce',

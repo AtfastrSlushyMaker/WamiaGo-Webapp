@@ -33,7 +33,7 @@ class TransporterAnnouncementController extends AbstractController
     ) {
     }
 
-    /*#[Route('/new', name: 'app_transporter_announcement_new', methods: ['GET', 'POST'])]
+    #[Route('/new', name: 'app_transporter_announcement_new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
         $driver = $this->driverRepository->find(self::HARDCODED_DRIVER_ID);
@@ -44,61 +44,47 @@ class TransporterAnnouncementController extends AbstractController
         $announcement = new Announcement();
         $announcement->setDriver($driver);
         $announcement->setStatus(true);
-        
-        // Créez simplement le formulaire - le transformer est déjà dans le FormType
+        $announcement->setDate(new \DateTime());
+    
         $form = $this->createForm(TransporterAnnouncementType::class, $announcement);
-        
-        try {
-            $form->handleRequest($request);
-            
-            if ($form->isSubmitted()) {
-                if ($form->isValid()) {
-                    $this->announcementService->createAnnouncement(
-                        $driver,
-                        $announcement->getTitle(),
-                        $announcement->getContent(),
-                        $announcement->getZone(),
-                        new \DateTime(),
-                        $announcement->isStatus()
-                    );
-
-                    if ($request->isXmlHttpRequest()) {
-                        return new JsonResponse([
-                            'success' => true,
-                            'message' => 'Annonce créée avec succès!',
-                            'redirectUrl' => $this->generateUrl('app_transporter_announcement_list')
-                        ]);
-                    }
-
-                    $this->addFlash('success', 'Annonce créée avec succès!');
-                    return $this->redirectToRoute('app_transporter_announcement_list');
+        $form->handleRequest($request);
+    
+        if ($form->isSubmitted() && $form->isValid()) {
+            try {
+                $this->announcementService->createAnnouncement(
+                    $driver,
+                    $announcement->getTitle(),
+                    $announcement->getContent(),
+                    $announcement->getZone(),
+                    $announcement->getDate(),
+                    $announcement->isStatus()
+                );
+    
+                if ($request->isXmlHttpRequest()) {
+                    return new JsonResponse([
+                        'success' => true,
+                        'message' => 'Annonce créée avec succès!',
+                        'redirectUrl' => $this->generateUrl('app_transporter_announcement_list')
+                    ]);
                 }
-
+    
+                $this->addFlash('success', 'Annonce créée avec succès!');
+                return $this->redirectToRoute('app_transporter_announcement_list');
+            } catch (\Exception $e) {
                 if ($request->isXmlHttpRequest()) {
                     return new JsonResponse([
                         'success' => false,
-                        'errors' => $this->getFormErrors($form)
-                    ], 400);
+                        'errors' => ['Erreur système: ' . $e->getMessage()]
+                    ], 500);
                 }
+                $this->addFlash('error', 'Une erreur est survenue: ' . $e->getMessage());
             }
-        } catch (\Exception $e) {
-            error_log('Form error: ' . $e->getMessage());
-            
-            if ($request->isXmlHttpRequest()) {
-                return new JsonResponse([
-                    'success' => false,
-                    'errors' => ['Erreur système: ' . $e->getMessage()]
-                ], 500);
-            }
-            
-            $this->addFlash('error', 'Une erreur est survenue: ' . $e->getMessage());
         }
-
+    
         return $this->render('front/announcement/transporter/add.html.twig', [
-            'form' => $form->createView(),
-            'zones' => Zone::cases()
+            'form' => $form->createView()
         ]);
-    }*/
+    }
 
     #[Route('/', name: 'app_transporter_announcement_list', methods: ['GET'])]
     public function list(): Response

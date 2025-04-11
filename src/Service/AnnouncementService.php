@@ -22,7 +22,7 @@ class AnnouncementService
     }
 
     // CRUD de base
-   /* public function createAnnouncement(
+    public function createAnnouncement(
         Driver $driver,
         string $title,
         string $content,
@@ -37,13 +37,13 @@ class AnnouncementService
         $announcement->setZone($zone);
         $announcement->setDate($date);
         $announcement->setStatus($status);
-
+    
         $this->entityManager->persist($announcement);
         $this->entityManager->flush();
-
+    
         return $announcement;
-    }*/
-
+    }
+    
     public function updateAnnouncement(Announcement $announcement): Announcement
     {
         $this->entityManager->flush();
