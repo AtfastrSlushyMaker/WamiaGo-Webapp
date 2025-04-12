@@ -187,7 +187,7 @@ class BicycleAdminController extends AbstractController
             
             // Set status using your enum
             if ($statusValue) {
-                $station->setStatus(BICYCLE_STATION_STATUS::fromValue($statusValue));
+                $station->setStatus(BICYCLE_STATION_STATUS::from($statusValue));
             } else {
                 $station->setStatus(BICYCLE_STATION_STATUS::ACTIVE);
             }
@@ -270,7 +270,7 @@ class BicycleAdminController extends AbstractController
             
             // Update status
             if ($statusValue) {
-                $station->setStatus(BICYCLE_STATION_STATUS::fromValue($statusValue));
+                $station->setStatus(BICYCLE_STATION_STATUS::from($statusValue));
             }
             
             // Handle location update
@@ -498,7 +498,7 @@ public function createStation(Request $request): JsonResponse
         
         // Set status
         try {
-            $station->setStatus(BICYCLE_STATION_STATUS::fromValue($data['status']));
+            $station->setStatus(BICYCLE_STATION_STATUS::from($data['status']));
         } catch (\Exception $e) {
             return new JsonResponse([
                 'success' => false,

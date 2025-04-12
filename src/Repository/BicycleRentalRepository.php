@@ -28,6 +28,22 @@ class BicycleRentalRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findActiveRentals(User $user): array
+    {
+        return $this->createQueryBuilder('r')
+            ->select('r')
+            ->join('r.bicycle', 'b')
+            ->where('r.user = :user')
+            ->andWhere('r.end_time IS NULL')
+            ->andWhere('b.status != :in_use')
+            ->orderBy('r.start_time', 'DESC')
+            ->setParameter('user', $user)
+            ->setParameter('in_use', BICYCLE_STATUS::IN_USE)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findPastRentalsByUser(int $userId): array
     {
         return $this->createQueryBuilder('r')

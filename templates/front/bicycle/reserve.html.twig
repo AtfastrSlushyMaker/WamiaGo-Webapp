@@ -1,4 +1,3 @@
-
 {% extends 'front/base.html.twig' %}
 
 {% block title %}Reserve a Bicycle - WamiaGo{% endblock %}
@@ -142,7 +141,8 @@
                         <p class="mb-2"><span class="rental-info-label">How it works:</span></p>
                         <ol>
                             <li>Reserve the bicycle now</li>
-                            <li>Unlock it at the station using your reservation code</li>
+                            <li>Go to "My Reservations" page to activate your reservation</li>
+                            <li>Click the "Start Ride" button to begin using the bicycle</li>
                             <li>Use it for as long as you need</li>
                             <li>Return it to any available station</li>
                             <li>The final cost will be calculated when you return the bicycle</li>
@@ -155,51 +155,21 @@
                 <div class="reservation-form">
                     <h3>Reservation Details</h3>
                     
-                    <form method="post" id="reservationForm">
+                    <form method="post" id="reservationForm" >
                         <div class="form-group mb-3">
                             <label>Current Date and Time:</label>
                             <input type="text" class="form-control" 
                                    value="{{ "now"|date('Y-m-d H:i') }}" readonly>
-                            <small class="form-text text-muted">Your rental will start when you unlock the bicycle.</small>
+                            <small class="form-text text-muted">Your rental will be reserved now but will only start when you activate it from "My Reservations" page.</small>
                         </div>
-                        
-                        <div class="form-group mb-3">
-                            <label for="estimatedDuration">Estimated Rental Duration (hours):</label>
-                            <select class="form-control" id="estimatedDuration" name="estimatedDuration" required>
-                                {% for i in 1..24 %}
-                                    <option value="{{ i }}">{{ i }} hour{% if i > 1 %}s{% endif %}</option>
-                                {% endfor %}
-                            </select>
-                            <small class="form-text text-muted">This is just an estimate to help calculate the deposit amount.</small>
-                        </div>
-                        
-                        <div class="form-group mb-3">
-                            <label for="estimatedDistance">Estimated Distance (km):</label>
-                            <input type="number" class="form-control" id="estimatedDistance" name="estimatedDistance" 
-                                   value="5" min="1" max="{{ bicycle.rangeKm }}">
-                            <small class="form-text text-muted">Maximum range with current battery: {{ bicycle.rangeKm }} km</small>
-                        </div>
-                        
-                        <div class="return-station-selector mb-3">
-                            <label>Estimated Return Station (Optional):</label>
-                            <select class="form-control" id="estimatedReturnStation" name="estimatedReturnStation">
-                                <option value="">-- Select a station --</option>
-                                <option value="{{ bicycle.bicycleStation.idStation }}">{{ bicycle.bicycleStation.name }} (same station)</option>
-                                <!-- Other stations would be populated here from available stations -->
-                                <option value="2">Central Station</option>
-                                <option value="3">Harbor View Station</option>
-                                <option value="4">University Campus</option>
-                            </select>
-                            <small class="form-text text-muted">You can return the bicycle to any station.</small>
-                        </div>
-                        
+                              
                         <div class="price-calculation">
                             <p><strong>Hourly Rate:</strong> {{ hourlyRate|number_format(3) }} TND</p>
                             <p><strong>Weather Conditions:</strong> <span id="weatherCondition">Good (no surcharge)</span></p>
                             <p class="font-italic">The final price will be calculated when you return the bicycle.</p>
                             <hr>
                             <p class="h5"><strong>Estimated Deposit:</strong> <span id="totalCost">{{ hourlyRate|number_format(3) }}</span> TND</p>
-                            <p class="small text-muted">This is a pre-authorization amount. You'll only be charged for the actual time used.</p>
+                            <p class="small text-muted">This is a pre-authorization amount. You'll only be charged for the actual time used after activating the reservation.</p>
                             <input type="hidden" name="estimatedCost" id="estimatedCost" value="{{ hourlyRate }}">
                             <input type="hidden" name="duration" id="duration" value="1">
                         </div>
@@ -218,13 +188,9 @@
 {% block page_javascripts %}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const estimatedDurationSelect = document.getElementById('estimatedDuration');
-            const distanceInput = document.getElementById('estimatedDistance');
             const totalCostSpan = document.getElementById('totalCost');
             const estimatedCostInput = document.getElementById('estimatedCost');
-            const durationInput = document.getElementById('duration');
             const weatherConditionSpan = document.getElementById('weatherCondition');
-            const estimatedReturnStationSelect = document.getElementById('estimatedReturnStation');
             
             const hourlyRate = {{ hourlyRate }};
             
@@ -232,27 +198,16 @@
             const weatherFactor = 1.0; // Normal rate
             
             function updatePriceCalculation() {
-                // Get estimated duration
-                const duration = parseInt(estimatedDurationSelect.value);
+                // Since we're just showing the deposit amount, we'll use a simplified calculation
+                // based on the hourly rate and the deposit multiplier
                 
-                // Apply distance factor (optional, can be adjusted as needed)
-                const distance = parseFloat(distanceInput.value) || 5;
-                const distanceFactor = distance > 20 ? 1.1 : 1.0; // 10% extra for longer trips
-                
-                // Check if return station is different from pickup station
-                const differentStation = estimatedReturnStationSelect.value && 
-                                         estimatedReturnStationSelect.value !== "{{ bicycle.bicycleStation.idStation }}";
-                const stationFactor = differentStation ? 1.05 : 1.0; // 5% surcharge for different station
-                
-                // Calculate estimated deposit (for pre-authorization)
                 // We use a multiplier to ensure there's enough deposit for longer rentals
                 const depositMultiplier = 1.5; // 50% buffer for unexpected extended usage
-                const estimatedDeposit = (duration * hourlyRate * weatherFactor * distanceFactor * stationFactor * depositMultiplier).toFixed(3);
+                const estimatedDeposit = (hourlyRate * weatherFactor * depositMultiplier).toFixed(3);
                 
                 // Update display
                 totalCostSpan.textContent = estimatedDeposit;
                 estimatedCostInput.value = estimatedDeposit;
-                durationInput.value = duration;
                 
                 // Update weather condition text
                 if (weatherFactor > 1) {
@@ -261,11 +216,6 @@
                     weatherConditionSpan.textContent = 'Good (no surcharge)';
                 }
             }
-            
-            // Add event listeners to all inputs
-            estimatedDurationSelect.addEventListener('change', updatePriceCalculation);
-            distanceInput.addEventListener('input', updatePriceCalculation);
-            estimatedReturnStationSelect.addEventListener('change', updatePriceCalculation);
             
             // Initialize calculation
             updatePriceCalculation();

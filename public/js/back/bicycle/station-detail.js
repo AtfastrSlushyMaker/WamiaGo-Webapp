@@ -31,6 +31,14 @@ document.addEventListener('DOMContentLoaded', function () {
     setupTabPersistence();
     setupRefreshActions();
     setupCopyStationInfo();
+
+    // Setup popup edit buttons using the function from station-edit-modal.js
+    if (typeof window.setupPopupEditButtons === 'function') {
+        window.setupPopupEditButtons();
+    } else {
+        // Fallback: Add event listener directly if the function isn't available
+        setupPopupEditButtonsDirectly();
+    }
 });
 
 /**
@@ -1422,6 +1430,30 @@ function fixDropdownMenus() {
         const dropdownMenu = dropdown.querySelector('.dropdown-menu');
         if (dropdownMenu) {
             dropdownMenu.classList.add('dropdown-menu-end');
+        }
+    });
+}
+
+// Fallback function for popup edit buttons
+function setupPopupEditButtonsDirectly() {
+    document.addEventListener('click', function (e) {
+        if (e.target && e.target.closest('.popup-edit-btn')) {
+            e.preventDefault();
+            const button = e.target.closest('.popup-edit-btn');
+            const stationId = button.getAttribute('data-station-id');
+
+            // Close the popup if map is available
+            if (map) {
+                map.closePopup();
+            }
+
+            // Open the edit modal
+            if (typeof window.initEditStationModal === 'function') {
+                window.initEditStationModal(stationId);
+            } else {
+                console.error('Edit modal function not found. Make sure station-edit-modal.js is loaded properly.');
+                alert('Could not open edit modal. Please refresh the page and try again.');
+            }
         }
     });
 }
