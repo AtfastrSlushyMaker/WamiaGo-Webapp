@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -24,9 +25,12 @@ class AdminController extends AbstractController
     }
 
     #[Route('/admin/users', name: 'admin_users')]
-    public function users(): Response
+    public function users(UserService $userService): Response
     {
-        return $this->render('back-office/users.html.twig');
+        $users = $userService->getAllUsers();
+        return $this->render('back-office/users.html.twig', [
+            'users' => $users
+        ]);
     }
 
     #[Route('/admin/ride-sharing', name: 'admin_ride_sharing')]

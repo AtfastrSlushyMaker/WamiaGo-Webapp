@@ -1,6 +1,6 @@
 {% extends 'back-office/base.html.twig' %}
 
-{% block title %}Users - WamiaGo{% endblock %}
+{% block title %}User Management - WamiaGo{% endblock %}
 
 {% block content %}
   <!-- Content Header -->
@@ -8,7 +8,7 @@
     <div class="container-fluid py-3">
       <div class="row">
         <div class="col-sm-6">
-          <h3 class="mb-0">Users Management</h3>
+          <h3 class="mb-0">User Management</h3>
         </div>
         <div class="col-sm-6">
           <ol class="breadcrumb float-sm-end mb-0">
@@ -24,90 +24,1343 @@
   <div class="app-content">
     <div class="container-fluid">
       <div class="card shadow-sm">
-        <div class="card-header bg-white">
-          <h3 class="card-title">User List</h3>
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h3 class="card-title">Users List</h3>
           <div class="card-tools">
-            <a href="#" class="btn btn-primary btn-sm">
-              <i class="bi bi-plus-circle"></i> Add New User
-            </a>
+            <button type="button" class="btn btn-primary" id="addUserBtn">
+              <i class="bi bi-plus-circle me-1"></i> Add New User
+            </button>
           </div>
         </div>
         <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Registered On</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
+          <div class="row mb-3">
+            <div class="col-md-3 mb-2 mb-md-0">
+              <select id="filterRole" class="form-select">
+                <option value="">All Roles</option>
+                <option value="admin">Admin</option>
+                <option value="user">User</option>
+                <option value="driver">Driver</option>
+              </select>
+            </div>
+            <div class="col-md-3 mb-2 mb-md-0">
+              <select id="filterStatus" class="form-select">
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="suspended">Suspended</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <div class="input-group">
+                <input type="text" id="searchUsers" class="form-control" placeholder="Search users...">
+                <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+            </div>
+          </div>          <!-- User Card View -->
+          <div class="mb-3">
+            <div class="btn-group" role="group" aria-label="View Toggle">
+              <button type="button" class="btn btn-outline-primary active" id="cardViewBtn">
+                <i class="bi bi-grid-3x3-gap-fill me-1"></i> Card View
+              </button>
+              <button type="button" class="btn btn-outline-primary" id="tableViewBtn">
+                <i class="bi bi-table me-1"></i> Table View
+              </button>
+            </div>
+          </div>
+          
+          <!-- Card View -->
+          <div id="userCardsContainer" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+            <div class="col d-flex justify-content-center align-items-center">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading users...</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Table View (hidden by default) -->
+          <div class="table-responsive" id="tableViewContainer" style="display: none;">
+            <table class="table table-striped table-hover align-middle" id="usersTable">
+              <thead>              <tr>
+                <th class="sortable" data-sort="name">Name <i class="bi bi-arrow-down-up"></i></th>
+                <th class="sortable" data-sort="email">Email <i class="bi bi-arrow-down-up"></i></th>
+                <th class="sortable" data-sort="phone_number">Phone <i class="bi bi-arrow-down-up"></i></th>
+                <th class="sortable" data-sort="gender">Gender <i class="bi bi-arrow-down-up"></i></th>
+                <th class="sortable" data-sort="date_of_birth">Date of Birth <i class="bi bi-arrow-down-up"></i></th>
+                <th class="sortable" data-sort="role">Role <i class="bi bi-arrow-down-up"></i></th>
+                <th class="sortable" data-sort="account_status">Status <i class="bi bi-arrow-down-up"></i></th>
+                <th class="sortable" data-sort="is_verified">Verified <i class="bi bi-arrow-down-up"></i></th>
+                <th class="text-end">Actions</th>
+              </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td>1</td>
-                  <td>John Doe</td>
-                  <td>john@example.com</td>
-                  <td>2023-05-12</td>
-                  <td><span class="badge bg-success">Active</span></td>
-                  <td>
-                    <div class="btn-group">
-                      <a href="#" class="btn btn-sm btn-info"><i class="bi bi-eye"></i></a>
-                      <a href="#" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
-                      <a href="#" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>2</td>
-                  <td>Jane Smith</td>
-                  <td>jane@example.com</td>
-                  <td>2023-06-18</td>
-                  <td><span class="badge bg-success">Active</span></td>
-                  <td>
-                    <div class="btn-group">
-                      <a href="#" class="btn btn-sm btn-info"><i class="bi bi-eye"></i></a>
-                      <a href="#" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
-                      <a href="#" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>3</td>
-                  <td>Mike Johnson</td>
-                  <td>mike@example.com</td>
-                  <td>2023-07-24</td>
-                  <td><span class="badge bg-warning">Pending</span></td>
-                  <td>
-                    <div class="btn-group">
-                      <a href="#" class="btn btn-sm btn-info"><i class="bi bi-eye"></i></a>
-                      <a href="#" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
-                      <a href="#" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
-                    </div>
-                  </td>
-                </tr>
+              <tbody id="usersTableBody">
+              <tr>
+                <td colspan="7" class="text-center">Loading users...</td>
+              </tr>
               </tbody>
             </table>
           </div>
-        </div>
-        <div class="card-footer bg-white">
-          <nav aria-label="User pagination">
-            <ul class="pagination justify-content-center mb-0">
-              <li class="page-item disabled">
-                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
-              </li>
-              <li class="page-item active"><a class="page-link" href="#">1</a></li>
-              <li class="page-item"><a class="page-link" href="#">2</a></li>
-              <li class="page-item"><a class="page-link" href="#">3</a></li>
-              <li class="page-item">
-                <a class="page-link" href="#">Next</a>
-              </li>
-            </ul>
-          </nav>
+
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <div>
+              <span id="totalUsers">0</span> users total
+            </div>
+            <div>
+              <button class="btn btn-sm btn-outline-primary me-1" id="prevPage" disabled>
+                <i class="bi bi-chevron-left"></i> Previous
+              </button>
+              <span id="pagination">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
+              <button class="btn btn-sm btn-outline-primary ms-1" id="nextPage" disabled>
+                Next <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- User Modal -->
+  <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="userModalLabel">Add New User</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="userForm">
+            <input type="hidden" id="userId" name="userId">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="name" class="form-label">Full Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+                <div class="invalid-feedback" id="nameError"></div>
+              </div>
+              <div class="col-md-6">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+                <div class="invalid-feedback" id="emailError"></div>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password">
+                <small class="form-text text-muted" id="passwordHelpText">
+                  Leave blank to keep current password when editing.
+                </small>
+                <div class="invalid-feedback" id="passwordError"></div>
+              </div>
+              <div class="col-md-6">
+                <label for="phone_number" class="form-label">Phone Number</label>
+                <input type="text" class="form-control" id="phone_number" name="phone_number" required>
+                <div class="invalid-feedback" id="phoneError"></div>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="role" class="form-label">Role</label>
+                <select class="form-select" id="role" name="role" required>
+                  <option value="">Select Role</option>
+                  <option value="admin">Admin</option>
+                  <option value="user">User</option>
+                  <option value="driver">Driver</option>
+                </select>
+                <div class="invalid-feedback" id="roleError"></div>
+              </div>
+              <div class="col-md-6">
+                <label for="gender" class="form-label">Gender</label>
+                <select class="form-select" id="gender" name="gender" required>
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+                <div class="invalid-feedback" id="genderError"></div>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="account_status" class="form-label">Account Status</label>
+                <select class="form-select" id="account_status" name="account_status" required>
+                  <option value="">Select Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="suspended">Suspended</option>
+                </select>
+                <div class="invalid-feedback" id="statusError"></div>
+              </div>
+              <div class="col-md-6">
+                <label for="date_of_birth" class="form-label">Date of Birth</label>
+                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth">
+                <div class="invalid-feedback" id="dobError"></div>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="is_verified" name="is_verified">
+                  <label class="form-check-label" for="is_verified">Verified Account</label>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="saveUser">Save User</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Are you sure you want to delete this user? This action cannot be undone.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block page_javascripts %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // State variables
+      let users = [];
+      let filteredUsers = [];
+      let currentPage = 1;
+      let itemsPerPage = 10;
+      let sortField = 'name';
+      let sortDirection = 'asc';
+      let userToDelete = null;
+
+      // DOM Elements
+      const usersTableBody = document.getElementById('usersTableBody');
+      const userModal = new bootstrap.Modal(document.getElementById('userModal'));
+      const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+      const userForm = document.getElementById('userForm');
+      const addUserBtn = document.getElementById('addUserBtn');
+      const saveUserBtn = document.getElementById('saveUser');
+      const confirmDeleteBtn = document.getElementById('confirmDelete');
+      const searchInput = document.getElementById('searchUsers');
+      const filterRole = document.getElementById('filterRole');
+      const filterStatus = document.getElementById('filterStatus');
+      const prevPageBtn = document.getElementById('prevPage');
+      const nextPageBtn = document.getElementById('nextPage');
+      const currentPageSpan = document.getElementById('currentPage');
+      const totalPagesSpan = document.getElementById('totalPages');
+      const totalUsersSpan = document.getElementById('totalUsers');
+      const cardsContainer = document.getElementById('userCardsContainer');
+      const tableContainer = document.getElementById('tableViewContainer');
+
+      // Load users on page load
+      loadUsers();
+
+      // Event Listeners
+      addUserBtn.addEventListener('click', () => {
+        resetUserForm();
+        document.getElementById('userModalLabel').textContent = 'Add New User';
+        document.getElementById('passwordHelpText').classList.add('d-none');
+        userModal.show();
+      });
+
+      saveUserBtn.addEventListener('click', saveUser);
+      confirmDeleteBtn.addEventListener('click', deleteUser);
+
+      searchInput.addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') {
+          applyFilters();
+        }
+      });
+
+      document.getElementById('searchBtn').addEventListener('click', applyFilters);
+      filterRole.addEventListener('change', applyFilters);
+      filterStatus.addEventListener('change', applyFilters);
+
+      prevPageBtn.addEventListener('click', () => {
+        if (currentPage > 1) {
+          currentPage--;
+          renderTable();
+        }
+      });
+
+      nextPageBtn.addEventListener('click', () => {
+        const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+        if (currentPage < totalPages) {
+          currentPage++;
+          renderTable();
+        }
+      });
+
+      // Add event listeners for sortable columns
+      document.querySelectorAll('th.sortable').forEach(th => {
+        th.addEventListener('click', function() {
+          const field = this.dataset.sort;
+          if (sortField === field) {
+            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+          } else {
+            sortField = field;
+            sortDirection = 'asc';
+          }
+
+          // Update sort indicators
+          document.querySelectorAll('th.sortable').forEach(el => {
+            el.classList.remove('text-primary');
+            el.querySelector('i').className = 'bi bi-arrow-down-up';
+          });
+
+          this.classList.add('text-primary');
+          this.querySelector('i').className = sortDirection === 'asc'
+                  ? 'bi bi-sort-alpha-down'
+                  : 'bi bi-sort-alpha-up';
+
+          sortUsers();
+          renderTable();
+        });
+      });
+
+
+      function loadUsers() {
+        usersTableBody.innerHTML = '<tr><td colspan="9" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+        
+        // Also show spinner in card view
+        cardsContainer.innerHTML = '<div class="col-12 d-flex justify-content-center align-items-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading users...</span></div></div>';
+
+        // Add some debug output to console to see the raw data
+        console.log('Fetching users...');
+
+        fetch('/users', {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        })
+          .then(response => {
+            if (!response.ok) {
+              return response.text().then(text => {
+                throw new Error(`HTTP ${response.status}: ${text}`);
+              });
+            }
+            return response.json();
+          })
+          .then(data => {
+            // Debug: Log the raw data to see what we're getting
+            console.log('Raw API response:', data);
+            
+            let usersData = [];
+
+            if (Array.isArray(data)) {
+              usersData = data;
+            } else if (data && Array.isArray(data.users)) {
+              usersData = data.users;
+            } else if (data && Array.isArray(data.data)) {
+              usersData = data.data;
+            } else {
+              console.error('Unexpected data format:', data);
+              usersTableBody.innerHTML = '<tr><td colspan="9" class="text-center text-danger">Invalid data format received from server</td></tr>';
+              cardsContainer.innerHTML = '<div class="col-12 text-center py-5"><div class="alert alert-danger">Invalid data format received from server</div></div>';
+              return; // Exit the function
+            }
+            
+            // Debug: Log a sample user if available
+            if (usersData.length > 0) {
+              console.log('Sample user data:', usersData[0]);
+            }
+            
+            users = usersData.map(user => {
+              // Extract gender value - handle DB enum format
+              let genderValue = '';
+              
+              if (user.gender) {
+                if (typeof user.gender === 'string') {
+                  // Direct string values from API
+                  genderValue = user.gender;
+                } else if (typeof user.gender === 'object') {
+                  // If it's returned as an object from Symfony's serializer
+                  if (user.gender.name) {
+                    genderValue = user.gender.name; // For Symfony enum serialization
+                  } else if (user.gender.value) {
+                    genderValue = user.gender.value;
+                  }
+                }
+                // Convert gender to standard format (uppercase for comparison)
+                genderValue = genderValue.toUpperCase();
+              }
+              
+              // Debug the extracted gender
+              console.log(`User ${user.name} gender: ${genderValue}`);
+              
+              // Handle date of birth
+              let dateOfBirth = null;
+              if (user.date_of_birth) {
+                // Try to parse the date regardless of format
+                dateOfBirth = user.date_of_birth;
+                console.log(`User ${user.name} DOB raw: ${dateOfBirth}`);
+              }
+              
+              return {
+                id_user: user.id_user || user.idUser || 0,
+                name: user.name || 'Unknown',
+                email: user.email || '',
+                phone_number: user.phone_number || user.phoneNumber || '',
+                role: (user.role || 'user').toLowerCase(),
+                account_status: (user.account_status || user.accountStatus || 'active').toLowerCase(),
+                is_verified: Boolean(user.is_verified || user.isVerified),
+                profile_picture: user.profile_picture || user.profilePicture || null,
+                gender: genderValue, // Using our extracted and normalized gender value
+                date_of_birth: dateOfBirth
+              };
+            });
+
+            filteredUsers = [...users];
+            totalUsersSpan.textContent = users.length;
+            sortUsers();
+            renderTable();
+          })
+          .catch(error => {
+            console.error('Error fetching users:', error);
+            let errorMessage = 'An error occurred while fetching users.';
+
+            if (error.message.includes('Failed to fetch')) {
+              errorMessage = 'Could not connect to server. Please check your network connection.';
+            } else if (error.message.includes('401')) {
+              errorMessage = 'Authentication required. Please login again.';
+            } else if (error.message.includes('404')) {
+              errorMessage = 'Users endpoint not found. Please contact support.';
+            } else if (error.message.includes('500')) {
+              errorMessage = 'Server error. Please try again later.';
+            }
+
+            usersTableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">${errorMessage}</td></tr>`;
+            cardsContainer.innerHTML = `<div class="col-12 text-center py-5"><div class="alert alert-danger">${errorMessage}</div></div>`;
+            showToast(errorMessage, 'error');
+          });
+      }      // View toggle functionality
+      const cardViewBtn = document.getElementById('cardViewBtn');
+      const tableViewBtn = document.getElementById('tableViewBtn');
+      
+      cardViewBtn.addEventListener('click', () => {
+        cardViewBtn.classList.add('active');
+        tableViewBtn.classList.remove('active');
+        cardsContainer.style.display = 'flex';
+        tableContainer.style.display = 'none';
+      });
+      
+      tableViewBtn.addEventListener('click', () => {
+        tableViewBtn.classList.add('active');
+        cardViewBtn.classList.remove('active');
+        tableContainer.style.display = 'block';
+        cardsContainer.style.display = 'none';
+      });
+
+      function renderTable() {
+        // Update both card view and table view
+        renderCardView();
+        renderTableView();
+        
+        // Update pagination
+        const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+        currentPageSpan.textContent = currentPage;
+        totalPagesSpan.textContent = totalPages;
+
+        prevPageBtn.disabled = currentPage === 1;
+        nextPageBtn.disabled = currentPage === totalPages;
+      }      function renderCardView() {
+        const cardsContainer = document.getElementById('userCardsContainer');
+        cardsContainer.innerHTML = '';
+        
+        if (filteredUsers.length === 0) {
+          cardsContainer.innerHTML = `
+            <div class="col-12 text-center py-5">
+              <div class="card shadow-sm border-0">
+                <div class="card-body">
+                  <i class="bi bi-emoji-frown display-1 text-muted"></i>
+                  <h3 class="mt-3">No users found</h3>
+                  <p class="text-muted">Try adjusting your filters</p>
+                </div>
+              </div>
+            </div>`;
+          return;
+        }
+        
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, filteredUsers.length);
+        const pageUsers = filteredUsers.slice(startIndex, endIndex);
+          pageUsers.forEach(user => {
+          console.log('Rendering card for user:', user.name, 'Gender:', user.gender, 'DOB:', user.date_of_birth);
+            
+          const imgSrc = user.profile_picture
+            ? user.profile_picture
+            : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=0d6efd&color=ffffff&size=128`;
+            
+          const roleClass = {
+            'admin': 'danger',
+            'user': 'primary',
+            'driver': 'success'
+          }[user.role.toLowerCase()] || 'secondary';
+          
+          const statusClass = {
+            'active': 'success',
+            'inactive': 'secondary',
+            'suspended': 'warning'
+          }[user.account_status.toLowerCase()] || 'secondary';
+          
+          // Create status indicator class
+          const statusIndicatorClass = `status-${user.account_status.toLowerCase()}`;
+          
+          // Format date fields for display
+          const dob = user.date_of_birth ? new Date(user.date_of_birth).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not specified';
+          
+          // Better formatting for gender display
+          let userGenderDisplay = 'Not specified';
+          // Check the gender value (already normalized to uppercase in loadUsers)
+          if (user.gender) {
+            if (user.gender === 'MALE') {
+              userGenderDisplay = 'Male';
+            } else if (user.gender === 'FEMALE') {
+              userGenderDisplay = 'Female';
+            } else {
+              userGenderDisplay = user.gender; // Use raw value if not recognized
+            }
+          }
+          
+          const cardElement = document.createElement('div');
+          cardElement.className = 'col';
+          cardElement.innerHTML = `
+            <div class="card h-100 user-card shadow-sm position-relative">
+              <div class="status-indicator ${statusIndicatorClass}"></div>
+              
+              <div class="user-badges">
+                <span class="badge bg-${roleClass} user-badge-role">${user.role}</span>
+                ${user.is_verified ? 
+                  '<span class="badge bg-info"><i class="bi bi-check-circle-fill me-1"></i>Verified</span>' : 
+                  '<span class="badge bg-light text-dark border"><i class="bi bi-x-circle-fill me-1"></i>Unverified</span>'}
+              </div>
+              
+              <div class="user-profile">
+                <img src="${imgSrc}" class="rounded-circle shadow mx-auto" 
+                  alt="${user.name}">
+                <div class="user-status-indicator mt-2">
+                  <span class="badge bg-${statusClass} rounded-pill px-3 py-1 shadow-sm">
+                    <i class="bi bi-circle-fill me-1" style="font-size: 8px;"></i>${user.account_status}
+                  </span>
+                </div>
+              </div>
+              
+              <div class="card-body">
+                <h5 class="card-title mb-0">${user.name}</h5>
+                <div class="text-muted small mb-2">
+                  <span class="badge bg-light text-dark">
+                    <i class="bi bi-gender-${userGenderDisplay.toLowerCase() === 'male' ? 'male' : 'female'} me-1"></i> 
+                    ${userGenderDisplay}
+                  </span>
+                </div>
+                
+                <div class="user-details">
+                  <p class="card-subtitle mb-1 d-flex align-items-center">
+                    <i class="bi bi-envelope-fill me-2 text-primary"></i>
+                    <span class="text-truncate">${user.email}</span>
+                  </p>
+                  <p class="card-text d-flex align-items-center mb-1">
+                    <i class="bi bi-telephone-fill me-2 text-success"></i>
+                    <span>${user.phone_number || 'Not provided'}</span>
+                  </p>
+                  <p class="card-text d-flex align-items-center mb-2">
+                    <i class="bi bi-calendar-date me-2 text-info"></i>
+                    <span title="Date of Birth">${dob}</span>
+                  </p>
+                </div>
+                
+                <div class="card-actions mt-auto">
+                  <div class="d-grid gap-2">
+                    <button class="btn btn-sm btn-primary edit-btn" data-id="${user.id_user}">
+                      <i class="bi bi-pencil me-1"></i> Edit Profile
+                    </button>
+                    <div class="btn-group">
+                      <button class="btn btn-sm btn-outline-secondary view-btn" data-id="${user.id_user}">
+                        <i class="bi bi-eye me-1"></i> View
+                      </button>
+                      <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${user.id_user}">
+                        <i class="bi bi-trash me-1"></i> Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          
+          cardsContainer.appendChild(cardElement);
+        });
+        
+        // Add event listeners for card view buttons
+        document.querySelectorAll('#userCardsContainer .edit-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const userId = this.dataset.id;
+            editUser(userId);
+          });
+        });
+        
+        document.querySelectorAll('#userCardsContainer .delete-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const userId = this.dataset.id;
+            userToDelete = userId;
+            deleteModal.show();
+          });
+        });
+      }
+      
+      function renderTableView() {
+        usersTableBody.innerHTML = '';
+
+        if (filteredUsers.length === 0) {
+          usersTableBody.innerHTML = `<tr><td colspan="9" class="text-center py-5">
+            <i class="bi bi-emoji-frown display-1 text-muted"></i>
+            <h4 class="mt-3">No users found</h4>
+            <p class="text-muted">Try adjusting your search filters</p>
+          </td></tr>`;
+          return;
+        }
+
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, filteredUsers.length);
+        const pageUsers = filteredUsers.slice(startIndex, endIndex);
+
+        pageUsers.forEach(user => {
+          const row = document.createElement('tr');
+          
+          // Create user image and name cell with improved styling
+          const nameCell = document.createElement('td');
+          nameCell.className = 'd-flex align-items-center';
+
+          const imgSrc = user.profile_picture
+            ? user.profile_picture
+            : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=0d6efd&color=ffffff&size=48`;
+
+          nameCell.innerHTML = `
+            <img src="${imgSrc}" class="rounded-circle me-2 shadow-sm" width="40" height="40" alt="${user.name}">
+            <div>
+              <div class="fw-bold">${user.name}</div>
+            </div>
+          `;
+
+          // Create email cell with icon for better visuals
+          const emailCell = document.createElement('td');
+          emailCell.innerHTML = `
+            <div class="d-flex align-items-center">
+              <i class="bi bi-envelope-fill text-primary me-2"></i>
+              <span>${user.email}</span>
+            </div>
+          `;
+
+          // Create phone cell with icon
+          const phoneCell = document.createElement('td');
+          phoneCell.innerHTML = `
+            <div class="d-flex align-items-center">
+              <i class="bi bi-telephone-fill text-success me-2"></i>
+              <span>${user.phone_number || 'Not provided'}</span>
+            </div>
+          `;
+          
+          // Adjusted gender badge colors based on gender
+          const genderCell = document.createElement('td');
+          let genderValue = 'Not specified';
+          let genderClass = 'bg-secondary';
+
+          if (user.gender) {
+            const genVal = user.gender.toUpperCase();
+            if (genVal === 'MALE') {
+              genderValue = 'Male';
+              genderClass = 'bg-primary';
+            } else if (genVal === 'FEMALE') {
+              genderValue = 'Female';
+              genderClass = 'bg-pink'; 
+            } else {
+              genderValue = user.gender;
+            }
+          }
+
+          genderCell.innerHTML = `
+            <div class="d-flex align-items-center">
+              <span class="badge ${genderClass} rounded-pill px-2 py-1">
+                ${genderValue}
+              </span>
+            </div>
+          `;
+          row.appendChild(genderCell);
+
+          // Create date of birth cell
+          const dobCell = document.createElement('td');
+          const dob = user.date_of_birth ? new Date(user.date_of_birth).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not specified';
+          dobCell.innerHTML = `
+            <div class="d-flex align-items-center">
+              <i class="bi bi-calendar-date text-info me-2"></i>
+              <span>${dob}</span>
+            </div>
+          `;
+
+          // Create role cell with styled badges
+          const roleCell = document.createElement('td');
+          const roleClass = {
+            'admin': 'bg-danger',
+            'user': 'bg-primary',
+            'driver': 'bg-success'
+          }[user.role.toLowerCase()] || 'bg-secondary';
+
+          roleCell.innerHTML = `
+            <span class="badge ${roleClass} rounded-pill px-3 py-1">
+              <i class="bi bi-person-fill me-1"></i>${user.role}
+            </span>
+          `;
+
+          // Create status cell with status indicators
+          const statusCell = document.createElement('td');
+          const statusClass = {
+            'active': 'bg-success',
+            'inactive': 'bg-secondary',
+            'suspended': 'bg-warning'
+          }[user.account_status.toLowerCase()] || 'bg-secondary';
+
+          statusCell.innerHTML = `
+            <span class="badge ${statusClass} rounded-pill px-3 py-1">
+              <i class="bi bi-circle-fill me-1" style="font-size: 8px;"></i>${user.account_status}
+            </span>
+          `;
+
+          // Create verified cell with better indicators
+          const verifiedCell = document.createElement('td');
+          verifiedCell.className = 'text-center';
+          if (user.is_verified) {
+            verifiedCell.innerHTML = '<span class="badge bg-info px-3 py-1"><i class="bi bi-check-circle-fill me-1"></i>Verified</span>';
+          } else {
+            verifiedCell.innerHTML = '<span class="badge bg-light text-dark border px-3 py-1"><i class="bi bi-x-circle-fill me-1"></i>Unverified</span>';
+          }
+
+          // Create actions cell with improved buttons
+          const actionsCell = document.createElement('td');
+          actionsCell.className = 'text-end';
+          actionsCell.innerHTML = `
+            <div class="btn-group">
+              <button class="btn btn-sm btn-primary edit-btn" data-id="${user.id_user}" title="Edit User">
+                <i class="bi bi-pencil-fill"></i> Edit
+              </button>
+              <button class="btn btn-sm btn-danger delete-btn" data-id="${user.id_user}" title="Delete User">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
+          `;
+
+          // Append cells to row
+          row.appendChild(nameCell);
+          row.appendChild(emailCell);
+          row.appendChild(phoneCell);
+          row.appendChild(genderCell);
+          row.appendChild(dobCell);
+          row.appendChild(roleCell);
+          row.appendChild(statusCell);
+          row.appendChild(verifiedCell);
+          row.appendChild(actionsCell);
+
+          // Append row to table body
+          usersTableBody.appendChild(row);
+        });
+
+        // Add event listeners for edit and delete buttons
+        document.querySelectorAll('#usersTableBody .edit-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const userId = this.dataset.id;
+            editUser(userId);
+          });
+        });
+
+        document.querySelectorAll('#usersTableBody .delete-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const userId = this.dataset.id;
+            showDeleteModal(userId);
+          });
+        });
+      }
+
+      function applyFilters() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const roleFilter = filterRole.value.toLowerCase();
+        const statusFilter = filterStatus.value.toLowerCase();
+
+        filteredUsers = users.filter(user => {
+          // Ensure properties exist before calling toLowerCase()
+          const name = user.name || '';
+          const email = user.email || '';
+          const phone = user.phone_number || '';
+          const role = user.role || '';
+          const status = user.account_status || '';
+
+          // Search filter
+          const matchesSearch = !searchTerm ||
+                  name.toLowerCase().includes(searchTerm) ||
+                  email.toLowerCase().includes(searchTerm) ||
+                  phone.toLowerCase().includes(searchTerm);
+
+          // Role filter
+          const matchesRole = !roleFilter || role.toLowerCase() === roleFilter;
+
+          // Status filter
+          const matchesStatus = !statusFilter || status.toLowerCase() === statusFilter;
+
+          return matchesSearch && matchesRole && matchesStatus;
+        });
+
+        // Reset to first page and update table
+        currentPage = 1;
+        totalUsersSpan.textContent = filteredUsers.length;
+        sortUsers();
+        renderTable();
+      }
+      function sortUsers() {
+        filteredUsers.sort((a, b) => {
+          let valueA = a[sortField] || ''; // Default to empty string if undefined/null
+          let valueB = b[sortField] || ''; // Default to empty string if undefined/null
+
+          // Convert to string and lowercase for comparison
+          valueA = String(valueA).toLowerCase();
+          valueB = String(valueB).toLowerCase();
+
+          if (valueA < valueB) return sortDirection === 'asc' ? -1 : 1;
+          if (valueA > valueB) return sortDirection === 'asc' ? 1 : -1;
+          return 0;
+        });
+      }
+      function resetUserForm() {
+        userForm.reset();
+        document.getElementById('userId').value = '';
+
+        // Remove validation errors
+        const invalidFields = userForm.querySelectorAll('.is-invalid');
+        invalidFields.forEach(field => {
+          field.classList.remove('is-invalid');
+        });
+      }      function editUser(userId) {
+        // Find the user by ID (convert both to strings to ensure accurate comparison)
+        const user = users.find(u => String(u.id_user) === String(userId));
+        
+        if (!user) {
+          showToast("User not found", "error");
+          return;
+        }
+        
+        console.log('Editing user:', user); // Debug
+        
+        // Populate form fields with user data
+        document.getElementById('userId').value = user.id_user;
+        document.getElementById('name').value = user.name || '';
+        document.getElementById('email').value = user.email || '';
+        document.getElementById('phone_number').value = user.phone_number || '';
+        
+        // For role dropdown - normalize to lowercase
+        const roleSelect = document.getElementById('role');
+        const userRole = (user.role || '').toLowerCase();
+        // Find the matching option or default to empty
+        for(let i = 0; i < roleSelect.options.length; i++) {
+          if(roleSelect.options[i].value.toLowerCase() === userRole) {
+            roleSelect.selectedIndex = i;
+            break;
+          }
+        }
+        
+        // For gender dropdown - handle DB enum format (MALE/FEMALE) to form values (male/female)
+        const genderSelect = document.getElementById('gender');
+        let userGender = '';
+        
+        if(user.gender) {
+          // Normalize to lowercase for comparison
+          const genderValue = user.gender.toUpperCase();
+          if(genderValue === 'MALE' || genderValue.includes('MALE')) {
+            userGender = 'male';
+          } else if(genderValue === 'FEMALE' || genderValue.includes('FEMALE')) {
+            userGender = 'female';
+          }
+        }
+        
+        // Set the gender dropdown value
+        for(let i = 0; i < genderSelect.options.length; i++) {
+          if(genderSelect.options[i].value === userGender) {
+            genderSelect.selectedIndex = i;
+            break;
+          }
+        }
+        
+        // For account status - normalize to lowercase
+        const statusSelect = document.getElementById('account_status');
+        const userStatus = (user.account_status || '').toLowerCase();
+        // Find the matching option or default to empty
+        for(let i = 0; i < statusSelect.options.length; i++) {
+          if(statusSelect.options[i].value.toLowerCase() === userStatus) {
+            statusSelect.selectedIndex = i;
+            break;
+          }
+        }
+        
+        document.getElementById('is_verified').checked = Boolean(user.is_verified);
+        
+        // Clear password field (it's not populated for security reasons)
+        document.getElementById('password').value = '';
+        
+        // Handle date of birth if available
+        if (user.date_of_birth) {
+          try {
+            // Convert to date object and then to YYYY-MM-DD format
+            const dateObj = new Date(user.date_of_birth);
+            if (!isNaN(dateObj.getTime())) {
+              const year = dateObj.getFullYear();
+              const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+              const day = String(dateObj.getDate()).padStart(2, '0');
+              document.getElementById('date_of_birth').value = `${year}-${month}-${day}`;
+            } else {
+              document.getElementById('date_of_birth').value = '';
+            }
+          } catch (e) {
+            console.error("Error parsing date", e);
+            document.getElementById('date_of_birth').value = '';
+          }
+        } else {
+          document.getElementById('date_of_birth').value = '';
+        }
+        
+        // Update modal title and show password help text
+        document.getElementById('userModalLabel').textContent = 'Edit User';
+        document.getElementById('passwordHelpText').classList.remove('d-none');
+        
+        // Show the modal
+        userModal.show();
+      }
+
+      function showDeleteModal(userId) {
+        userToDelete = userId;
+        deleteModal.show();
+      }
+
+      function saveUser() {
+        // Reset validation errors
+        userForm.querySelectorAll('.is-invalid').forEach(field => {
+          field.classList.remove('is-invalid');
+        });
+
+        // Get form data
+        const userId = document.getElementById('userId').value;
+        const userData = {
+          name: document.getElementById('name').value,
+          email: document.getElementById('email').value,
+          phone_number: document.getElementById('phone_number').value,
+          role: document.getElementById('role').value,
+          gender: document.getElementById('gender').value,
+          account_status: document.getElementById('account_status').value,
+          is_verified: document.getElementById('is_verified').checked,
+          status: 'active' // Default status
+        };
+
+        // Add optional fields
+        const password = document.getElementById('password').value;
+        if (password) {
+          userData.password = password;
+        }
+
+        const dob = document.getElementById('date_of_birth').value;
+        if (dob) {
+          userData.date_of_birth = dob;
+        }
+
+        // Determine if we're creating or updating
+        const isCreating = !userId;
+        const url = isCreating ? '/users' : `/users/${userId}`;
+        const method = isCreating ? 'POST' : 'PUT';
+
+        // Send request
+        fetch(url, {
+          method: method,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(userData),
+        })
+                .then(response => {
+                  if (!response.ok) {
+                    return response.json().then(err => {
+                      throw new Error(err.error || 'An error occurred');
+                    });
+                  }
+                  return response.json();
+                })
+                .then(data => {
+                  // Update users array
+                  if (isCreating) {
+                    users.push(data);
+                  } else {
+                    const index = users.findIndex(u => u.id_user == userId);
+                    if (index !== -1) {
+                      users[index] = data;
+                    }
+                  }
+
+                  // Close modal and refresh table
+                  userModal.hide();
+                  applyFilters();
+
+                  // Show success message
+                  showToast(isCreating ? 'User created successfully!' : 'User updated successfully!', 'success');
+                })
+                .catch(error => {
+                  console.error('Error saving user:', error);
+
+                  // Handle validation errors
+                  if (error.message.includes('email')) {
+                    const emailField = document.getElementById('email');
+                    emailField.classList.add('is-invalid');
+                    document.getElementById('emailError').textContent = error.message;
+                  } else if (error.message.includes('password')) {
+                    const passwordField = document.getElementById('password');
+                    passwordField.classList.add('is-invalid');
+                    document.getElementById('passwordError').textContent = error.message;
+                  } else {
+                    showToast(error.message, 'error');
+                  }
+                });
+      }
+
+      function deleteUser() {
+        if (!userToDelete) return;
+
+        fetch(`/users/${userToDelete}`, {
+          method: 'DELETE',
+        })
+                .then(response => {
+                  if (!response.ok) {
+                    return response.json().then(err => {
+                      throw new Error(err.error || 'An error occurred');
+                    });
+                  }
+                  return response.json();
+                })
+                .then(data => {
+                  // Remove user from array
+                  users = users.filter(u => u.id_user != userToDelete);
+
+                  // Reset and refresh
+                  userToDelete = null;
+                  deleteModal.hide();
+                  applyFilters();
+
+                  // Show success message
+                  showToast('User deleted successfully!', 'success');
+                })
+                .catch(error => {
+                  console.error('Error deleting user:', error);
+                  showToast(error.message, 'error');
+                  deleteModal.hide();
+                });
+      }
+
+      function showToast(message, type = 'info') {
+        // Create toast element
+        const toastContainer = document.createElement('div');
+        toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+
+        const bgClass = type === 'success'
+                ? 'bg-success'
+                : type === 'error' ? 'bg-danger' : 'bg-info';
+
+        toastContainer.innerHTML = `
+                <div class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+
+        document.body.appendChild(toastContainer);
+
+        const toastElement = toastContainer.querySelector('.toast');
+        const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+
+        toast.show();
+
+        toastElement.addEventListener('hidden.bs.toast', function () {
+          document.body.removeChild(toastContainer);
+        });
+      }
+    });
+  </script>
+  <style>  
+  /* Redesigned Card View */
+  .user-card {
+    border-radius: 16px;
+    overflow: hidden;
+    background: #ffffff;
+    border: none;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    height: 100%;
+    backdrop-filter: blur(10px);
+  }
+
+  .user-card:hover {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.07);
+  }
+  
+  .user-card .status-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    z-index: 2;
+  }
+  
+  .user-card .status-active {
+    background: linear-gradient(90deg, #00c853, #00e676);
+    box-shadow: 0 1px 10px rgba(0, 230, 118, 0.5);
+  }
+  
+  .user-card .status-inactive {
+    background: linear-gradient(90deg, #78909c, #90a4ae);
+    box-shadow: 0 1px 10px rgba(120, 144, 156, 0.3);
+  }
+  
+  .user-card .status-suspended {
+    background: linear-gradient(90deg, #ff9800, #ff7043);
+    box-shadow: 0 1px 10px rgba(255, 152, 0, 0.5);
+  }
+  
+  .user-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 90px;
+    background: linear-gradient(135deg, rgba(65, 105, 225, 0.1), rgba(33, 150, 243, 0.2));
+    z-index: 0;
+  }
+  
+  .user-card .user-profile {
+    padding-top: 1.5rem;
+    margin-bottom: -1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1;
+  }
+  
+  .user-card .user-badges {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    z-index: 1;
+  }
+  
+  .user-card img {
+    width: 96px;
+    height: 96px;
+    object-fit: cover;
+    border: 3px solid white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .user-card:hover img {
+    transform: scale(1.05);
+  }
+
+  .user-card .card-body {
+    padding: 1.25rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 96px - 1.5rem);
+  }
+
+  .user-card .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #333;
+  }
+
+  .user-card .card-subtitle {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .user-card .card-text {
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .user-card .card-actions {
+    margin-top: auto;
+  }
+
+  .user-card .badge {
+    font-size: 0.75rem;
+    padding: 0.4em 0.65em;
+    margin: 0.15em;
+    border-radius: 4px;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .user-badge-role {
+    position: relative;
+    padding-left: 1.75rem !important;
+  }
+  
+  .user-badge-role::before {
+    content: "";
+    position: absolute;
+    left: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: currentColor;
+    opacity: 0.8;
+  }
+
+  .user-card .btn {
+    font-size: 0.85rem;
+    padding: 0.5em 0.85em;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+  }
+  
+  /* Redesigned Table View */
+  .table {
+    border-collapse: separate;
+    border-spacing: 0 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .table thead th {
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    border-top: none;
+    border-bottom: 2px solid #e9ecef;
+    padding: 1rem;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .table thead th:hover {
+    background-color: #e9ecef;
+  }
+  
+  .table thead th.sortable {
+    padding-right: 1.5rem;
+  }
+  
+  .table thead th.sortable i {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+  }
+  
+  .table thead th.text-primary i {
+    opacity: 1;
+  }
+
+  .table tbody tr {
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    margin-bottom: 0.5rem;
+  }
+
+  .table tbody tr:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background-color: #f8f9fa;
+  }
+
+  .table td {
+    padding: 1rem;
+    vertical-align: middle;
+    border: none;
+  }
+  
+  .table td:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+  }
+  
+  .table td:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+  }
+
+  .table .btn {
+    font-size: 0.85rem;
+    padding: 0.5em 0.85em;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+  }
+  
+  .table .btn:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Toggle Button */
+  .btn-group .btn.active {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+  }
+  
+  .btn-group .btn:hover:not(.active) {
+    background-color: #f8f9fa;
+  }
+
+  .bg-pink {
+    background-color:rgb(254, 0, 165) !important;
+    color: #fff;
+  }
+  </style>
+{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/styles/overlayscrollbars.min.css">
 {% endblock %}
