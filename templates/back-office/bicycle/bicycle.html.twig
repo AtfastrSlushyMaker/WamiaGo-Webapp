@@ -1,47 +1,87 @@
+{# filepath: d:\Github\WamiaGo-Webapp\templates\back-office\bicycle\bicycle.html.twig #}
 <div class="bicycles-dashboard">
     <!-- Quick Overview Cards -->
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card bg-light">
+            <div class="card bg-light h-100">
                 <div class="card-body text-center">
                     <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 rounded-circle mb-3" style="width: 64px; height: 64px;">
-                        <i class="fas fa-bicycle fa-2x text-success"></i>
+                        <i class="ti ti-circle-check fa-2x text-success"></i> {# Changed icon #}
                     </div>
                     <h5 class="card-title">Available</h5>
-                    <div class="h2 mb-0">42</div>
+                    <div class="h2 mb-0">{{ availableCount|default(0) }}</div>
+                    <p class="text-muted small mt-2">Bicycles ready for rental</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-light">
+            <div class="card bg-light h-100">
                 <div class="card-body text-center">
                     <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle mb-3" style="width: 64px; height: 64px;">
-                        <i class="fas fa-route fa-2x text-primary"></i>
+                        <i class="ti ti-bike fa-2x text-primary"></i>
                     </div>
                     <h5 class="card-title">In Use</h5>
-                    <div class="h2 mb-0">18</div>
+                    <div class="h2 mb-0">{{ inUseCount|default(0) }}</div>
+                    <p class="text-muted small mt-2">Currently rented bicycles</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-light">
+            <div class="card bg-light h-100">
                 <div class="card-body text-center">
                     <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 rounded-circle mb-3" style="width: 64px; height: 64px;">
-                        <i class="fas fa-tools fa-2x text-warning"></i>
+                        <i class="ti ti-tool fa-2x text-warning"></i>
                     </div>
                     <h5 class="card-title">Maintenance</h5>
-                    <div class="h2 mb-0">5</div>
+                    <div class="h2 mb-0">{{ maintenanceCount|default(0) }}</div>
+                    <p class="text-muted small mt-2">Bicycles under repair</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-light">
+            <div class="card bg-light h-100">
                 <div class="card-body text-center">
-                    <div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 rounded-circle mb-3" style="width: 64px; height: 64px;">
-                        <i class="fas fa-exclamation-triangle fa-2x text-danger"></i>
+                    <div class="d-inline-flex align-items-center justify-content-center bg-info bg-opacity-10 rounded-circle mb-3" style="width: 64px; height: 64px;">
+                        <i class="ti ti-bolt fa-2x text-info"></i>
                     </div>
-                    <h5 class="card-title">Low Battery</h5>
-                    <div class="h2 mb-0">3</div>
+                    <h5 class="card-title">Charging</h5>
+                    <div class="h2 mb-0">{{ chargingCount|default(0) }}</div>
+                    <p class="text-muted small mt-2">Bicycles being charged</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Battery Statistics Card -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0"><i class="ti ti-battery-automotive me-2 text-success"></i>Battery Distribution</h5> {# Changed icon #}
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <h6 class="text-success"><i class="ti ti-battery-4 me-1"></i>90%+ Charge</h6> {# Added icon #}
+                            <div class="h3">{{ highBatteryCount|default(0) }}</div>
+                            <div class="text-muted small">Premium condition</div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h6 class="text-primary"><i class="ti ti-battery-3 me-1"></i>50%-89% Charge</h6> {# Added icon #}
+                            <div class="h3">{{ mediumBatteryCount|default(0) }}</div>
+                            <div class="text-muted small">Good condition</div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h6 class="text-warning"><i class="ti ti-battery-2 me-1"></i>25%-49% Charge</h6> {# Added icon #}
+                            <div class="h3">{{ lowBatteryCount|default(0) }}</div>
+                            <div class="text-muted small">Needs charging soon</div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h6 class="text-danger"><i class="ti ti-battery-1 me-1"></i>Below 25% Charge</h6> {# Added icon #}
+                            <div class="h3">{{ criticalBatteryCount|default(0) }}</div>
+                            <div class="text-muted small">Needs immediate charging</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -51,64 +91,78 @@
     <div class="row mb-4">
         <div class="col-lg-8">
             <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="ti ti-filter me-2"></i>Bicycle Filters</h5>
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">Fleet Management</h5>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Status</label>
-                            <select class="form-select">
-                                <option value="">All Statuses</option>
-                                <option value="available">Available</option>
-                                <option value="in_use">In Use</option>
-                                <option value="maintenance">Maintenance</option>
-                                <option value="inactive">Inactive</option>
-                            </select>
+                    <form method="get" action="{{ path('admin_bicycle_dashboard', {'tab': 'bicycles'}) }}">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label"><i class="ti ti-activity-heartbeat me-1"></i>Status</label> {# Added icon #}
+                                <select class="form-select" name="status">
+                                    <option value="">All Statuses</option>
+                                    <option value="available" {% if app.request.query.get('status') == 'available' %}selected{% endif %}>Available</option>
+                                    <option value="in_use" {% if app.request.query.get('status') == 'in_use' %}selected{% endif %}>In Use</option>
+                                    <option value="maintenance" {% if app.request.query.get('status') == 'maintenance' %}selected{% endif %}>Maintenance</option>
+                                    <option value="charging" {% if app.request.query.get('status') == 'charging' %}selected{% endif %}>Charging</option>
+                                    <option value="reserved" {% if app.request.query.get('status') == 'reserved' %}selected{% endif %}>Reserved</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label"><i class="ti ti-map-pin me-1"></i>Station</label> {# Added icon #}
+                                <select class="form-select" name="station">
+                                    <option value="">All Stations</option>
+                                    {% for station in stations %}
+                                        <option value="{{ station.idStation }}" {% if app.request.query.get('station') == station.idStation %}selected{% endif %}>
+                                            {{ station.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                           
+                            <div class="col-md-4">
+                                <label class="form-label"><i class="ti ti-battery-automotive me-1"></i>Battery Level</label> {# Added icon #}
+                                <select class="form-select" name="battery">
+                                    <option value="">Any Level</option>
+                                    <option value="90" {% if app.request.query.get('battery') == '90' %}selected{% endif %}>90%+ (Premium)</option>
+                                    <option value="50" {% if app.request.query.get('battery') == '50' %}selected{% endif %}>50%+</option>
+                                    <option value="25" {% if app.request.query.get('battery') == '25' %}selected{% endif %}>25%+</option>
+                                    <option value="low" {% if app.request.query.get('battery') == 'low' %}selected{% endif %}>Low (< 25%)</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="ti ti-filter me-2"></i>Apply Filters
+                                </button>
+                                <a href="{{ path('admin_bicycle_dashboard', {'tab': 'bicycles'}) }}" class="btn btn-outline-secondary">
+                                    <i class="ti ti-refresh me-2"></i>Reset
+                                </a>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Station</label>
-                            <select class="form-select">
-                                <option value="">All Stations</option>
-                                <option value="1">Downtown Station</option>
-                                <option value="2">University Campus</option>
-                                <option value="3">Beach Front</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Battery Level</label>
-                            <select class="form-select">
-                                <option value="">Any Level</option>
-                                <option value="90">90%+ (Premium)</option>
-                                <option value="50">50%+</option>
-                                <option value="25">25%+</option>
-                                <option value="low">Low (< 25%)</option>
-                            </select>
-                        </div>
-                        <div class="col-12">
-                            <button class="btn btn-primary me-2">
-                                <i class="fas fa-filter me-2"></i>Apply Filters
-                            </button>
-                            <button class="btn btn-outline-secondary">
-                                <i class="fas fa-redo me-2"></i>Reset
-                            </button>
-                        </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
         <div class="col-lg-4">
             <div class="card h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="ti ti-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                 
                 <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">Quick Actions</h5>
                     <div class="d-grid gap-2 mt-3">
-                        <button class="btn btn-success">
-                            <i class="fas fa-plus me-2"></i>Add New Bicycle
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#stationAssignModal">
+    <i class="ti ti-map-pin-plus me-2"></i>Assign to Stations
+</button>
+                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addBicycleModal">
+                            <i class="ti ti-plus me-2"></i>Add New Bicycle
                         </button>
-                        <button class="btn btn-outline-warning">
-                            <i class="fas fa-tools me-2"></i>Schedule Maintenance
+                        <button class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#scheduleMaintenance">
+                            <i class="ti ti-tool me-2"></i>Schedule Maintenance
                         </button>
-                        <button class="btn btn-outline-info">
-                            <i class="fas fa-battery-three-quarters me-2"></i>Battery Report
-                        </button>
+                        <a href="{{ path('admin_bicycle_dashboard', {'tab': 'bicycles', 'battery': 'low'}) }}" class="btn btn-outline-danger">
+                            <i class="ti ti-battery-1 me-2"></i>Low Battery Report
+                        </a>
                     </div>
                 </div>
             </div>
@@ -118,147 +172,900 @@
     <!-- Bicycles Table -->
     <div class="card">
         <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-            <h5 class="mb-0">Bicycle Fleet</h5>
+            <h5 class="mb-0"><i class="ti ti-list me-2"></i>Bicycle Fleet</h5>
             <div class="btn-group">
-                <button class="btn btn-sm btn-outline-secondary">
-                    <i class="fas fa-th-large me-1"></i>Grid
-                </button>
-                <button class="btn btn-sm btn-primary">
-                    <i class="fas fa-list me-1"></i>List
-                </button>
+                <a href="{{ path('admin_bicycle_dashboard', {'tab': 'bicycles', 'view': 'grid'}) }}" class="btn btn-sm {% if app.request.query.get('view') == 'grid' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                    <i class="ti ti-layout-grid me-1"></i>Grid
+                </a>
+                <a href="{{ path('admin_bicycle_dashboard', {'tab': 'bicycles', 'view': 'list'}) }}" class="btn btn-sm {% if app.request.query.get('view') != 'grid' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                    <i class="ti ti-list me-1"></i>List
+                </a>
             </div>
         </div>
         <div class="card-body">
-            <table class="table table-hover datatable">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Type</th>
-                        <th>Station</th>
-                        <th>Battery</th>
-                        <th>Range</th>
-                        <th>Last Updated</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><span class="fw-bold">BIKE-042</span></td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-bicycle me-2 text-success"></i>
-                                <span>Premium E-Bike</span>
-                            </div>
-                        </td>
-                        <td>Downtown Station</td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="battery-indicator me-2">
-                                    <div class="battery-level bg-success" style="width: 92%"></div>
+            {% if bicycles is empty %}
+                <div class="text-center py-5">
+                    <div class="mb-3">
+                        <i class="ti ti-bike-off display-1 text-muted"></i>
+                    </div>
+                    <h4>No bicycles found</h4>
+                    <p class="text-muted">No bicycles match your current filter criteria.</p>
+                    <a href="{{ path('admin_bicycle_dashboard', {'tab': 'bicycles'}) }}" class="btn btn-primary mt-3">
+                        <i class="ti ti-refresh me-2"></i>Reset Filters
+                    </a>
+                </div>
+            {% else %}
+                {% if app.request.query.get('view') == 'grid' %}
+                    <div class="row g-4">
+                        {% for bicycle in bicycles %}
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <div class="card h-100 position-relative bicycle-card">
+                                    {# Status Badge with Icon #}
+                                    <div class="position-absolute top-0 end-0 m-2 badge 
+                                        {% if bicycle.status.value == 'available' %}bg-success{% elseif bicycle.status.value == 'in_use' %}bg-primary{% elseif bicycle.status.value == 'maintenance' %}bg-warning{% elseif bicycle.status.value == 'charging' %}bg-info{% elseif bicycle.status.value == 'reserved' %}bg-secondary{% endif %}">
+                                        <i class="ti ti-{% if bicycle.status.value == 'available' %}circle-check{% elseif bicycle.status.value == 'in_use' %}bike{% elseif bicycle.status.value == 'maintenance' %}tool{% elseif bicycle.status.value == 'charging' %}bolt{% elseif bicycle.status.value == 'reserved' %}clock{% else %}x{% endif %} me-1"></i>
+                                        {{ bicycle.status.value|capitalize|replace({'_': ' '}) }}
+                                    </div>
+                                    
+                                    <div class="card-body text-center">
+                                        <div class="d-inline-flex align-items-center justify-content-center 
+                                            {% if bicycle.batteryLevel > 90 %}bg-success{% elseif bicycle.batteryLevel > 50 %}bg-primary{% elseif bicycle.batteryLevel > 25 %}bg-warning{% else %}bg-danger{% endif %} 
+                                            bg-opacity-10 rounded-circle mb-3" style="width: 80px; height: 80px;">
+                                            <i class="ti ti-bike fa-3x {% if bicycle.batteryLevel > 90 %}text-success{% elseif bicycle.batteryLevel > 50 %}text-primary{% elseif bicycle.batteryLevel > 25 %}text-warning{% else %}text-danger{% endif %}"></i>
+                                        </div>
+                                        <h5 class="fw-bold">BIKE-{{ '%04d'|format(bicycle.idBike) }}</h5>
+                                        <p class="text-muted mb-3">
+                                            <i class="ti ti-{{ bicycle.batteryLevel > 90 ? 'star' : 'bike' }} me-1"></i> {# Icon for type #}
+                                            {{ bicycle.batteryLevel > 90 ? 'Premium E-Bike' : 'Standard E-Bike' }}
+                                        </p>
+                                        
+                                        <div class="mb-3">
+                                            <span class="d-block text-muted small mb-1"><i class="ti ti-battery-automotive me-1"></i>Battery Level</span> {# Added icon #}
+                                            <div class="progress" style="height: 10px;">
+                                                <div class="progress-bar 
+                                                    {% if bicycle.batteryLevel > 90 %}bg-success{% elseif bicycle.batteryLevel > 50 %}bg-primary{% elseif bicycle.batteryLevel > 25 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                    role="progressbar" style="width: {{ bicycle.batteryLevel }}%;" 
+                                                    aria-valuenow="{{ bicycle.batteryLevel }}" aria-valuemin="0" aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                            <span class="small">{{ bicycle.batteryLevel|number_format(1) }}%</span>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span class="text-muted small"><i class="ti ti-route me-1"></i>Range:</span> {# Added icon #}
+                                            <span class="fw-medium">{{ bicycle.rangeKm|number_format(1) }} km</span>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span class="text-muted small"><i class="ti ti-map-pin me-1"></i>Station:</span> {# Added icon #}
+                                            <span class="fw-medium">{{ bicycle.bicycleStation ? bicycle.bicycleStation.name : 'None' }}</span>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between">
+                                            <span class="text-muted small"><i class="ti ti-clock me-1"></i>Last Updated:</span> {# Added icon #}
+                                            <span class="small">{{ bicycle.lastUpdated|date('Y-m-d H:i') }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer bg-transparent border-top-0">
+                                        <div class="btn-group w-100" role="group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editBicycleModal" data-bicycle-id="{{ bicycle.idBike }}">
+                                                <i class="ti ti-edit"></i> Edit
+                                            </button>
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="ti ti-settings"></i> Status
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    {% if bicycle.status.value != 'available' %}
+                                                        <li><a class="dropdown-item status-change" href="#" data-bicycle-id="{{ bicycle.idBike }}" data-status="available">
+                                                            <i class="ti ti-circle-check text-success me-2"></i>Mark as Available
+                                                        </a></li>
+                                                    {% endif %}
+                                                    
+                                                    {% if bicycle.status.value != 'maintenance' %}
+                                                        <li><a class="dropdown-item status-change" href="#" data-bicycle-id="{{ bicycle.idBike }}" data-status="maintenance">
+                                                            <i class="ti ti-tool text-warning me-2"></i>Send to Maintenance
+                                                        </a></li>
+                                                    {% endif %}
+                                                    
+                                                    {% if bicycle.status.value != 'charging' %}
+                                                        <li><a class="dropdown-item status-change" href="#" data-bicycle-id="{{ bicycle.idBike }}" data-status="charging">
+                                                            <i class="ti ti-bolt text-info me-2"></i>Send to Charging
+                                                        </a></li>
+                                                    {% endif %}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <span>92%</span>
                             </div>
-                        </td>
-                        <td>38.5 km</td>
-                        <td>2025-04-06 10:15</td>
-                        <td>
-                            <span class="status-badge status-available">
-                                <i class="fas fa-check-circle"></i>Available
-                            </span>
-                        </td>
-                        <td>
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Track">
-                                    <i class="fas fa-map-marked-alt"></i>
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="tooltip" title="Maintenance">
-                                    <i class="fas fa-tools"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><span class="fw-bold">BIKE-015</span></td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-bicycle me-2 text-primary"></i>
-                                <span>Standard E-Bike</span>
-                            </div>
-                        </td>
-                        <td>Beach Front</td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="battery-indicator me-2">
-                                    <div class="battery-level bg-warning" style="width: 45%"></div>
-                                </div>
-                                <span>45%</span>
-                            </div>
-                        </td>
-                        <td>18.2 km</td>
-                        <td>2025-04-06 11:20</td>
-                        <td>
-                            <span class="status-badge status-in-use">
-                                <i class="fas fa-cycling"></i>In Use
-                            </span>
-                        </td>
-                        <td>
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Track">
-                                    <i class="fas fa-map-marked-alt"></i>
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="tooltip" title="Maintenance">
-                                    <i class="fas fa-tools"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><span class="fw-bold">BIKE-028</span></td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-bicycle me-2 text-success"></i>
-                                <span>Premium E-Bike</span>
-                            </div>
-                        </td>
-                        <td>University Campus</td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="battery-indicator me-2">
-                                    <div class="battery-level bg-danger" style="width: 12%"></div>
-                                </div>
-                                <span>12%</span>
-                            </div>
-                        </td>
-                        <td>5.1 km</td>
-                        <td>2025-04-06 09:30</td>
-                        <td>
-                            <span class="status-badge status-maintenance">
-                                <i class="fas fa-tools"></i>Maintenance
-                            </span>
-                        </td>
-                        <td>
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Track">
-                                    <i class="fas fa-map-marked-alt"></i>
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Mark as Available">
-                                    <i class="fas fa-check"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle datatable" id="bicyclesTable">
+                            <thead>
+                                <tr>
+                                    <th scope="col"><i class="ti ti-hash me-1"></i>ID</th> {# Added icon #}
+                                    <th scope="col"><i class="ti ti-tag me-1"></i>Type</th> {# Added icon #}
+                                    <th scope="col"><i class="ti ti-map-pin me-1"></i>Station</th> {# Added icon #}
+                                    <th scope="col"><i class="ti ti-battery-automotive me-1"></i>Battery</th> {# Added icon #}
+                                    <th scope="col"><i class="ti ti-route me-1"></i>Range</th> {# Added icon #}
+                                    <th scope="col"><i class="ti ti-clock me-1"></i>Last Updated</th> {# Added icon #}
+                                    <th scope="col"><i class="ti ti-activity-heartbeat me-1"></i>Status</th> {# Added icon #}
+                                    <th scope="col" class="text-center"><i class="ti ti-settings me-1"></i>Actions</th> {# Added icon #}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for bicycle in bicycles %}
+                                    <tr>
+                                        <td>
+                                            <span class="fw-semibold">BIKE-{{ '%04d'|format(bicycle.idBike) }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="bicycle-type-icon me-2 
+                                                    {% if bicycle.batteryLevel > 90 %}bg-success-subtle text-success{% else %}bg-primary-subtle text-primary{% endif %}">
+                                                    <i class="ti ti-{{ bicycle.batteryLevel > 90 ? 'star' : 'bike' }}"></i> {# Icon for type #}
+                                                </div>
+                                                <span>{% if bicycle.batteryLevel > 90 %}Premium E-Bike{% else %}Standard E-Bike{% endif %}</span>
+                                            </div>
+                                        </td>
+                                        <td>{{ bicycle.bicycleStation ? bicycle.bicycleStation.name : 'None' }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="battery-indicator me-2" role="progressbar" aria-label="Battery level">
+                                                    <div class="battery-level 
+                                                        {% if bicycle.batteryLevel > 90 %}bg-success{% elseif bicycle.batteryLevel > 50 %}bg-primary{% elseif bicycle.batteryLevel > 25 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                        style="width: {{ bicycle.batteryLevel }}%;">
+                                                    </div>
+                                                </div>
+                                                <span>{{ bicycle.batteryLevel|number_format(1) }}%</span>
+                                            </div>
+                                        </td>
+                                        <td>{{ bicycle.rangeKm|number_format(1) }} km</td>
+                                        <td>{{ bicycle.lastUpdated|date('Y-m-d H:i') }}</td>
+                                        <td>
+                                            <span class="status-badge 
+                                                {% if bicycle.status.value == 'available' %}status-available
+                                                {% elseif bicycle.status.value == 'in_use' %}status-in-use
+                                                {% elseif bicycle.status.value == 'maintenance' %}status-maintenance
+                                                {% elseif bicycle.status.value == 'charging' %}status-charging
+                                                {% elseif bicycle.status.value == 'reserved' %}status-reserved
+                                                {% else %}status-inactive{% endif %}">
+                                                <i class="ti ti-{% if bicycle.status.value == 'available' %}circle-check{% elseif bicycle.status.value == 'in_use' %}bike{% elseif bicycle.status.value == 'maintenance' %}tool{% elseif bicycle.status.value == 'charging' %}bolt{% elseif bicycle.status.value == 'reserved' %}clock{% else %}x{% endif %}"></i>
+                                                {{ bicycle.status.value|capitalize|replace({'_': ' '}) }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-icon btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="ti ti-dots-vertical"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#editBicycleModal" data-bicycle-id="{{ bicycle.idBike }}">
+                                                            <i class="ti ti-edit me-2 text-primary"></i> Edit Details
+                                                        </button>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="{{ path('admin_bicycle_dashboard', {'tab': 'bicycles', 'history': bicycle.idBike}) }}">
+                                                            <i class="ti ti-history me-2 text-info"></i> Rental History
+                                                        </a>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li class="dropdown-submenu">
+                                                        <a class="dropdown-item" href="#">
+                                                            <i class="ti ti-exchange me-2 text-warning"></i> Change Status <i class="ti ti-chevron-right float-end"></i>
+                                                        </a>
+                                                        <ul class="dropdown-menu">
+                                                            {% if bicycle.status.value != 'available' %}
+                                                                <li><a class="dropdown-item status-change" href="#" data-bicycle-id="{{ bicycle.idBike }}" data-status="available">
+                                                                    <i class="ti ti-circle-check text-success me-2"></i>Mark as Available
+                                                                </a></li>
+                                                            {% endif %}
+                                                            
+                                                            {% if bicycle.status.value != 'maintenance' %}
+                                                                <li><a class="dropdown-item status-change" href="#" data-bicycle-id="{{ bicycle.idBike }}" data-status="maintenance">
+                                                                    <i class="ti ti-tool text-warning me-2"></i>Send to Maintenance
+                                                                </a></li>
+                                                            {% endif %}
+                                                            
+                                                            {% if bicycle.status.value != 'charging' %}
+                                                                <li><a class="dropdown-item status-change" href="#" data-bicycle-id="{{ bicycle.idBike }}" data-status="charging">
+                                                                    <i class="ti ti-bolt text-info me-2"></i>Send to Charging
+                                                                </a></li>
+                                                            {% endif %}
+                                                        </ul>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <button class="dropdown-item text-danger delete-bicycle" type="button" data-bicycle-id="{{ bicycle.idBike }}">
+                                                            <i class="ti ti-trash me-2"></i> Delete Bicycle
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+                
+                {# Pagination - Already has icons #}
+                {% if bicycles|length > 10 and pagination is defined %}
+                    <div class="d-flex justify-content-center mt-4">
+                        <nav aria-label="Bicycle pagination">
+                            <ul class="pagination">
+                                {% if pagination.currentPageNumber > 1 %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ path('admin_bicycle_dashboard', {'tab': 'bicycles', 'page': pagination.currentPageNumber - 1}) }}" aria-label="Previous">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">&laquo;</span>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for page in 1..pagination.pageCount %}
+                                    <li class="page-item {{ page == pagination.currentPageNumber ? 'active' : '' }}">
+                                        <a class="page-link" href="{{ path('admin_bicycle_dashboard', {'tab': 'bicycles', 'page': page}) }}">{{ page }}</a>
+                                    </li>
+                                {% endfor %}
+                                
+                                {% if pagination.currentPageNumber < pagination.pageCount %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ path('admin_bicycle_dashboard', {'tab': 'bicycles', 'page': pagination.currentPageNumber + 1}) }}" aria-label="Next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">&raquo;</span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                {% endif %}
+            {% endif %}
         </div>
     </div>
 </div>
+
+<!-- Add Bicycle Modal -->
+<div class="modal fade" id="addBicycleModal" tabindex="-1" aria-labelledby="addBicycleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addBicycleModalLabel"><i class="ti ti-plus me-2"></i>Add New Bicycle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{{ path('admin_bicycle_add') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="bicycleStation" class="form-label"><i class="ti ti-map-pin me-1"></i>Station</label> {# Added icon #}
+                        <select class="form-select" id="bicycleStation" name="stationId" required>
+                            <option value="">Select a station</option>
+                            {% for station in stations %}
+                                <option value="{{ station.idStation }}">{{ station.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="batteryLevel" class="form-label"><i class="ti ti-battery-automotive me-1"></i>Battery Level (%)</label> {# Added icon #}
+                        <input type="number" class="form-control" id="batteryLevel" name="batteryLevel" min="0" max="100" value="100" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rangeKm" class="form-label"><i class="ti ti-route me-1"></i>Range (km)</label> {# Added icon #}
+                        <input type="number" class="form-control" id="rangeKm" name="rangeKm" step="0.1" min="0" value="40" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="bicycleStatus" class="form-label"><i class="ti ti-activity-heartbeat me-1"></i>Initial Status</label> {# Added icon #}
+                        <select class="form-select" id="bicycleStatus" name="status">
+                            <option value="available">Available</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="charging">Charging</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><i class="ti ti-x me-1"></i>Cancel</button> {# Added icon #}
+                    <button type="submit" class="btn btn-success"><i class="ti ti-plus me-1"></i>Add Bicycle</button> {# Added icon #}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Bicycle Modal -->
+<div class="modal fade" id="editBicycleModal" tabindex="-1" aria-labelledby="editBicycleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editBicycleModalLabel"><i class="ti ti-edit me-2"></i>Edit Bicycle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{{ path('admin_bicycle_edit') }}" id="editBicycleForm">
+                <div class="modal-body">
+                    <input type="hidden" name="bicycleId" id="editBicycleId">
+                    <div class="mb-3">
+                        <label for="editBicycleStation" class="form-label"><i class="ti ti-map-pin me-1"></i>Station</label> {# Added icon #}
+                        <select class="form-select" id="editBicycleStation" name="stationId" required>
+                            <option value="">Select a station</option>
+                            {% for station in stations %}
+                                <option value="{{ station.idStation }}">{{ station.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editBatteryLevel" class="form-label"><i class="ti ti-battery-automotive me-1"></i>Battery Level (%)</label> {# Added icon #}
+                        <input type="number" class="form-control" id="editBatteryLevel" name="batteryLevel" min="0" max="100" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editRangeKm" class="form-label"><i class="ti ti-route me-1"></i>Range (km)</label> {# Added icon #}
+                        <input type="number" class="form-control" id="editRangeKm" name="rangeKm" step="0.1" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editBicycleStatus" class="form-label"><i class="ti ti-activity-heartbeat me-1"></i>Status</label> {# Added icon #}
+                        <select class="form-select" id="editBicycleStatus" name="status">
+                            <option value="available">Available</option>
+                            <option value="in_use">In Use</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="charging">Charging</option>
+                            <option value="reserved">Reserved</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><i class="ti ti-x me-1"></i>Cancel</button> {# Added icon #}
+                    <button type="submit" class="btn btn-primary"><i class="ti ti-device-floppy me-1"></i>Save Changes</button> {# Added icon #}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Maintenance Modal -->
+<div class="modal fade" id="scheduleMaintenance" tabindex="-1" aria-labelledby="scheduleMaintenanceLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="scheduleMaintenanceLabel"><i class="ti ti-tool me-2"></i>Schedule Maintenance</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{{ path('admin_bicycle_schedule_maintenance') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="maintenanceBicycle" class="form-label"><i class="ti ti-bike me-1"></i>Select Bicycles</label> {# Added icon #}
+                        <select class="form-select" id="maintenanceBicycle" name="bicycleIds[]" multiple required>
+                            {% for bicycle in bicycles %}
+                                {% if bicycle.status.value != 'maintenance' %}
+                                    <option value="{{ bicycle.idBike }}">BIKE-{{ '%04d'|format(bicycle.idBike) }} ({{ bicycle.batteryLevel|number_format(1) }}%, {{ bicycle.bicycleStation ? bicycle.bicycleStation.name : 'No station' }})</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        <div class="form-text"><i class="ti ti-info-circle me-1"></i>Hold Ctrl/Cmd to select multiple bicycles</div> {# Added icon #}
+                    </div>
+                    <div class="mb-3">
+                        <label for="maintenanceType" class="form-label"><i class="ti ti-category me-1"></i>Maintenance Type</label> {# Added icon #}
+                        <select class="form-select" id="maintenanceType" name="maintenanceType" required>
+                            <option value="routine">Routine Check-up</option>
+                            <option value="battery">Battery Replacement</option>
+                            <option value="mechanical">Mechanical Repair</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="maintenanceNotes" class="form-label"><i class="ti ti-notes me-1"></i>Notes</label> {# Added icon #}
+                        <textarea class="form-control" id="maintenanceNotes" name="notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><i class="ti ti-x me-1"></i>Cancel</button> {# Added icon #}
+                    <button type="submit" class="btn btn-warning"><i class="ti ti-calendar-event me-1"></i>Schedule Maintenance</button> {# Added icon #}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteBicycleModal" tabindex="-1" aria-labelledby="deleteBicycleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteBicycleModalLabel"><i class="ti ti-alert-triangle me-2 text-danger"></i>Confirm Delete</h5> {# Added icon #}
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Are you sure you want to delete this bicycle? This action cannot be undone.</p>
+                <form id="deleteBicycleForm" method="post" action="{{ path('admin_bicycle_delete') }}">
+                    <input type="hidden" name="bicycleId" id="deleteBicycleId">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><i class="ti ti-x me-1"></i>Cancel</button> {# Added icon #}
+                <button type="button" class="btn btn-danger" id="confirmDeleteBicycle"><i class="ti ti-trash me-1"></i>Delete</button> {# Added icon #}
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Station Assignment Modal -->
+<div class="modal fade" id="stationAssignModal" tabindex="-1" aria-labelledby="stationAssignModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="stationAssignModalLabel">
+                    <i class="ti ti-map-pin me-2"></i>Assign Bicycles to Station
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0"><i class="ti ti-bike me-2"></i>Available Bicycles</h6>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="list-group list-group-flush bicycle-list" id="availableBicycles">
+                                    {% for bicycle in bicycles %}
+                                        {% if bicycle.status.value == 'available' and bicycle.bicycleStation is null %}
+                                            <div class="list-group-item list-group-item-action bicycle-draggable" 
+                                                 draggable="true" 
+                                                 data-bicycle-id="{{ bicycle.idBike }}">
+                                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                                    <div>
+                                                        <h6 class="mb-1">BIKE-{{ '%04d'|format(bicycle.idBike) }}</h6>
+                                                        <small class="text-muted">
+                                                            <i class="ti ti-battery-3 me-1"></i>{{ bicycle.batteryLevel|number_format(1) }}%
+                                                        </small>
+                                                    </div>
+                                                    <i class="ti ti-drag-drop-2 text-secondary"></i>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0"><i class="ti ti-map-pin me-2"></i>Select Station</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <select class="form-select" id="stationSelector">
+                                        <option value="">Choose a station</option>
+                                        {% for station in stations %}
+                                            <option value="{{ station.idStation }}">
+                                                {{ station.name }} 
+                                                ({{ station.availableDocks }} available docks)
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <div class="station-dropzone mt-3" id="stationDropzone">
+                                    <div class="text-center p-4 text-muted">
+                                        <i class="ti ti-arrow-down-circle display-4 mb-2"></i>
+                                        <p>Drag bicycles here to assign to the selected station</p>
+                                    </div>
+                                </div>
+                                
+                                <div id="assignedBicyclesList" class="list-group mt-3">
+                                    <!-- Assigned bicycles will appear here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="ti ti-x me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-primary" id="saveBicycleAssignments">
+                    <i class="ti ti-device-floppy me-1"></i>Save Assignments
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bicycle Status Change Form -->
+<form id="bicycleStatusForm" method="post" action="{{ path('admin_bicycle_change_status') }}" style="display:none;">
+    <input type="hidden" name="bicycleId" id="statusChangeBicycleId">
+    <input type="hidden" name="status" id="statusChangeValue">
+</form>
+
+<style>
+    /* Bicycle type icon */
+    .bicycle-type-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+    }
+    
+    /* Bicycle card styling */
+    .bicycle-card {
+        transition: all 0.3s ease;
+    }
+    
+    .bicycle-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    /* Status badge colors */
+    .status-charging {
+        background-color: rgba(13, 202, 240, 0.1);
+        color: #0dcaf0;
+    }
+    
+    .status-reserved {
+        background-color: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+    }
+    
+    /* Animation for battery level */
+    @keyframes batteryPulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+    
+    .battery-level.bg-danger {
+        animation: batteryPulse 2s infinite;
+    }
+    
+    /* Dropdown submenu */
+    .dropdown-submenu {
+        position: relative;
+    }
+    
+    .dropdown-submenu .dropdown-menu {
+        top: 0;
+        left: 100%;
+        margin-top: -1px;
+    }
+    
+    /* Multi-select enhancement */
+    select[multiple] {
+        height: 150px;
+    }
+
+    /* Status Badge Styling */
+    .status-badge {
+        padding: 0.35em 0.65em;
+        font-size: 0.75em;
+        font-weight: 700;
+        border-radius: 50rem;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .status-badge i {
+        margin-right: 0.25rem;
+        font-size: 0.9em; /* Slightly smaller icon */
+    }
+    
+    .status-available {
+        background-color: rgba(102, 187, 106, 0.1);
+        color: #2e7d32;
+    }
+    
+    .status-in-use {
+        background-color: rgba(33, 150, 243, 0.1);
+        color: #0d47a1;
+    }
+    
+    .status-maintenance {
+        background-color: rgba(255, 152, 0, 0.1);
+        color: #e65100;
+    }
+    
+    .status-inactive {
+        background-color: rgba(158, 158, 158, 0.1);
+        color: #424242;
+    }
+
+    /* Battery Indicator */
+    .battery-indicator {
+        width: 80px; /* Adjusted width */
+        height: 8px;
+        border-radius: 4px;
+        background-color: rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        display: inline-block; /* Align with text */
+        vertical-align: middle;
+    }
+
+    .battery-level {
+        height: 100%;
+        border-radius: 4px;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Edit bicycle modal data population
+    const editBicycleModal = document.getElementById('editBicycleModal');
+    setupStationAssignment();
+    if (editBicycleModal) {
+        editBicycleModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const bicycleId = button.getAttribute('data-bicycle-id');
+            
+            // Fetch bicycle data via AJAX
+            fetch(`{{ path('admin_bicycle_get_details') }}?id=${bicycleId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('editBicycleId').value = data.id;
+                    document.getElementById('editBicycleStation').value = data.stationId || '';
+                    document.getElementById('editBatteryLevel').value = data.batteryLevel;
+                    document.getElementById('editRangeKm').value = data.rangeKm;
+                    document.getElementById('editBicycleStatus').value = data.status;
+                })
+                .catch(error => {
+                    console.error('Error fetching bicycle details:', error);
+                    // Optionally show an error message to the user
+                    alert('Could not load bicycle details. Please try again.');
+                });
+        });
+    }
+    function setupStationAssignment() {
+    const draggableItems = document.querySelectorAll('.bicycle-draggable');
+    const dropZone = document.getElementById('stationDropzone');
+    const stationSelector = document.getElementById('stationSelector');
+    const assignedList = document.getElementById('assignedBicyclesList');
+    const saveButton = document.getElementById('saveBicycleAssignments');
+    
+    if (!draggableItems.length || !dropZone || !stationSelector || !assignedList || !saveButton) return;
+    
+    // Assignments to be saved
+    let assignments = [];
+    
+    // Make bicycles draggable
+    draggableItems.forEach(item => {
+        item.addEventListener('dragstart', function(e) {
+            e.dataTransfer.setData('text/plain', this.getAttribute('data-bicycle-id'));
+            this.classList.add('dragging');
+        });
+        
+        item.addEventListener('dragend', function() {
+            this.classList.remove('dragging');
+        });
+    });
+    
+    // Set up the drop zone
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('dragover');
+    });
+    
+    dropZone.addEventListener('dragleave', function() {
+        this.classList.remove('dragover');
+    });
+    
+    dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+        
+        const bicycleId = e.dataTransfer.getData('text/plain');
+        const stationId = stationSelector.value;
+        
+        if (!stationId) {
+            alert('Please select a station first');
+            return;
+        }
+        
+        // Get bicycle details
+        const bicycle = document.querySelector(`.bicycle-draggable[data-bicycle-id="${bicycleId}"]`);
+        if (!bicycle) return;
+        
+        const bicycleName = bicycle.querySelector('h6').textContent;
+        const bicycleBattery = bicycle.querySelector('small').textContent;
+        
+        // Add to assigned list
+        const assignmentItem = document.createElement('div');
+        assignmentItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+        assignmentItem.innerHTML = `
+            <div>
+                <strong>${bicycleName}</strong>
+                <small class="d-block text-muted">${bicycleBattery}</small>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-danger remove-assignment" data-bicycle-id="${bicycleId}">
+                <i class="ti ti-x"></i>
+            </button>
+        `;
+        assignedList.appendChild(assignmentItem);
+        
+        // Hide the original item
+        bicycle.style.display = 'none';
+        
+        // Add to assignments array
+        assignments.push({
+            bicycleId: bicycleId,
+            stationId: stationId
+        });
+    });
+    
+    // Handle station selection changes
+    stationSelector.addEventListener('change', function() {
+        // Clear assigned list when station changes
+        assignedList.innerHTML = '';
+        assignments = [];
+        
+        // Show all bicycles again
+        draggableItems.forEach(item => {
+            item.style.display = '';
+        });
+    });
+    
+    // Remove assignment handler
+    assignedList.addEventListener('click', function(e) {
+        const removeBtn = e.target.closest('.remove-assignment');
+        if (!removeBtn) return;
+        
+        const bicycleId = removeBtn.getAttribute('data-bicycle-id');
+        
+        // Remove from assignments array
+        assignments = assignments.filter(a => a.bicycleId !== bicycleId);
+        
+        // Show the original item again
+        const bicycle = document.querySelector(`.bicycle-draggable[data-bicycle-id="${bicycleId}"]`);
+        if (bicycle) bicycle.style.display = '';
+        
+        // Remove from assigned list
+        removeBtn.closest('.list-group-item').remove();
+    });
+    
+    // Save assignments
+    saveButton.addEventListener('click', function() {
+        if (assignments.length === 0) {
+            alert('No bicycles assigned yet');
+            return;
+        }
+        
+        this.disabled = true;
+        this.innerHTML = '<i class="ti ti-loader ti-spin me-1"></i> Saving...';
+        
+        // Submit assignments via AJAX
+        fetch('{{ path('admin_bicycle_bulk_assign_station') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token('bicycle_assignment') }}'
+            },
+            body: JSON.stringify({ assignments: assignments })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Successfully assigned ${data.updatedCount} bicycles`);
+                // Close modal and reload page
+                bootstrap.Modal.getInstance(document.getElementById('stationAssignModal')).hide();
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.message);
+                this.disabled = false;
+                this.innerHTML = '<i class="ti ti-device-floppy me-1"></i>Save Assignments';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while saving assignments');
+            this.disabled = false;
+            this.innerHTML = '<i class="ti ti-device-floppy me-1"></i>Save Assignments';
+        });
+    });
+}
+    
+    // Status change buttons
+    const statusChangeLinks = document.querySelectorAll('.status-change');
+    statusChangeLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const bicycleId = this.getAttribute('data-bicycle-id');
+            const status = this.getAttribute('data-status');
+            
+            document.getElementById('statusChangeBicycleId').value = bicycleId;
+            document.getElementById('statusChangeValue').value = status;
+            document.getElementById('bicycleStatusForm').submit();
+        });
+    });
+    
+    // Delete bicycle functionality
+    const deleteButtons = document.querySelectorAll('.delete-bicycle');
+    const deleteBicycleModalElement = document.getElementById('deleteBicycleModal');
+    if (deleteBicycleModalElement) {
+        const deleteBicycleModal = new bootstrap.Modal(deleteBicycleModalElement);
+        
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const bicycleId = this.getAttribute('data-bicycle-id');
+                document.getElementById('deleteBicycleId').value = bicycleId;
+                deleteBicycleModal.show();
+            });
+        });
+        
+        const confirmDeleteButton = document.getElementById('confirmDeleteBicycle');
+        if (confirmDeleteButton) {
+            confirmDeleteButton.addEventListener('click', function() {
+                document.getElementById('deleteBicycleForm').submit();
+            });
+        }
+    }
+    
+    // Dropdown submenu handling
+    const dropdownSubmenus = document.querySelectorAll('.dropdown-submenu > a');
+    dropdownSubmenus.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Toggle the submenu
+            const submenu = this.nextElementSibling;
+            if (!submenu) return; // Ensure submenu exists
+
+            const isOpen = submenu.classList.contains('show');
+            
+            // Close all other open submenus at the same level
+            const parentMenu = this.closest('.dropdown-menu');
+            if (parentMenu) {
+                parentMenu.querySelectorAll('.dropdown-submenu .dropdown-menu.show').forEach(menu => {
+                    if (menu !== submenu) {
+                        menu.classList.remove('show');
+                    }
+                });
+            }
+            
+            // Toggle this submenu
+            if (isOpen) {
+                submenu.classList.remove('show');
+            } else {
+                submenu.classList.add('show');
+                
+                // Basic positioning (might need refinement based on complex layouts)
+                submenu.style.top = `0px`; // Align top with parent item
+                submenu.style.left = '100%';
+                submenu.style.right = 'auto';
+
+                // Check if submenu goes off-screen to the right
+                const rect = submenu.getBoundingClientRect();
+                if (rect.right > window.innerWidth) {
+                    submenu.style.left = 'auto';
+                    submenu.style.right = '100%'; // Show on the left
+                }
+            }
+        });
+    });
+    
+    // Close submenus when clicking outside
+    document.addEventListener('click', function(event) {
+        // Check if the click is outside of any dropdown menu
+        if (!event.target.closest('.dropdown-menu')) {
+            document.querySelectorAll('.dropdown-submenu .dropdown-menu.show').forEach(menu => {
+                menu.classList.remove('show');
+            });
+        }
+    });
+});
+</script>
