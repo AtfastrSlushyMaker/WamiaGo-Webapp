@@ -1,0 +1,154 @@
+        {% extends 'front/base.html.twig' %}
+
+        {% block stylesheets %}
+            {{ parent() }}
+            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+            <style>
+                .request-card {
+                    border-radius: 10px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    margin-bottom: 1rem;
+                }
+                .map-container {
+                    height: 400px;
+                    border-radius: 10px;
+                    margin-bottom: 1rem;
+                }
+                .status-badge {
+                    font-size: 0.9rem;
+                    padding: 0.3rem 0.6rem;
+                }
+                .active-rides {
+                    background-color: #f8f9fa;
+                    padding: 1rem;
+                    border-radius: 10px;
+                }
+                .daily-goal-card {
+                    border-radius: 15px;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                    margin-bottom: 2rem;
+                }
+                .goal-option {
+                    cursor: pointer;
+                    transition: transform 0.3s;
+                }
+                .goal-option:hover {
+                    transform: scale(1.1);
+                }
+            </style>
+        {% endblock %}
+
+        {% block content %}
+        <!-- Motivation and Daily Goal Section -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card text-center daily-goal-card" style="border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); height: 100%;">
+                    <div class="card-body">
+                        <h4 class="mb-4"><i class="fas fa-bullseye"></i> Daily Goal</h4>
+                        <div class="d-flex justify-content-around mb-4">
+                            <div class="goal-option">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 1.2rem;">
+                                    <i class="fas fa-coins"></i> 50
+                                </div>
+                            </div>
+                            <div class="goal-option">
+                                <div class="rounded-circle bg-warning text-white d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 1.2rem;">
+                                    <i class="fas fa-coins"></i> 100
+                                </div>
+                            </div>
+                            <div class="goal-option">
+                                <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 1.2rem;">
+                                    <i class="fas fa-coins"></i> 200
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress mb-3" style="height: 10px; border-radius: 5px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <p><strong>Progress:</strong> 50 DT / 100 DT</p>
+                        <button class="btn btn-primary" style="transition: background-color 0.3s;">Update Goal</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card text-center" style="border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); height: 100%;">
+                    <div class="card-body">
+                        <h4 class="mb-3"><i class="fas fa-star"></i> Stay Motivated!</h4>
+                        <p class="mb-4">"Success is the sum of small efforts, repeated day in and day out."</p>
+                        <div class="d-flex justify-content-around">
+                            <div>
+                                <h5><i class="fas fa-trophy text-warning"></i></h5>
+                                <p>Top Performer</p>
+                            </div>
+                            <div>
+                                <h5><i class="fas fa-road text-primary"></i></h5>
+                                <p>Distance Covered: <strong>120 km</strong></p>
+                            </div>
+                            <div>
+                                <h5><i class="fas fa-handshake text-success"></i></h5>
+                                <p>Happy Clients: <strong>45</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>        <!-- Main Content -->
+            <div class="row">
+                <!-- Active Rides Section -->
+                <div class="col-12 mb-4">
+                    <div class="active-rides">
+                        <h5><i class="fas fa-taxi"></i> Active Rides</h5>
+                        <div class="d-flex flex-wrap">
+                            <div class="card request-card me-2 mb-2" style="width: 18rem;">
+                                <div class="card-body p-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="card-title mb-1">Ride #123</h6>
+                                        <span class="badge bg-success status-badge">In Progress</span>
+                                    </div>
+                                    <p class="mb-1"><i class="fas fa-user"></i> John Doe</p>
+                                    <p class="mb-1"><i class="fas fa-map-marker-alt text-danger"></i> 123 Main St</p>
+                                    <p class="mb-1"><i class="fas fa-map-marker-alt text-success"></i> 456 Elm St</p>
+                                    <p class="mb-1"><i class="fas fa-route"></i> 10 km</p>
+                                    <p class="mb-1"><i class="fas fa-clock"></i> 25 min</p>
+                                    <p class="mb-1"><i class="fas fa-dollar-sign"></i> $15</p>
+                                    <button class="btn btn-sm btn-success">Complete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Available Requests Section -->
+                <div class="col-md-6">
+                    <h5><i class="fas fa-list"></i> Available Requests</h5>
+                    {% for request in availableRequests %}
+                        <div class="card request-card mb-2" style="width: 100%;">
+                            <div class="card-body p-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="card-title mb-1">Request {{ request.userName }}</h6>
+                                    <span class="badge bg-warning status-badge">{{ request.status }}</span>
+                                </div>
+                                <p class="mb-1"><i class="fas fa-map-marker-alt text-danger"></i> From: {{ request.pickupLocation }}</p>
+                                <p class="mb-1"><i class="fas fa-map-marker-alt text-success"></i> To: {{ request.dropoffLocation }}</p>
+                                <button class="btn btn-sm btn-primary">Accept</button>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p>No available requests at the moment.</p>
+                    {% endfor %}
+                </div>
+                <div class="col-md-6">
+                    <div id="map" class="map-container"></div>
+                </div>
+            </div>
+        {% endblock %}
+
+        {% block javascripts %}
+            {{ parent() }}
+            <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+            <script>
+                // Initialize map
+                const map = L.map('map').setView([36.8065, 10.1815], 12);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            </script>
+        {% endblock %}

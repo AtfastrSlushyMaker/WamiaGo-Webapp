@@ -143,4 +143,8 @@ class RequestService
         'arrivalLocation' => $arrivalLocation ? $arrivalLocation->getAddress() : 'Unknown',
     ];
 }
+public function getAllRequests(): array
+{
+    return $this->requestRepository->findAll();
+}
 }
