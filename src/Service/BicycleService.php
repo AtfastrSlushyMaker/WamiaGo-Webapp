@@ -78,6 +78,19 @@ class BicycleService
         $this->entityManager->flush();
     }
 
+    public function updateBicycleStatus(int $bicycleId, BICYCLE_STATUS $status): void
+    {
+        $bicycle = $this->getBicycle($bicycleId);
+
+        if (!$bicycle) {
+            throw new \Exception('Bicycle not found');
+        }
+
+        $bicycle->setStatus($status);
+        $bicycle->setLastUpdated(new \DateTime());
+        $this->entityManager->flush();
+    }
+
     public function getBicyclesByStation(BicycleStation $station, bool $onlyAvailable = false): array
     {
         $criteria = ['bicycleStation' => $station];

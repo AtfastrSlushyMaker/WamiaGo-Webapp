@@ -61,57 +61,58 @@
                     </div>
 
                     <div class="action-buttons">
-    <div class="btn-group shadow-sm">
-        <button class="btn btn-light" id="refreshStationBtn" data-bs-toggle="tooltip" title="Refresh Data">
-            <i class="ti ti-refresh"></i>
-        </button>
-        <a href="{{ path('admin_bicycle_dashboard', {'tab': 'stations'}) }}" class="btn btn-light">
-            <i class="ti ti-list"></i> All Stations
-        </a>
-        <a href="{{ path('admin_bicycle_station_edit', {'id': station.idStation}) }}" class="btn btn-primary">
-            <i class="ti ti-edit"></i> Edit Station
-        </a>
-        
-        <!-- Standard Bootstrap dropdown replacement -->
-        <div class="dropdown">
-            <button class="btn btn-light dropdown-toggle" type="button" id="stationActions" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="ti ti-dots-vertical"></i>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                {% if station.status.value != 'maintenance' %}
-                <li>
-                    <a class="dropdown-item" href="{{ path('admin_bicycle_station_maintenance', {'id': station.idStation}) }}">
-                        <i class="ti ti-tools text-warning me-2"></i> Set Maintenance
-                    </a>
-                </li>
-                {% else %}
-                <li>
-                    <a class="dropdown-item" href="{{ path('admin_bicycle_station_activate', {'id': station.idStation}) }}">
-                        <i class="ti ti-check text-success me-2"></i> Activate Station
-                    </a>
-                </li>
-                {% endif %}
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#printQRModal">
-                        <i class="ti ti-qrcode me-2"></i> Generate QR Code
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#exportDataModal">
-                        <i class="ti ti-file-export me-2"></i> Export Station Data
-                    </a>
-                </li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                    <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#deleteStationModal">
-                        <i class="ti ti-trash me-2"></i> Delete Station
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</div>
+                        <div class="btn-group shadow-sm">
+                            <button class="btn btn-light" id="refreshStationBtn" data-bs-toggle="tooltip" title="Refresh Data">
+                                <i class="ti ti-refresh"></i>
+                            </button>
+                            <a href="{{ path('admin_bicycle_dashboard', {'tab': 'stations'}) }}" class="btn btn-light">
+                                <i class="ti ti-list"></i> All Stations
+                            </a>
+                            <button type="button" class="btn btn-primary station-edit-btn" data-station-id="{{ station.idStation }}">
+                                <i class="ti ti-edit"></i> Edit Station
+                            </button>
+                            
+                            <!-- Standard Bootstrap dropdown replacement -->
+                            <div class="dropdown">
+                                <button class="btn btn-light dropdown-toggle" type="button" id="stationActions" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="ti ti-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                    {% if station.status.value != 'maintenance' %}
+                                    <li>
+                                        <a class="dropdown-item" href="{{ path('admin_bicycle_station_maintenance', {'id': station.idStation}) }}">
+                                            <i class="ti ti-tools text-warning me-2"></i> Set Maintenance
+                                        </a>
+                                    </li>
+                                    {% else %}
+                                    <li>
+                                        <a class="dropdown-item" href="{{ path('admin_bicycle_station_activate', {'id': station.idStation}) }}">
+                                            <i class="ti ti-check text-success me-2"></i> Activate Station
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#printQRModal">
+                                            <i class="ti ti-qrcode me-2"></i> Generate QR Code
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#exportDataModal">
+                                            <i class="ti ti-file-export me-2"></i> Export Station Data
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#deleteStationModal">
+                                            <i class="ti ti-trash me-2"></i> Delete Station
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -410,7 +411,7 @@
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li>
-                                <a class="dropdown-item" href="{{ path('admin_bicycle_station_edit', {'id': station.idStation}) }}">
+                                <a class="dropdown-item station-edit-btn" href="#" data-station-id="{{ station.idStation }}">
                                     <i class="ti ti-edit me-2"></i> Edit Information
                                 </a>
                             </li>
@@ -657,53 +658,52 @@
                                                 {{ bicycle.status.value|replace({'_': ' '})|capitalize }}
                                             </span>
                                         </td>
-                                        {# Find the bicycle actions section and replace the dropdown there too #}
-
-<td>
-    <div class="d-flex justify-content-center">
-        <button type="button" class="btn btn-sm btn-icon btn-outline-primary me-1" 
-                data-bs-toggle="tooltip" title="View Details">
-            <i class="ti ti-eye"></i>
-        </button>
-        <button type="button" class="btn btn-sm btn-icon btn-outline-secondary me-1" 
-                data-bs-toggle="tooltip" title="Edit Bicycle">
-            <i class="ti ti-edit"></i>
-        </button>
-        
-        <!-- Standard Bootstrap dropdown -->
-        <div class="dropdown">
-            <button class="btn btn-sm btn-icon btn-outline-secondary dropdown-toggle" 
-                    type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="ti ti-dots-vertical"></i>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-                {% if bicycle.status.value != 'maintenance' %}
-                <li>
-                    <a class="dropdown-item" href="#">
-                        <i class="ti ti-tools text-warning me-2"></i> Mark Maintenance
-                    </a>
-                </li>
-                {% else %}
-                <li>
-                    <a class="dropdown-item" href="#">
-                        <i class="ti ti-check text-success me-2"></i> Mark Available
-                    </a>
-                </li>
-                {% endif %}
-                <li>
-                    <a class="dropdown-item" href="#">
-                        <i class="ti ti-history me-2"></i> Rental History
-                    </a>
-                </li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                    <a class="dropdown-item text-danger" href="#">
-                        <i class="ti ti-trash me-2"></i> Remove from Station
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </div>
+                                        <td>
+                                            <div class="d-flex justify-content-center">
+                                                <button type="button" class="btn btn-sm btn-icon btn-outline-primary me-1" 
+                                                        data-bs-toggle="tooltip" title="View Details">
+                                                    <i class="ti ti-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-icon btn-outline-secondary me-1" 
+                                                        data-bs-toggle="tooltip" title="Edit Bicycle">
+                                                    <i class="ti ti-edit"></i>
+                                                </button>
+                                                
+                                                <!-- Standard Bootstrap dropdown -->
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm btn-icon btn-outline-secondary dropdown-toggle" 
+                                                            type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <i class="ti ti-dots-vertical"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-menu-end">
+                                                        {% if bicycle.status.value != 'maintenance' %}
+                                                        <li>
+                                                            <a class="dropdown-item" href="#">
+                                                                <i class="ti ti-tools text-warning me-2"></i> Mark Maintenance
+                                                            </a>
+                                                        </li>
+                                                        {% else %}
+                                                        <li>
+                                                            <a class="dropdown-item" href="#">
+                                                                <i class="ti ti-check text-success me-2"></i> Mark Available
+                                                            </a>
+                                                        </li>
+                                                        {% endif %}
+                                                        <li>
+                                                            <a class="dropdown-item" href="#">
+                                                                <i class="ti ti-history me-2"></i> Rental History
+                                                            </a>
+                                                        </li>
+                                                        <li><hr class="dropdown-divider"></li>
+                                                        <li>
+                                                            <a class="dropdown-item text-danger" href="#">
+                                                                <i class="ti ti-trash me-2"></i> Remove from Station
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>

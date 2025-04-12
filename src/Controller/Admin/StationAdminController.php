@@ -19,6 +19,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use ValueError; // Import ValueError for catching enum errors
 
 //#[IsGranted('ROLE_ADMIN')]
 #[Route('/admin/bicycle/station')]
@@ -190,132 +191,147 @@ class StationAdminController extends AbstractController
     }
 
     #[Route('/station/{id}/edit', name: 'admin_bicycle_station_edit', methods: ['POST'])]
-public function editStation(Request $request, int $id, ValidatorInterface $validator): JsonResponse
-{
-    try {
-        $this->logger->info('Updating station with ID: ' . $id);
-        
-        // Get the station
-        $station = $this->stationService->getStation($id);
-        if (!$station) {
-            return new JsonResponse(['success' => false, 'message' => 'Station not found'], 404);
-        }
-        
-        // Get form data
-        $name = $request->request->get('name');
-        $status = $request->request->get('status');
-        $totalDocks = (int) $request->request->get('totalDocks');
-        $availableBikes = (int) $request->request->get('availableBikes');
-        
-        // Check if using existing location or creating new one
-        $locationId = $request->request->get('locationId');
-        
-        // Get location data
-        $latitude = $request->request->get('latitude');
-        $longitude = $request->request->get('longitude');
-        $address = $request->request->get('address');
-        
-        // Update station properties
-        $station->setName($name);
-        $station->setStatus(BICYCLE_STATION_STATUS::from($status));
-        $station->setTotalDocks($totalDocks);
-        $station->setAvailableBikes($availableBikes);
-        $station->setAvailableDocks($totalDocks - $availableBikes);
-        
-        // Handle location
-        $location = null;
-        
-        if ($locationId) {
-            // Use existing location
-            $location = $this->locationService->getLocation((int) $locationId);
-            if (!$location) {
-                return new JsonResponse(['success' => false, 'message' => 'Location not found'], 404);
+    public function editStation(int $id, Request $request, ValidatorInterface $validator): JsonResponse
+    {
+        try {
+            $this->logger->info('Updating station with ID: ' . $id);
+
+            // Get the station
+            $station = $this->stationService->getStation($id);
+            if (!$station) {
+                return new JsonResponse(['success' => false, 'message' => 'Station not found'], 404);
             }
-        }
-        
-        if (!$location && $latitude && $longitude) {
-            // Create new location or update existing one
-            $location = $station->getLocation();
-            
-            if (!$location) {
-                $location = new Location();
+
+            // Get form data
+            $name = $request->request->get('name');
+            $statusValue = $request->request->get('status');
+            $totalDocks = (int) $request->request->get('totalDocks');
+            $availableBikes = (int) $request->request->get('availableBikes');
+
+            // Check if using existing location or creating new one
+            $locationId = $request->request->get('locationId');
+
+            // Get location data
+            $latitude = $request->request->get('latitude');
+            $longitude = $request->request->get('longitude');
+            $address = $request->request->get('address');
+
+            // Update station properties
+            $station->setName($name);
+
+            // Validate and set status using the enum
+            if ($statusValue) {
+                try {
+                    $statusEnum = BICYCLE_STATION_STATUS::from($statusValue);
+                    $station->setStatus($statusEnum);
+                } catch (ValueError $e) {
+                    $this->logger->warning('Invalid status value provided for station update: ' . $statusValue, ['stationId' => $id]);
+                    return new JsonResponse([
+                        'success' => false,
+                        'message' => 'Invalid status value provided: ' . $statusValue
+                    ], 400);
+                }
+            } else {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Status is required.'
+                ], 400);
             }
-            
-            $location->setLatitude($latitude);
-            $location->setLongitude($longitude);
-            $location->setAddress($address ?: 'Unknown location');
-            
-            // Validate location
-            $locationErrors = $validator->validate($location);
-            if (count($locationErrors) > 0) {
+
+            $station->setTotalDocks($totalDocks);
+            $station->setAvailableBikes($availableBikes);
+            $station->setAvailableDocks($totalDocks - $availableBikes);
+
+            // Handle location
+            $location = null;
+
+            if ($locationId) {
+                $location = $this->locationService->getLocation((int) $locationId);
+                if (!$location) {
+                    return new JsonResponse(['success' => false, 'message' => 'Location not found'], 404);
+                }
+                if ($latitude && $longitude) {
+                    $location->setLatitude($latitude);
+                    $location->setLongitude($longitude);
+                    $location->setAddress($address ?: $location->getAddress());
+                }
+            } elseif ($latitude && $longitude) {
+                $location = $station->getLocation();
+                if (!$location) {
+                    $location = new Location();
+                }
+                $location->setLatitude($latitude);
+                $location->setLongitude($longitude);
+                $location->setAddress($address ?: 'Unknown location');
+            }
+
+            if ($location && ($location->getIdLocation() === null || $locationId || ($latitude && $longitude))) {
+                $locationErrors = $validator->validate($location);
+                if (count($locationErrors) > 0) {
+                    $errorMessages = [];
+                    foreach ($locationErrors as $error) {
+                        $errorMessages[] = $error->getMessage();
+                    }
+                    return new JsonResponse([
+                        'success' => false,
+                        'message' => 'Location validation failed: ' . implode(', ', $errorMessages)
+                    ], 400);
+                }
+                $this->entityManager->persist($location);
+            }
+
+            if ($location) {
+                $station->setLocation($location);
+            }
+
+            $errors = $validator->validate($station);
+            if (count($errors) > 0) {
                 $errorMessages = [];
-                foreach ($locationErrors as $error) {
+                foreach ($errors as $error) {
                     $errorMessages[] = $error->getMessage();
                 }
                 return new JsonResponse([
                     'success' => false,
-                    'message' => 'Location validation failed: ' . implode(', ', $errorMessages)
+                    'message' => 'Station validation failed: ' . implode(', ', $errorMessages)
                 ], 400);
             }
-        }
-        
-        // Set the location for the station
-        if ($location) {
-            $station->setLocation($location);
-        }
-        
-        // Validate the station entity
-        $errors = $validator->validate($station);
-        if (count($errors) > 0) {
-            $errorMessages = [];
-            foreach ($errors as $error) {
-                $errorMessages[] = $error->getMessage();
-            }
+
+            $this->entityManager->persist($station);
+            $this->entityManager->flush();
+
+            $this->logger->info('Station updated successfully', ['stationId' => $id]);
+
+            // Return updated station data in the response
+            return new JsonResponse([
+                'success' => true,
+                'message' => 'Station updated successfully',
+                'station' => [
+                    'id' => $station->getIdStation(),
+                    'name' => $station->getName(),
+                    'status' => $station->getStatus()->value,
+                    'totalDocks' => $station->getTotalDocks(),
+                    'availableBikes' => $station->getAvailableBikes(),
+                    'availableDocks' => $station->getAvailableDocks(),
+                    'latitude' => $station->getLocation()?->getLatitude(),
+                    'longitude' => $station->getLocation()?->getLongitude(),
+                    'address' => $station->getLocation()?->getAddress(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            $this->logger->error('Error updating station: ' . $e->getMessage(), [
+                'exception' => $e,
+                'stationId' => $id,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return new JsonResponse([
                 'success' => false,
-                'message' => 'Station validation failed: ' . implode(', ', $errorMessages)
-            ], 400);
+                'message' => 'An internal error occurred while updating the station. Please check logs.'
+            ], 500);
         }
-        
-        // Save changes to database
-        $this->entityManager->persist($location);
-        $this->entityManager->persist($station);
-        $this->entityManager->flush();
-        
-        $this->logger->info('Station updated successfully: ' . $station->getName());
-        
-        return new JsonResponse([
-            'success' => true,
-            'message' => 'Station updated successfully',
-            'station' => [
-                'id' => $station->getIdStation(),
-                'name' => $station->getName(),
-                'status' => $station->getStatus()->value,
-                'totalDocks' => $station->getTotalDocks(),
-                'availableBikes' => $station->getAvailableBikes(),
-                'availableDocks' => $station->getAvailableDocks(),
-                'location' => $location ? [
-                    'id' => $location->getIdLocation(),
-                    'latitude' => $location->getLatitude(),
-                    'longitude' => $location->getLongitude(),
-                    'address' => $location->getAddress()
-                ] : null
-            ]
-        ]);
-    } catch (\Exception $e) {
-        $this->logger->error('Error updating station: ' . $e->getMessage(), [
-            'exception' => $e,
-            'stationId' => $id,
-            'file' => $e->getFile(),
-            'line' => $e->getLine()
-        ]);
-        
-        return new JsonResponse([
-            'success' => false,
-            'message' => 'Error updating station: ' . $e->getMessage()
-        ], 500);
     }
-}
 
     #[Route('/{id}', name: 'admin_bicycle_station_detail')]
     public function stationDetail(int $id): Response
@@ -412,5 +428,22 @@ public function editStation(Request $request, int $id, ValidatorInterface $valid
 
         return $this->redirectToRoute('admin_bicycle_stations', ['tab' => 'stations']);
     }
-    
+
+    #[Route('/station/{id}/log-maintenance', name: 'admin_bicycle_station_log_maintenance', methods: ['POST'])]
+    public function logMaintenance(int $id, Request $request): JsonResponse
+    {
+        $station = $this->stationService->getStation($id);
+
+        if (!$station) {
+            return new JsonResponse(['success' => false, 'message' => 'Station not found'], 404);
+        }
+
+        $activityType = $request->request->get('activityType');
+        $description = $request->request->get('description');
+
+        // Log maintenance activity (this could involve saving to a database or updating a log file)
+        $this->logger->info(sprintf('Maintenance logged for station %s: %s - %s', $station->getName(), $activityType, $description));
+
+        return new JsonResponse(['success' => true, 'message' => 'Maintenance activity logged successfully']);
+    }
 }

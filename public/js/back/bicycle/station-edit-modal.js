@@ -308,37 +308,62 @@
                 }
 
                 // Submit form via AJAX to the correct endpoint
-                fetch(`/admin/bicycle/station/${stationId}/edit`, {
+                // Corrected URL path based on debug:router output
+                fetch(`/admin/bicycle/station/station/${stationId}/edit`, {
                     method: 'POST',
                     body: formData,
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json' // Explicitly accept JSON
                     }
                 })
                     .then(response => {
-                        if (!response.ok) {
-                            return response.json().then(data => {
-                                throw new Error(data.message || `Server responded with ${response.status}: ${response.statusText}`);
+                        // Check content type before parsing JSON
+                        const contentType = response.headers.get("content-type");
+                        if (contentType && contentType.indexOf("application/json") !== -1) {
+                            if (!response.ok) {
+                                // If JSON error response, parse it
+                                return response.json().then(data => {
+                                    throw new Error(data.message || `Server responded with ${response.status}`);
+                                });
+                            }
+                            return response.json();
+                        } else {
+                            // If not JSON, likely an HTML error page
+                            return response.text().then(text => {
+                                console.error("Server response was not JSON:", text);
+                                // Extract a snippet or title if possible, otherwise generic error
+                                const titleMatch = text.match(/<title>(.*?)<\/title>/i);
+                                const errorHint = titleMatch ? titleMatch[1] : 'Unexpected server response format.';
+                                throw new Error(`Failed to update station: ${errorHint} (Status: ${response.status})`);
                             });
                         }
-                        return response.json();
                     })
                     .then(data => {
-                        showToast('Station updated successfully', 'success');
-                        // Close the modal
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('stationEditModal'));
-                        if (modal) modal.hide();
+                        if (data.success) {
+                            showToast('Station updated successfully', 'success');
+                            // Close the modal
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('stationEditModal'));
+                            if (modal) modal.hide();
 
-                        // Refresh the page or update the UI as needed
-                        if (typeof window.refreshStationList === 'function') {
-                            window.refreshStationList();
+                            // Instead of reloading, call a function to update the UI
+                            if (typeof window.updateStationUI === 'function') {
+                                // Pass the updated station data received from the server
+                                window.updateStationUI(data.station);
+                            } else {
+                                console.warn("window.updateStationUI function not found. UI will not be updated automatically. Please refresh manually.");
+                                // Optionally, still provide a manual refresh hint
+                                showToast('Station updated. Refresh page to see changes.', 'info');
+                            }
                         } else {
-                            setTimeout(() => window.location.reload(), 1000);
+                            // Handle application-level errors returned as JSON
+                            throw new Error(data.message || 'Update failed with unspecified error.');
                         }
                     })
                     .catch(error => {
                         console.error('Error updating station:', error);
-                        showToast('Failed to update station: ' + error.message, 'danger');
+                        // Display the refined error message from the promise chain
+                        showToast(error.message || 'Failed to update station', 'danger');
                     })
                     .finally(() => {
                         updateBtn.innerHTML = '<i class="ti ti-device-floppy me-1"></i> Update Station';
