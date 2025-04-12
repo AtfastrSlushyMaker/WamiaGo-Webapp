@@ -1,60 +1,89 @@
 
-
-$(function() {
+document.addEventListener('DOMContentLoaded', function() {
     'use strict';
     
     // Handle delete confirmation modal
-    $('#deleteModal').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget);
-        var id = button.data('id');
-        var title = button.data('title');
-        var modal = $(this);
-        
-        // Update modal content with announcement title
-        if (title) {
-            modal.find('#delete-confirmation-text').html(
-                'Are you sure you want to delete the announcement: <strong>"' + title + '"</strong>?'
-            );
-        }
-        
-        // Update form action and token
-        var action = '/admin/announcements/' + id;
-        var token = $('meta[name="csrf-token"]').attr('content');
-        
-        modal.find('#deleteForm').attr('action', action);
-        modal.find('input[name="_token"]').val(token);
-    });
+    const deleteModal = document.getElementById('deleteModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const modal = this;
+            
+            // Mise à jour du texte de confirmation
+            const title = button.getAttribute('data-title');
+            if (title) {
+                const confirmationText = modal.querySelector('#delete-confirmation-text');
+                if (confirmationText) {
+                    confirmationText.innerHTML = 
+                        'Are you sure you want to delete the announcement: <strong>"' + title + '"</strong>?';
+                }
+            }
+            
+            // Mise à jour du formulaire
+            const form = modal.querySelector('#deleteForm');
+            if (form) {
+                // Utilisez data-delete-url si disponible, sinon construisez l'URL
+                form.action = button.getAttribute('data-delete-url') || 
+                             '/admin/announcements/' + button.getAttribute('data-id') + '/delete';
+                
+                const tokenInput = form.querySelector('input[name="_token"]');
+                if (tokenInput) {
+                    tokenInput.value = button.getAttribute('data-token');
+                }
+            }
+        });
+    }
     
     // Search functionality
-    $('#announcement-search').on('keyup', function() {
-        var value = $(this).val().toLowerCase();
-        $('table tbody tr').filter(function() {
-            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
-        });
-        
-        // Show empty state if no results
-        if ($('table tbody tr:visible').length === 0) {
-            if ($('#no-results-row').length === 0) {
-                $('table tbody').append(
-                    '<tr id="no-results-row"><td colspan="7" class="text-center py-4">' +
-                    '<img src="/adminlte/images/search-empty.svg" alt="No results" width="120" class="mb-3">' +
-                    '<h5 class="text-muted">No announcements found matching your search</h5>' +
-                    '</td></tr>'
-                );
+    const searchInput = document.getElementById('announcement-search');
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            const value = this.value.toLowerCase();
+            const rows = document.querySelectorAll('table tbody tr');
+            let visibleRows = 0;
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const isVisible = text.includes(value);
+                row.style.display = isVisible ? '' : 'none';
+                if (isVisible) visibleRows++;
+            });
+            
+            // Show empty state if no results
+            const tbody = document.querySelector('table tbody');
+            let noResultsRow = document.getElementById('no-results-row');
+            
+            if (visibleRows === 0 && !noResultsRow) {
+                noResultsRow = document.createElement('tr');
+                noResultsRow.id = 'no-results-row';
+                noResultsRow.innerHTML = `
+                    <td colspan="7" class="text-center py-4">
+                        <img src="/adminlte/images/search-empty.svg" alt="No results" width="120" class="mb-3">
+                        <h5 class="text-muted">No announcements found matching your search</h5>
+                    </td>
+                `;
+                tbody.appendChild(noResultsRow);
+            } else if (visibleRows > 0 && noResultsRow) {
+                noResultsRow.remove();
             }
-        } else {
-            $('#no-results-row').remove();
-        }
-    });
+        });
+    }
     
     // Add fade-in animation to table rows
-    $('table tbody tr').addClass('fade-in');
+    document.querySelectorAll('table tbody tr').forEach(row => {
+        row.classList.add('fade-in');
+    });
     
-    // Initialize tooltips
-    $('[title]').tooltip();
+    // Initialize tooltips (Bootstrap 5+)
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
     
-    // Fix for Safari rendering issue
+    // Fix for rendering issue
     setTimeout(function() {
-        $('.card').addClass('rendered');
+        document.querySelectorAll('.card').forEach(card => {
+            card.classList.add('rendered');
+        });
     }, 100);
 });

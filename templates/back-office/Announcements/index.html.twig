@@ -99,18 +99,19 @@
            <span class="btn-label">Details</span>
         </a>
 
-        <!-- Delete Button -->
-        <button class="btn btn-action btn-delete delete-btn" 
-                data-id="{{ announcement.id_announcement }}"
-                data-title="{{ announcement.title }}"
-                data-toggle="modal" 
-                data-target="#deleteModal"
-                data-toggle="tooltip" 
-                data-placement="top"
-                title="Delete Announcement">
-            <i class="fas fa-trash-alt"></i>
-            <span class="btn-label">Delete</span>
-        </button>
+       <!-- Delete Button -->
+<button class="btn btn-action btn-delete delete-btn" 
+        data-id="{{ announcement.id_announcement }}"
+        data-title="{{ announcement.title }}"
+        data-token="{{ csrf_token('delete' ~ announcement.id_announcement) }}"
+        data-bs-toggle="modal" 
+        data-bs-target="#deleteModal"
+        data-toggle="tooltip" 
+        data-placement="top"
+        title="Delete Announcement">
+    <i class="fas fa-trash-alt"></i>
+    <span class="btn-label">Delete</span>
+</button>
     </div>
 </td>
                             </tr>

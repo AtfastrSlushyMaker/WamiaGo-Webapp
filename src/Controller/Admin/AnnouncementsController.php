@@ -48,18 +48,20 @@ class AnnouncementsController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'admin_announcements_delete', methods: ['POST'])]
-    public function delete(
-        Request $request,
-        Announcement $announcement,
-        EntityManagerInterface $em
-    ): Response {
-        if ($this->isCsrfTokenValid('delete'.$announcement->getIdAnnouncement(), $request->request->get('_token'))) {
-            $em->remove($announcement);
-            $em->flush();
-            $this->addFlash('success', 'Announcement successfully deleted');
-        }
-
-        return $this->redirectToRoute('admin_announcements_index');
+    #[Route('/{id}/delete', name: 'admin_announcements_delete', methods: ['POST'])]
+public function delete(
+    Request $request,
+    Announcement $announcement,
+    EntityManagerInterface $em
+): Response {
+    if ($this->isCsrfTokenValid('delete'.$announcement->getIdAnnouncement(), $request->request->get('_token'))) {
+        $em->remove($announcement);
+        $em->flush();
+        $this->addFlash('success', 'Announcement successfully deleted');
+    } else {
+        $this->addFlash('error', 'Invalid CSRF token');
     }
+
+    return $this->redirectToRoute('admin_announcements_index');
+}
 }
