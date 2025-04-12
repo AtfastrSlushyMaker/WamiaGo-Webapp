@@ -234,10 +234,10 @@
 {% block stylesheets %}
 <style>
     :root {
-        --yellow: #FFCE4B;
-        --blue: #4169E1;
-        --green: #4de97b;
-        --light-blue: #7FB4FF;
+        --yellow: #ffc107; /* Taxi color from your theme */
+        --blue: #0d6efd; /* Primary color from your theme */
+        --green: #66bb6a; /* Bicycle color from your theme */
+        --light-blue: #0dcaf0; /* News color from your theme */
     }
 
     * {
@@ -297,12 +297,13 @@
     .right-side {
         background-color: var(--blue);
         background-image:
-            radial-gradient(circle at 10% 20%, rgba(127, 180, 255, 0.3) 0%, transparent 25%),
-            radial-gradient(circle at 90% 80%, rgba(77, 233, 123, 0.2) 0%, transparent 25%);
+            radial-gradient(circle at 10% 20%, rgba(13, 202, 240, 0.3) 0%, transparent 25%), /* Light blue tint */
+            radial-gradient(circle at 90% 80%, rgba(102, 187, 106, 0.2) 0%, transparent 25%); /* Green accent */
         width: 55%;
         z-index: 1;
         padding-left: 8%;
         position: relative;
+        box-shadow: var(--shadow-lg); /* Adding shadow from your theme */
     }
 
     /* Create the exact curved effect between panels - using a better approach */
@@ -577,15 +578,15 @@
     /* Enhanced buttons */
     .login-btn {
         display: inline-block;
-        background: linear-gradient(45deg, var(--blue), #5a7deb);
+        background: linear-gradient(45deg, var(--blue), #4481fd);
         color: white;
         font-size: 1.1rem;
         font-weight: 500;
         padding: 14px 60px;
-        border-radius: 30px;
+        border-radius: 15px; /* Matching your --border-radius variable */
         cursor: pointer;
-        box-shadow: 0 8px 16px rgba(12, 77, 162, 0.3);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: var(--shadow-md); /* Using your theme's shadow variable */
+        transition: var(--transition); /* Using your theme's transition variable */
         position: relative;
         overflow: hidden;
         border: 2px solid transparent;
@@ -593,8 +594,8 @@
 
     .login-btn:hover {
         transform: translateY(-5px);
-        box-shadow: 0 15px 25px rgba(12, 77, 162, 0.4);
-        background: linear-gradient(45deg, #5a7deb, var(--blue));
+        box-shadow: var(--shadow-lg);
+        background: linear-gradient(45deg, #4481fd, var(--blue));
         border-color: rgba(255, 255, 255, 0.3);
     }
 
@@ -618,15 +619,15 @@
     .submit-btn {
         width: 100%;
         height: 50px;
-        background: linear-gradient(45deg, var(--green), #2dc963);
+        background: linear-gradient(45deg, var(--green), #4caf50); /* Using your bicycle-color-hover */
         color: white;
         border: none;
-        border-radius: 25px;
+        border-radius: var(--border-radius-sm); /* Using your theme's border radius */
         font-size: 1rem;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        box-shadow: 0 8px 15px rgba(77, 233, 123, 0.3);
+        transition: var(--transition); /* Using your theme's transition */
+        box-shadow: var(--shadow-md); /* Using your theme's shadow */
         margin-bottom: 20px;
         position: relative;
         overflow: hidden;
@@ -646,8 +647,8 @@
 
     .submit-btn:hover {
         transform: translateY(-3px);
-        box-shadow: 0 12px 25px rgba(77, 233, 123, 0.5);
-        background: linear-gradient(45deg, #2dc963, var(--green));
+        box-shadow: var(--shadow-lg); /* Using your theme's shadow */
+        background: linear-gradient(45deg, #4caf50, var(--green));
     }
 
     .submit-btn:hover::after {
@@ -673,7 +674,7 @@
         }
 
         to {
-            text-shadow: 0 5px 15px rgba(77, 233, 123, 0.5);
+            text-shadow: 0 5px 15px rgba(102, 187, 106, 0.5); /* Updated to your bicycle color */
         }
     }
 
@@ -899,7 +900,7 @@
     .step-indicator.active {
         background-color: var(--green);
         transform: scale(1.2);
-        box-shadow: 0 0 20px rgba(77, 233, 123, 0.6);
+        box-shadow: 0 0 20px rgba(102, 187, 106, 0.6); /* Using your theme's bicycle color */
         z-index: 1;
     }
 
@@ -928,7 +929,7 @@
 
     .step-indicator.completed {
         background-color: var(--green);
-        box-shadow: 0 0 15px rgba(77, 233, 123, 0.4);
+        box-shadow: 0 0 15px rgba(102, 187, 106, 0.4);
     }
 
     .step-line {
@@ -945,7 +946,7 @@
 
     .step-line.active {
         background-color: var(--green);
-        box-shadow: 0 0 10px rgba(77, 233, 123, 0.4);
+        box-shadow: 0 0 10px rgba(102, 187, 106, 0.4);
     }
 
     .step-line.active::before {
