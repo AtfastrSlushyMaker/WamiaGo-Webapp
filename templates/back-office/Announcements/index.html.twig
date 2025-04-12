@@ -1,6 +1,6 @@
 {% extends 'back-office/base.html.twig' %}
 
-{% block title %}Admin | Gestion des Annonces{% endblock %}
+{% block title %}Admin | Transport Announcements Management{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -13,12 +13,12 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>Gestion des Annonces</h1>
+                    <h1>Transport Announcements</h1>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ path('admin_dashboard') }}">Accueil</a></li>
-                        <li class="breadcrumb-item active">Annonces</li>
+                        <li class="breadcrumb-item"><a href="{{ path('admin_dashboard') }}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">Announcements</li>
                     </ol>
                 </div>
             </div>
@@ -27,12 +27,26 @@
 
     <section class="content">
         <div class="container-fluid">
-            <div class="card card-primary card-outline">
+            <!-- Flash messages -->
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+            
+            <div class="card card-primary card-outline elevation-3">
                 <div class="card-header">
-                    <h3 class="card-title">Liste des Annonces</h3>
+                    <h3 class="card-title">
+                        <i class="fas fa-bullhorn mr-2"></i>Announcements List
+                    </h3>
                     <div class="card-tools">
-                        <div class="input-group input-group-sm">
-                            <input type="text" class="form-control" placeholder="Rechercher...">
+                        <div class="input-group input-group-sm" style="width: 250px;">
+                            <input type="text" id="announcement-search" class="form-control" placeholder="Search...">
                             <div class="input-group-append">
                                 <button class="btn btn-primary">
                                     <i class="fas fa-search"></i>
@@ -43,45 +57,68 @@
                 </div>
                 <div class="card-body table-responsive p-0">
                     <table class="table table-hover text-nowrap">
-                        <thead>
+                        <thead class="thead-light">
                             <tr>
                                 <th>ID</th>
-                                <th>Titre</th>
+                                <th>Title</th>
                                 <th>Zone</th>
                                 <th>Date</th>
-                                <th>Statut</th>
-                                <th>Conducteur</th>
-                                <th>Actions</th>
+                                <th>Status</th>
+                                <th>Driver</th>
+                                <th class="text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for announcement in announcements %}
                             <tr>
-                               <td>{{ announcement.id_announcement }}</td>
+                                <td>{{ announcement.id_announcement }}</td>
                                 <td>{{ announcement.title }}</td>
-                                <td>{{ announcement.zone.getDisplayName() }}
-</td>
-                                <td>{{ announcement.date|date('d/m/Y H:i') }}</td>
                                 <td>
-                                    <img src="{{ asset('adminlte/images/icons/' ~ (announcement.status ? 'active' : 'inactive') ~ '.png') }}" 
-                                         alt="{{ announcement.status ? 'Active' : 'Inactive' }}"
-                                         width="20"
-                                         title="{{ announcement.status ? 'Active' : 'Inactive' }}">
+                                    <span class="badge badge-pill" style="background-color: {{ announcement.zone.getColor() }}; color: #fff;">
+                                        {{ announcement.zone.getDisplayName() }}
+                                    </span>
+                                </td>
+                                <td>{{ announcement.date|date('M d, Y H:i') }}</td>
+                                <td>
+                                    {% if announcement.status %}
+                                        <span class="badge badge-success"><i class="fas fa-check-circle mr-1"></i> Active</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary"><i class="fas fa-times-circle mr-1"></i> Inactive</span>
+                                    {% endif %}
                                 </td>
                                 <td>{{ announcement.driver.user.name }}</td>
-                                <td>
-                                    <a href="{{ path('admin_announcements_show', {'id': announcement.id_announcement}) }}" 
-   class="btn btn-sm btn-info" title="Voir">
-   <i class="fas fa-eye"></i>
-</a>
+                                <td class="text-center">
+    <div class="btn-group action-buttons">
+        <!-- View Details Button -->
+        <a href="{{ path('admin_announcements_show', {'id': announcement.id_announcement}) }}" 
+           class="btn btn-action btn-view" 
+           data-toggle="tooltip" 
+           data-placement="top"
+           title="View Details">
+           <i class="fas fa-eye"></i>
+           <span class="btn-label">Details</span>
+        </a>
 
-<button class="btn btn-sm btn-danger delete-btn" 
-        data-id="{{ announcement.id_announcement }}"
-        data-toggle="modal" 
-        data-target="#deleteModal"
-        title="Supprimer">
-    <i class="fas fa-trash"></i>
-</button>
+        <!-- Delete Button -->
+        <button class="btn btn-action btn-delete delete-btn" 
+                data-id="{{ announcement.id_announcement }}"
+                data-title="{{ announcement.title }}"
+                data-toggle="modal" 
+                data-target="#deleteModal"
+                data-toggle="tooltip" 
+                data-placement="top"
+                title="Delete Announcement">
+            <i class="fas fa-trash-alt"></i>
+            <span class="btn-label">Delete</span>
+        </button>
+    </div>
+</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    <img src="{{ asset('adminlte/images/empty-data.svg') }}" alt="No data" width="120" class="mb-3">
+                                    <h5 class="text-muted">No announcements found</h5>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -89,7 +126,14 @@
                     </table>
                 </div>
                 <div class="card-footer clearfix">
-                    {# Pagination à ajouter ici si nécessaire #}
+                    <div class="float-right">
+                        {# Pagination placeholder #}
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-default disabled">&laquo;</button>
+                            <button type="button" class="btn btn-sm btn-primary">1</button>
+                            <button type="button" class="btn btn-sm btn-default disabled">&raquo;</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

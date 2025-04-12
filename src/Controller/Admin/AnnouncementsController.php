@@ -14,10 +14,29 @@ use Symfony\Component\Routing\Annotation\Route;
 class AnnouncementsController extends AbstractController
 {
     #[Route('/', name: 'admin_announcements_index', methods: ['GET'])]
-    public function index(AnnouncementRepository $announcementRepo): Response
+    public function index(Request $request, AnnouncementRepository $announcementRepo): Response
     {
+        // Get filter parameters
+        $filters = [];
+        
+        // Zone filter
+        if ($request->query->has('zone')) {
+            $filters['zone'] = $request->query->get('zone');
+        }
+        
+        // Status filter
+        if ($request->query->has('status')) {
+            $filters['status'] = $request->query->getBoolean('status');
+        }
+        
+        // Get announcements (use filtered results if filters exist)
+        $announcements = !empty($filters) 
+            ? $announcementRepo->findByFilters($filters)
+            : $announcementRepo->findBy([], ['date' => 'DESC']);
+        
         return $this->render('back-office/Announcements/index.html.twig', [
-            'announcements' => $announcementRepo->findBy([], ['date' => 'DESC']),
+            'announcements' => $announcements,
+            'filters' => $filters
         ]);
     }
 
@@ -38,7 +57,7 @@ class AnnouncementsController extends AbstractController
         if ($this->isCsrfTokenValid('delete'.$announcement->getIdAnnouncement(), $request->request->get('_token'))) {
             $em->remove($announcement);
             $em->flush();
-            $this->addFlash('success', 'Annonce supprimée avec succès');
+            $this->addFlash('success', 'Announcement successfully deleted');
         }
 
         return $this->redirectToRoute('admin_announcements_index');
