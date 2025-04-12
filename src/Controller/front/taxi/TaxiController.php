@@ -76,4 +76,21 @@ class TaxiController extends AbstractController
     {
         return $this->render('front/taxi/request.html.twig');
     }
+    
+    #[Route('/request/update/{id}', name: 'request_update', methods: ['GET'])]
+    public function requestUpdate(int $id): Response
+    {
+        // Fetch the request by ID
+        $request = $this->entityManager->getRepository(Request::class)->find($id);
+
+        // Handle case where the request doesn't exist
+        if (!$request) {
+            throw $this->createNotFoundException('Request not found.');
+        }
+
+        // Pass the request data to the template
+        return $this->render('front/taxi/request-update.html.twig', [
+            'request' => $request,
+        ]);
+    }
 }

@@ -70,32 +70,77 @@ class RequestService
         return $this->requestRepository->findBy(['user' => $userId]);
     }
 
-
     public function updateRequest(
         int $requestId,
         User $user,
         Location $pickupLocation,
         Location $arrivalLocation,
-        string $status
+        REQUEST_STATUS $status
     ): Request {
-        // Find the existing request
+        // Find the existing request first
         $request = $this->requestRepository->find($requestId);
-    
         if (!$request) {
             throw new NotFoundHttpException('Request not found.');
         }
     
-        // Update the request details
-        $request->setUser($user)
-            ->setDepartureLocation($pickupLocation)
-            ->setArrivalLocation($arrivalLocation)
-            ->setStatus($status) // Update the status
-            ->setRequest_date(new \DateTime()); // Update the request date to the current date/time
+        // Validate pickup location
+        if (empty($pickupLocation->getAddress()) || 
+            !is_numeric($pickupLocation->getLatitude()) || 
+            !is_numeric($pickupLocation->getLongitude())) {
+            throw new \InvalidArgumentException('Pickup location must have valid address and coordinates');
+        }
     
-        // Persist the updated request
+        // Validate arrival location
+        if (empty($arrivalLocation->getAddress()) || 
+            !is_numeric($arrivalLocation->getLatitude()) || 
+            !is_numeric($arrivalLocation->getLongitude())) {
+            throw new \InvalidArgumentException('Arrival location must have valid address and coordinates');
+        }
+    
+        // Create new Location objects with validated data
+        $newPickupLocation = new Location();
+        $newPickupLocation->setAddress($pickupLocation->getAddress())
+            ->setLatitude((float)$pickupLocation->getLatitude())
+            ->setLongitude((float)$pickupLocation->getLongitude());
+    
+        $newArrivalLocation = new Location();
+        $newArrivalLocation->setAddress($arrivalLocation->getAddress())
+            ->setLatitude((float)$arrivalLocation->getLatitude())
+            ->setLongitude((float)$arrivalLocation->getLongitude());
+    
+        // Persist new locations
+        $this->entityManager->persist($newPickupLocation);
+        $this->entityManager->persist($newArrivalLocation);
+    
+        // Update the request
+        $request->setUser($user)
+            ->setDepartureLocation($newPickupLocation)
+            ->setArrivalLocation($newArrivalLocation)
+            ->setStatus($status)
+            ->setRequest_date(new \DateTime());
+    
         $this->entityManager->persist($request);
         $this->entityManager->flush();
     
         return $request;
     }
+    public function getRequestLocations(int $requestId): array
+{
+   
+    $request = $this->requestRepository->find($requestId);
+
+    if (!$request) {
+        throw new NotFoundHttpException('Request not found.');
+    }
+
+
+    $pickupLocation = $request->getDepartureLocation();
+    $arrivalLocation = $request->getArrivalLocation();
+
+
+    return [
+        'pickupLocation' => $pickupLocation ? $pickupLocation->getAddress() : 'Unknown',
+        'arrivalLocation' => $arrivalLocation ? $arrivalLocation->getAddress() : 'Unknown',
+    ];
+}
 }

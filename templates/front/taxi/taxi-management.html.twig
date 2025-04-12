@@ -289,21 +289,21 @@
             {% else %}
                 {% for request in requests %}
                     <div id="request-{{ request.id }}" class="col-md-4 mb-3">
-                        <div class="card request-card border-0" style="background-color: #e3f2fd; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                        <div class="card request-card border-0 h-100" style="background-color: #e3f2fd; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
                             <div class="card-header text-center" style="background-color: #bbdefb;">
                                 <h6 class="mb-0 text-secondary">{{ request.status }}</h6>
                             </div>
-                            <div class="card-body p-3">
+                            <div class="card-body d-flex flex-column p-3">
                                 <p class="mb-2"><i class="fas fa-map-marker-alt me-2 text-primary"></i> Pickup: {{ request.pickupLocation ?: 'Unknown' }}</p>
                                 <p class="mb-2"><i class="fas fa-map-marker-alt me-2 text-primary"></i> Destination: {{ request.destination ?: 'Unknown' }}</p>
                                 <p class="mb-2"><i class="fas fa-clock me-2 text-primary"></i> {{ request.requestTime|date('Y-m-d H:i') }}</p>
-                                <div class="d-flex justify-content-between">
-                                    <form class="delete-request-form" action="#" method="POST">
+                                <div class="mt-auto d-flex justify-content-between">
+                                    <form class="delete-request-form" action="{{ path('delete_request', { id: request.id }) }}" method="POST">
                                         <button type="submit" class="btn btn-danger btn-sm d-flex align-items-center" data-request-id="{{ request.id }}">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </form>
-                                    <a href="#" class="btn btn-primary btn-md px-3 py-2 d-flex align-items-center">
+                                    <a href="{{ path('update_request', { id: request.id }) }}" class="btn btn-primary btn-md px-3 py-2 d-flex align-items-center">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                 </div>
@@ -316,66 +316,99 @@
     </div>
 </section>
   
-{% block javascripts %}
-    {{ parent() }}
-    <!-- Leaflet JS from CDN -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<div class="d-flex justify-content-center align-items-center" style="min-height: 50vh;">
+    {% block javascripts %}
+        {{ parent() }}
+        <!-- Leaflet JS from CDN -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-    <!-- Your custom JS -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Ensure Leaflet is loaded before using it
-            if (typeof L !== 'undefined') {
-                // Your Leaflet-related code here, if needed
+        <!-- SweetAlert2 CSS and JS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-                console.log("Leaflet is loaded successfully!");
-            }
+        <!-- Your custom JS -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Ensure Leaflet is loaded before using it
+                if (typeof L !== 'undefined') {
+                    console.log("Leaflet is loaded successfully!");
+                }
 
-            // Add your custom JS logic here for deleting requests
-            const deleteButtons = document.querySelectorAll('.delete-request-form button');
+                // Add your custom JS logic here for deleting requests
+                const deleteButtons = document.querySelectorAll('.delete-request-form button');
 
-            deleteButtons.forEach(function(button) {
-                button.addEventListener('click', function(event) {
-                    event.preventDefault();  // Prevent the form from submitting immediately
+                deleteButtons.forEach(function(button) {
+                    button.addEventListener('click', function(event) {
+                        event.preventDefault();  // Prevent the form from submitting immediately
 
-                    const requestId = button.getAttribute('data-request-id');
-                    const form = button.closest('form');
+                        const requestId = button.getAttribute('data-request-id');
+                        const form = button.closest('form');
 
-                    // Make AJAX request to delete the request
-                    fetch(form.action, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            id: requestId,
-                        }),
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            // Find the request card and remove it
-                            const requestCard = document.getElementById('request-' + requestId);
-                            if (requestCard) {
-                                requestCard.remove();
+                        // Show confirmation dialog
+                        Swal.fire({
+                            title: 'Are you sure?',
+                            text: 'Do you really want to delete this request? This action cannot be undone.',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#3085d6',
+                            confirmButtonText: 'Yes, delete it!',
+                            cancelButtonText: 'Cancel'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Make AJAX request to delete the request
+                                fetch(form.action, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        id: requestId,
+                                    }),
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.status === 'success') {
+                                        // Find the request card and remove it
+                                        const requestCard = document.getElementById('request-' + requestId);
+                                        if (requestCard) {
+                                            requestCard.style.transition = 'opacity 0.5s ease';
+                                            requestCard.style.opacity = '0';
+                                            setTimeout(() => requestCard.remove(), 500);
+                                        }
+
+                                        // Show success message
+                                        Swal.fire(
+                                            'Deleted!',
+                                            'The request has been deleted successfully.',
+                                            'success'
+                                        );
+                                    } else {
+                                        // Show error message
+                                        Swal.fire(
+                                            'Error!',
+                                            'Failed to delete the request. Please try again.',
+                                            'error'
+                                        );
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    Swal.fire(
+                                        'Error!',
+                                        'An unexpected error occurred. Please try again later.',
+                                        'error'
+                                    );
+                                });
                             }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
+                        });
                     });
                 });
             });
-        });
-    </script>
-{% endblock %}
-
-
-
-
-
-
+        </script>
+    {% endblock %}
+</div>
 
 
 
