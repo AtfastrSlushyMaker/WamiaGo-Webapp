@@ -28,11 +28,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
-            // Mise à jour du formulaire
             const form = modal.querySelector('#deleteForm');
             if (form) {
                 form.action = button.getAttribute('data-delete-url') || 
-                             '/admin/announcements/' + button.getAttribute('data-id') + '/delete';
+                            '/admin/reservations/' + button.getAttribute('data-id') + '/delete';
                 
                 const tokenInput = form.querySelector('input[name="_token"]');
                 if (tokenInput) {

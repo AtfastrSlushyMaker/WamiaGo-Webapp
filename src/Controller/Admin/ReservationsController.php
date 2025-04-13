@@ -58,16 +58,36 @@ class ReservationsController extends AbstractController
     }
 
     #[Route('/{id}/delete', name: 'admin_reservations_delete', methods: ['POST'])]
-    public function delete(Request $request, Reservation $reservation, EntityManagerInterface $em): Response
-    {
-        if ($this->isCsrfTokenValid('delete'.$reservation->getIdReservation(), $request->request->get('_token'))) {
+    public function delete(
+        Request $request, 
+        Reservation $reservation, 
+        EntityManagerInterface $em,
+        ReservationRepository $reservationRepo
+    ): Response {
+        if (!$reservation) {
+            $this->addFlash('error', 'Reservation not found');
+            return $this->redirectToRoute('admin_reservations_index');
+        }
+
+        // Vérification du token CSRF
+        if (!$this->isCsrfTokenValid('delete'.$reservation->getIdReservation(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid CSRF token');
+            return $this->redirectToRoute('admin_reservations_index');
+        }
+
+        try {
+            foreach ($reservation->getRelocations() as $relocation) {
+                $em->remove($relocation);
+            }
+
             $em->remove($reservation);
             $em->flush();
+
             $this->addFlash('success', 'Reservation successfully deleted');
-        } else {
-            $this->addFlash('error', 'Invalid CSRF token');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Error deleting reservation: '.$e->getMessage());
         }
-    
+
         return $this->redirectToRoute('admin_reservations_index');
     }
 }

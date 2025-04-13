@@ -24,10 +24,9 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="fas fa-times mr-1"></i>Cancel
                 </button>
-                <form id="deleteForm" method="post" action="">
-                    <input type="hidden" name="_token" value="">
+                <form id="deleteForm" method="post" action="{{ path('admin_reservations_delete', {'id': '__ID__'}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ '__ID__') }}">
                     <input type="hidden" name="_method" value="DELETE">
-                    <input type="hidden" name="id" value="">
                     <button type="submit" class="btn btn-danger">
                         <i class="fas fa-trash mr-1"></i>Delete
                     </button>
