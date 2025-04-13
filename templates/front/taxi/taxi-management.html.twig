@@ -278,44 +278,83 @@
 </script>
 
 
-<section id="requests-section" class="py-4">
-    <div class="container">
-        <h3 class="text-center mb-4">Taxi Requests</h3>
-        <div class="row justify-content-center">
-            {% if requests is empty %}
-                <div class="text-center py-4">
-                    <p class="text-muted">No active taxi requests at the moment.</p>
-                </div>
-            {% else %}
-                {% for request in requests %}
-                    <div id="request-{{ request.id }}" class="col-md-4 mb-3">
-                        <div class="card request-card border-0 h-100" style="background-color: #e3f2fd; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                            <div class="card-header text-center" style="background-color: #bbdefb;">
-                                <h6 class="mb-0 text-secondary">{{ request.status }}</h6>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Taxi Requests Section -->
+        <div class="col-lg-6">
+            <section id="requests-section" class="py-4">
+                <div class="container">
+                    <h3 class="text-center mb-4">Taxi Requests</h3>
+                    <div class="row justify-content-center">
+                        {% if requests is empty %}
+                            <div class="text-center py-4">
+                                <p class="text-muted">No active taxi requests at the moment.</p>
                             </div>
-                            <div class="card-body d-flex flex-column p-3">
-                                <p class="mb-2"><i class="fas fa-map-marker-alt me-2 text-primary"></i> Pickup: {{ request.pickupLocation ?: 'Unknown' }}</p>
-                                <p class="mb-2"><i class="fas fa-map-marker-alt me-2 text-primary"></i> Destination: {{ request.destination ?: 'Unknown' }}</p>
-                                <p class="mb-2"><i class="fas fa-clock me-2 text-primary"></i> {{ request.requestTime|date('Y-m-d H:i') }}</p>
-                                <div class="mt-auto d-flex justify-content-between">
-                                    <form class="delete-request-form" action="{{ path('delete_request', { id: request.id }) }}" method="POST">
-                                        <button type="submit" class="btn btn-danger btn-sm d-flex align-items-center" data-request-id="{{ request.id }}">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </form>
-                                    <a href="{{ path('update_request', { id: request.id }) }}" class="btn btn-primary btn-md px-3 py-2 d-flex align-items-center">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
+                        {% else %}
+                            {% for request in requests %}
+                                <div id="request-{{ request.id }}" class="col-md-12 mb-3">
+                                    <div class="card request-card border-0 h-100" style="background-color: #e3f2fd; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                                        <div class="card-header text-center" style="background-color: #bbdefb;">
+                                            <h6 class="mb-0 text-secondary">{{ request.status }}</h6>
+                                        </div>
+                                        <div class="card-body d-flex flex-column p-3">
+                                            <p class="mb-2"><i class="fas fa-map-marker-alt me-2 text-primary"></i> Pickup: {{ request.pickupLocation ?: 'Unknown' }}</p>
+                                            <p class="mb-2"><i class="fas fa-map-marker-alt me-2 text-primary"></i> Destination: {{ request.destination ?: 'Unknown' }}</p>
+                                            <p class="mb-2"><i class="fas fa-clock me-2 text-primary"></i> {{ request.requestTime|date('Y-m-d H:i') }}</p>
+                                            <div class="mt-auto d-flex justify-content-between">
+                                                <form class="delete-request-form" action="{{ path('delete_request', { id: request.id }) }}" method="POST">
+                                                    <button type="submit" class="btn btn-danger btn-sm d-flex align-items-center" data-request-id="{{ request.id }}">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </form>
+                                                <a href="{{ path('update_request', { id: request.id }) }}" class="btn btn-primary btn-md px-3 py-2 d-flex align-items-center">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+        </div>
+        <!-- Rides Section -->
+        <div class="col-lg-6">
+            <section id="rides-section" class="py-4">
+            <div class="container">
+                <h3 class="text-center mb-4">Active Rides</h3>
+                <div class="row justify-content-center">
+                {% if rides is empty %}
+                    <div class="text-center py-4">
+                    <p class="text-muted">No active rides at the moment.</p>
+                    </div>
+                {% else %}
+                    {% for ride in rides %}
+                    <div id="ride-{{ ride.id }}" class="col-md-12 mb-3">
+                        <div class="card ride-card border-0 h-100" style="background-color: #f3e5f5; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                        <div class="card-header text-center" style="background-color: #ce93d8;">
+                            <h5 class="mb-0 text-secondary">{{ ride.status }}</h5>
+                        </div>
+                        <div class="card-body d-flex flex-column p-4">
+                            <p class="mb-3"><i class="fas fa-map-marker-alt me-2 text-primary"></i> Pickup: {{ ride.pickupLocation ?: 'Unknown' }}</p>
+                            <p class="mb-3"><i class="fas fa-map-marker-alt me-2 text-primary"></i> Destination: {{ ride.destination ?: 'Unknown' }}</p>
+                            <p class="mb-3"><i class="fas fa-dollar-sign me-2 text-primary"></i> Price: {{ ride.price ?: 'N/A' }}</p>
+                            <p class="mb-3"><i class="fas fa-clock me-2 text-primary"></i> Duration: {{ ride.duration ?: 'N/A' }}</p>
+                            
+                            <p class="mb-3"><i class="fas fa-road me-2 text-primary"></i> Distance: {{ ride.distance ?: 'N/A' }}</p>
+                        </div>
                         </div>
                     </div>
-                {% endfor %}
-            {% endif %}
+                    {% endfor %}
+                {% endif %}
+                </div>
+            </div>
+            </section>
         </div>
     </div>
-</section>
-  
+</div>
 <div class="d-flex justify-content-center align-items-center" style="min-height: 50vh;">
     {% block javascripts %}
         {{ parent() }}

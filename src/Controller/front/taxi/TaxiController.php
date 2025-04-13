@@ -12,6 +12,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Service\RideService;
+use App\Enum\RideStatus; // Replace with the correct namespace for RIDE_STATUS
 
 #[Route('/services/taxi')]
 class TaxiController extends AbstractController
@@ -20,10 +21,11 @@ class TaxiController extends AbstractController
     private $requestService;
     private $rideService;
 
-    public function __construct(EntityManagerInterface $entityManager, RequestService $requestService)
+    public function __construct(EntityManagerInterface $entityManager, RequestService $requestService, RideService $rideService)
     {
         $this->entityManager = $entityManager;
         $this->requestService = $requestService;
+        $this->rideService = $rideService;// Initialize RideService with EntityManager
     }
 
     #[Route('/taxi/management', name: 'app_taxi_management')]
@@ -38,7 +40,8 @@ class TaxiController extends AbstractController
         }
 
         // Use RequestService to fetch requests for the static user ID (114)
-        $requests = $this->requestService->getRequestsForUser($user->getIdUser()); // Use getIdUser()
+        $requests = $this->requestService->getRequestsForUser($user->getIdUser());
+        $rides = $this->rideService->getRidesByUser($user->getIdUser());// Use getIdUser()
 
         // Prepare data for rendering in the template
         $requestData = [];
@@ -57,8 +60,27 @@ class TaxiController extends AbstractController
             ];
         }
 
+
+        $rideData = [];
+
+        foreach ($rides as $ride) {
+            $rideData[] = [
+                'id' => $ride->getIdRide(), // Ride ID
+                'pickupLocation' => $ride->getRequest()->getDepartureLocation() ? $ride->getRequest()->getDepartureLocation()->getAddress() : 'Unknown', // Pickup address
+                'duration' => $ride->getDuration(), // Ride duration
+               // 'driverName' => $ride->getDriver() ? $ride->getDriver()->getname : 'Unknown', // Driver name
+                'destination' => $ride->getRequest()->getArrivalLocation() ? $ride->getRequest()->getArrivalLocation()->getAddress() : 'Unknown', // Destination address
+                'price' => $ride->getPrice(), // Ride price
+                'status' => $ride->getStatus()->value, // Ride status
+                'distance' => $ride->getDistance(), // Ride distance
+            ];
+        }
+
+
+
         return $this->render('front/taxi/taxi-management.html.twig', [
             'requests' => $requestData,
+            'rides' => $rideData, 
         ]);
     }
 
@@ -96,6 +118,7 @@ class TaxiController extends AbstractController
         ]);
     }
 
-    
-    
+   
+   
+  
 }

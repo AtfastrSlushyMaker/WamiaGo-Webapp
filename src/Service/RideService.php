@@ -147,4 +147,22 @@ class RideService
     
     return $ride;
 }
+public function getRidesByUser(int $userId): array
+{
+    $user = $this->entityManager->getRepository(User::class)->find($userId);
+
+    if (!$user) {
+        throw new \Exception('User not found with ID: ' . $userId);
+    }
+
+    // Query rides where the request's user matches the given user
+    return $this->rideRepository->createQueryBuilder('r')
+        ->join('r.request', 'req')
+        ->where('req.user = :user')
+        ->setParameter('user', $user)
+        ->getQuery()
+        ->getResult();
+}
+
+
 }
