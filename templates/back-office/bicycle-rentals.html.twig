@@ -20,20 +20,19 @@
                             <i class="fas fa-download me-2"></i>Export
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-file-excel me-2 text-success"></i>Excel</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2 text-danger"></i>PDF</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-file-csv me-2 text-primary"></i>CSV</a></li>
+                            <li><a class="dropdown-item" href="{{ path('admin_bicycle_rental_export') }}"><i class="fas fa-file-csv me-2"></i>Export to CSV</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-file-excel me-2"></i>Export to Excel</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2"></i>Export to PDF</a></li>
                         </ul>
                     </div>
-                    <a href="#" class="btn btn-primary d-inline-flex align-items-center">
-                        <i class="fas fa-plus me-2"></i> New Entry
+                    <a href="{{ path('admin_bicycle_rentals_index') }}" class="btn btn-primary">
+                        <i class="fas fa-receipt me-2"></i>Rental Management
                     </a>
                 </div>
             </div>
         </div>
     </div>
-    
-    
+
     <!-- Management Navigation Tabs - Enhanced Design -->
     <div class="card mb-4">
         <div class="card-body p-0">
@@ -67,7 +66,20 @@
     <div class="tab-content fade-in" id="bicycleManagementTabsContent">
         {% if active_tab == 'rentals' %}
             <div class="tab-pane fade show active">
-                {% include 'back-office/bicycle/rental.html.twig' %}
+                 {% if rentals is not defined %}
+                    {% if bicycle_rentals is defined %}
+                        {% set rentals = bicycle_rentals %}
+                    {% else %}
+                        {% set rentals = [] %}
+                    {% endif %}
+                 {% endif %}
+                 
+                 {% include 'back-office/bicycle/rental.html.twig' with {
+                    'rentals': rentals, 
+                    'stats': stats, 
+                    'stations': stations|default([]),
+                    'debugInfo': debug|default({})
+                 } %}
             </div>
         {% elseif active_tab == 'bicycles' %}
             <div class="tab-pane fade show active">

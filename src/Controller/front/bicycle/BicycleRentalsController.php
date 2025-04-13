@@ -25,29 +25,19 @@ use App\Repository\BicycleStationRepository;
 #[Route('/services/bicycle')]
 class BicycleRentalsController extends AbstractController
 {
-    private $entityManager;
-    private $bicycleService;
-    private $stationService;
-    private $rentalService;
-    private $security;
-    private $validator;
-
     public function __construct(
-        EntityManagerInterface $entityManager,
-        BicycleService $bicycleService,
-        BicycleStationService $stationService,
-        BicycleRentalService $rentalService,
-        Security $security,
-        ValidatorInterface $validator
+        private readonly EntityManagerInterface $entityManager,
+        private readonly BicycleService $bicycleService,
+        private readonly BicycleStationService $stationService,
+        private readonly BicycleRentalService $rentalService,
+        private readonly Security $security,
+        private readonly ValidatorInterface $validator
     ) {
-        $this->entityManager = $entityManager;
-        $this->bicycleService = $bicycleService;
-        $this->stationService = $stationService;
-        $this->rentalService = $rentalService;
-        $this->security = $security;
-        $this->validator = $validator;
     }
 
+    /**
+     * Main bicycle rentals page
+     */
     #[Route('/', name: 'app_front_services_bicycle')]
     public function index(): Response
     {
@@ -57,9 +47,8 @@ class BicycleRentalsController extends AbstractController
         // Get active stations for the map and listings
         $stations = $this->stationService->getAllActiveStations();
 
-        // Get user's active rentals if logged in
+        // Get user's active rentals
         $activeRentals = [];
-        // Use a static user with ID 1 for all users
         $user = $this->entityManager->getRepository(User::class)->find(1);
         if ($user) {
             $activeRentals = $this->rentalService->getActiveRentalsForUser($user);
@@ -71,7 +60,10 @@ class BicycleRentalsController extends AbstractController
         ]);
     }
 
-    #[Route('/station/{id}', name: 'app_front_services_bicycle_station')]
+    /**
+     * View station details with available bicycles
+     */
+    #[Route('/station/{id}', name: 'app_front_services_bicycle_station', requirements: ['id' => '\d+'])]
     public function stationDetails(int $id): Response
     {
         $station = $this->stationService->getStation($id);
@@ -89,7 +81,10 @@ class BicycleRentalsController extends AbstractController
         ]);
     }
 
-    #[Route('/bicycle/{id}', name: 'app_front_services_bicycle_details')]
+    /**
+     * View bicycle details
+     */
+    #[Route('/bicycle/{id}', name: 'app_front_services_bicycle_details', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function bicycleDetails(int $id): Response
     {
         $bicycle = $this->bicycleService->getBicycle($id);
@@ -98,17 +93,19 @@ class BicycleRentalsController extends AbstractController
             throw $this->createNotFoundException('Bicycle not found');
         }
 
-        $isPremium = $bicycle->getBatteryLevel() > 90;
-        $hourlyRate = $isPremium ? 5.00 : 3.50;
+        $bicycleInfo = $this->getBicycleDisplayInfo($bicycle);
 
         return $this->render('front/bicycle/bicycle-details.html.twig', [
             'bicycle' => $bicycle,
-            'bicycleType' => $isPremium ? 'Premium E-Bike' : 'Standard E-Bike',
-            'hourlyRate' => $hourlyRate
+            'bicycleType' => $bicycleInfo['type'],
+            'hourlyRate' => $bicycleInfo['hourlyRate']
         ]);
     }
 
-    #[Route('/bicycle/{id}/reserve', name: 'app_front_reserve_bicycle', methods: ['GET', 'POST'])]
+    /**
+     * Reserve a bicycle
+     */
+    #[Route('/bicycle/{id}/reserve', name: 'app_front_reserve_bicycle', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function reserveBicycle(Request $request, int $id): Response
     {
         $bicycle = $this->bicycleService->getBicycle($id);
@@ -122,8 +119,7 @@ class BicycleRentalsController extends AbstractController
             return $this->redirectToRoute('app_front_services_bicycle_station', ['id' => $bicycle->getBicycleStation()->getIdStation()]);
         }
 
-        $isPremium = $bicycle->getBatteryLevel() > 90;
-        $hourlyRate = $isPremium ? 5.00 : 3.50;
+        $bicycleInfo = $this->getBicycleDisplayInfo($bicycle);
 
         // Process form submission
         if ($request->isMethod('POST')) {
@@ -131,27 +127,14 @@ class BicycleRentalsController extends AbstractController
             $estimatedCost = (float) $request->request->get('estimatedCost');
 
             // Validate input
-            $constraints = new Assert\Collection([
-                'duration' => [
-                    new Assert\NotBlank(),
-                    new Assert\Type(['type' => 'numeric']),
-                    new Assert\Range(['min' => 1, 'max' => 24])
-                ],
-                'estimatedCost' => [
-                    new Assert\NotBlank(),
-                    new Assert\Type(['type' => 'numeric']),
-                    new Assert\Positive()
-                ]
-            ]);
-
-            $errors = $this->validator->validate([
+            $validationResult = $this->validateReservationInput([
                 'duration' => $duration,
                 'estimatedCost' => $estimatedCost
-            ], $constraints);
+            ]);
 
-            if (count($errors) > 0) {
-                foreach ($errors as $error) {
-                    $this->addFlash('error', $error->getMessage());
+            if (!$validationResult['isValid']) {
+                foreach ($validationResult['errors'] as $error) {
+                    $this->addFlash('error', $error);
                 }
             } else {
                 try {
@@ -173,12 +156,15 @@ class BicycleRentalsController extends AbstractController
 
         return $this->render('front/bicycle/reserve.html.twig', [
             'bicycle' => $bicycle,
-            'bicycleType' => $isPremium ? 'Premium E-Bike' : 'Standard E-Bike',
-            'hourlyRate' => $hourlyRate
+            'bicycleType' => $bicycleInfo['type'],
+            'hourlyRate' => $bicycleInfo['hourlyRate']
         ]);
     }
 
-    #[Route('/rental/{id}/confirmation', name: 'app_front_rental_confirmation')]
+    /**
+     * Rental confirmation page
+     */
+    #[Route('/rental/{id}/confirmation', name: 'app_front_rental_confirmation', requirements: ['id' => '\d+'])]
     public function rentalConfirmation(int $id): Response
     {
         $rental = $this->entityManager->getRepository(BicycleRental::class)->find($id);
@@ -190,11 +176,14 @@ class BicycleRentalsController extends AbstractController
 
         return $this->render('front/bicycle/confirmation.html.twig', [
             'rental' => $rental,
-            'reservationCode' => 'B' . str_pad($rental->getIdUserRental(), 5, '0', STR_PAD_LEFT)
+            'reservationCode' => $this->generateReservationCode($rental)
         ]);
     }
 
-    #[Route('/rental/{id}/code', name: 'app_front_show_rental_code')]
+    /**
+     * Show rental code for pickup
+     */
+    #[Route('/rental/{id}/code', name: 'app_front_show_rental_code', requirements: ['id' => '\d+'])]
     public function showRentalCode(int $id): Response
     {
         $rental = $this->entityManager->getRepository(BicycleRental::class)->find($id);
@@ -206,11 +195,14 @@ class BicycleRentalsController extends AbstractController
 
         return $this->render('front/bicycle/rental-code.html.twig', [
             'rental' => $rental,
-            'reservationCode' => 'B' . str_pad($rental->getIdUserRental(), 5, '0', STR_PAD_LEFT)
+            'reservationCode' => $this->generateReservationCode($rental)
         ]);
     }
 
-    #[Route('/rental/{id}/cancel', name: 'app_front_cancel_rental', methods: ['GET', 'POST'])]
+    /**
+     * Cancel a rental
+     */
+    #[Route('/rental/{id}/cancel', name: 'app_front_cancel_rental', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function cancelRental(Request $request, int $id): Response
     {
         $rental = $this->entityManager->getRepository(BicycleRental::class)->find($id);
@@ -231,15 +223,15 @@ class BicycleRentalsController extends AbstractController
         ]);
     }
 
+    /**
+     * View user's reservations
+     */
     #[Route('/my-reservations', name: 'app_front_my_reservations')]
     public function myReservations(): Response
     {
-        $activeRentals = $this->rentalService->getActiveRentalsForUser(
-            $this->entityManager->getRepository(User::class)->find(1)
-        );
-        $pastRentals = $this->rentalService->getPastRentalsForUser(
-            $this->entityManager->getRepository(User::class)->find(1)
-        );
+        $user = $this->entityManager->getRepository(User::class)->find(1);
+        $activeRentals = $this->rentalService->getActiveRentalsForUser($user);
+        $pastRentals = $this->rentalService->getPastRentalsForUser($user);
 
         return $this->render('front/bicycle/my-reservations.html.twig', [
             'activeRentals' => $activeRentals,
@@ -247,7 +239,9 @@ class BicycleRentalsController extends AbstractController
         ]);
     }
 
-    // API endpoints for AJAX operations
+    /**
+     * API: Get all active stations
+     */
     #[Route('/stations', name: 'app_api_bicycle_stations', methods: ['GET'])]
     public function getStations(): JsonResponse
     {
@@ -263,7 +257,7 @@ class BicycleRentalsController extends AbstractController
                     'lng' => $station->getLocation()->getLongitude(),
                     'address' => $station->getLocation()->getAddress()
                 ] : null,
-                'availableBikes' => $station->getAvailableBikes(),  // Use the station's own count
+                'availableBikes' => $station->getAvailableBikes(),
                 'availableDocks' => $station->getAvailableDocks(),
                 'chargingBikes' => $station->getChargingBikes(),
                 'totalDocks' => $station->getTotalDocks(),
@@ -271,32 +265,34 @@ class BicycleRentalsController extends AbstractController
             ];
         }
 
-
         return new JsonResponse($stationsData);
     }
 
-    #[Route('/station/{id}/bicycles', name: 'app_api_station_bicycles', methods: ['GET'])]
+    /**
+     * API: Get bicycles at a station
+     */
+    #[Route('/station/{id}/bicycles', name: 'app_api_station_bicycles', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function getStationBicycles(int $id): JsonResponse
     {
         $station = $this->stationService->getStation($id);
 
         if (!$station) {
-            return new JsonResponse(['error' => 'Station not found'], 404);
+            return new JsonResponse(['error' => 'Station not found'], Response::HTTP_NOT_FOUND);
         }
 
         $bicycles = $this->bicycleService->getBicyclesByStation($station, true);
         $bicycleData = [];
 
         foreach ($bicycles as $bicycle) {
-            $isPremium = $bicycle->getBatteryLevel() > 90;
+            $bicycleInfo = $this->getBicycleDisplayInfo($bicycle);
             $bicycleData[] = [
                 'id' => $bicycle->getIdBike(),
                 'batteryLevel' => $bicycle->getBatteryLevel(),
                 'rangeKm' => $bicycle->getRangeKm(),
-                'type' => $isPremium ? 'Premium E-Bike' : 'Standard E-Bike',
+                'type' => $bicycleInfo['type'],
                 'lastUpdated' => $bicycle->getLastUpdated()->format('Y-m-d H:i:s'),
                 'status' => $bicycle->getStatus()->value,
-                'hourlyRate' => $isPremium ? 5.00 : 3.50
+                'hourlyRate' => $bicycleInfo['hourlyRate']
             ];
         }
 
@@ -309,20 +305,23 @@ class BicycleRentalsController extends AbstractController
         ]);
     }
 
-    #[Route('/bicycle/{id}', name: 'app_api_bicycle_detail', methods: ['GET'])]
+    /**
+     * API: Get bicycle details
+     */
+    #[Route('/bicycle/{id}', name: 'app_api_bicycle_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function getBicycleDetails(int $id): JsonResponse
     {
         $bicycle = $this->bicycleService->getBicycle($id);
 
         if (!$bicycle) {
-            return new JsonResponse(['error' => 'Bicycle not found'], 404);
+            return new JsonResponse(['error' => 'Bicycle not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $isPremium = $bicycle->getBatteryLevel() > 90;
+        $bicycleInfo = $this->getBicycleDisplayInfo($bicycle);
 
         return new JsonResponse([
             'id' => $bicycle->getIdBike(),
-            'type' => $isPremium ? 'Premium E-Bike' : 'Standard E-Bike',
+            'type' => $bicycleInfo['type'],
             'batteryLevel' => $bicycle->getBatteryLevel(),
             'rangeKm' => $bicycle->getRangeKm(),
             'lastUpdated' => $bicycle->getLastUpdated()->format('Y-m-d H:i:s'),
@@ -332,14 +331,109 @@ class BicycleRentalsController extends AbstractController
                 'location' => $bicycle->getBicycleStation()->getLocation() ?
                     $bicycle->getBicycleStation()->getLocation()->getAddress() : null
             ],
-            'hourlyRate' => $isPremium ? 5.00 : 3.50
+            'hourlyRate' => $bicycleInfo['hourlyRate']
         ]);
     }
 
-    #[Route('/reserve/{id}', name: 'app_api_reserve_bicycle', methods: ['POST'])]
+    /**
+     * API: Reserve a bicycle
+     */
+    #[Route('/reserve/{id}', name: 'app_api_reserve_bicycle', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function apiReserveBicycle(int $id, Request $request): JsonResponse
     {
-        // Use Symfony Assert to validate input
+        $data = json_decode($request->getContent(), true);
+
+        // Validate input data
+        $validationResult = $this->validateReservationInput($data);
+        if (!$validationResult['isValid']) {
+            return new JsonResponse(['error' => $validationResult['errors']], Response::HTTP_BAD_REQUEST);
+        }
+
+        $bicycle = $this->bicycleService->getBicycle($id);
+
+        if (!$bicycle) {
+            return new JsonResponse(['error' => 'Bicycle not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        if ($bicycle->getStatus() !== BICYCLE_STATUS::AVAILABLE) {
+            return new JsonResponse(['error' => 'This bicycle is not available for reservation'], Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $user = $this->entityManager->getRepository(User::class)->find(1);
+            $rental = $this->rentalService->reserveBicycle(
+                $user,
+                $bicycle,
+                $data['estimatedCost']
+            );
+
+            return new JsonResponse([
+                'success' => true,
+                'rentalId' => $rental->getIdUserRental(),
+                'reservationCode' => $this->generateReservationCode($rental),
+                'message' => 'Bicycle reserved successfully!'
+            ], Response::HTTP_CREATED);
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * API: Cancel a rental
+     */
+    #[Route('/api/rental/{id}/cancel', name: 'app_api_cancel_rental', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function apiCancelRental(int $id): JsonResponse
+    {
+        $rental = $this->entityManager->getRepository(BicycleRental::class)->find($id);
+        $user = $this->entityManager->getRepository(User::class)->find(1);
+
+        if (!$rental) {
+            return new JsonResponse(['error' => 'Rental not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        if ($rental->getUser() !== $user) {
+            return new JsonResponse(['error' => 'You can only cancel your own reservations'], Response::HTTP_FORBIDDEN);
+        }
+
+        try {
+            $this->rentalService->cancelRental($rental);
+            return new JsonResponse([
+                'success' => true,
+                'message' => 'Rental cancelled successfully'
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'error' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Helper function to get display information for a bicycle
+     */
+    private function getBicycleDisplayInfo(Bicycle $bicycle): array
+    {
+        $isPremium = $bicycle->getBatteryLevel() > 90;
+        
+        return [
+            'type' => $isPremium ? 'Premium E-Bike' : 'Standard E-Bike',
+            'hourlyRate' => $isPremium ? 5.00 : 3.50
+        ];
+    }
+
+    /**
+     * Helper function to generate a reservation code
+     */
+    private function generateReservationCode(BicycleRental $rental): string
+    {
+        return 'B' . str_pad($rental->getIdUserRental(), 5, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Helper function to validate reservation input
+     */
+    private function validateReservationInput(array $data): array
+    {
         $constraints = new Assert\Collection([
             'duration' => [
                 new Assert\NotBlank(),
@@ -353,64 +447,16 @@ class BicycleRentalsController extends AbstractController
             ]
         ]);
 
-        $data = json_decode($request->getContent(), true);
-
-        // Validate input data
         $errors = $this->validator->validate($data, $constraints);
+        $errorMessages = [];
+        
         if (count($errors) > 0) {
-            $errorMessages = [];
             foreach ($errors as $error) {
                 $errorMessages[] = $error->getMessage();
             }
-            return new JsonResponse(['error' => $errorMessages], 400);
+            return ['isValid' => false, 'errors' => $errorMessages];
         }
-
-        $bicycle = $this->bicycleService->getBicycle($id);
-
-        if (!$bicycle) {
-            return new JsonResponse(['error' => 'Bicycle not found'], 404);
-        }
-
-        if ($bicycle->getStatus() !== BICYCLE_STATUS::AVAILABLE) {
-            return new JsonResponse(['error' => 'This bicycle is not available for reservation'], 400);
-        }
-
-        try {
-            // Replace this line using security->getUser() with a static user ID 1
-            // $user = $this->security->getUser();
-            $rental = $this->rentalService->reserveBicycle(
-                $this->entityManager->getRepository(User::class)->find(1),
-                $bicycle,
-                $data['estimatedCost']
-            );
-
-            return new JsonResponse([
-                'success' => true,
-                'rentalId' => $rental->getIdUserRental(),
-                'reservationCode' => 'B' . str_pad($rental->getIdUserRental(), 5, '0', STR_PAD_LEFT),
-                'message' => 'Bicycle reserved successfully!'
-            ]);
-        } catch (\Exception $e) {
-            return new JsonResponse(['error' => $e->getMessage()], 500);
-        }
-    }
-
-    #[Route('/api/rental/{id}/cancel', name: 'app_api_cancel_rental', methods: ['POST'])]
-    public function apiCancelRental(int $id): JsonResponse
-    {
-        $rental = $this->entityManager->getRepository(BicycleRental::class)->find($id);
-        $user = $this->entityManager->getRepository(User::class)->find(1);
-
-        if (!$rental) {
-            return new JsonResponse(['error' => 'Rental not found'], 404);
-        }
-
-        if ($rental->getUser() !== $user) {
-            return new JsonResponse(['error' => 'You can only cancel your own reservations'], 403);
-        }
-
-        $this->rentalService->cancelRental($rental);
-
-        return new JsonResponse(['success' => true]);
+        
+        return ['isValid' => true, 'errors' => []];
     }
 }

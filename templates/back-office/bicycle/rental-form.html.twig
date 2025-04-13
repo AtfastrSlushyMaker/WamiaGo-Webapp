@@ -1,0 +1,216 @@
+{% extends 'back-office/base.html.twig' %}
+
+{% block title %}{{ mode == 'edit' ? 'Edit Rental #' ~ rental.idUserRental : 'Create New Rental' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Breadcrumb & Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_dashboard', {'tab': 'rentals'}) }}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_rentals_index') }}">Rentals</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            {{ mode == 'edit' ? 'Edit Rental #' ~ rental.idUserRental : 'Create New Rental' }}
+                        </li>
+                    </ol>
+                </nav>
+                {% if mode == 'edit' %}
+                    <div class="d-flex">
+                        <a href="{{ path('admin_bicycle_rental_show', {'id': rental.idUserRental}) }}" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Details
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts Section -->
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">{{ mode == 'edit' ? 'Edit Rental Information' : 'Create New Rental' }}</h5>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-muted mb-3">Basic Information</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form_row(form.user) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(form.bicycle) }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-muted mb-3">Station Information</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form_row(form.startStation) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(form.endStation) }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-muted mb-3">Time Information</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form_row(form.startTime) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(form.endTime) }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-muted mb-3">Usage Information</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                {{ form_row(form.cost) }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form_row(form.distanceKm) }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form_row(form.batteryUsed) }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end">
+                        <a href="{{ mode == 'edit' ? path('admin_bicycle_rental_show', {'id': rental.idUserRental}) : path('admin_bicycle_rentals_index') }}" class="btn btn-outline-secondary me-2">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>{{ mode == 'edit' ? 'Update Rental' : 'Create Rental' }}
+                        </button>
+                    </div>
+                    
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    /* Custom styling for select2 */
+    .select2-container--default .select2-selection--single {
+        height: 38px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 38px;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px;
+    }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Select2 for better dropdowns
+        if (typeof $.fn.select2 !== 'undefined') {
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
+        }
+        
+        // Show/hide end time based on start time
+        const startTimeField = document.getElementById('bicycle_rental_startTime');
+        const endTimeField = document.getElementById('bicycle_rental_endTime');
+        const endTimeContainer = endTimeField?.closest('.mb-3');
+        
+        function updateEndTimeVisibility() {
+            if (startTimeField && endTimeField && endTimeContainer) {
+                if (startTimeField.value) {
+                    endTimeContainer.style.display = '';
+                } else {
+                    endTimeField.value = '';
+                    endTimeContainer.style.display = 'none';
+                }
+            }
+        }
+        
+        if (startTimeField) {
+            updateEndTimeVisibility();
+            startTimeField.addEventListener('change', updateEndTimeVisibility);
+        }
+        
+        // Automatically calculate cost based on duration when both start and end times are filled
+        function calculateCost() {
+            if (startTimeField && endTimeField && startTimeField.value && endTimeField.value) {
+                const bicycleField = document.getElementById('bicycle_rental_bicycle');
+                const costField = document.getElementById('bicycle_rental_cost');
+                
+                if (bicycleField && costField) {
+                    const bicycleId = bicycleField.value;
+                    if (bicycleId) {
+                        const start = new Date(startTimeField.value);
+                        const end = new Date(endTimeField.value);
+                        
+                        if (end > start) {
+                            // Calculate hours difference
+                            const diffHours = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60)));
+                            
+                            // Fetch bicycle details to determine if it's premium (for the rate)
+                            fetch(`/admin/bicycle-rental/api/bicycle/${bicycleId}`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    const hourlyRate = data.isPremium ? 5.0 : 3.5;
+                                    const cost = (diffHours * hourlyRate).toFixed(3);
+                                    costField.value = cost;
+                                })
+                                .catch(error => {
+                                    console.error('Error fetching bicycle details:', error);
+                                });
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (endTimeField) {
+            endTimeField.addEventListener('change', calculateCost);
+        }
+        
+        if (document.getElementById('bicycle_rental_bicycle')) {
+            document.getElementById('bicycle_rental_bicycle').addEventListener('change', function() {
+                if (startTimeField && endTimeField && startTimeField.value && endTimeField.value) {
+                    calculateCost();
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,259 @@
+{% extends 'back-office/base.html.twig' %}
+
+{% block title %}Create New Bicycle Rental{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_rentals_index') }}">Rentals</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">New Rental</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-2">Create New Bicycle Rental</h1>
+            <p class="text-muted">Create a new rental record for a user</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">Rental Information</h5>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form, {'attr': {'id': 'rental-form', 'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form_label(form.user, 'Select User', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.user, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_errors(form.user) }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="bicycleId" class="form-label">Select Bicycle</label>
+                            <select id="bicycleId" name="bicycleId" class="form-select" required>
+                                <option value="">Choose a bicycle</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            <div class="invalid-feedback">Please select a bicycle</div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="stationId" class="form-label">Pickup Station</label>
+                            <select id="stationId" name="stationId" class="form-select" required>
+                                <option value="">Select a station</option>
+                                {% for station in stations %}
+                                    <option value="{{ station.idStation }}">{{ station.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback">Please select a station</div>
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_label(form.cost, 'Estimated Cost (TND)', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.cost, {'attr': {'class': 'form-control', 'step': '0.001', 'min': '0'}}) }}
+                            {{ form_errors(form.cost) }}
+                        </div>
+                    </div>
+
+                    <div class="bicycle-details mt-4 mb-3" style="display: none;">
+                        <h6 class="text-muted mb-3">Bicycle Details</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="bicycle-type mb-2">Standard E-Bike</h6>
+                                        <div class="mb-2">
+                                            <span class="fw-bold">Battery Level:</span>
+                                            <span class="battery-percentage">75%</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <span class="fw-bold">Range:</span>
+                                            <span class="range-km">25 km</span>
+                                        </div>
+                                        <div class="battery-indicator">
+                                            <div class="battery-level" style="width: 75%; background-color: #66bb6a;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="mb-2">Rental Rate</h6>
+                                        <div class="rate-info">
+                                            <h4 class="hourly-rate">3.500 TND</h4>
+                                            <p class="text-muted mb-0">per hour</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Create Rental
+                        </button>
+                        <a href="{{ path('admin_bicycle_rentals_index') }}" class="btn btn-outline-secondary ms-2">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                    
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">Instructions</h5>
+                </div>
+                <div class="card-body">
+                    <ol class="instruction-list">
+                        <li>Select a user who will be renting the bicycle</li>
+                        <li>Choose a station with available bicycles</li>
+                        <li>Select an available bicycle from that station</li>
+                        <li>The estimated cost will be calculated based on the bicycle type</li>
+                        <li>Premium bicycles (battery > 90%) have a higher hourly rate</li>
+                    </ol>
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span>When you create a new rental, the bicycle will be marked as reserved until the user activates it.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stationSelect = document.getElementById('stationId');
+    const bicycleSelect = document.getElementById('bicycleId');
+    const bicycleDetails = document.querySelector('.bicycle-details');
+    const bicycleType = document.querySelector('.bicycle-type');
+    const batteryPercentage = document.querySelector('.battery-percentage');
+    const rangeKm = document.querySelector('.range-km');
+    const batteryLevel = document.querySelector('.battery-level');
+    const hourlyRate = document.querySelector('.hourly-rate');
+    const costInput = document.querySelector('[name="bicycle_rental[cost]"]');
+    
+    // Form validation
+    const form = document.getElementById('rental-form');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+    
+    // Update bicycles when station changes
+    stationSelect.addEventListener('change', function() {
+        const stationId = this.value;
+        bicycleSelect.innerHTML = '<option value="">Choose a bicycle</option>';
+        bicycleDetails.style.display = 'none';
+        
+        if (stationId) {
+            fetch(`{{ path('admin_station_available_bicycles', {'id': '0'}) }}`.replace('/0', `/${stationId}`))
+                .then(response => response.json())
+                .then(bicycles => {
+                    if (bicycles.length === 0) {
+                        bicycleSelect.innerHTML = '<option value="">No available bicycles at this station</option>';
+                    } else {
+                        bicycles.forEach(bicycle => {
+                            const option = document.createElement('option');
+                            option.value = bicycle.id;
+                            option.dataset.batteryLevel = bicycle.batteryLevel;
+                            option.dataset.rangeKm = bicycle.rangeKm;
+                            option.dataset.type = bicycle.type;
+                            option.dataset.hourlyRate = bicycle.hourlyRate;
+                            option.textContent = `Bicycle #${bicycle.id} - ${bicycle.type} (${bicycle.batteryLevel}%)`;
+                            bicycleSelect.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching bicycles:', error);
+                    bicycleSelect.innerHTML = '<option value="">Error loading bicycles</option>';
+                });
+        }
+    });
+    
+    // Update bicycle details when bicycle changes
+    bicycleSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        
+        if (this.value) {
+            const battery = parseFloat(selectedOption.dataset.batteryLevel);
+            const range = parseFloat(selectedOption.dataset.rangeKm);
+            const type = selectedOption.dataset.type;
+            const rate = parseFloat(selectedOption.dataset.hourlyRate);
+            
+            // Update UI
+            bicycleType.textContent = type;
+            batteryPercentage.textContent = `${battery}%`;
+            rangeKm.textContent = `${range} km`;
+            batteryLevel.style.width = `${battery}%`;
+            
+            // Set color based on battery level
+            if (battery > 70) {
+                batteryLevel.style.backgroundColor = '#66bb6a';
+            } else if (battery > 30) {
+                batteryLevel.style.backgroundColor = '#ffb74d';
+            } else {
+                batteryLevel.style.backgroundColor = '#ef5350';
+            }
+            
+            // Update hourly rate
+            hourlyRate.textContent = `${rate.toFixed(3)} TND`;
+            
+            // Set estimated cost (for 1 hour by default)
+            costInput.value = rate.toFixed(3);
+            
+            bicycleDetails.style.display = 'block';
+        } else {
+            bicycleDetails.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .battery-indicator {
+        width: 100%;
+        height: 10px;
+        background-color: #e9ecef;
+        border-radius: 5px;
+        overflow: hidden;
+        margin-top: 10px;
+    }
+    
+    .battery-level {
+        height: 100%;
+        transition: width 0.3s ease;
+    }
+    
+    .instruction-list li {
+        margin-bottom: 10px;
+    }
+    
+    .rate-info {
+        text-align: center;
+        padding: 10px 0;
+    }
+</style>
+{% endblock %}
