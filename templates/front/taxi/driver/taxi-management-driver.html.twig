@@ -93,32 +93,37 @@
                 </div>
             </div>
         </div>        <!-- Main Content -->
-            <div class="row">
-                <!-- Active Rides Section -->
-                <div class="col-12 mb-4">
-                    <div class="active-rides">
-                        <h5><i class="fas fa-taxi"></i> Active Rides</h5>
-                        <div class="d-flex flex-wrap">
-                            <div class="card request-card me-2 mb-2" style="width: 18rem;">
-                                <div class="card-body p-2">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <h6 class="card-title mb-1">Ride #123</h6>
-                                        <span class="badge bg-success status-badge">In Progress</span>
-                                    </div>
-                                    <p class="mb-1"><i class="fas fa-user"></i> John Doe</p>
-                                    <p class="mb-1"><i class="fas fa-map-marker-alt text-danger"></i> 123 Main St</p>
-                                    <p class="mb-1"><i class="fas fa-map-marker-alt text-success"></i> 456 Elm St</p>
-                                    <p class="mb-1"><i class="fas fa-route"></i> 10 km</p>
-                                    <p class="mb-1"><i class="fas fa-clock"></i> 25 min</p>
-                                    <p class="mb-1"><i class="fas fa-dollar-sign"></i> $15</p>
-                                    <button class="btn btn-sm btn-success">Complete</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-           <!-- Available Requests Section -->
+                                                                            <div class="row">
+                                                                                                                            <!-- Active Rides Section -->
+                                                                                                                            <div class="col-12 mb-4">
+                                                                                                                                            <div class="active-rides">
+                                                                                                                                                            <h5><i class="fas fa-taxi"></i> Active Rides</h5>
+                                                                                                                                                            <div class="d-flex flex-wrap justify-content-center">
+                                                                                                                                                                            {% for ride in activeRides %}
+                                                                                                                                                                                            <div class="card request-card me-3 mb-3" style="width: 26rem; height: 32rem;"> <!-- Slightly increased width and height -->
+                                                                                                                                                                                                            <div class="card-body p-4 d-flex flex-column justify-content-between">
+                                                                                                                                                                                                                            <div>
+                                                                                                                                                                                                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                                                                                                                                                                                                            <h6 class="card-title mb-3" style="font-size: 1rem;">Ride</h6> <!-- Reduced font size -->
+                                                                                                                                                                                                         <span class="badge bg-success status-badge" style="font-size: 0.9rem;">{{ ride.status }}</span> <!-- Unified font size -->
+                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                            <p class="mb-3" style="font-size: 0.9rem;"><i class="fas fa-user"></i> {{ ride.userName }}</p> <!-- Unified font size -->
+                                                                                                                                                                                                                                            <p class="mb-3" style="font-size: 0.9rem;"><i class="fas fa-map-marker-alt text-danger"></i> {{ ride.pickupLocation }}</p> <!-- Unified font size -->
+                                                                                                                                                                                                                                            <p class="mb-3" style="font-size: 0.9rem;"><i class="fas fa-map-marker-alt text-success"></i> {{ ride.dropoffLocation }}</p> <!-- Unified font size -->
+                                                                                                                                                                                                                                            <p class="mb-3" style="font-size: 0.9rem;"><i class="fas fa-route"></i> {{ ride.distance }} km</p> <!-- Unified font size -->
+                                                                                                                                                                                                                                            <p class="mb-3" style="font-size: 0.9rem;"><i class="fas fa-clock"></i> {{ ride.duration }} min</p> <!-- Unified font size -->
+                                                                                                                                                                                                                                            <p class="mb-3" style="font-size: 0.9rem;"><i class="fas fa-dollar-sign"></i> ${{ ride.price }}</p> <!-- Unified font size -->
+                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                            <button class="btn btn-lg btn-success mt-4">Complete</button> <!-- Increased button size -->
+                                                                                                                                                                                                            </div>
+                                                                                                                                                                                            </div>
+                                                                                                                                                                            {% else %}
+                                                                                                                                                                                            <p>No active rides at the moment.</p>
+                                                                                                                                                                            {% endfor %}
+                                                                                                                                                            </div>
+                                                                                                                                            </div>
+                                                                                                                            </div>
+                                                                                                            </div>
 <div class="col-md-6">
     <h5><i class="fas fa-list"></i> Available Requests</h5>
     {% for request in availableRequests %}

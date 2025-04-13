@@ -35,8 +35,11 @@ class TaxiDriverController extends AbstractController
     {
         // Fetch all requests using the RequestService
         $availableRequests = $this->requestService->getAllRequests();
+        $driver = $this->entityManager->getRepository(Driver::class)->find(1);
+        
+        $activeRides = $this->rideService->getActiveRidesByDriver($driver);// Fetch driver with ID 1
 
-        // Map requests to include detailed information
+       
         $requestsWithDetails = array_map(function ($request) {
             return [
                 'id' => $request->getIdRequest(), // Corrected to fetch the request ID
@@ -48,9 +51,24 @@ class TaxiDriverController extends AbstractController
             ];
         }, $availableRequests);
 
-        // Render the template and pass the requests with details
+
+        $ridesWithDetails = array_map(function ($ride) {
+            return [
+              
+                'pickupLocation' => $ride->getRequest()->getDepartureLocation() ? $ride->getRequest()->getDepartureLocation()->getAddress() : 'Unknown',
+                'dropoffLocation' => $ride->getRequest()->getArrivalLocation() ? $ride->getRequest()->getArrivalLocation()->getAddress() : 'Unknown',
+                'distance' => $ride->getDistance(),
+                'duration' => $ride->getDuration(),
+                'price' => $ride->getPrice(),
+                'status' => $ride->getStatus() instanceof RIDE_STATUS ? $ride->getStatus()->value : 'Unknown', // Convert enum to string
+                'userName' => $ride->getRequest()->getUser() ? $ride->getRequest()->getUser()->getName() : 'Unknown',
+            ];
+        }, $activeRides);
+
+        
         return $this->render('front/taxi/driver/taxi-management-driver.html.twig', [
             'availableRequests' => $requestsWithDetails,
+            'activeRides' => $ridesWithDetails,
         ]);
     }
 
@@ -101,6 +119,27 @@ public function acceptRequest(int $id): JsonResponse
         ]);
     } catch (\Exception $e) {
         $this->logger->error("Error: " . $e->getMessage());
+        return new JsonResponse([
+            'success' => false,
+            'message' => $e->getMessage(),
+        ], 400);
+    }
+}
+
+
+
+#[Route('/ride/delete/{id}', name: 'app_ride_delete', methods: ['DELETE'])]
+public function deleteRide(int $id): JsonResponse
+{
+    try {
+        // Call the deleteRide method from RideService
+        $this->rideService->deleteRide($id);
+
+        return new JsonResponse([
+            'success' => true,
+            'message' => 'Ride deleted successfully.',
+        ]);
+    } catch (\Exception $e) {
         return new JsonResponse([
             'success' => false,
             'message' => $e->getMessage(),
