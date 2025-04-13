@@ -24,7 +24,8 @@ class TaxiDriverController extends AbstractController
         private RequestService $requestService,
         private RideService $rideService,
         private EntityManagerInterface $entityManager,
-        private LoggerInterface $logger // Add logger
+        private LoggerInterface $logger, // Add logger
+        private \Symfony\Component\HttpFoundation\RequestStack $requestStack // Add RequestStack
         
     ) {}
     
@@ -52,45 +53,58 @@ class TaxiDriverController extends AbstractController
             'availableRequests' => $requestsWithDetails,
         ]);
     }
+
+
     #[Route('/accept-request/{id}', name: 'app_accept_request', methods: ['POST'])]
-    public function acceptRequest(int $id): JsonResponse
-    {
-        try {
-            $this->logger->info("Accepting request with ID: $id");
-    
-            // Find the request
-            $request = $this->entityManager->getRepository(Request::class)->find($id);
-            
-            if (!$request) {
-                throw new \Exception('Request not found with ID: ' . $id);
-            }
-            
-            // Find driver with ID 1 directly
-            $driver = $this->entityManager->getRepository(Driver::class)->find(1);
-            
-            if (!$driver) {
-                throw new \Exception('Driver with ID 1 not found in the database.');
-            }
-            
-            $this->logger->info("Driver found with ID: 1");
-            
-            // Update request status
-            $request->setStatus(REQUEST_STATUS::ACCEPTED);
-            $this->entityManager->flush();
-            
-            // Create the ride
-            $ride = $this->rideService->createRide($request, $driver);
-            
-            return new JsonResponse([
-                'success' => true,
-                'message' => 'Request accepted and ride created successfully.',
-                'rideId' => $ride->getId_ride(),
-            ]);
-        } catch (\Exception $e) {
-            $this->logger->error("Error: " . $e->getMessage());
-            return new JsonResponse([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 400);
+public function acceptRequest(int $id): JsonResponse
+{
+    try {
+        $this->logger->info("Accepting request with ID: $id");
+        
+        $data = json_decode($this->requestStack->getCurrentRequest()?->getContent(), true);
+        $data = json_decode($this->requestStack->getCurrentRequest()->getContent(), true);
+        $duration = isset($data['duration']) ? (int)$data['duration'] : null;
+        
+        if (!$duration || $duration <= 0) {
+            throw new \Exception('Please provide a valid duration.');
         }
-    }}
+        
+        $this->logger->info("Duration received: $duration minutes");
+
+        // Find the request
+        $request = $this->entityManager->getRepository(Request::class)->find($id);
+        
+        if (!$request) {
+            throw new \Exception('Request not found with ID: ' . $id);
+        }
+        
+        // Find driver with ID 1 directly
+        $driver = $this->entityManager->getRepository(Driver::class)->find(1);
+        
+        if (!$driver) {
+            throw new \Exception('Driver with ID 1 not found in the database.');
+        }
+        
+        $this->logger->info("Driver found with ID: 1");
+        
+        // Update request status
+        $request->setStatus(REQUEST_STATUS::ACCEPTED);
+        $this->entityManager->flush();
+        
+        // Create the ride with duration
+        $ride = $this->rideService->createRide($request, $driver, $duration);
+        
+        return new JsonResponse([
+            'success' => true,
+            'message' => 'Request accepted and ride created successfully.',
+            'rideId' => $ride->getId_ride(),
+        ]);
+    } catch (\Exception $e) {
+        $this->logger->error("Error: " . $e->getMessage());
+        return new JsonResponse([
+            'success' => false,
+            'message' => $e->getMessage(),
+        ], 400);
+    }
+}
+}

@@ -24,23 +24,27 @@ class RideService
         
     ) {}
 
-    
-    public function createRide(Request $request, Driver $driver): Ride
+    public function createRide(Request $request, Driver $driver, ?int $duration = null): Ride
     {
         // Validate the request's locations
         $departureLocation = $request->getDepartureLocation();
         $arrivalLocation = $request->getArrivalLocation();
-    
+
         if (!$departureLocation || !$arrivalLocation) {
             throw new \Exception('Invalid locations for the request.');
         }
-    
+
         // Calculate the distance between the locations
         $distance = Location::calculateDistance($departureLocation, $arrivalLocation);
-    
+
         // Calculate the price based on the distance
         $price = $this->calculatePrice($distance);
-    
+
+        // Validate the duration if provided
+        if ($duration !== null && $duration > 90) {
+            throw new \InvalidArgumentException('Duration cannot exceed 90 minutes.');
+        }
+
         // Create a new Ride entity
         $ride = new Ride();
         $ride->setRequest($request) // Link the request
@@ -49,11 +53,16 @@ class RideService
             ->setPrice($price) // Set the price
             ->setStatus(RIDE_STATUS::ONGOING) // Default status is ONGOING
             ->setRideDate(new \DateTime()); // Set the current timestamp
-    
+            
+        // Set the duration if provided
+        if ($duration !== null) {
+            $ride->setDuration($duration);
+        }
+
         // Persist the ride to the database
         $this->entityManager->persist($ride);
         $this->entityManager->flush();
-    
+
         return $ride;
     }
 

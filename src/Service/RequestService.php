@@ -145,7 +145,7 @@ class RequestService
 }
 public function getAllRequests(): array
 {
-    return $this->requestRepository->findAll();
+    return $this->requestRepository->findBy(['status' => REQUEST_STATUS::PENDING]);
 }
 
 

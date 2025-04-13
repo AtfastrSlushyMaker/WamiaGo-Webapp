@@ -118,61 +118,111 @@
                     </div>
                 </div>
 
-                <!-- Available Requests Section -->
-                <div class="col-md-6">
-                    <h5><i class="fas fa-list"></i> Available Requests</h5>
-                    {% for request in availableRequests %}
-                        <div class="card request-card mb-2" style="width: 100%;">
-                            <div class="card-body p-2">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h6 class="card-title mb-1">Request {{ request.userName }}</h6>
-                                    <span class="badge bg-warning status-badge">{{ request.status }}</span>
-                                </div>
-                                <p class="mb-1"><i class="fas fa-map-marker-alt text-danger"></i> From: {{ request.pickupLocation }}</p>
-                                <p class="mb-1"><i class="fas fa-map-marker-alt text-success"></i> To: {{ request.dropoffLocation }}</p>
-                                <button class="btn btn-sm btn-primary accept-request-btn" data-request-id="{{ request.id }}">Accept</button>
-                            </div>
-                        </div>
-                    {% else %}
-                        <p>No available requests at the moment.</p>
-                    {% endfor %}
+           <!-- Available Requests Section -->
+<div class="col-md-6">
+    <h5><i class="fas fa-list"></i> Available Requests</h5>
+    {% for request in availableRequests %}
+        <div class="card request-card mb-2" style="width: 100%;">
+            <div class="card-body p-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="card-title mb-1">Request {{ request.userName }}</h6>
+                    <span class="badge bg-warning status-badge">{{ request.status }}</span>
                 </div>
-                <!-- script to handdel the button accept in the request  -->
-                <script>
-  document.addEventListener('DOMContentLoaded', function () {
+                <p class="mb-1"><i class="fas fa-map-marker-alt text-danger"></i> From: {{ request.pickupLocation }}</p>
+                <p class="mb-1"><i class="fas fa-map-marker-alt text-success"></i> To: {{ request.dropoffLocation }}</p>
+                <button class="btn btn-sm btn-primary accept-request-btn" data-request-id="{{ request.id }}">Accept</button>
+            </div>
+        </div>
+    {% else %}
+        <p>No available requests at the moment.</p>
+    {% endfor %}
+</div>
+
+<!-- Modal for Setting Duration -->
+<div class="modal fade" id="setDurationModal" tabindex="-1" aria-labelledby="setDurationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"> <!-- Added modal-dialog-centered for vertical centering -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="setDurationModalLabel">Set Ride Duration</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="setDurationForm">
+                    <div class="mb-3">
+                        <label for="rideDuration" class="form-label">Duration (in minutes)</label>
+                        <input type="number" class="form-control" id="rideDuration" name="rideDuration" min="1" required>
+                    </div>
+                    <input type="hidden" id="modalRequestId" name="requestId">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="submitDuration">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
     const acceptButtons = document.querySelectorAll('.accept-request-btn');
+    const setDurationModal = new bootstrap.Modal(document.getElementById('setDurationModal'));
+    const modalRequestIdInput = document.getElementById('modalRequestId');
+    const rideDurationInput = document.getElementById('rideDuration');
+    const submitDurationButton = document.getElementById('submitDuration');
+
     acceptButtons.forEach(button => {
         button.addEventListener('click', function () {
             const requestId = this.getAttribute('data-request-id');
             console.log('Request ID:', requestId); // Log the request ID here
 
-         fetch(`/driver/accept-request/${requestId}`, {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRF-Token': '{{ csrf_token('accept_request') }}'
-    },
-    body: JSON.stringify({ requestId: requestId })
-})
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error('Failed to accept request');
-                }
-            })
-            .then(data => {
-                alert(data.message || 'Request accepted successfully!');
-                location.reload();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while accepting the request.');
-            });
+            // Open the modal and set the request ID
+            modalRequestIdInput.value = requestId;
+            setDurationModal.show();
         });
     });
-});    </script>      
+
+    submitDurationButton.addEventListener('click', function () {
+        const requestId = modalRequestIdInput.value;
+        const rideDuration = rideDurationInput.value;
+
+        if (!rideDuration || rideDuration <= 0 || rideDuration > 90) {
+            alert('Please enter a valid duration.');
+            return;
+        }
+
+        console.log('Submitting Request ID:', requestId, 'with Duration:', rideDuration);
+
+        fetch(`/driver/accept-request/${requestId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-Token': '{{ csrf_token('accept_request') }}'
+            },
+            body: JSON.stringify({ requestId: requestId, duration: rideDuration })
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Failed to accept request');
+            }
+        })
+        .then(data => {
+            alert(data.message || 'Request accepted successfully!');
+            location.reload();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while accepting the request.');
+        });
+
+        // Close the modal
+        setDurationModal.hide();
+    });
+});
+</script>
 
 <!-- end handelling the button for the accept button  -->
 
