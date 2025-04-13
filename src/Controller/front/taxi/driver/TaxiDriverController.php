@@ -8,6 +8,10 @@ use App\Enum\REQUEST_STATUS;
 use App\Enum\RIDE_STATUS;
 use App\Service\RequestService;
 use App\Service\RideService;
+use App\Entity\User;
+use App\Entity\Driver;
+use Doctrine\ORM\EntityManagerInterface;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,8 +22,11 @@ class TaxiDriverController extends AbstractController
 {
     public function __construct(
         private RequestService $requestService,
-        private RideService $rideService
+        private RideService $rideService,
+        private EntityManagerInterface $entityManager
+        
     ) {}
+    
 
     #[Route('/dashboard', name: 'app_taxi_driver_dashboard')]
     public function dashboard(): Response
@@ -43,5 +50,35 @@ class TaxiDriverController extends AbstractController
         return $this->render('front/taxi/driver/taxi-management-driver.html.twig', [
             'availableRequests' => $requestsWithDetails,
         ]);
+    }
+
+    #[Route('/accept-request/{id}', name: 'app_accept_request', methods: ['POST'])]
+    public function acceptRequest(int $id): JsonResponse
+    {
+        try {
+            $request = $this->requestService->acceptRequest($id);
+    
+            // Static driver ID for now
+            $driverId = 1; // Replace with session-based driver ID later
+            $driver = $this->entityManager->getRepository(User::class)->find($driverId);
+    
+            if (!$driver) {
+                throw new \Exception('Driver not found.');
+            }
+    
+            // Create a new ride
+            $ride = $this->rideService->createRide($request, $driver);
+    
+            return new JsonResponse([
+                'success' => true,
+                'message' => 'Request accepted and ride created successfully.',
+                'rideId' => $ride->getId_ride(),
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 400);
+        }
     }
 }

@@ -6,39 +6,50 @@ use App\Entity\Ride;
 use App\Entity\Location;
 use App\Entity\Driver;
 use App\Entity\Request;
+use App\Entity\User;
 use App\Enum\RIDE_STATUS;
 use App\Repository\RideRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use PgSql\Lob;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Psr\Log\LoggerInterface;
 
 class RideService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
         private RideRepository $rideRepository,
-        private LocationService $locationService
+        private LoggerInterface $logger
+       
+        
     ) {}
 
+    
     public function createRide(Request $request, Driver $driver): Ride
-    {
-     
-        $distance = Location::calculateDistance(
-            $request->getDepartureLocation(),
-            $request->getArrivalLocation()
-        );
-        $ride = new Ride();
-        $ride->setRequest($request)
-            ->setDriver($driver)
-            ->setDistance($distance)
-            ->setStatus(RIDE_STATUS::ONGOING)
-            ->setRideDate(new \DateTime())
-            ->setPrice($this->calculatePrice($distance));
+{
+    $departureLocation = $request->getDepartureLocation();
+    $arrivalLocation = $request->getArrivalLocation();
 
-        $this->entityManager->persist($ride);
-        $this->entityManager->flush();
-
-        return $ride;
+    if (!$departureLocation || !$arrivalLocation) {
+        throw new \Exception('Invalid locations for the request.');
     }
+
+    $distance = Location::calculateDistance($departureLocation, $arrivalLocation);
+    $price = 5.0 + ($distance * 1.5);
+
+    $ride = new Ride();
+    $ride->setRequest($request)
+        ->setDriver($driver)
+        ->setDistance($distance)
+        ->setPrice($price)
+        ->setStatus(RIDE_STATUS::ONGOING)
+        ->setRideDate(new \DateTime());
+
+    $this->entityManager->persist($ride);
+    $this->entityManager->flush();
+
+    return $ride;
+}
 
     public function getRide(int $id): ?Ride
     {

@@ -11,12 +11,14 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Service\RideService;
 
 #[Route('/services/taxi')]
 class TaxiController extends AbstractController
 {
     private $entityManager;
     private $requestService;
+    private $rideService;
 
     public function __construct(EntityManagerInterface $entityManager, RequestService $requestService)
     {
@@ -93,4 +95,7 @@ class TaxiController extends AbstractController
             'request' => $request,
         ]);
     }
+
+    
+    
 }

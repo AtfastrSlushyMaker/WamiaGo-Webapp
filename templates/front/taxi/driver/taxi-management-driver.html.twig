@@ -130,14 +130,50 @@
                                 </div>
                                 <p class="mb-1"><i class="fas fa-map-marker-alt text-danger"></i> From: {{ request.pickupLocation }}</p>
                                 <p class="mb-1"><i class="fas fa-map-marker-alt text-success"></i> To: {{ request.dropoffLocation }}</p>
-                                <button class="btn btn-sm btn-primary">Accept</button>
+                                <button class="btn btn-sm btn-primary accept-request-btn" data-request-id="{{ request.id }}">Accept</button>
                             </div>
                         </div>
                     {% else %}
                         <p>No available requests at the moment.</p>
                     {% endfor %}
                 </div>
-                <div class="col-md-6">
+
+                <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const acceptButtons = document.querySelectorAll('.accept-request-btn');
+    acceptButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const requestId = this.getAttribute('data-request-id');
+            console.log('Request ID:', requestId); // Log the request ID here
+
+            fetch(`/driver/accept-request/${requestId}`, { // Ensure the URL matches the route
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': '{{ csrf_token('accept_request') }}' // Add CSRF token if required
+                },
+                body: JSON.stringify({ requestId: requestId }) // Ensure the payload matches server expectations
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Failed to accept request');
+                }
+            })
+            .then(data => {
+                alert(data.message || 'Request accepted successfully!');
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while accepting the request.');
+            });
+        });
+    });
+});    </script>      
+                  <div class="col-md-6">
                     <div id="map" class="map-container"></div>
                 </div>
             </div>

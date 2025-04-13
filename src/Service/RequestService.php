@@ -147,4 +147,25 @@ public function getAllRequests(): array
 {
     return $this->requestRepository->findAll();
 }
+
+
+
+public function acceptRequest(int $requestId): Request
+{
+    // Find the request by ID
+    $request = $this->requestRepository->find($requestId);
+
+    if (!$request) {
+        throw new NotFoundHttpException('Request not found.');
+    }
+
+    // Update the status to ACCEPTED
+    $request->setStatus(REQUEST_STATUS::ACCEPTED);
+
+    // Persist the changes
+    $this->entityManager->persist($request);
+    $this->entityManager->flush();
+
+    return $request;
+}
 }
