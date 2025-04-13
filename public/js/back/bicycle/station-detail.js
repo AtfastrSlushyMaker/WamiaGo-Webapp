@@ -4,7 +4,7 @@
  */
 
 document.addEventListener('DOMContentLoaded', function () {
-    console.log("DOM loaded, debugging dropdowns...");
+    console.log("DOM loaded, initializing station detail page...");
 
     // Debug Bootstrap availability
     if (typeof bootstrap === 'undefined') {
@@ -21,10 +21,15 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initialize Bootstrap components
     initializeBootstrapComponents();
 
-    // Set up other functionality
+    // Set up functionality
     setupQRCodeGeneration();
     setupExportData();
-    initStationMap();
+
+    // Initialize map with a slight delay to ensure DOM is fully ready
+    setTimeout(() => {
+        initStationMap();
+    }, 100);
+
     initBicycleTypeSelector();
     initDeleteConfirmation();
     setupTableSearch();
@@ -192,7 +197,15 @@ function setupExportData() {
  * Initialize the interactive station map
  */
 function initStationMap() {
-    console.log("Initializing map...");
+    console.log("Initializing station map with original implementation");
+
+    // Wait until DOM is fully ready
+    if (typeof L === 'undefined') {
+        console.error("Leaflet library not loaded!");
+        setTimeout(initStationMap, 300);
+        return;
+    }
+
     const mapElement = document.getElementById('stationMap');
     if (!mapElement) {
         console.error("Map element not found");
@@ -201,13 +214,18 @@ function initStationMap() {
 
     try {
         // Get station coordinates from data attributes
-        const stationLat = parseFloat(mapElement.dataset.lat || 0);
-        const stationLng = parseFloat(mapElement.dataset.lng || 0);
+        const stationLat = parseFloat(mapElement.getAttribute('data-lat') || 0);
+        const stationLng = parseFloat(mapElement.getAttribute('data-lng') || 0);
 
-        console.log("Map coordinates:", stationLat, stationLng);
+        // Debug coordinates
+        console.log("Raw coordinates from data attributes:",
+            mapElement.getAttribute('data-lat'),
+            mapElement.getAttribute('data-lng')
+        );
+        console.log("Parsed coordinates:", stationLat, stationLng);
 
-        // Validate coordinates - this is critical
-        if (isNaN(stationLat) || isNaN(stationLng)) {
+        // Validate coordinates
+        if (isNaN(stationLat) || isNaN(stationLng) || (stationLat === 0 && stationLng === 0)) {
             console.error('Invalid station coordinates:', stationLat, stationLng);
             mapElement.innerHTML = `
                 <div class="alert alert-warning m-3">
@@ -218,144 +236,39 @@ function initStationMap() {
             return;
         }
 
-        // Fix map loading by ensuring the container has explicit dimensions
-        mapElement.style.width = '100%';
+        // Make sure the container has dimensions
         mapElement.style.height = '400px';
+        mapElement.style.width = '100%';
 
-        // Create and initialize the map - IMPORTANT: use a slight delay
+        // Clear any existing content
+        mapElement.innerHTML = '';
+
+        console.log("Creating map at", stationLat, stationLng);
+
+        // Create the map with ZERO options to prevent issues
+        const map = L.map('stationMap').setView([stationLat, stationLng], 15);
+
+        // Add the most basic tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Add a simple marker - no custom icons or extras that might cause problems
+        const marker = L.marker([stationLat, stationLng]).addTo(map);
+
+        // Make sure the map renders properly MULTIPLE TIMES
         setTimeout(() => {
-            console.log("Creating map with coordinates:", stationLat, stationLng);
+            map.invalidateSize();
+            console.log("Map invalidateSize called (first time)");
 
-            // Initialize map with correct settings
-            const map = L.map(mapElement, {
-                center: [stationLat, stationLng],
-                zoom: 15,
-                zoomControl: false
-            });
-
-            // Add zoom control to bottom right
-            L.control.zoom({
-                position: 'bottomright'
-            }).addTo(map);
-
-            // Add light map tiles - most reliable tile provider
-            const lightTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                maxZoom: 19,
-            }).addTo(map);
-
-            // Add satellite map tiles (not added by default)
-            const satelliteTiles = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                maxZoom: 19,
-                attribution: 'Imagery &copy; Esri'
-            });
-
-            // Create a custom marker element
-            const markerHtml = `
-                <div class="custom-marker-pin">
-                    <i class="ti ti-map-pin"></i>
-                </div>
-            `;
-
-            // Create a custom icon
-            const customIcon = L.divIcon({
-                className: 'custom-div-icon',
-                html: markerHtml,
-                iconSize: [40, 40],
-                iconAnchor: [20, 40]
-            });
-
-            // Add marker to the map
-            const marker = L.marker([stationLat, stationLng], {
-                icon: customIcon,
-                title: mapElement.dataset.name || 'Station'
-            }).addTo(map);
-
-            // Get additional station data
-            const stationName = mapElement.dataset.name || 'Station';
-            const availableBikes = mapElement.dataset.availableBikes || 0;
-            const availableDocks = mapElement.dataset.availableDocks || 0;
-            const chargingBikes = mapElement.dataset.chargingBikes || 0;
-            const stationStatus = mapElement.dataset.status || 'Unknown';
-
-            // Create enhanced popup content
-            const popupContent = `
-                <div class="station-popup">
-                    <div class="popup-header">
-                        <h6 class="mb-0 text-white">${stationName}</h6>
-                    </div>
-                    <div class="popup-body">
-                        <div class="popup-info-item">
-                            <div class="popup-info-label">Available Bikes</div>
-                            <div class="popup-info-value">${availableBikes}</div>
-                        </div>
-                        <div class="popup-info-item">
-                            <div class="popup-info-label">Available Docks</div>
-                            <div class="popup-info-value">${availableDocks}</div>
-                        </div>
-                        <div class="popup-info-item">
-                            <div class="popup-info-label">Charging Bikes</div>
-                            <div class="popup-info-value">${chargingBikes}</div>
-                        </div>
-                        <div class="popup-info-item">
-                            <div class="popup-info-label">Status</div>
-                            <div class="popup-info-value">${stationStatus}</div>
-                        </div>
-                        <div class="mt-3 d-grid">
-                            <a href="https://www.google.com/maps?q=${stationLat},${stationLng}" 
-                              target="_blank" class="btn btn-sm btn-outline-primary">
-                                <i class="ti ti-external-link me-1"></i> Open in Google Maps
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Add popup to the marker
-            marker.bindPopup(popupContent, {
-                closeButton: true,
-                className: 'station-custom-popup',
-                maxWidth: 300,
-                minWidth: 250
-            });
-
-            // Open popup by default
+            // Do it again for good measure
             setTimeout(() => {
-                marker.openPopup();
-            }, 500);
-
-            // Setup map view toggle buttons
-            if (document.getElementById('mapNormalView') && document.getElementById('mapSatelliteView')) {
-                document.getElementById('mapNormalView').addEventListener('click', function () {
-                    if (!map.hasLayer(lightTiles)) {
-                        map.removeLayer(satelliteTiles);
-                        map.addLayer(lightTiles);
-                    }
-                    updateActiveMapButton(this);
-                });
-
-                document.getElementById('mapSatelliteView').addEventListener('click', function () {
-                    if (!map.hasLayer(satelliteTiles)) {
-                        map.removeLayer(lightTiles);
-                        map.addLayer(satelliteTiles);
-                    }
-                    updateActiveMapButton(this);
-                });
-            }
-
-            // Critical: Force map refresh after it's completely loaded
-            setTimeout(() => {
-                console.log("Forcing map resize");
                 map.invalidateSize();
-            }, 500);
+                console.log("Map invalidateSize called (second time)");
+            }, 300);
+        }, 300);
 
-            // Add window resize listener to fix map resizing issues
-            window.addEventListener('resize', () => {
-                map.invalidateSize();
-            });
-
-            console.log("Map initialized successfully");
-        }, 500); // Add delay to ensure DOM is ready
+        console.log("Map initialization completed!");
     } catch (error) {
         console.error('Error initializing map:', error);
         mapElement.innerHTML = `

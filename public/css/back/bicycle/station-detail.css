@@ -188,11 +188,11 @@ body {
 
 /* ============= MAP SECTION ============= */
 .station-map {
-    height: 400px;
-    width: 100%;
-    border-radius: 0 0 10px 10px;
-    z-index: 1;
-    background-color: #f5f5f5;
+    height: 400px !important;
+    width: 100% !important;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05) inset;
 }
 
 .leaflet-container {
@@ -201,16 +201,19 @@ body {
 }
 
 .map-controls .btn-group {
-    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
     overflow: hidden;
 }
 
 .map-controls .btn {
     border: none;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
 }
 
 .map-controls .btn.active {
-    background-color: var(--primary);
+    background-color: #4361ee;
     color: white;
 }
 
@@ -234,41 +237,165 @@ body {
     font-size: 18px;
 }
 
+.station-marker-icon {
+    background-color: #4361ee;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    border: 2px solid white;
+}
+
 /* ============= POPUP STYLING ============= */
-.station-custom-popup .leaflet-popup-content-wrapper {
-    border-radius: 8px;
+.leaflet-popup-content-wrapper {
+    border-radius: 0.5rem;
     padding: 0;
     overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-.station-custom-popup .leaflet-popup-content {
+.leaflet-popup-content {
     margin: 0;
-    width: 250px !important;
+    padding: 0;
 }
 
-.popup-header {
-    background-color: var(--primary);
+.station-popup {
+    width: 250px;
+}
+
+.station-popup-header {
+    background-color: #4361ee;
     color: white;
     padding: 10px 15px;
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
 }
 
-.popup-body {
+.station-popup-body {
     padding: 15px;
 }
 
-.popup-info-item {
+.station-popup-footer {
+    border-top: 1px solid #eee;
+    background-color: #f8f9fa;
+    padding: 10px 15px;
     display: flex;
     justify-content: space-between;
-    margin-bottom: 8px;
-}
-
-.popup-info-label {
-    color: var(--secondary);
+    align-items: center;
     font-size: 0.85rem;
 }
 
-.popup-info-value {
-    font-weight: 500;
+.station-data-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.station-data-item i {
+    margin-right: 8px;
+    width: 20px;
+    text-align: center;
+}
+
+.station-data-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+/* Status indicator */
+.status-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+
+.status-indicator.active {
+    background-color: #10b981;
+}
+
+.status-indicator.maintenance {
+    background-color: #f59e0b;
+}
+
+.status-indicator.inactive {
+    background-color: #6b7280;
+}
+
+/* Map attribution styling */
+.leaflet-control-attribution {
+    font-size: 0.75rem;
+    background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Map zoom controls */
+.leaflet-control-zoom {
+    border: none !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1) !important;
+    border-radius: 0.5rem !important;
+    overflow: hidden;
+}
+
+.leaflet-control-zoom a {
+    background-color: white !important;
+    color: #4361ee !important;
+    width: 30px !important;
+    height: 30px !important;
+    line-height: 30px !important;
+    font-size: 16px !important;
+}
+
+.leaflet-control-zoom a:hover {
+    background-color: #f0f4ff !important;
+    color: #4361ee !important;
+}
+
+/* Map layer selection control */
+.map-layer-control {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.map-layer-control button {
+    background: none;
+    border: none;
+    padding: 5px 10px;
+    text-align: left;
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.map-layer-control button:hover {
+    background-color: #f0f4ff;
+}
+
+.map-layer-control button.active {
+    background-color: #4361ee;
+    color: white;
+}
+
+.map-layer-control button i {
+    margin-right: 5px;
+    width: 16px;
+    text-align: center;
 }
 
 /* ============= NO DATA PLACEHOLDER ============= */

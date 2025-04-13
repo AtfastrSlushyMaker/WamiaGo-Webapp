@@ -710,6 +710,13 @@ public function editBicycle(Request $request, int $id, ValidatorInterface $valid
             return new JsonResponse(['error' => 'Failed to retrieve stations'], 500);
         }
     }
+    
+    // Added an alias route for the bicycle maps to use
+    #[Route('/api/admin-bicycle-stations', name: 'admin_bicycle_api_stations', methods: ['GET'])]
+    public function getAdminBicycleStations(): JsonResponse
+    {
+        return $this->getApiStations(); // Reuse the existing implementation
+    }
 
     #[Route('/api/stations', name: 'api_create_station', methods: ['POST'])]
 public function createStation(Request $request): JsonResponse

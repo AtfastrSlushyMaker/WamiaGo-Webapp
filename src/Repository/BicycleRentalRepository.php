@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\BicycleRental;
+use App\Enum\BICYCLE_STATUS;
 use Doctrine\ORM\EntityRepository;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

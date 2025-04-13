@@ -439,43 +439,60 @@
 
 <!-- Add Bicycle Modal -->
 <div class="modal fade" id="addBicycleModal" tabindex="-1" aria-labelledby="addBicycleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addBicycleModalLabel"><i class="ti ti-plus me-2"></i>Add New Bicycle</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method="post" action="{{ path('admin_bicycle_add') }}">
+            <form method="post" action="{{ path('admin_bicycle_add') }}" novalidate>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="bicycleStation" class="form-label"><i class="ti ti-map-pin me-1"></i>Station</label> {# Added icon #}
-                        <select class="form-select" id="bicycleStation" name="stationId" required>
-                            <option value="">Select a station</option>
-                            {% for station in stations %}
-                                <option value="{{ station.idStation }}">{{ station.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="batteryLevel" class="form-label"><i class="ti ti-battery-automotive me-1"></i>Battery Level (%)</label> {# Added icon #}
-                        <input type="number" class="form-control" id="batteryLevel" name="batteryLevel" min="0" max="100" value="100" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="rangeKm" class="form-label"><i class="ti ti-route me-1"></i>Range (km)</label> {# Added icon #}
-                        <input type="number" class="form-control" id="rangeKm" name="rangeKm" step="0.1" min="0" value="40" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="bicycleStatus" class="form-label"><i class="ti ti-activity-heartbeat me-1"></i>Initial Status</label> {# Added icon #}
-                        <select class="form-select" id="bicycleStatus" name="status">
-                            <option value="available">Available</option>
-                            <option value="maintenance">Maintenance</option>
-                            <option value="charging">Charging</option>
-                        </select>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="bicycleStation" class="form-label"><i class="ti ti-map-pin me-1"></i>Station</label>
+                                <select class="form-select" id="bicycleStation" name="stationId">
+                                    <option value="">Select a station</option>
+                                    {% for station in stations %}
+                                        <option value="{{ station.idStation }}">{{ station.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">Please select a station</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="batteryLevel" class="form-label"><i class="ti ti-battery-automotive me-1"></i>Battery Level (%)</label>
+                                <input type="number" class="form-control" id="batteryLevel" name="batteryLevel" min="0" max="100" value="100">
+                                <div class="invalid-feedback">Please enter a valid battery level (0-100)</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="rangeKm" class="form-label"><i class="ti ti-route me-1"></i>Range (km)</label>
+                                <input type="number" class="form-control" id="rangeKm" name="rangeKm" step="0.1" min="0" value="40">
+                                <div class="invalid-feedback">Please enter a valid range</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="bicycleStatus" class="form-label"><i class="ti ti-activity-heartbeat me-1"></i>Initial Status</label>
+                                <select class="form-select" id="bicycleStatus" name="status">
+                                    <option value="available">Available</option>
+                                    <option value="maintenance">Maintenance</option>
+                                    <option value="charging">Charging</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label"><i class="ti ti-map me-1"></i>Station Location</label>
+                                <div id="addBicycleMap" style="height: 250px; border-radius: 0.25rem;" class="border"></div>
+                            </div>
+                            <div class="alert alert-info small">
+                                <i class="ti ti-info-circle me-1"></i>
+                                Select a station from the dropdown to see its location on the map.
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><i class="ti ti-x me-1"></i>Cancel</button> {# Added icon #}
-                    <button type="submit" class="btn btn-success"><i class="ti ti-plus me-1"></i>Add Bicycle</button> {# Added icon #}
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><i class="ti ti-x me-1"></i>Cancel</button>
+                    <button type="submit" class="btn btn-success"><i class="ti ti-plus me-1"></i>Add Bicycle</button>
                 </div>
             </form>
         </div>
@@ -484,46 +501,60 @@
 
 <!-- Edit Bicycle Modal -->
 <div class="modal fade" id="editBicycleModal" tabindex="-1" aria-labelledby="editBicycleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editBicycleModalLabel"><i class="ti ti-edit me-2"></i>Edit Bicycle</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method="post" action="{{ path('admin_bicycle_edit') }}" id="editBicycleForm">
+            <form method="post" action="{{ path('admin_bicycle_edit') }}" id="editBicycleForm" novalidate>
                 <div class="modal-body">
-                    <input type="hidden" name="bicycleId" id="editBicycleId">
-                    <div class="mb-3">
-                        <label for="editBicycleStation" class="form-label"><i class="ti ti-map-pin me-1"></i>Station</label> {# Added icon #}
-                        <select class="form-select" id="editBicycleStation" name="stationId" required>
-                            <option value="">Select a station</option>
-                            {% for station in stations %}
-                                <option value="{{ station.idStation }}">{{ station.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editBatteryLevel" class="form-label"><i class="ti ti-battery-automotive me-1"></i>Battery Level (%)</label> {# Added icon #}
-                        <input type="number" class="form-control" id="editBatteryLevel" name="batteryLevel" min="0" max="100" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editRangeKm" class="form-label"><i class="ti ti-route me-1"></i>Range (km)</label> {# Added icon #}
-                        <input type="number" class="form-control" id="editRangeKm" name="rangeKm" step="0.1" min="0" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editBicycleStatus" class="form-label"><i class="ti ti-activity-heartbeat me-1"></i>Status</label> {# Added icon #}
-                        <select class="form-select" id="editBicycleStatus" name="status">
-                            <option value="available">Available</option>
-                            <option value="in_use">In Use</option>
-                            <option value="maintenance">Maintenance</option>
-                            <option value="charging">Charging</option>
-                            <option value="reserved">Reserved</option>
-                        </select>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <input type="hidden" name="bicycleId" id="editBicycleId">
+                            <div class="mb-3">
+                                <label for="editBicycleStation" class="form-label"><i class="ti ti-map-pin me-1"></i>Station</label>
+                                <select class="form-select" id="editBicycleStation" name="stationId">
+                                    <option value="">Select a station</option>
+                                    {% for station in stations %}
+                                        <option value="{{ station.idStation }}">{{ station.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editBatteryLevel" class="form-label"><i class="ti ti-battery-automotive me-1"></i>Battery Level (%)</label>
+                                <input type="number" class="form-control" id="editBatteryLevel" name="batteryLevel" min="0" max="100">
+                            </div>
+                            <div class="mb-3">
+                                <label for="editRangeKm" class="form-label"><i class="ti ti-route me-1"></i>Range (km)</label>
+                                <input type="number" class="form-control" id="editRangeKm" name="rangeKm" step="0.1" min="0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="editBicycleStatus" class="form-label"><i class="ti ti-activity-heartbeat me-1"></i>Status</label>
+                                <select class="form-select" id="editBicycleStatus" name="status">
+                                    <option value="available">Available</option>
+                                    <option value="in_use">In Use</option>
+                                    <option value="maintenance">Maintenance</option>
+                                    <option value="charging">Charging</option>
+                                    <option value="reserved">Reserved</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label"><i class="ti ti-map me-1"></i>Station Location</label>
+                                <div id="editBicycleMap" style="height: 250px; border-radius: 0.25rem;" class="border"></div>
+                            </div>
+                            <div class="alert alert-info small">
+                                <i class="ti ti-info-circle me-1"></i>
+                                Select a station from the dropdown to see its location on the map.
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><i class="ti ti-x me-1"></i>Cancel</button> {# Added icon #}
-                    <button type="submit" class="btn btn-primary"><i class="ti ti-device-floppy me-1"></i>Save Changes</button> {# Added icon #}
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><i class="ti ti-x me-1"></i>Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="ti ti-device-floppy me-1"></i>Save Changes</button>
                 </div>
             </form>
         </div>
@@ -802,6 +833,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Edit bicycle modal data population
     const editBicycleModal = document.getElementById('editBicycleModal');
     setupStationAssignment();
+    initBicycleMaps();
+    
     if (editBicycleModal) {
         editBicycleModal.addEventListener('show.bs.modal', function(event) {
             const button = event.relatedTarget;
@@ -821,6 +854,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('editBatteryLevel').value = data.batteryLevel;
                     document.getElementById('editRangeKm').value = data.rangeKm;
                     document.getElementById('editBicycleStatus').value = data.status;
+                    
+                    // Update the map to show the station location if available
+                    if (data.stationId) {
+                        updateBicycleMap('edit', data.stationId);
+                    }
                 })
                 .catch(error => {
                     console.error('Error fetching bicycle details:', error);
@@ -829,6 +867,189 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         });
     }
+    
+    // Initialize maps for bicycle creation and editing
+    function initBicycleMaps() {
+        // Maps and markers for the bicycle modals
+        window.addBicycleMap = null;
+        window.editBicycleMap = null;
+        window.addBicycleMarker = null;
+        window.editBicycleMarker = null;
+        
+        // Station details cache for maps
+        window.stationLocations = {};
+        
+        // Pre-load station locations for maps
+        fetch('{{ path('admin_bicycle_api_stations') }}')
+            .then(response => response.json())
+            .then(data => {
+                // Create a lookup object for station details
+                data.forEach(station => {
+                    window.stationLocations[station.id] = {
+                        lat: station.latitude,
+                        lng: station.longitude,
+                        name: station.name
+                    };
+                });
+                
+                // Set up the maps after loading station data
+                setupBicycleMaps();
+            })
+            .catch(error => {
+                console.error('Error loading station data:', error);
+            });
+            
+        // Set up station dropdown change listeners
+        const addStationDropdown = document.getElementById('bicycleStation');
+        const editStationDropdown = document.getElementById('editBicycleStation');
+        
+        if (addStationDropdown) {
+            addStationDropdown.addEventListener('change', function() {
+                updateBicycleMap('add', this.value);
+            });
+        }
+        
+        if (editStationDropdown) {
+            editStationDropdown.addEventListener('change', function() {
+                updateBicycleMap('edit', this.value);
+            });
+        }
+    }
+    
+    // Setup bicycle modal maps
+    function setupBicycleMaps() {
+        const addMapContainer = document.getElementById('addBicycleMap');
+        const editMapContainer = document.getElementById('editBicycleMap');
+        
+        // Default map center (Tunisia)
+        const defaultCenter = [36.8065, 10.1815];
+        
+        // Initialize Add Bicycle Map
+        if (addMapContainer && !window.addBicycleMap) {
+            window.addBicycleMap = L.map(addMapContainer, {
+                center: defaultCenter,
+                zoom: 13,
+                zoomControl: false
+            });
+            
+            // Add zoom control in bottom right
+            L.control.zoom({
+                position: 'bottomright'
+            }).addTo(window.addBicycleMap);
+            
+            // Add tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
+            }).addTo(window.addBicycleMap);
+            
+            // Ensure map is properly sized
+            setTimeout(() => {
+                window.addBicycleMap.invalidateSize();
+            }, 300);
+        }
+        
+        // Initialize Edit Bicycle Map
+        if (editMapContainer && !window.editBicycleMap) {
+            window.editBicycleMap = L.map(editMapContainer, {
+                center: defaultCenter,
+                zoom: 13,
+                zoomControl: false
+            });
+            
+            // Add zoom control in bottom right
+            L.control.zoom({
+                position: 'bottomright'
+            }).addTo(window.editBicycleMap);
+            
+            // Add tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
+            }).addTo(window.editBicycleMap);
+            
+            // Ensure map is properly sized
+            setTimeout(() => {
+                window.editBicycleMap.invalidateSize();
+            }, 300);
+        }
+        
+        // Refresh maps when modals are shown
+        $('#addBicycleModal').on('shown.bs.modal', function() {
+            if (window.addBicycleMap) {
+                window.addBicycleMap.invalidateSize();
+            }
+        });
+        
+        $('#editBicycleModal').on('shown.bs.modal', function() {
+            if (window.editBicycleMap) {
+                window.editBicycleMap.invalidateSize();
+            }
+        });
+    }
+    
+    // Update the map when a station is selected
+    function updateBicycleMap(type, stationId) {
+        // Exit if no station selected
+        if (!stationId) return;
+        
+        // Get station location from our cache
+        const station = window.stationLocations[stationId];
+        if (!station || !station.lat || !station.lng) return;
+        
+        // Choose the right map and marker based on type
+        let map, marker;
+        if (type === 'add') {
+            map = window.addBicycleMap;
+            marker = window.addBicycleMarker;
+        } else {
+            map = window.editBicycleMap;
+            marker = window.editBicycleMarker;
+        }
+        
+        if (!map) return;
+        
+        // Center map on station
+        map.setView([station.lat, station.lng], 15);
+        
+        // Remove existing marker if any
+        if (marker) {
+            map.removeLayer(marker);
+        }
+        
+        // Create custom icon
+        const customIcon = L.divIcon({
+            className: 'custom-marker-icon',
+            html: '<div style="background-color: #6571ff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); border: 2px solid white;"><i class="ti ti-map-pin" style="color: white; font-size: 20px;"></i></div>',
+            iconSize: [36, 36],
+            iconAnchor: [18, 36],
+            popupAnchor: [0, -36]
+        });
+        
+        // Add new marker
+        marker = L.marker([station.lat, station.lng], {
+            icon: customIcon,
+            title: station.name
+        }).addTo(map);
+        
+        // Create popup content
+        const popupContent = `
+            <div class="p-2">
+                <strong>${station.name}</strong>
+            </div>
+        `;
+        
+        // Add popup to marker
+        marker.bindPopup(popupContent).openPopup();
+        
+        // Store marker reference
+        if (type === 'add') {
+            window.addBicycleMarker = marker;
+        } else {
+            window.editBicycleMarker = marker;
+        }
+    }
+    
     function setupStationAssignment() {
     const draggableItems = document.querySelectorAll('.bicycle-draggable');
     const dropZone = document.getElementById('stationDropzone');
