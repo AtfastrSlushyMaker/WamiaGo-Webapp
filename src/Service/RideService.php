@@ -26,30 +26,36 @@ class RideService
 
     
     public function createRide(Request $request, Driver $driver): Ride
-{
-    $departureLocation = $request->getDepartureLocation();
-    $arrivalLocation = $request->getArrivalLocation();
-
-    if (!$departureLocation || !$arrivalLocation) {
-        throw new \Exception('Invalid locations for the request.');
+    {
+        // Validate the request's locations
+        $departureLocation = $request->getDepartureLocation();
+        $arrivalLocation = $request->getArrivalLocation();
+    
+        if (!$departureLocation || !$arrivalLocation) {
+            throw new \Exception('Invalid locations for the request.');
+        }
+    
+        // Calculate the distance between the locations
+        $distance = Location::calculateDistance($departureLocation, $arrivalLocation);
+    
+        // Calculate the price based on the distance
+        $price = $this->calculatePrice($distance);
+    
+        // Create a new Ride entity
+        $ride = new Ride();
+        $ride->setRequest($request) // Link the request
+            ->setDriver($driver) // Link the driver
+            ->setDistance($distance) // Set the distance
+            ->setPrice($price) // Set the price
+            ->setStatus(RIDE_STATUS::ONGOING) // Default status is ONGOING
+            ->setRideDate(new \DateTime()); // Set the current timestamp
+    
+        // Persist the ride to the database
+        $this->entityManager->persist($ride);
+        $this->entityManager->flush();
+    
+        return $ride;
     }
-
-    $distance = Location::calculateDistance($departureLocation, $arrivalLocation);
-    $price = 5.0 + ($distance * 1.5);
-
-    $ride = new Ride();
-    $ride->setRequest($request)
-        ->setDriver($driver)
-        ->setDistance($distance)
-        ->setPrice($price)
-        ->setStatus(RIDE_STATUS::ONGOING)
-        ->setRideDate(new \DateTime());
-
-    $this->entityManager->persist($ride);
-    $this->entityManager->flush();
-
-    return $ride;
-}
 
     public function getRide(int $id): ?Ride
     {
@@ -92,7 +98,7 @@ class RideService
 
     private function calculatePrice(float $distance): float
     {
-        $basePrice = 5.0; // Base price in TND
+        $basePrice = 3.0; // Base price in TND
         $pricePerKm = 1.5; // Price per kilometer
         
         return $basePrice + ($distance * $pricePerKm);

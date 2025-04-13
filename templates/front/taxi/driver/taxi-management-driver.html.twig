@@ -137,7 +137,7 @@
                         <p>No available requests at the moment.</p>
                     {% endfor %}
                 </div>
-
+                <!-- script to handdel the button accept in the request  -->
                 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const acceptButtons = document.querySelectorAll('.accept-request-btn');
@@ -146,15 +146,15 @@
             const requestId = this.getAttribute('data-request-id');
             console.log('Request ID:', requestId); // Log the request ID here
 
-            fetch(`/driver/accept-request/${requestId}`, { // Ensure the URL matches the route
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-Token': '{{ csrf_token('accept_request') }}' // Add CSRF token if required
-                },
-                body: JSON.stringify({ requestId: requestId }) // Ensure the payload matches server expectations
-            })
+         fetch(`/driver/accept-request/${requestId}`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': '{{ csrf_token('accept_request') }}'
+    },
+    body: JSON.stringify({ requestId: requestId })
+})
             .then(response => {
                 if (response.ok) {
                     return response.json();
@@ -173,6 +173,10 @@
         });
     });
 });    </script>      
+
+<!-- end handelling the button for the accept button  -->
+
+<!-- Map Section -->
                   <div class="col-md-6">
                     <div id="map" class="map-container"></div>
                 </div>

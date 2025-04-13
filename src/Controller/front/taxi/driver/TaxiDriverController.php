@@ -11,7 +11,7 @@ use App\Service\RideService;
 use App\Entity\User;
 use App\Entity\Driver;
 use Doctrine\ORM\EntityManagerInterface;
-
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,7 +23,8 @@ class TaxiDriverController extends AbstractController
     public function __construct(
         private RequestService $requestService,
         private RideService $rideService,
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
+        private LoggerInterface $logger // Add logger
         
     ) {}
     
@@ -51,34 +52,45 @@ class TaxiDriverController extends AbstractController
             'availableRequests' => $requestsWithDetails,
         ]);
     }
-
     #[Route('/accept-request/{id}', name: 'app_accept_request', methods: ['POST'])]
     public function acceptRequest(int $id): JsonResponse
     {
         try {
-            $request = $this->requestService->acceptRequest($id);
+            $this->logger->info("Accepting request with ID: $id");
     
-            // Static driver ID for now
-            $driverId = 1; // Replace with session-based driver ID later
-            $driver = $this->entityManager->getRepository(User::class)->find($driverId);
-    
-            if (!$driver) {
-                throw new \Exception('Driver not found.');
+            // Find the request
+            $request = $this->entityManager->getRepository(Request::class)->find($id);
+            
+            if (!$request) {
+                throw new \Exception('Request not found with ID: ' . $id);
             }
-    
-            // Create a new ride
+            
+            // Find driver with ID 1 directly
+            $driver = $this->entityManager->getRepository(Driver::class)->find(1);
+            
+            if (!$driver) {
+                throw new \Exception('Driver with ID 1 not found in the database.');
+            }
+            
+            $this->logger->info("Driver found with ID: 1");
+            
+            // Update request status
+            $request->setStatus(REQUEST_STATUS::ACCEPTED);
+            $this->entityManager->flush();
+            
+            // Create the ride
             $ride = $this->rideService->createRide($request, $driver);
-    
+            
             return new JsonResponse([
                 'success' => true,
                 'message' => 'Request accepted and ride created successfully.',
                 'rideId' => $ride->getId_ride(),
             ]);
         } catch (\Exception $e) {
+            $this->logger->error("Error: " . $e->getMessage());
             return new JsonResponse([
                 'success' => false,
                 'message' => $e->getMessage(),
             ], 400);
         }
-    }
-}
+    }}
