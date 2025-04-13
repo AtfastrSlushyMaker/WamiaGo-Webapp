@@ -10,12 +10,17 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+use Knp\Component\Pager\PaginatorInterface;
+
 #[Route('/admin/announcements')]
 class AnnouncementsController extends AbstractController
 {
     #[Route('/', name: 'admin_announcements_index', methods: ['GET'])]
-    public function index(Request $request, AnnouncementRepository $announcementRepo): Response
-    {
+    public function index(
+        Request $request, 
+        AnnouncementRepository $announcementRepo,
+        PaginatorInterface $paginator
+    ): Response {
         // Get filter parameters
         $filters = [];
         
@@ -29,10 +34,19 @@ class AnnouncementsController extends AbstractController
             $filters['status'] = $request->query->getBoolean('status');
         }
         
-        // Get announcements (use filtered results if filters exist)
-        $announcements = !empty($filters) 
-            ? $announcementRepo->findByFilters($filters)
-            : $announcementRepo->findBy([], ['date' => 'DESC']);
+        // Get query
+        $query = !empty($filters) 
+            ? $announcementRepo->createQueryByFilters($filters)
+            : $announcementRepo->createQueryBuilder('a')
+                ->orderBy('a.date', 'DESC')
+                ->getQuery();
+        
+        // Paginate results
+        $announcements = $paginator->paginate(
+            $query,
+            $request->query->getInt('page', 1),
+            10 // Items per page
+        );
         
         return $this->render('back-office/Announcements/index.html.twig', [
             'announcements' => $announcements,
@@ -49,19 +63,16 @@ class AnnouncementsController extends AbstractController
     }
 
     #[Route('/{id}/delete', name: 'admin_announcements_delete', methods: ['POST'])]
-public function delete(
-    Request $request,
-    Announcement $announcement,
-    EntityManagerInterface $em
-): Response {
-    if ($this->isCsrfTokenValid('delete'.$announcement->getIdAnnouncement(), $request->request->get('_token'))) {
-        $em->remove($announcement);
-        $em->flush();
-        $this->addFlash('success', 'Announcement successfully deleted');
-    } else {
-        $this->addFlash('error', 'Invalid CSRF token');
+    public function delete(Request $request, Announcement $announcement, EntityManagerInterface $em): Response
+    {
+        if ($this->isCsrfTokenValid('delete'.$announcement->getIdAnnouncement(), $request->request->get('_token'))) {
+            $em->remove($announcement);
+            $em->flush();
+            $this->addFlash('success', 'Announcement successfully deleted');
+        } else {
+            $this->addFlash('error', 'Invalid CSRF token');
+        }
+    
+        return $this->redirectToRoute('admin_announcements_index');
     }
-
-    return $this->redirectToRoute('admin_announcements_index');
-}
 }

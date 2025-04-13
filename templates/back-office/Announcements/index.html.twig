@@ -27,33 +27,13 @@
 
     <section class="content">
         <div class="container-fluid">
-            <!-- Flash messages -->
-            {% for label, messages in app.flashes %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ label }} alert-dismissible fade show">
-                        {{ message }}
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                {% endfor %}
-            {% endfor %}
+          
             
             <div class="card card-primary card-outline elevation-3">
                 <div class="card-header">
                     <h3 class="card-title">
                         <i class="fas fa-bullhorn mr-2"></i>Announcements List
                     </h3>
-                    <div class="card-tools">
-                        <div class="input-group input-group-sm" style="width: 250px;">
-                            <input type="text" id="announcement-search" class="form-control" placeholder="Search...">
-                            <div class="input-group-append">
-                                <button class="btn btn-primary">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <div class="card-body table-responsive p-0">
                     <table class="table table-hover text-nowrap">
@@ -70,55 +50,55 @@
                         </thead>
                         <tbody>
                             {% for announcement in announcements %}
-                            <tr>
-                                <td>{{ announcement.id_announcement }}</td>
-                                <td>{{ announcement.title }}</td>
-                                <td>
+                            <tr data-id="{{ announcement.id_announcement }}">
+                                <td data-label="ID">{{ announcement.id_announcement }}</td>
+                                <td data-label="Title">{{ announcement.title }}</td>
+                                <td data-label="Zone">
                                     <span class="badge badge-pill" style="background-color: {{ announcement.zone.getColor() }}; color: #fff;">
                                         {{ announcement.zone.getDisplayName() }}
                                     </span>
                                 </td>
-                                <td>{{ announcement.date|date('M d, Y H:i') }}</td>
-                                <td>
+                                <td data-label="Date">{{ announcement.date|date('M d, Y H:i') }}</td>
+                                <td data-label="Status">
                                     {% if announcement.status %}
                                         <span class="badge badge-success"><i class="fas fa-check-circle mr-1"></i> Active</span>
                                     {% else %}
                                         <span class="badge badge-secondary"><i class="fas fa-times-circle mr-1"></i> Inactive</span>
                                     {% endif %}
                                 </td>
-                                <td>{{ announcement.driver.user.name }}</td>
-                                <td class="text-center">
-    <div class="btn-group action-buttons">
-        <!-- View Details Button -->
-        <a href="{{ path('admin_announcements_show', {'id': announcement.id_announcement}) }}" 
-           class="btn btn-action btn-view" 
-           data-toggle="tooltip" 
-           data-placement="top"
-           title="View Details">
-           <i class="fas fa-eye"></i>
-           <span class="btn-label">Details</span>
-        </a>
+                                <td data-label="Driver">{{ announcement.driver.user.name }}</td>
+                                <td class="text-center" data-label="Actions">
+                                    <div class="btn-group action-buttons">
+                                        <!-- View Details Button -->
+                                        <a href="{{ path('admin_announcements_show', {'id': announcement.id_announcement}) }}" 
+                                           class="btn btn-action btn-view" 
+                                           data-toggle="tooltip" 
+                                           data-placement="top"
+                                           title="View Details">
+                                           <i class="fas fa-eye"></i>
+                                           <span class="btn-label">Details</span>
+                                        </a>
 
-       <!-- Delete Button -->
-<button class="btn btn-action btn-delete delete-btn" 
-        data-id="{{ announcement.id_announcement }}"
-        data-title="{{ announcement.title }}"
-        data-token="{{ csrf_token('delete' ~ announcement.id_announcement) }}"
-        data-bs-toggle="modal" 
-        data-bs-target="#deleteModal"
-        data-toggle="tooltip" 
-        data-placement="top"
-        title="Delete Announcement">
-    <i class="fas fa-trash-alt"></i>
-    <span class="btn-label">Delete</span>
-</button>
-    </div>
-</td>
+                                        <!-- Delete Button -->
+                                        <button class="btn btn-action btn-delete delete-btn" 
+                                                data-id="{{ announcement.id_announcement }}"
+                                                data-title="{{ announcement.title }}"
+                                                data-token="{{ csrf_token('delete' ~ announcement.id_announcement) }}"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteModal"
+                                                data-toggle="tooltip" 
+                                                data-placement="top"
+                                                title="Delete Announcement">
+                                            <i class="fas fa-trash-alt"></i>
+                                            <span class="btn-label">Delete</span>
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
                             {% else %}
                             <tr>
                                 <td colspan="7" class="text-center py-4">
-                                    <img src="{{ asset('adminlte/images/empty-data.svg') }}" alt="No data" width="120" class="mb-3">
+                                    <img src="{{ asset('adminlte/images/empty-data.svg') }}" alt="No data" width="120" class="mb-3 img-3d">
                                     <h5 class="text-muted">No announcements found</h5>
                                 </td>
                             </tr>
@@ -128,23 +108,21 @@
                 </div>
                 <div class="card-footer clearfix">
                     <div class="float-right">
-                        {# Pagination placeholder #}
-                        <div class="btn-group">
-                            <button type="button" class="btn btn-sm btn-default disabled">&laquo;</button>
-                            <button type="button" class="btn btn-sm btn-primary">1</button>
-                            <button type="button" class="btn btn-sm btn-default disabled">&raquo;</button>
-                        </div>
+                        {{ knp_pagination_render(announcements, '@KnpPaginator/Pagination/twitter_bootstrap_v4_pagination.html.twig') }}
                     </div>
                 </div>
             </div>
         </div>
     </section>
 </div>
-
 {% include 'back-office/Announcements/_partials/_delete_modal.html.twig' %}
+{% include 'back-office/Announcements/_partials/_toast.html.twig' %}
+
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('adminlte/js/announcements.js') }}"></script>
 {% endblock %}
+
+
