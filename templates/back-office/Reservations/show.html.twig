@@ -179,7 +179,7 @@
                         
                         <div class="card-body">
                             <h5>{{ reservation.announcement.title }}</h5>
-                            <p class="text-muted mb-3">{{ reservation.announcement.content|u.truncate(100, '...') }}</p>
+                            <p class="text-muted mb-3">{{ reservation.announcement.content|slice(0, 100) }}{% if reservation.announcement.content|length > 100 %}...{% endif %}</p>
                             
                             <div class="info-item">
                                 <span class="info-label"><i class="fas fa-map-marker-alt mr-2"></i>Zone:</span>
