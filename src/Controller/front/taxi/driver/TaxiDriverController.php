@@ -112,7 +112,7 @@ public function acceptRequest(int $id): JsonResponse
         
         // Create the ride with duration
         $ride = $this->rideService->createRide($request, $driver, $duration);
-        $request = $this->requestService->deleteRequest($id);
+        $request = $this->requestService->deleteRequest($id); 
         
         return new JsonResponse([
             'success' => true,
