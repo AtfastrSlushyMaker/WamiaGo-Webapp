@@ -16,6 +16,37 @@ class ReservationRepository extends ServiceEntityRepository
         parent::__construct($registry, Reservation::class);
     }
 
+    public function save(Reservation $entity, bool $flush = false): void
+    {
+        $this->getEntityManager()->persist($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function remove(Reservation $entity, bool $flush = false): void
+    {
+        $this->getEntityManager()->remove($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function createQueryByFilters(array $filters)
+    {
+        $qb = $this->createQueryBuilder('r');
+        
+        if (isset($filters['status'])) {
+            $qb->andWhere('r.status = :status')
+               ->setParameter('status', $filters['status']);
+        }
+        
+        return $qb->orderBy('r.date', 'DESC')
+                  ->getQuery();
+    }
+
     //    /**
     //     * @return Reservation[] Returns an array of Reservation objects
     //     */
