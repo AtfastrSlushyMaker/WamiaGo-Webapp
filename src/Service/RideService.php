@@ -124,4 +124,27 @@ class RideService
         $this->entityManager->remove($ride);
         $this->entityManager->flush();
     }
+
+    public function updateRideDuration(int $rideId, int $duration): Ride
+{
+    // Validate the duration
+    if ($duration <= 0 || $duration > 90) {
+        throw new \Exception('Duration must be between 1 and 90 minutes.');
+    }
+    
+    // Find the ride by ID
+    $ride = $this->entityManager->getRepository(Ride::class)->find($rideId);
+    
+    if (!$ride) {
+        throw new \Exception('Ride not found with ID: ' . $rideId);
+    }
+    
+    // Update the duration
+    $ride->setDuration($duration);
+    
+    // Persist the changes
+    $this->entityManager->flush();
+    
+    return $ride;
+}
 }

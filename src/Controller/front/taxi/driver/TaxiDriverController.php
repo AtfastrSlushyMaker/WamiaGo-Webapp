@@ -54,6 +54,7 @@ class TaxiDriverController extends AbstractController
 
         $ridesWithDetails = array_map(function ($ride) {
             return [
+                'id' => $ride->getId_ride(), // Corrected to fetch the ride ID
               
                 'pickupLocation' => $ride->getRequest()->getDepartureLocation() ? $ride->getRequest()->getDepartureLocation()->getAddress() : 'Unknown',
                 'dropoffLocation' => $ride->getRequest()->getArrivalLocation() ? $ride->getRequest()->getArrivalLocation()->getAddress() : 'Unknown',
@@ -128,18 +129,60 @@ public function acceptRequest(int $id): JsonResponse
 
 
 
-#[Route('/ride/delete/{id}', name: 'app_ride_delete', methods: ['DELETE'])]
+
+#[Route('/ride/delete/{id}', name: 'app_delete_ride', methods: ['DELETE'])]
 public function deleteRide(int $id): JsonResponse
 {
     try {
-        // Call the deleteRide method from RideService
-        $this->rideService->deleteRide($id);
-
+        // Find the ride
+        $ride = $this->entityManager->getRepository(Ride::class)->find($id);
+        
+        if (!$ride) {
+            throw new \Exception('Ride not found with ID: ' . $id);
+        }
+        
+        // Check if the ride belongs to the driver (if you implement authentication)
+        // Add this check later when you implement user sessions
+        
+        // Delete the ride
+        $this->entityManager->remove($ride);
+        $this->entityManager->flush();
+        
         return new JsonResponse([
             'success' => true,
-            'message' => 'Ride deleted successfully.',
+            'message' => 'Ride deleted successfully.'
         ]);
     } catch (\Exception $e) {
+        return new JsonResponse([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 400);
+    }
+}
+
+
+#[Route('/update-ride-duration/{id}', name: 'app_update_ride_duration', methods: ['POST'])]
+public function updateRideDuration(int $id, \Symfony\Component\HttpFoundation\Request $request): JsonResponse
+{
+    try {
+        // Get the duration from request body
+        $data = json_decode($request->getContent(), true);
+        $duration = isset($data['duration']) ? (int)$data['duration'] : null;
+        
+        if (!$duration) {
+            throw new \Exception('Duration is required.');
+        }
+        
+        // Call the service method to update the duration
+        $ride = $this->rideService->updateRideDuration($id, $duration);
+        
+        return new JsonResponse([
+            'success' => true,
+            'message' => 'Ride duration updated successfully.',
+            'rideId' => $ride->getId_ride(),
+        ]);
+    } catch (\Exception $e) {
+        $this->logger->error("Error updating ride duration: " . $e->getMessage());
         return new JsonResponse([
             'success' => false,
             'message' => $e->getMessage(),
