@@ -4,23 +4,16 @@ namespace App\Controller\front\Announcement;
 
 use App\Entity\Announcement;
 use App\Entity\Driver;
-use App\Enum\Zone;
-use App\Form\TransporterAnnouncementType; 
-use App\Repository\AnnouncementRepository;
+use App\Form\TransporterAnnouncementType;
 use App\Repository\DriverRepository;
 use App\Service\AnnouncementService;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Form\DataTransformer\ZoneTransformer;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Validator\Constraints\NotNull;
+use App\Repository\AnnouncementRepository;
 
 #[Route('/transporter/announcements')]
 class TransporterAnnouncementController extends AbstractController
@@ -29,7 +22,9 @@ class TransporterAnnouncementController extends AbstractController
 
     public function __construct(
         private readonly AnnouncementService $announcementService,
-        private readonly DriverRepository $driverRepository
+        private readonly DriverRepository $driverRepository,
+        PaginatorInterface $paginator
+        
     ) {
     }
 
@@ -87,26 +82,59 @@ class TransporterAnnouncementController extends AbstractController
     }
 
     #[Route('/', name: 'app_transporter_announcement_list', methods: ['GET'])]
-    public function list(): Response
-    {
-        $driver = $this->driverRepository->find(self::HARDCODED_DRIVER_ID);
-        if (!$driver) {
-            throw $this->createNotFoundException('Driver not found');
-        }
-
-        $announcements = $this->announcementService->getAnnouncementsByDriver($driver);
-
-        return $this->render('front/announcement/transporter/list.html.twig', [
-            'announcements' => $announcements
-        ]);
+public function list(Request $request, PaginatorInterface $paginator): Response
+{
+    $driver = $this->driverRepository->find(self::HARDCODED_DRIVER_ID);
+    if (!$driver) {
+        throw $this->createNotFoundException('Driver not found');
     }
 
-    private function getFormErrors(FormInterface $form): array
-    {
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
+    $query = $this->announcementService->getAnnouncementsQueryByDriver($driver);
+    
+    $announcements = $paginator->paginate(
+        $query,
+        $request->query->getInt('page', 1),
+        6 // Items per page
+    );
+
+    return $this->render('front/announcement/transporter/list.html.twig', [
+        'announcements' => $announcements
+    ]);
+}
+
+#[Route('/{id}/delete', name: 'app_transporter_announcement_delete', methods: ['POST'])]
+public function delete(Request $request, Announcement $announcement): Response
+{
+    if ($this->isCsrfTokenValid('delete'.$announcement->getIdAnnouncement(), $request->request->get('_token'))) {
+        try {
+            $this->announcementService->deleteAnnouncement($announcement);
+            $this->addFlash('success', 'Announcement deleted successfully');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Error deleting announcement: '.$e->getMessage());
         }
-        return $errors;
+    } else {
+        $this->addFlash('error', 'Invalid CSRF token');
     }
+
+    return $this->redirectToRoute('app_transporter_announcement_list');
+}
+
+#[Route('/{id}/details', name: 'app_transporter_announcement_details', methods: ['GET'])]
+public function details(int $id, AnnouncementRepository $announcementRepository): JsonResponse
+{
+    $announcement = $announcementRepository->find($id);
+    
+    if (!$announcement) {
+        return new JsonResponse(['error' => 'Announcement not found'], 404);
+    }
+
+    return new JsonResponse([
+        'title' => $announcement->getTitle(),
+        'content' => $announcement->getContent(),
+        'zone' => $announcement->getZone()->value,
+        'date' => $announcement->getDate()->format('d M Y, H:i'),
+        'status' => $announcement->isStatus()
+    ]);
+}
+    
 }

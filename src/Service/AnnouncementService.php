@@ -7,6 +7,7 @@ use App\Entity\Driver;
 use App\Enum\Zone;
 use App\Repository\AnnouncementRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\QueryBuilder;
 
 class AnnouncementService
 {
@@ -162,5 +163,15 @@ public function countFilteredAnnouncements(?string $search): int
     }
 
     return $qb->getQuery()->getSingleScalarResult();
+}
+
+public function getAnnouncementsQueryByDriver(Driver $driver): QueryBuilder
+{
+    return $this->announcementRepository->getQueryByDriver($driver);
+}
+
+public function getAnnouncementDetails(int $id): ?Announcement
+{
+    return $this->announcementRepository->findWithDetails($id);
 }
 }

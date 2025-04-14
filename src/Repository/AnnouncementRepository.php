@@ -3,9 +3,11 @@
 namespace App\Repository;
 
 use App\Entity\Announcement;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use App\Entity\Driver;
 use App\Enum\Zone;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<Announcement>
@@ -107,6 +109,25 @@ class AnnouncementRepository extends ServiceEntityRepository
                  ->getQuery()
                  ->getResult();
     }
+
+    public function getQueryByDriver(Driver $driver): QueryBuilder
+{
+    return $this->createQueryBuilder('a')
+        ->andWhere('a.driver = :driver')
+        ->setParameter('driver', $driver)
+        ->orderBy('a.date', 'DESC');
+}
+
+public function findWithDetails(int $id): ?Announcement
+{
+    return $this->createQueryBuilder('a')
+        ->leftJoin('a.driver', 'd')
+        ->addSelect('d')
+        ->andWhere('a.id = :id')
+        ->setParameter('id', $id)
+        ->getQuery()
+        ->getOneOrNullResult();
+}
 
     //    /**
     //     * @return Announcement[] Returns an array of Announcement objects
