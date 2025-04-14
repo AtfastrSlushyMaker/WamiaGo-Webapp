@@ -9,7 +9,7 @@
     background: white;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    /*box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);*/
     transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
@@ -18,7 +18,7 @@
 
 .announcement-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    /*/box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);*/
 }
 
 .card-header {
@@ -147,3 +147,9 @@
     background-color: #c0392b;
     transform: scale(1.1);
 }
+
+.modal-backdrop.show {
+    opacity: 0 !important;
+    background-color: transparent !important;
+}
+
