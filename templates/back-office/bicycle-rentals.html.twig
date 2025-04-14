@@ -76,7 +76,6 @@
                  
                  {% include 'back-office/bicycle/rental.html.twig' with {
                     'rentals': rentals, 
-                    'stats': stats, 
                     'stations': stations|default([]),
                     'debugInfo': debug|default({})
                  } %}
