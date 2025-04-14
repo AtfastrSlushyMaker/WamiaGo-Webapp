@@ -118,6 +118,25 @@ class TaxiController extends AbstractController
         ]);
     }
 
+    #[Route('/ride/delete/{id}', name: 'delete_ride', methods: ['POST'])]
+    public function deleteRide(int $id): JsonResponse
+    {
+        try {
+            // Call the deleteRide method from the RideService
+            $this->rideService->deleteRide($id);
+    
+            return new JsonResponse([
+                'status' => 'success',
+                'message' => 'Ride deleted successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
    
    
   

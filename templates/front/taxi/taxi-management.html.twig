@@ -120,12 +120,12 @@
                                             <p class="mb-2"><i class="fas fa-clock me-2 text-primary"></i> {{ request.requestTime|date('Y-m-d H:i') }}</p>
                                             <div class="mt-auto d-flex justify-content-between">
                                                 <form class="delete-request-form" action="{{ path('delete_request', { id: request.id }) }}" method="POST">
-                                                    <button type="submit" class="btn btn-danger btn-sm d-flex align-items-center" data-request-id="{{ request.id }}">
-                                                        <i class="fas fa-trash-alt"></i>
+                                                    <button type="button" class="btn btn-danger btn-sm d-flex align-items-center delete-request-btn" data-request-id="{{ request.id }}">
+                                                        <i class="fas fa-trash-alt"></i> Delete
                                                     </button>
                                                 </form>
                                                 <a href="{{ path('update_request', { id: request.id }) }}" class="btn btn-primary btn-md px-3 py-2 d-flex align-items-center">
-                                                    <i class="fas fa-edit"></i>
+                                                    <i class="fas fa-edit"></i> Edit
                                                 </a>
                                             </div>
                                         </div>
@@ -159,8 +159,14 @@
                             <p class="mb-3"><i class="fas fa-map-marker-alt me-2 text-primary"></i> Destination: {{ ride.destination ?: 'Unknown' }}</p>
                             <p class="mb-3"><i class="fas fa-dollar-sign me-2 text-primary"></i> Price: {{ ride.price ?: 'N/A' }}</p>
                             <p class="mb-3"><i class="fas fa-clock me-2 text-primary"></i> Duration: {{ ride.duration ?: 'N/A' }}</p>
-                            
                             <p class="mb-3"><i class="fas fa-road me-2 text-primary"></i> Distance: {{ ride.distance ?: 'N/A' }}</p>
+                            <div class="mt-auto d-flex justify-content-end">
+                                <form class="delete-ride-form" action="{{ path('delete_ride', { id: ride.id }) }}" method="POST">
+                                    <button type="button" class="btn btn-danger btn-sm d-flex align-items-center delete-ride-btn" data-ride-id="{{ ride.id }}">
+                                        <i class="fas fa-trash-alt"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                         </div>
                     </div>
@@ -172,6 +178,104 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle delete request buttons
+        const deleteRequestButtons = document.querySelectorAll('.delete-request-btn');
+        deleteRequestButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const requestId = button.getAttribute('data-request-id');
+                const requestCard = document.getElementById('request-' + requestId);
+                const form = button.closest('form');
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'Do you really want to delete this request? This action cannot be undone.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch(form.action, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ id: requestId }),
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                requestCard.style.transition = 'opacity 0.5s ease';
+                                requestCard.style.opacity = '0';
+                                setTimeout(() => requestCard.remove(), 500);
+                                Swal.fire('Deleted!', 'The request has been deleted successfully.', 'success');
+                            } else {
+                                Swal.fire('Error!', 'Failed to delete the request. Please try again.', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            Swal.fire('Error!', 'An unexpected error occurred. Please try again later.', 'error');
+                        });
+                    }
+                });
+            });
+        });
+
+        // Handle delete ride buttons
+        const deleteRideButtons = document.querySelectorAll('.delete-ride-btn');
+        deleteRideButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const rideId = button.getAttribute('data-ride-id');
+                const rideCard = document.getElementById('ride-' + rideId);
+                const form = button.closest('form');
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'Do you really want to delete this ride? This action cannot be undone.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch(form.action, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ id: rideId }),
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                rideCard.style.transition = 'opacity 0.5s ease';
+                                rideCard.style.opacity = '0';
+                                setTimeout(() => rideCard.remove(), 500);
+                                Swal.fire('Deleted!', 'The ride has been deleted successfully.', 'success');
+                            } else {
+                                Swal.fire('Error!', 'Failed to delete the ride. Please try again.', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            Swal.fire('Error!', 'An unexpected error occurred. Please try again later.', 'error');
+                        });
+                    }
+                });
+            });
+        });
+    });
+</script>
 <div class="d-flex justify-content-center align-items-center" style="min-height: 50vh;">
     {% block javascripts %}
         {{ parent() }}
