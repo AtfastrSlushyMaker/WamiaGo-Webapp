@@ -121,7 +121,7 @@
                                     </div>
                                     <h6 class="mb-0">
                                         {% if rental.user %}
-                                            {{ rental.user.firstName }} {{ rental.user.lastName|default('') }}
+                                            {{ rental.user.name}}
                                         {% else %}
                                             Unknown
                                         {% endif %}
