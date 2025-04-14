@@ -20,13 +20,19 @@
                             <i class="fas fa-download me-2"></i>Export
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-                            <li><a class="dropdown-item" href="{{ path('admin_bicycle_rental_export') }}"><i class="fas fa-file-csv me-2"></i>Export to CSV</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-file-excel me-2"></i>Export to Excel</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2"></i>Export to PDF</a></li>
+                            {% if active_tab == 'rentals' %}
+                                <li><a class="dropdown-item" href="{{ path('admin_bicycle_rental_export') }}{% if app.request.query.all|length > 0 %}?{{ app.request.query.all|url_encode }}{% endif %}"><i class="fas fa-file-csv me-2"></i>Export to CSV</a></li>
+                                <li><a class="dropdown-item" href="#" id="export-excel"><i class="fas fa-file-excel me-2"></i>Export to Excel</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2"></i>Export to PDF</a></li>
+                            {% else %}
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-file-csv me-2"></i>Export to CSV</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-file-excel me-2"></i>Export to Excel</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2"></i>Export to PDF</a></li>
+                            {% endif %}
                         </ul>
                     </div>
-                    <a href="{{ path('admin_bicycle_rentals_index') }}" class="btn btn-primary">
-                        <i class="fas fa-receipt me-2"></i>Rental Management
+                    <a href="{{ path('admin_bicycle_dashboard') }}" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i>Back to Dashboard
                     </a>
                 </div>
             </div>
@@ -38,22 +44,22 @@
         <div class="card-body p-0">
             <ul class="nav nav-tabs-custom" id="bicycleManagementTabs" role="tablist">
                 <li class="nav-item flex-fill text-center">
-                    <a class="nav-link d-flex flex-column align-items-center py-3 {{ active_tab == 'rentals' ? 'active' : '' }}" 
-                       href="{{ path('admin_bicycle_dashboard', {'tab': 'rentals'}) }}">
+                    <a class="nav-link d-flex flex-column align-items-center py-3 {{ active_tab == 'rentals' ? 'active' : '' }}"
+                       href="{{ path('admin_bicycle_dashboard', app.request.query.all|merge({'tab': 'rentals', 'page': 1})) }}">
                         <i class="fas fa-receipt mb-1 tab-icon"></i>
                         <span>Rentals</span>
                     </a>
                 </li>
                 <li class="nav-item flex-fill text-center">
-                    <a class="nav-link d-flex flex-column align-items-center py-3 {{ active_tab == 'bicycles' ? 'active' : '' }}" 
-                       href="{{ path('admin_bicycle_dashboard', {'tab': 'bicycles'}) }}">
+                    <a class="nav-link d-flex flex-column align-items-center py-3 {{ active_tab == 'bicycles' ? 'active' : '' }}"
+                       href="{{ path('admin_bicycle_dashboard', app.request.query.all|merge({'tab': 'bicycles', 'page': 1})) }}">
                         <i class="fas fa-bicycle mb-1 tab-icon"></i>
                         <span>Bicycles</span>
                     </a>
                 </li>
                 <li class="nav-item flex-fill text-center">
-                    <a class="nav-link d-flex flex-column align-items-center py-3 {{ active_tab == 'stations' ? 'active' : '' }}" 
-                       href="{{ path('admin_bicycle_dashboard', {'tab': 'stations'}) }}">
+                    <a class="nav-link d-flex flex-column align-items-center py-3 {{ active_tab == 'stations' ? 'active' : '' }}"
+                       href="{{ path('admin_bicycle_dashboard', app.request.query.all|merge({'tab': 'stations', 'page': 1})) }}">
                         <i class="fas fa-map-marker-alt mb-1 tab-icon"></i>
                         <span>Stations</span>
                     </a>
@@ -66,19 +72,11 @@
     <div class="tab-content fade-in" id="bicycleManagementTabsContent">
         {% if active_tab == 'rentals' %}
             <div class="tab-pane fade show active">
-                 {% if rentals is not defined %}
-                    {% if bicycle_rentals is defined %}
-                        {% set rentals = bicycle_rentals %}
-                    {% else %}
-                        {% set rentals = [] %}
-                    {% endif %}
-                 {% endif %}
-                 
-                 {% include 'back-office/bicycle/rental.html.twig' with {
-                    'rentals': rentals, 
+                {% include 'back-office/bicycle/rental.html.twig' with {
+                    'rentals': rentals|default([]),
                     'stations': stations|default([]),
-                    'debugInfo': debug|default({})
-                 } %}
+                    'stats': stats|default({})
+                } %}
             </div>
         {% elseif active_tab == 'bicycles' %}
             <div class="tab-pane fade show active">
@@ -396,6 +394,59 @@
         tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
+        
+        // Update Export Excel link if it exists
+        const exportExcelBtn = document.getElementById('export-excel');
+        if (exportExcelBtn) {
+            exportExcelBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = '{{ path('admin_bicycle_rental_export') }}' + window.location.search + '&format=excel';
+            });
+        });
+        
+        // Handle Modal Confirmations for rentals
+        const confirmModal = document.getElementById('confirmActionModal');
+        if (confirmModal) {
+            const modalInstance = new bootstrap.Modal(confirmModal);
+            let activeForm = null;
+            
+            // Setup action buttons
+            document.querySelectorAll('.activate-rental-btn, .cancel-rental-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const rentalId = this.getAttribute('data-rental-id');
+                    const isCancel = this.classList.contains('cancel-rental-btn');
+                    const formId = isCancel ? 'cancelRentalForm' : 'activateRentalForm';
+                    
+                    const form = document.getElementById(formId);
+                    if (form) {
+                        const path = isCancel 
+                            ? '{{ path('admin_bicycle_rental_cancel', {'id': '0'}) }}'.replace('/0', `/${rentalId}`)
+                            : '{{ path('admin_bicycle_rental_activate', {'id': '0'}) }}'.replace('/0', `/${rentalId}`);
+                            
+                        form.setAttribute('action', path);
+                        
+                        // Setup modal content
+                        document.getElementById('confirmActionTitle').textContent = isCancel ? 'Cancel Rental' : 'Activate Rental';
+                        document.getElementById('confirmActionBody').textContent = isCancel
+                            ? 'Are you sure you want to cancel this rental? This action cannot be undone.'
+                            : 'Are you sure you want to activate this rental? This will mark the bicycle as in use and start the rental timer.';
+                        document.getElementById('confirmActionBtn').className = isCancel ? 'btn btn-danger' : 'btn btn-success';
+                        document.getElementById('confirmActionBtn').textContent = isCancel ? 'Cancel Rental' : 'Activate';
+                        
+                        activeForm = form;
+                        modalInstance.show();
+                    }
+                });
+            });
+            
+            // Handle confirm action button
+            document.getElementById('confirmActionBtn')?.addEventListener('click', function() {
+                if (activeForm) {
+                    activeForm.submit();
+                }
+                modalInstance.hide();
+            });
+        }
     });
 </script>
 {% endblock %}

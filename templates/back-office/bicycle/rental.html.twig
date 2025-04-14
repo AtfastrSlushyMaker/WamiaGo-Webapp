@@ -1,428 +1,329 @@
-{# Include the rental dashboard template if rentals is defined and not null #}
-{% if rentals is defined and rentals is not null %}
-    {% set paginatedRentals = rentals %}
-    {% if rentals is iterable and not rentals.isPaginationObject is defined %}
-        {# Convert raw results to an empty pagination object to avoid template errors #}
-        {% set paginatedRentals = {
-            'items': rentals,
-            'totalItemCount': rentals|length,
-            'currentPageNumber': 1,
-            'itemNumberPerPage': rentals|length,
-            'pageRange': 5,
-            'paginatorOptions': {}
-        } %}
-    {% endif %}
-    
-    {% if app.request.get('_route') != 'admin_bicycle_rentals_index' %}
-    <!-- Debug info only shown when not in main dashboard -->
-    <div class="alert alert-info mb-3">
-        <h5><strong>Debug Information:</strong></h5>
-        <ul>
-            <li><strong>Rentals defined:</strong> {{ rentals is defined ? 'Yes' : 'No' }}</li>
-            <li><strong>Rentals null:</strong> {{ rentals is null ? 'Yes' : 'No' }}</li>
-            <li><strong>Rentals count:</strong> {{ rentals is defined and rentals is iterable ? rentals|length : 'Not iterable' }}</li>
-            <li><strong>Rentals type:</strong> {{ rentals is defined ? rentals|json_encode : 'Undefined' }}</li>
-        </ul>
-        
-        {% if debugInfo is defined %}
-            <h5 class="mt-3"><strong>Database Diagnostics:</strong></h5>
-            <ul>
-                <li><strong>Table exists:</strong> {{ debugInfo.table_exists is defined ? (debugInfo.table_exists ? 'Yes' : 'No') : 'Unknown' }}</li>
-                <li><strong>Record count:</strong> {{ debugInfo.record_count is defined ? debugInfo.record_count : 'Unknown' }}</li>
-                {% if debugInfo.error is defined %}
-                    <li class="text-danger"><strong>Error:</strong> {{ debugInfo.error }}</li>
-                {% endif %}
-                {% if debugInfo.rental_error is defined %}
-                    <li class="text-danger"><strong>Rental Error:</strong> {{ debugInfo.rental_error }}</li>
-                {% endif %}
-                {% if debugInfo.columns is defined %}
-                    <li><strong>Table columns:</strong> {{ debugInfo.columns|join(', ') }}</li>
-                {% endif %}
-                {% if debugInfo.sample_data is defined and debugInfo.sample_data|length > 0 %}
-                    <li>
-                        <strong>Sample data (first record):</strong>
-                        <pre style="max-height: 200px; overflow-y: auto; margin-top: 10px; font-size: 12px;">{{ debugInfo.sample_data[0]|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
-                    </li>
-                {% endif %}
-            </ul>
-        {% endif %}
-    </div>
-    {% endif %}
-    
-    <div class="rental-dashboard mb-4">
-        <div class="dashboard-container shadow-sm border rounded bg-white p-4">
-            <!-- Rental Status Cards -->
-            <div class="row mb-4 mt-1">
-                <div class="col-md-3">
-                    <div class="card border-left-primary">
-                        <div class="card-body py-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="text-primary mb-1">Total Rentals</p>
-                                    <h3 class="mb-0 fw-bold">{{ stats.totalRentals is defined ? stats.totalRentals : 0 }}</h3>
-                                </div>
-                                <div class="icon-box bg-primary-light">
-                                    <i class="fas fa-receipt text-primary"></i>
-                                </div>
-                            </div>
-                        </div>
+{# Improved Bicycle Rentals Tab #}
+<div class="container-fluid px-0">
+    <!-- Statistics Cards -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded-circle p-3 bg-primary bg-opacity-10 me-3">
+                        <i class="fas fa-bicycle fa-2x text-primary"></i>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card border-left-success">
-                        <div class="card-body py-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="text-success mb-1">Completed</p>
-                                    <h3 class="mb-0 fw-bold">{{ stats.completedCount is defined ? stats.completedCount : 0 }}</h3>
-                                </div>
-                                <div class="icon-box bg-success-light">
-                                    <i class="fas fa-check text-success"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card border-left-warning">
-                        <div class="card-body py-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="text-warning mb-1">Active</p>
-                                    <h3 class="mb-0 fw-bold">{{ stats.activeCount is defined ? stats.activeCount : 0 }}</h3>
-                                </div>
-                                <div class="icon-box bg-warning-light">
-                                    <i class="fas fa-bicycle text-warning"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card border-left-info">
-                        <div class="card-body py-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="text-info mb-1">Reserved</p>
-                                    <h3 class="mb-0 fw-bold">{{ stats.reservedCount is defined ? stats.reservedCount : 0 }}</h3>
-                                </div>
-                                <div class="icon-box bg-info-light">
-                                    <i class="fas fa-bookmark text-info"></i>
-                                </div>
-                            </div>
-                        </div>
+                    <div>
+                        <h6 class="text-muted mb-1">Total Rentals</h6>
+                        <h3 class="fw-bold mb-0">{{ stats.totalRentals is defined ? stats.totalRentals : (rentals is defined ? rentals|length : 0) }}</h3>
                     </div>
                 </div>
             </div>
-            
-            <!-- Filters Row -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">Rental Filters</h5>
-                    <form action="{{ path('admin_bicycle_dashboard', {'tab': 'rentals'}) }}" method="GET" id="rentalFilterForm" novalidate>
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <label class="form-label">Status</label>
-                                <select class="form-select" name="status">
-                                    <option value="">All Statuses</option>
-                                    <option value="active" {% if filteredStatus is defined and filteredStatus == 'active' %}selected{% endif %}>Active</option>
-                                    <option value="completed" {% if filteredStatus is defined and filteredStatus == 'completed' %}selected{% endif %}>Completed</option>
-                                    <option value="reserved" {% if filteredStatus is defined and filteredStatus == 'reserved' %}selected{% endif %}>Reserved</option>
-                                </select>
-                            </div>
-                            <div class="col-md-5">
-                                <label class="form-label">Date Range</label>
-                                <div class="input-group">
-                                    <input type="date" class="form-control" name="dateFrom" value="{{ filteredDateFrom is defined ? filteredDateFrom : '' }}" placeholder="From">
-                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
-                                    <input type="date" class="form-control" name="dateTo" value="{{ filteredDateTo is defined ? filteredDateTo : '' }}" placeholder="To">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Station</label>
-                                <select class="form-select" name="station">
-                                    <option value="">All Stations</option>
-                                    {% if stations is defined %}
-                                        {% for station in stations %}
-                                            <option value="{{ station.idStation }}" {% if filteredStation is defined and filteredStation == station.idStation %}selected{% endif %}>
-                                                {{ station.name }}
-                                            </option>
-                                        {% endfor %}
-                                    {% endif %}
-                                </select>
-                            </div>
-                            <div class="col-12">
-                                <button type="submit" class="btn btn-primary me-2">
-                                    <i class="fas fa-filter me-2"></i>Apply Filters
-                                </button>
-                                <a href="{{ path('admin_bicycle_dashboard', {'tab': 'rentals'}) }}" class="btn btn-outline-secondary">
-                                    <i class="fas fa-redo me-2"></i>Reset
-                                </a>
-                                <a href="{{ path('admin_bicycle_rental_new') }}" class="btn btn-success float-end">
-                                    <i class="fas fa-plus me-2"></i>New Rental
-                                </a>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Rentals Table -->
-            <div class="card mb-4">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-                    <h5 class="mb-0">Bicycle Rentals</h5>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="rentalActions" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-cog me-2"></i>Actions
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="rentalActions">
-                            <li><a class="dropdown-item" href="{{ path('admin_bicycle_rental_export', app.request.query.all) }}"><i class="fas fa-file-export me-2"></i>Export Data</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="window.print();"><i class="fas fa-print me-2"></i>Print List</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ path('admin_bicycle_rental_new') }}"><i class="fas fa-plus me-2"></i>New Rental</a></li>
-                        </ul>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded-circle p-3 bg-success bg-opacity-10 me-3">
+                        <i class="fas fa-check-circle fa-2x text-success"></i>
                     </div>
-                </div>
-                <div class="card-body">
-                    <table class="table table-hover datatable">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>User</th>
-                                <th>Bicycle</th>
-                                <th>Start Station</th>
-                                <th>End Station</th>
-                                <th>Start Time</th>
-                                <th>End Time</th>
-                                <th>Duration</th>
-                                <th>Cost</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% if rentals is defined and rentals|length > 0 %}
-                                {% for rental in rentals %}
-                                    {% set isPremium = rental.bicycle is not null and rental.bicycle.batteryLevel > 90 %}
-                                    {% set duration = '-' %}
-                                    {% set status = 'Reserved' %}
-                                    
-                                    {% if rental.startTime and rental.endTime %}
-                                        {% set duration_seconds = rental.endTime.timestamp - rental.startTime.timestamp %}
-                                        {% set hours = (duration_seconds / 3600)|round(0, 'floor') %}
-                                        {% set minutes = ((duration_seconds % 3600) / 60)|round(0, 'floor') %}
-                                        {% set duration = hours ~ 'h ' ~ minutes ~ 'm' %}
-                                        {% set status = 'Completed' %}
-                                    {% elseif rental.startTime %}
-                                        {% set status = 'Active' %}
-                                    {% endif %}
-                                    
-                                    <tr>
-                                        <td>
-                                            <a href="{{ path('admin_bicycle_rental_show', {'id': rental.idUserRental}) }}" class="fw-bold text-decoration-none">
-                                                B{{ '%05d'|format(rental.idUserRental) }}
-                                            </a>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="avatar-sm bg-light rounded-circle me-2 d-flex align-items-center justify-content-center">
-                                                    <i class="fas fa-user text-secondary"></i>
-                                                </div>
-                                                <div>
-                                                    {% if rental.user %}
-                                                        {{ rental.user.name }}
-                                                    {% else %}
-                                                        Unknown
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <i class="fas fa-bicycle me-2 {% if isPremium %}text-success{% else %}text-primary{% endif %}"></i>
-                                                <span>
-                                                    {% if rental.bicycle %}
-                                                        Bike #{{ rental.bicycle.idBike }}
-                                                        {% if isPremium %}
-                                                            <span class="badge bg-success ms-1">Premium</span>
-                                                        {% endif %}
-                                                    {% else %}
-                                                        Unknown
-                                                    {% endif %}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            {% if rental.startStation %}
-                                                {{ rental.startStation.name }}
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if rental.endStation %}
-                                                {{ rental.endStation.name }}
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if rental.startTime %}
-                                                {{ rental.startTime|date('Y-m-d H:i') }}
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if rental.endTime %}
-                                                {{ rental.endTime|date('Y-m-d H:i') }}
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        </td>
-                                        <td>{{ duration }}</td>
-                                        <td>
-                                            {% if rental.cost %}
-                                                {{ rental.cost|number_format(3) }} TND
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if status == 'Completed' %}
-                                                <span class="badge bg-success">Completed</span>
-                                            {% elseif status == 'Active' %}
-                                                <span class="badge bg-primary">In Progress</span>
-                                            {% else %}
-                                                <span class="badge bg-warning text-dark">Reserved</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <div class="btn-group">
-                                                <a href="{{ path('admin_bicycle_rental_show', {'id': rental.idUserRental}) }}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="View Details">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a href="{{ path('admin_bicycle_rental_edit', {'id': rental.idUserRental}) }}" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Edit">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                
-                                                {% if status == 'Reserved' %}
-                                                    <button type="button" class="btn btn-sm btn-outline-success activate-rental-btn" 
-                                                            data-rental-id="{{ rental.idUserRental }}" 
-                                                            data-bs-toggle="tooltip" title="Activate Rental">
-                                                        <i class="fas fa-play"></i>
-                                                    </button>
-                                                {% endif %}
-                                                
-                                                {% if status != 'Completed' %}
-                                                    <button type="button" class="btn btn-sm btn-outline-danger cancel-rental-btn" 
-                                                            data-rental-id="{{ rental.idUserRental }}" 
-                                                            data-bs-toggle="tooltip" title="Cancel">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
-                                                {% endif %}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            {% else %}
-                                <tr>
-                                    <td colspan="11" class="text-center py-4">
-                                        <div class="empty-state">
-                                            <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
-                                            <h5>No rentals found</h5>
-                                            <p class="text-muted">Try adjusting your filters or create a new rental</p>
-                                            <a href="{{ path('admin_bicycle_rental_new') }}" class="btn btn-primary mt-2">
-                                                <i class="fas fa-plus me-2"></i>Create New Rental
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% endif %}
-                        </tbody>
-                    
-                    <div class="navigation d-flex justify-content-center mt-4">
-                        {% if rentals is defined and rentals.isPaginationObject is defined %}
-                            {{ knp_pagination_render(rentals) }}
-                        {% endif %}
+                    <div>
+                        <h6 class="text-muted mb-1">Completed</h6>
+                        <h3 class="fw-bold mb-0">{{ stats.completedCount is defined ? stats.completedCount : 0 }}</h3>
                     </div>
                 </div>
             </div>
-            
-            <!-- Rental form with Symfony form helpers -->
-            <div class="rental-form-container mt-4">
-                <div class="card">
-                    <div class="card-header bg-white">
-                        <h5 class="mb-0">Add New Rental</h5>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded-circle p-3 bg-primary bg-opacity-10 me-3">
+                        <i class="fas fa-biking fa-2x text-primary"></i>
                     </div>
-                    <div class="card-body">
-                        {% if form is defined %}
-                        {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'needs-validation'}}) }}
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    {{ form_row(form.startStation, {'attr': {'class': 'form-control'}}) }}
-                                </div>
-                                <div class="col-md-6">
-                                    {{ form_row(form.endStation, {'attr': {'class': 'form-control'}}) }}
-                                </div>
-                            </div>
-                            
-                            <div class="row g-3 mt-2">
-                                <div class="col-md-6">
-                                    {{ form_row(form.bicycle, {'attr': {'class': 'form-control'}}) }}
-                                </div>
-                                <div class="col-md-6">
-                                    {{ form_row(form.user, {'attr': {'class': 'form-control'}}) }}
-                                </div>
-                            </div>
-                            
-                            <div class="row g-3 mt-2">
-                                <div class="col-md-6">
-                                    {{ form_row(form.startTime, {'attr': {'class': 'form-control'}}) }}
-                                </div>
-                                <div class="col-md-6">
-                                    {{ form_row(form.endTime, {'attr': {'class': 'form-control'}}) }}
-                                </div>
-                            </div>
-                            
-                            <div class="row g-3 mt-2">
-                                <div class="col-md-6">
-                                    {{ form_row(form.cost, {'attr': {'class': 'form-control'}}) }}
-                                </div>
-                            </div>
-                            
-                            <div class="mt-4">
-                                <button type="submit" class="btn btn-primary">Save Rental</button>
-                                <button type="reset" class="btn btn-secondary">Reset</button>
-                            </div>
-                        {{ form_end(form) }}
-                        {% else %}
-                        <div class="alert alert-info">
-                            <p>Rental form is not available. Please make sure you're accessing this page through the proper rental page.</p>
-                        </div>
-                        {% endif %}
+                    <div>
+                        <h6 class="text-muted mb-1">Active</h6>
+                        <h3 class="fw-bold mb-0">{{ stats.activeCount is defined ? stats.activeCount : 0 }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded-circle p-3 bg-warning bg-opacity-10 me-3">
+                        <i class="fas fa-bookmark fa-2x text-warning"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1">Reserved</h6>
+                        <h3 class="fw-bold mb-0">{{ stats.reservedCount is defined ? stats.reservedCount : 0 }}</h3>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-{% else %}
-    <div class="alert alert-warning">
-        No rental data available.
+    
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold">Filters</h5>
+        </div>
+        <div class="card-body">
+            <form action="{{ path('admin_bicycle_rentals_index') }}" method="GET" id="rentalFilterForm">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label fw-medium">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="">All Statuses</option>
+                            <option value="active" {{ app.request.query.get('status') == 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="completed" {{ app.request.query.get('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                            <option value="reserved" {{ app.request.query.get('status') == 'reserved' ? 'selected' : '' }}>Reserved</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-medium">Station</label>
+                        <select name="station" class="form-select">
+                            <option value="">All Stations</option>
+                            {% for station in stations %}
+                                <option value="{{ station.idStation }}" {% if app.request.query.get('station') == station.idStation|number_format(0) %}selected{% endif %}>
+                                    {{ station.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-medium">From Date</label>
+                        <input type="date" name="dateFrom" class="form-control" value="{{ app.request.query.get('dateFrom') }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-medium">To Date</label>
+                        <input type="date" name="dateTo" class="form-control" value="{{ app.request.query.get('dateTo') }}">
+                    </div>
+                </div>
+                <div class="mt-3 d-flex justify-content-between">
+                    <div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter me-2"></i>Apply Filters
+                        </button>
+                        <a href="{{ path('admin_bicycle_rentals_index') }}" class="btn btn-outline-secondary ms-2">
+                            <i class="fas fa-redo me-2"></i>Reset
+                        </a>
+                    </div>
+                    <a href="{{ path('admin_bicycle_rental_new') }}" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>New Rental
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
-{% endif %}
+    
+    <!-- Rentals Table Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0 fw-bold">Bicycle Rentals</h5>
+            <div class="d-flex align-items-center">
+                <span class="me-3 text-muted">Export:</span>
+                <div class="btn-group">
+                    <a href="{{ path('admin_bicycle_rental_export') }}{% if app.request.query.all|length > 0 %}?{{ app.request.query.all|url_encode }}{% endif %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-file-csv me-2"></i>CSV
+                    </a>
+                    <a href="#" class="btn btn-sm btn-outline-success" id="export-excel">
+                        <i class="fas fa-file-excel me-2"></i>Excel
+                    </a>
+                    <a href="#" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-file-pdf me-2"></i>PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0 datatable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Bicycle</th>
+                            <th>Start Station</th>
+                            <th>Start Time</th>
+                            <th>End Station</th>
+                            <th>End Time</th>
+                            <th>Duration</th>
+                            <th>Distance (km)</th>
+                            <th>Battery Used (%)</th>
+                            <th>Cost</th>
+                            <th>Status</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if rentals is defined and rentals|length > 0 %}
+                            {% for rental in rentals %}
+                                {% set status = 'Reserved' %}
+                                {% if rental.endTime is defined and rental.endTime %}
+                                    {% set status = 'Completed' %}
+                                {% elseif rental.startTime is defined and rental.startTime %}
+                                    {% set status = 'Active' %}
+                                {% endif %}
+                                
+                                <tr>
+                                    <td>
+                                        <span class="fw-medium">B{{ '%05d'|format(rental.idUserRental) }}</span>
+                                    </td>
+                                    <td>
+                                        {% if rental.user is defined and rental.user %}
+                                            {{ rental.user.name|default(rental.user.email)|default('Unknown') }}
+                                        {% else %}
+                                            Unknown
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if rental.bicycle is defined and rental.bicycle %}
+                                            <span class="fw-medium">Bike #{{ rental.bicycle.idBike }}</span>
+                                            <div class="small text-muted">
+                                                {% if rental.bicycle.batteryLevel > 90 %}
+                                                    Premium E-Bike
+                                                {% else %}
+                                                    Standard E-Bike
+                                                {% endif %}
+                                            </div>
+                                        {% else %}
+                                            Unknown
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if rental.startStation is defined and rental.startStation %}
+                                            {{ rental.startStation.name|default('Unknown') }}
+                                        {% else %}
+                                            Unknown
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if rental.startTime is defined and rental.startTime %}
+                                            {{ rental.startTime|date('Y-m-d H:i') }}
+                                        {% else %}
+                                            Not started
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if rental.endStation is defined and rental.endStation %}
+                                            {{ rental.endStation.name|default('Unknown') }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if rental.endTime is defined and rental.endTime %}
+                                            {{ rental.endTime|date('Y-m-d H:i') }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if status == 'Completed' and rental.startTime is defined and rental.endTime is defined %}
+                                            {% set duration = date(rental.endTime).diff(date(rental.startTime)) %}
+                                            {% set hours = duration.h + (duration.d * 24) %}
+                                            {% set minutes = duration.i %}
+                                            {{ hours }}h {{ minutes }}m
+                                        {% elseif status == 'Active' and rental.startTime is defined %}
+                                            {% set duration = date().diff(date(rental.startTime)) %}
+                                            {% set hours = duration.h + (duration.d * 24) %}
+                                            {% set minutes = duration.i %}
+                                            {{ hours }}h {{ minutes }}m
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if rental.distanceKm is defined and rental.distanceKm is not null %}
+                                            {{ rental.distanceKm|number_format(2) }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if rental.batteryUsed is defined and rental.batteryUsed is not null %}
+                                            {{ rental.batteryUsed|number_format(1) }}%
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if rental.cost is defined and rental.cost %}
+                                            {{ rental.cost|number_format(3) }} TND
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if status == 'Completed' %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% elseif status == 'Active' %}
+                                            <span class="badge bg-primary">In Progress</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Reserved</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group">
+                                            <a href="{{ path('admin_bicycle_rental_show', {'id': rental.idUserRental}) }}" 
+                                               class="btn btn-sm btn-outline-primary" 
+                                               data-bs-toggle="tooltip" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ path('admin_bicycle_rental_edit', {'id': rental.idUserRental}) }}" 
+                                               class="btn btn-sm btn-outline-secondary" 
+                                               data-bs-toggle="tooltip" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            
+                                            {% if status == 'Reserved' %}
+                                                <button type="button" 
+                                                        class="btn btn-sm btn-outline-success activate-rental-btn" 
+                                                        data-rental-id="{{ rental.idUserRental }}"
+                                                        data-bs-toggle="tooltip" title="Activate Rental">
+                                                    <i class="fas fa-play"></i>
+                                                </button>
+                                                <button type="button" 
+                                                        class="btn btn-sm btn-outline-danger cancel-rental-btn" 
+                                                        data-rental-id="{{ rental.idUserRental }}"
+                                                        data-bs-toggle="tooltip" title="Cancel">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="13" class="text-center py-5">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <div class="mb-3">
+                                            <i class="fas fa-search fa-3x text-muted"></i>
+                                        </div>
+                                        <h5>No rentals found</h5>
+                                        <p class="text-muted">Try adjusting your filters or create a new rental</p>
+                                        <a href="{{ path('admin_bicycle_rental_new') }}" class="btn btn-primary mt-2">
+                                            <i class="fas fa-plus me-2"></i>Create New Rental
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if rentals is defined and rentals.isPaginationObject is defined %}
+                <div class="d-flex justify-content-center p-3">
+                    {{ knp_pagination_render(rentals) }}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 
 <!-- Hidden Forms for POST actions -->
-<form id="activateRentalForm" method="POST" style="display: none;">
-    <!-- Form will be dynamically populated -->
-</form>
-
-<form id="cancelRentalForm" method="POST" style="display: none;">
-    <!-- Form will be dynamically populated -->
-</form>
+<form id="activateRentalForm" method="POST" style="display: none;"></form>
+<form id="cancelRentalForm" method="POST" style="display: none;"></form>
 
 <!-- Modal for Confirmation -->
-<div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="confirmActionModal" tabindex="-1" aria-labelledby="confirmActionModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -430,7 +331,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="confirmActionBody">
-                Are you sure you want to proceed with this action?
+                Are you sure you want to perform this action?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -442,8 +343,8 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Modal confirmation setup
-    let confirmModal = new bootstrap.Modal(document.getElementById('confirmActionModal'));
+    // Initialize Modal
+    const confirmModal = new bootstrap.Modal(document.getElementById('confirmActionModal'));
     let activeForm = null;
     
     // Setup Activate Rental buttons
@@ -475,7 +376,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Setup modal for cancellation
             document.getElementById('confirmActionTitle').textContent = 'Cancel Rental';
             document.getElementById('confirmActionBody').textContent = 
-                'Are you sure you want to cancel this rental? This will make the bicycle available for other rentals.';
+                'Are you sure you want to cancel this rental? This action cannot be undone.';
             document.getElementById('confirmActionBtn').className = 'btn btn-danger';
             document.getElementById('confirmActionBtn').textContent = 'Cancel Rental';
             
@@ -484,7 +385,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Confirm button action
+    // Handle confirm action button
     document.getElementById('confirmActionBtn').addEventListener('click', function() {
         if (activeForm) {
             activeForm.submit();
@@ -492,22 +393,10 @@ document.addEventListener('DOMContentLoaded', function() {
         confirmModal.hide();
     });
     
-    // Enable tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl)
+    // Export functionality
+    document.getElementById('export-excel').addEventListener('click', function(e) {
+        e.preventDefault();
+        window.location.href = '{{ path('admin_bicycle_rentals_index') }}' + window.location.search + '&format=excel';
     });
-    
-    // Activate DataTables if available
-    if (typeof $.fn.DataTable !== 'undefined') {
-        $('.datatable').DataTable({
-            "paging": false,
-            "searching": false,
-            "info": false,
-            "ordering": true,
-            "order": [[ 0, "desc" ]],
-            "responsive": true
-        });
-    }
 });
 </script>

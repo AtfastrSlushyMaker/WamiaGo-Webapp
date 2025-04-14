@@ -188,4 +188,24 @@ class BicycleRentalService
             ->getQuery()
             ->getResult();
     }
+    public function getActiveRidesForStation(Station $station): array
+    {
+        return $this->entityManager->createQueryBuilder()
+            ->select('r')
+            ->from('App\Entity\BicycleRental', 'r')
+            ->where('r.start_station = :station')
+            ->andWhere('r.start_time IS NOT NULL')
+            ->andWhere('r.end_time IS NULL')
+            ->setParameter('station', $station)
+            ->orderBy('r.start_time', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getAllRentals(): array
+    {
+        return $this->rentalRepository->findAll();
+    }
+
+
 }

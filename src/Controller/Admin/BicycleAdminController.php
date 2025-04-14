@@ -21,6 +21,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use App\entity\User;
+use Knp\Component\Pager\PaginatorInterface;
 
 //#[IsGranted('ROLE_ADMIN')]
 #[Route('/admin/bicycle')]
@@ -32,6 +34,7 @@ class BicycleAdminController extends AbstractController
     private $rentalService;
     private $locationService;
     private $logger;
+    private $paginator;
 
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -39,7 +42,8 @@ class BicycleAdminController extends AbstractController
         BicycleStationService $stationService,
         BicycleRentalService $rentalService,
         LocationService $locationService,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        PaginatorInterface $paginator
     ) {
         $this->entityManager = $entityManager;
         $this->bicycleService = $bicycleService;
@@ -47,6 +51,7 @@ class BicycleAdminController extends AbstractController
         $this->rentalService = $rentalService;
         $this->locationService = $locationService;
         $this->logger = $logger;
+        $this->paginator = $paginator;
     }
 
     #[Route('', name: 'admin_bicycle_dashboard')]
@@ -54,74 +59,140 @@ class BicycleAdminController extends AbstractController
     {
         $tab = $request->query->get('tab', 'rentals');
 
-        // Get all bicycles, stations, and rentals
         $bicycles = $this->bicycleService->getAllBicycles();
         $stations = $this->stationService->getAllStations();
-        $rentals = $this->entityManager->getRepository(BicycleRental::class)->findAll();
-
         $templateVars = [
             'bicycles' => $bicycles,
             'stations' => $stations,
-            'bicycle_rentals' => $rentals,
             'active_tab' => $tab
         ];
 
-        // Calculate statistics for bicycles tab
-        if ($tab === 'bicycles') {
-            // Count bicycles by status
-            $availableCount = $inUseCount = $maintenanceCount = $chargingCount = 0;
-            $highBatteryCount = $mediumBatteryCount = $lowBatteryCount = $criticalBatteryCount = 0;
-            
-            foreach ($bicycles as $bicycle) {
-                // Count by status
-                switch ($bicycle->getStatus()->value) {
-                    case 'available':
-                        $availableCount++;
+        if ($tab === 'rentals') {
+            // Paginated rentals with filters (same as BicycleRentalAdminController)
+            $status = $request->query->get('status');
+            $stationId = $request->query->get('station');
+            $dateFrom = $request->query->get('dateFrom');
+            $dateTo = $request->query->get('dateTo');
+            $page = $request->query->getInt('page', 1);
+            $perPage = $request->query->getInt('perPage', 10);
+
+            $queryBuilder = $this->entityManager->createQueryBuilder()
+                ->select('r')
+                ->from(BicycleRental::class, 'r')
+                ->leftJoin('r.bicycle', 'b')
+                ->leftJoin('r.user', 'u')
+                ->leftJoin('r.start_station', 'ss')
+                ->leftJoin('r.end_station', 'es')
+                ->orderBy('r.id_user_rental', 'DESC');
+
+            if ($status) {
+                switch($status) {
+                    case 'active':
+                        $queryBuilder->andWhere('r.start_time IS NOT NULL')
+                                    ->andWhere('r.end_time IS NULL');
                         break;
-                    case 'in_use':
-                        $inUseCount++;
+                    case 'completed':
+                        $queryBuilder->andWhere('r.end_time IS NOT NULL');
                         break;
-                    case 'maintenance':
-                        $maintenanceCount++;
+                    case 'reserved':
+                        $queryBuilder->andWhere('r.start_time IS NULL')
+                                    ->andWhere('r.end_time IS NULL');
                         break;
-                    case 'charging':
-                        $chargingCount++;
-                        break;
-                }
-                
-                // Count by battery level
-                $batteryLevel = $bicycle->getBatteryLevel();
-                if ($batteryLevel >= 90) {
-                    $highBatteryCount++;
-                } elseif ($batteryLevel >= 50) {
-                    $mediumBatteryCount++;
-                } elseif ($batteryLevel >= 25) {
-                    $lowBatteryCount++;
-                } else {
-                    $criticalBatteryCount++;
                 }
             }
-            
-            // Add statistics to template variables
-            $templateVars = array_merge($templateVars, [
-                'availableCount' => $availableCount,
-                'inUseCount' => $inUseCount,
-                'maintenanceCount' => $maintenanceCount,
-                'chargingCount' => $chargingCount,
-                'highBatteryCount' => $highBatteryCount,
-                'mediumBatteryCount' => $mediumBatteryCount,
-                'lowBatteryCount' => $lowBatteryCount,
-                'criticalBatteryCount' => $criticalBatteryCount
-            ]);
+            if ($stationId) {
+                $queryBuilder->andWhere('ss.id_station = :stationId')
+                            ->setParameter('stationId', $stationId);
+            }
+            if ($dateFrom) {
+                $fromDate = new \DateTime($dateFrom);
+                $queryBuilder->andWhere('r.start_time >= :fromDate')
+                            ->setParameter('fromDate', $fromDate->format('Y-m-d 00:00:00'));
+            }
+            if ($dateTo) {
+                $toDate = new \DateTime($dateTo);
+                $queryBuilder->andWhere('r.start_time <= :toDate')
+                            ->setParameter('toDate', $toDate->format('Y-m-d 23:59:59'));
+            }
+
+            $query = $queryBuilder->getQuery();
+            $rentals = $this->paginator->paginate($query, $page, $perPage);
+            $allRentals = $queryBuilder->getQuery()->getResult();
+
+            $completedCount = 0;
+            $activeCount = 0;
+            $reservedCount = 0;
+            foreach ($allRentals as $rental) {
+                if ($rental->getEndTime()) {
+                    $completedCount++;
+                } elseif ($rental->getStartTime()) {
+                    $activeCount++;
+                } else {
+                    $reservedCount++;
+                }
+            }
+            $templateVars['rentals'] = $rentals;
+            $templateVars['bicycle_rentals'] = $rentals;
+            $templateVars['stats'] = [
+                'totalRentals' => count($allRentals),
+                'completedCount' => $completedCount,
+                'activeCount' => $activeCount,
+                'reservedCount' => $reservedCount,
+                'completionRate' => count($allRentals) > 0 ? round(($completedCount / count($allRentals)) * 100) : 0,
+                'totalRevenue' => array_sum(array_map(function($r) { return $r->getCost() ?: 0; }, $allRentals))
+            ];
+            $templateVars['filters'] = [
+                'status' => $status,
+                'stationId' => $stationId,
+                'dateFrom' => $dateFrom,
+                'dateTo' => $dateTo
+            ];
+        } else {
+            // Calculate statistics for the rentals dashboard
+            $rentals = $this->rentalService->getAllRentals();
+            $completedCount = 0;
+            $activeCount = 0;
+            $reservedCount = 0;
+            foreach ($rentals as $rental) {
+                if ($rental->getEndTime()) {
+                    $completedCount++;
+                } elseif ($rental->getStartTime()) {
+                    $activeCount++;
+                } else {
+                    $reservedCount++;
+                }
+            }
+            $templateVars['rentals'] = $rentals;
+            $templateVars['bicycle_rentals'] = $rentals;
+            $templateVars['stats'] = [
+                'totalRentals' => count($rentals),
+                'completedCount' => $completedCount,
+                'activeCount' => $activeCount,
+                'reservedCount' => $reservedCount,
+                'completionRate' => count($rentals) > 0 ? round(($completedCount / count($rentals)) * 100) : 0,
+                'totalRevenue' => array_sum(array_map(function($r) { return $r->getCost() ?: 0; }, $rentals))
+            ];
+            $templateVars['filters'] = [
+                'status' => $request->query->get('status'),
+                'stationId' => $request->query->get('station'),
+                'dateFrom' => $request->query->get('dateFrom'),
+                'dateTo' => $request->query->get('dateTo')
+            ];
         }
 
-        // Add additional variables needed for specific tabs
         if ($tab === 'stations') {
             $templateVars['stationCounts'] = $this->stationService->getStationCountsByStatus();
             $templateVars['totalCapacity'] = $this->stationService->getTotalBicycleCapacity();
             $templateVars['totalChargingDocks'] = $this->stationService->getTotalChargingDocks();
             $templateVars['stationActivity'] = $this->stationService->getStationsWithRentalActivity(5);
         }
+
+        // Add service references for all tabs
+        $templateVars['users'] = $this->entityManager->getRepository(User::class)->findAll();
+        $templateVars['rentalService'] = $this->rentalService;
+        $templateVars['locationService'] = $this->locationService;
+        $templateVars['bicycleService'] = $this->bicycleService;
+        $templateVars['stationService'] = $this->stationService;
 
         return $this->render('back-office/bicycle-rentals.html.twig', $templateVars);
     }

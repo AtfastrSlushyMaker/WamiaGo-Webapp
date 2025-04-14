@@ -18,11 +18,12 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Knp\Component\Pager\PaginatorInterface;
 
-//#[IsGranted('ROLE_ADMIN')]
+/**
+ * Controller for managing bicycle rentals in the admin panel.
+ */
 #[Route('/admin/bicycle-rental')]
 class BicycleRentalAdminController extends AbstractController
 {
@@ -49,6 +50,9 @@ class BicycleRentalAdminController extends AbstractController
         $this->paginator = $paginator;
     }
 
+    /**
+     * Main rentals listing page with filtering and pagination.
+     */
     #[Route('/', name: 'admin_bicycle_rentals_index')]
     public function index(Request $request): Response
     {
@@ -58,215 +62,116 @@ class BicycleRentalAdminController extends AbstractController
         $dateFrom = $request->query->get('dateFrom');
         $dateTo = $request->query->get('dateTo');
         $page = $request->query->getInt('page', 1);
+        $perPage = $request->query->getInt('perPage', 10);
         
-        // Add debug information about database connection and table
-        $conn = $this->entityManager->getConnection();
-        $tableExists = false;
-        $recordCount = 0;
-        $columns = [];
-        $sampleData = [];
-        
-        try {
-            // Check if the bicycle_rental table exists and has records
-            $stmt = $conn->prepare("SHOW TABLES LIKE 'bicycle_rental'");
-            $resultSet = $stmt->executeQuery();
-            $tableExists = count($resultSet->fetchAllAssociative()) > 0;
-            
-            if ($tableExists) {
-                // Count records directly from the database
-                $stmt = $conn->prepare("SELECT COUNT(*) as count FROM bicycle_rental");
-                $result = $stmt->executeQuery()->fetchAssociative();
-                $recordCount = $result['count'];
-                
-                // Get column information
-                $stmt = $conn->prepare("SHOW COLUMNS FROM bicycle_rental");
-                $columnsResult = $stmt->executeQuery()->fetchAllAssociative();
-                foreach ($columnsResult as $column) {
-                    $columns[] = $column['Field'];
-                }
-                
-                // Get sample data directly from the database
-                if ($recordCount > 0) {
-                    $stmt = $conn->prepare("SELECT * FROM bicycle_rental LIMIT 3");
-                    $sampleData = $stmt->executeQuery()->fetchAllAssociative();
-                }
-            }
-        } catch (\Exception $e) {
-            $dbError = $e->getMessage();
-        }
-        
-        // Try both methods of getting rentals to see which works
-        $allRentalsRepo = [];
-        $allRentalsDQL = [];
-        
-        try {
-            // Method 1: Repository findAll()
-            $allRentalsRepo = $this->entityManager->getRepository(BicycleRental::class)->findAllRentalsForAdmin();
-        } catch (\Exception $e) {
-            $repoError = $e->getMessage();
-        }
-        
-        try {
-            // Method 2: Direct DQL query
-            $dql = "SELECT r FROM App\Entity\BicycleRental r";
-            $query = $this->entityManager->createQuery($dql);
-            $allRentalsDQL = $query->getResult();
-        } catch (\Exception $e) {
-            $dqlError = $e->getMessage();
-        }
-        
-        // Use the first successful method for fetching rentals
-        $allRentals = count($allRentalsRepo) > 0 ? $allRentalsRepo : $allRentalsDQL;
-        
-        // Create query builder for filtered rentals
-        $qb = $this->entityManager->createQueryBuilder();
-        $qb->select('r')
+        // Create query builder for rentals
+        $queryBuilder = $this->entityManager->createQueryBuilder()
+            ->select('r')
             ->from(BicycleRental::class, 'r')
+            ->leftJoin('r.bicycle', 'b')
+            ->leftJoin('r.user', 'u')
+            ->leftJoin('r.start_station', 'ss')
+            ->leftJoin('r.end_station', 'es')
             ->orderBy('r.id_user_rental', 'DESC');
         
-        // Apply filters if provided
+        // Apply filters
         if ($status) {
             switch($status) {
                 case 'active':
-                    $qb->andWhere('r.start_time IS NOT NULL')
-                       ->andWhere('r.end_time IS NULL');
+                    $queryBuilder->andWhere('r.start_time IS NOT NULL')
+                                ->andWhere('r.end_time IS NULL');
                     break;
                 case 'completed':
-                    $qb->andWhere('r.end_time IS NOT NULL');
+                    $queryBuilder->andWhere('r.end_time IS NOT NULL');
                     break;
                 case 'reserved':
-                    $qb->andWhere('r.start_time IS NULL');
+                    $queryBuilder->andWhere('r.start_time IS NULL')
+                                ->andWhere('r.end_time IS NULL');
                     break;
             }
         }
         
         if ($stationId) {
-            $qb->leftJoin('r.start_station', 'ss')
-               ->andWhere('ss.id_station = :stationId')
-               ->setParameter('stationId', $stationId);
+            $queryBuilder->andWhere('ss.id_station = :stationId')
+                        ->setParameter('stationId', $stationId);
         }
         
         if ($dateFrom) {
             $fromDate = new \DateTime($dateFrom);
-            $qb->andWhere('r.start_time >= :fromDate')
-               ->setParameter('fromDate', $fromDate->format('Y-m-d 00:00:00'));
+            $queryBuilder->andWhere('r.start_time >= :fromDate')
+                        ->setParameter('fromDate', $fromDate->format('Y-m-d 00:00:00'));
         }
         
         if ($dateTo) {
             $toDate = new \DateTime($dateTo);
-            $qb->andWhere('r.start_time <= :toDate')
-               ->setParameter('toDate', $toDate->format('Y-m-d 23:59:59'));
+            $queryBuilder->andWhere('r.start_time <= :toDate')
+                        ->setParameter('toDate', $toDate->format('Y-m-d 23:59:59'));
         }
-        
+
         try {
-            // Execute the query with a timeout to prevent hanging
-            $filteredRentals = $qb->getQuery()->setMaxResults(100)->getResult();
+            // Get paginated results
+            $query = $queryBuilder->getQuery();
+            $rentals = $this->paginator->paginate(
+                $query,
+                $page,
+                $perPage
+            );
+            
+            // Calculate statistics for the dashboard
+            $allRentals = $queryBuilder->getQuery()->getResult();
+            
+            $completedCount = 0;
+            $activeCount = 0;
+            $reservedCount = 0;
+            
+            foreach ($allRentals as $rental) {
+                if ($rental->getEndTime()) {
+                    $completedCount++;
+                } elseif ($rental->getStartTime()) {
+                    $activeCount++;
+                } else {
+                    $reservedCount++;
+                }
+            }
+            
+            // Get all stations for filter dropdown
+            $stations = $this->stationService->getAllStations();
+            
+            return $this->render('back-office/bicycle/rental.html.twig', [
+                'rentals' => $rentals,
+                'stations' => $stations,
+                'stats' => [
+                    'totalRentals' => count($allRentals),
+                    'completedCount' => $completedCount,
+                    'activeCount' => $activeCount,
+                    'reservedCount' => $reservedCount,
+                    'completionRate' => count($allRentals) > 0 ? round(($completedCount / count($allRentals)) * 100) : 0,
+                    'totalRevenue' => array_sum(array_map(function($r) { 
+                        return $r->getCost() ?: 0; 
+                    }, $allRentals))
+                ],
+                'filters' => [
+                    'status' => $status,
+                    'stationId' => $stationId,
+                    'dateFrom' => $dateFrom,
+                    'dateTo' => $dateTo
+                ]
+            ]);
         } catch (\Exception $e) {
-            $queryError = $e->getMessage();
-            $filteredRentals = [];
+            $this->logger->error('Error loading rentals: ' . $e->getMessage());
+            $this->addFlash('error', 'Error loading rentals: ' . $e->getMessage());
+            
+            return $this->render('back-office/bicycle/rental.html.twig', [
+                'rentals' => [],
+                'stations' => $this->stationService->getAllStations(),
+                'error' => $e->getMessage()
+            ]);
         }
-        
-        // Fallback to direct SQL if Doctrine methods fail
-        if (empty($allRentals) && empty($filteredRentals) && $recordCount > 0) {
-            try {
-                $sql = "SELECT * FROM bicycle_rental ORDER BY id_user_rental DESC LIMIT 100";
-                $stmt = $conn->prepare($sql);
-                $rawRentals = $stmt->executeQuery()->fetchAllAssociative();
-                
-                // Convert raw data to simple objects for template
-                $allRentals = array_map(function($data) {
-                    $rental = new \stdClass();
-                    foreach ($data as $key => $value) {
-                        $rental->$key = $value;
-                    }
-                    // Add methods required by template
-                    $rental->getIdUserRental = function() use ($rental) { return $rental->id_user_rental; };
-                    $rental->getStart_time = function() use ($rental) { 
-                        return $rental->start_time ? new \DateTime($rental->start_time) : null; 
-                    };
-                    $rental->getEnd_time = function() use ($rental) { 
-                        return $rental->end_time ? new \DateTime($rental->end_time) : null; 
-                    };
-                    $rental->getCost = function() use ($rental) { return $rental->cost; };
-                    return $rental;
-                }, $rawRentals);
-                
-                $filteredRentals = $allRentals;
-            } catch (\Exception $e) {
-                $sqlError = $e->getMessage();
-            }
-        }
-        
-        // Use the filtered rentals if filters were applied, otherwise use all rentals
-        $rentals = ($status || $stationId || $dateFrom || $dateTo) ? $filteredRentals : $allRentals;
-        
-        // Count statistics
-        $totalRentals = count($rentals);
-        $completedCount = 0;
-        $activeCount = 0;
-        $reservedCount = 0;
-        
-        foreach ($rentals as $rental) {
-            if (is_object($rental) && method_exists($rental, 'getEnd_time') && $rental->getEnd_time()) {
-                $completedCount++;
-            } elseif (is_object($rental) && method_exists($rental, 'getStart_time') && $rental->getStart_time()) {
-                $activeCount++;
-            } else {
-                $reservedCount++;
-            }
-        }
-        
-        // Create the rental form
-        $rental = new BicycleRental();
-        $form = $this->createForm(BicycleRentalType::class, $rental);
-        
-        // Get all stations for filter dropdown
-        $stations = $this->stationService->getAllStations();
-        
-        // Enhanced debug information
-        $debug = [
-            'table_exists' => $tableExists,
-            'record_count' => $recordCount,
-            'columns' => $columns,
-            'sample_data' => $sampleData,
-            'total_count_repo' => count($allRentalsRepo),
-            'total_count_dql' => count($allRentalsDQL),
-            'filtered_count' => count($filteredRentals),
-            'final_count' => count($rentals),
-            'is_array' => is_array($rentals),
-            'class_type' => is_object($rentals[0] ?? null) ? get_class($rentals[0]) : 'N/A'
-        ];
-        
-        if (isset($dbError)) $debug['error'] = $dbError;
-        if (isset($repoError)) $debug['repo_error'] = $repoError;
-        if (isset($dqlError)) $debug['dql_error'] = $dqlError;
-        if (isset($queryError)) $debug['query_error'] = $queryError;
-        if (isset($sqlError)) $debug['sql_error'] = $sqlError;
-        
-        return $this->render('back-office/bicycle/rental.html.twig', [
-            'rentals' => $rentals,
-            'stations' => $stations,
-            'form' => $form->createView(),
-            'debugInfo' => $debug,
-            'stats' => [
-                'totalRentals' => $totalRentals,
-                'completedCount' => $completedCount,
-                'activeCount' => $activeCount,
-                'reservedCount' => $reservedCount,
-                'completionRate' => $totalRentals > 0 ? round(($completedCount / $totalRentals) * 100) : 0,
-                'totalRevenue' => array_sum(array_map(function($r) { 
-                    return (is_object($r) && method_exists($r, 'getCost')) ? ($r->getCost() ?: 0) : 0; 
-                }, $rentals))
-            ],
-            'filters' => [
-                'status' => $status,
-                'stationId' => $stationId,
-                'dateFrom' => $dateFrom,
-                'dateTo' => $dateTo
-            ]
-        ]);
     }
 
+    /**
+     * Create a new rental.
+     */
     #[Route('/new', name: 'admin_bicycle_rental_new', methods: ['GET', 'POST'])]
     public function new(Request $request, ValidatorInterface $validator): Response
     {
@@ -276,7 +181,7 @@ class BicycleRentalAdminController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                // Handle manually for non-form fields
+                // Get bicycle ID from request
                 $bicycleId = $request->request->get('bicycleId');
                 $bicycle = $this->bicycleService->getBicycle((int)$bicycleId);
                 
@@ -295,7 +200,7 @@ class BicycleRentalAdminController extends AbstractController
                 // Create the rental
                 $this->rentalService->createBicycleRental($rental->getUser(), $rental);
                 
-                // Update bicycle status
+                // Update bicycle status to reserved
                 $bicycle->setStatus(BICYCLE_STATUS::RESERVED);
                 $this->entityManager->flush();
                 
@@ -319,10 +224,13 @@ class BicycleRentalAdminController extends AbstractController
         ]);
     }
 
+    /**
+     * Show rental details.
+     */
     #[Route('/{id}', name: 'admin_bicycle_rental_show', methods: ['GET'])]
-    public function show(int $id): Response
+    public function show($id): Response
     {
-        $rental = $this->entityManager->getRepository(BicycleRental::class)->find($id);
+        $rental = $this->entityManager->getRepository(BicycleRental::class)->find((int)$id);
         
         if (!$rental) {
             $this->addFlash('error', 'Rental not found');
@@ -334,6 +242,9 @@ class BicycleRentalAdminController extends AbstractController
         ]);
     }
 
+    /**
+     * Edit a rental.
+     */
     #[Route('/{id}/edit', name: 'admin_bicycle_rental_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, int $id, ValidatorInterface $validator): Response
     {
@@ -349,7 +260,7 @@ class BicycleRentalAdminController extends AbstractController
         
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                // Handle special actions
+                // Handle completing a rental
                 if ($request->request->has('completeRental') && !$rental->getEndTime()) {
                     $endStationId = $request->request->get('endStationId');
                     $endStation = $this->stationService->getStation((int)$endStationId);
@@ -365,7 +276,7 @@ class BicycleRentalAdminController extends AbstractController
                     $this->rentalService->completeRental($rental, $endStation, $distanceKm, $batteryUsed);
                     $this->addFlash('success', 'Rental completed successfully');
                 } else {
-                    // Just update the rental
+                    // Standard rental update
                     $this->entityManager->flush();
                     $this->addFlash('success', 'Rental updated successfully');
                 }
@@ -386,8 +297,11 @@ class BicycleRentalAdminController extends AbstractController
         ]);
     }
 
+    /**
+     * Cancel a rental.
+     */
     #[Route('/{id}/cancel', name: 'admin_bicycle_rental_cancel', methods: ['POST'])]
-    public function cancel(Request $request, int $id): Response
+    public function cancel(int $id): Response
     {
         $rental = $this->entityManager->getRepository(BicycleRental::class)->find($id);
         
@@ -412,8 +326,11 @@ class BicycleRentalAdminController extends AbstractController
         return $this->redirectToRoute('admin_bicycle_rentals_index');
     }
 
+    /**
+     * Activate a rental.
+     */
     #[Route('/{id}/activate', name: 'admin_bicycle_rental_activate', methods: ['POST'])]
-    public function activate(Request $request, int $id): Response
+    public function activate(int $id): Response
     {
         $rental = $this->entityManager->getRepository(BicycleRental::class)->find($id);
         
@@ -448,6 +365,9 @@ class BicycleRentalAdminController extends AbstractController
         return $this->redirectToRoute('admin_bicycle_rental_show', ['id' => $rental->getIdUserRental()]);
     }
 
+    /**
+     * Get available bicycles at a station.
+     */
     #[Route('/station/{id}/bicycles', name: 'admin_station_available_bicycles', methods: ['GET'])]
     public function getAvailableBicycles(int $id): JsonResponse
     {
@@ -474,6 +394,9 @@ class BicycleRentalAdminController extends AbstractController
         return new JsonResponse($bicycleData);
     }
 
+    /**
+     * Export rentals data.
+     */
     #[Route('/export', name: 'admin_bicycle_rental_export', methods: ['GET'])]
     public function export(Request $request): Response
     {
@@ -482,8 +405,9 @@ class BicycleRentalAdminController extends AbstractController
         $stationId = $request->query->get('station');
         $dateFrom = $request->query->get('dateFrom');
         $dateTo = $request->query->get('dateTo');
+        $format = $request->query->get('format', 'csv');
         
-        // Create query builder for rentals with the same filters as index
+        // Create query builder for rentals with filters
         $queryBuilder = $this->entityManager->getRepository(BicycleRental::class)
             ->createQueryBuilder('r')
             ->leftJoin('r.bicycle', 'b')
@@ -492,41 +416,50 @@ class BicycleRentalAdminController extends AbstractController
             ->leftJoin('r.end_station', 'es')
             ->orderBy('r.id_user_rental', 'DESC');
         
-        // Apply the same filters as in index
+        // Apply filters
         if ($status) {
             switch($status) {
                 case 'active':
                     $queryBuilder->andWhere('r.start_time IS NOT NULL')
-                        ->andWhere('r.end_time IS NULL');
+                                ->andWhere('r.end_time IS NULL');
                     break;
                 case 'completed':
                     $queryBuilder->andWhere('r.end_time IS NOT NULL');
                     break;
                 case 'reserved':
-                    $queryBuilder->andWhere('r.start_time IS NULL')
-                        ->andWhere('r.end_time IS NULL');
+                    $queryBuilder->andWhere('r.start_time IS NULL');
                     break;
             }
         }
         
         if ($stationId) {
             $queryBuilder->andWhere('ss.id_station = :stationId')
-                ->setParameter('stationId', $stationId);
+                        ->setParameter('stationId', $stationId);
         }
         
         if ($dateFrom) {
             $fromDate = new \DateTime($dateFrom);
             $queryBuilder->andWhere('r.start_time >= :fromDate')
-                ->setParameter('fromDate', $fromDate->format('Y-m-d 00:00:00'));
+                        ->setParameter('fromDate', $fromDate->format('Y-m-d 00:00:00'));
         }
         
         if ($dateTo) {
             $toDate = new \DateTime($dateTo);
             $queryBuilder->andWhere('r.start_time <= :toDate')
-                ->setParameter('toDate', $toDate->format('Y-m-d 23:59:59'));
+                        ->setParameter('toDate', $toDate->format('Y-m-d 23:59:59'));
         }
         
         $rentals = $queryBuilder->getQuery()->getResult();
+        
+        // Generate export file according to format
+        if ($format === 'excel') {
+            // Excel export code would go here
+            // For the moment, we'll just redirect to CSV
+            return $this->redirectToRoute('admin_bicycle_rental_export', array_merge(
+                $request->query->all(),
+                ['format' => 'csv']
+            ));
+        }
         
         // Generate CSV content
         $csvData = "ID,User,Bicycle,Start Station,End Station,Start Time,End Time,Duration,Distance (km),Battery Used,Cost (TND),Status\n";
@@ -570,5 +503,21 @@ class BicycleRentalAdminController extends AbstractController
         $response->headers->set('Content-Disposition', 'attachment; filename="bicycle-rentals-export.csv"');
         
         return $response;
+    }
+    
+    /**
+     * Update the Bicycle Dashboard to support the rentals tab.
+     */
+    #[Route('/dashboard', name: 'admin_bicycle_rental_dashboard')]
+    public function dashboard(Request $request): Response 
+    {
+        // Forward all request parameters to maintain any filters
+        $params = ['tab' => 'rentals'];
+        $queryParams = $request->query->all();
+        if (!empty($queryParams)) {
+            $params = array_merge($params, $queryParams);
+        }
+        
+        return $this->redirectToRoute('admin_bicycle_dashboard', $params);
     }
 }
