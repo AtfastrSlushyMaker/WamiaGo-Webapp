@@ -12,6 +12,10 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotNull;
 
 class TransporterAnnouncementType extends AbstractType
 {
@@ -22,7 +26,18 @@ class TransporterAnnouncementType extends AbstractType
                 'label' => 'Service Title',
                 'attr' => [
                     'class' => 'form-control',
-                    'placeholder' => ' '
+                    'placeholder' => 'Enter announcement title'
+                ],
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'The announcement title is required'
+                    ]),
+                    new Length([
+                        'min' => 5,
+                        'max' => 100,
+                        'minMessage' => 'Title must contain at least {{ limit }} characters',
+                        'maxMessage' => 'Title cannot exceed {{ limit }} characters'
+                    ])
                 ]
             ])
             ->add('content', TextareaType::class, [
@@ -30,7 +45,18 @@ class TransporterAnnouncementType extends AbstractType
                 'attr' => [
                     'class' => 'form-control',
                     'rows' => 6,
-                    'placeholder' => ' '
+                    'placeholder' => 'Enter detailed description'
+                ],
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'The announcement content is required'
+                    ]),
+                    new Length([
+                        'min' => 20,
+                        'max' => 2000,
+                        'minMessage' => 'Content must contain at least {{ limit }} characters',
+                        'maxMessage' => 'Content cannot exceed {{ limit }} characters'
+                    ])
                 ]
             ])
             ->add('zone', ChoiceType::class, [
@@ -41,13 +67,24 @@ class TransporterAnnouncementType extends AbstractType
                 ),
                 'attr' => [
                     'class' => 'form-select'
+                ],
+                'placeholder' => 'Select a zone',
+                'constraints' => [
+                    new NotNull([
+                        'message' => 'Please select a service zone'
+                    ])
                 ]
             ])
             ->add('status', CheckboxType::class, [
                 'label' => 'Activate this service',
                 'required' => false,
                 'attr' => ['class' => 'form-check-input'],
-                'label_attr' => ['class' => 'form-check-label']
+                'label_attr' => ['class' => 'form-check-label'],
+                'constraints' => [
+                    new NotNull([
+                        'message' => 'Please indicate whether the announcement is active or not'
+                    ])
+                ]
             ]);
 
         $builder->get('zone')->addModelTransformer(new ZoneTransformer());

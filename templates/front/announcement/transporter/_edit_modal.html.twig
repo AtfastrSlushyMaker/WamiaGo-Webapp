@@ -1,0 +1,36 @@
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">
+                    <i class="fas fa-edit me-2"></i>Edit Announcement
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {{ form_start(form, {'attr': {'id': 'edit-announcement-form', 'class': 'announcement-form'}) }}
+                    <div class="form-card">
+                        <!-- Reprenez les mêmes champs que dans add.html.twig -->
+                        <div class="form-group floating-label">
+                            {{ form_widget(form.title, {'attr': {
+                                'class': 'form-control' ~ (form.title.vars.valid ? '' : ' is-invalid'),
+                                'placeholder': ' ',
+                                'data-3d': 'true'
+                            }}) }}
+                            {{ form_label(form.title) }}
+                            <div class="invalid-feedback">{{ form_errors(form.title)|striptags }}</div>
+                        </div>
+
+                        <!-- Ajoutez tous les autres champs de la même manière -->
+                        
+                        <div class="form-actions mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg btn-3d">
+                                <i class="fas fa-save me-2"></i>Update Announcement
+                            </button>
+                        </div>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>

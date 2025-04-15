@@ -6,9 +6,9 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Validator\Constraints as Assert;
 
 use App\Repository\AnnouncementRepository;
-
 use App\Enum\Zone;
 
 #[ORM\Entity(repositoryClass: AnnouncementRepository::class)]
@@ -46,7 +46,14 @@ class Announcement
         return $this;
     }
 
-    #[ORM\Column(type: 'string', nullable: false)]
+    #[ORM\Column(type: 'string', length: 100, nullable: false)]
+    #[Assert\NotBlank(message: "The announcement title is required")]
+    #[Assert\Length(
+        min: 5,
+        max: 100,
+        minMessage: "Title must contain at least {{ limit }} characters",
+        maxMessage: "Title cannot exceed {{ limit }} characters"
+    )]
     private ?string $title = null;
 
     public function getTitle(): ?string
@@ -60,7 +67,14 @@ class Announcement
         return $this;
     }
 
-    #[ORM\Column(type: 'string', nullable: false)]
+    #[ORM\Column(type: Types::TEXT, nullable: false)]
+    #[Assert\NotBlank(message: "The announcement content is required")]
+    #[Assert\Length(
+        min: 8,
+        max: 2000,
+        minMessage: "Content must contain at least {{ limit }} characters",
+        maxMessage: "Content cannot exceed {{ limit }} characters"
+    )]
     private ?string $content = null;
 
     public function getContent(): ?string
@@ -74,7 +88,8 @@ class Announcement
         return $this;
     }
 
-    #[ORM\Column(type: 'datetime', nullable: false)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
+    #[Assert\NotBlank(message: "The announcement date is required")]
     private ?\DateTimeInterface $date = null;
 
     public function getDate(): ?\DateTimeInterface
@@ -89,12 +104,13 @@ class Announcement
     }
 
     #[ORM\Column(enumType: Zone::class)]
-private Zone $zone = Zone::NOT_SPECIFIED;
+    #[Assert\NotNull(message: "Please select a service zone")]
+    private Zone $zone = Zone::NOT_SPECIFIED;
 
-public function getZone(): Zone
-{
-    return $this->zone ?? Zone::NOT_SPECIFIED;
-}
+    public function getZone(): Zone
+    {
+        return $this->zone ?? Zone::NOT_SPECIFIED;
+    }
 
     public function setZone(Zone $zone): self
     {
@@ -103,6 +119,7 @@ public function getZone(): Zone
     }
 
     #[ORM\Column(type: 'boolean', nullable: false)]
+    #[Assert\NotNull(message: "Please indicate whether the announcement is active or not")]
     private ?bool $status = null;
 
     public function isStatus(): ?bool
@@ -122,6 +139,7 @@ public function getZone(): Zone
     public function __construct()
     {
         $this->reservations = new ArrayCollection();
+        $this->date = new \DateTime(); // Set date to current time by default
     }
 
     /**
@@ -153,5 +171,4 @@ public function getZone(): Zone
     {
         return $this->id_announcement;
     }
-
 }

@@ -3,17 +3,42 @@
 {% block title %}Create New Announcement | WamiaGo{% endblock %}
 
 {% block page_stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/front/announcement/transporter.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/front/announcement/transporter-create-announcement.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 {% endblock %}
 
 {% block content %}
-<!-- Hero Section with 3D Effect -->
+<!-- Hero Section with 3D Background -->
 <div class="announcement-hero">
-    <div class="hero-overlay"></div>
+    <!-- Background Image with Parallax Effect -->
+    <img src="{{ asset('images/front/announcements/3d-transport-bg.png') }}" 
+         alt="Professional transport services" 
+         class="hero-img"
+         loading="lazy">
+    
+    <!-- Decorative Animated Circles -->
+    <div class="decorative-circle circle-1"></div>
+    <div class="decorative-circle circle-2"></div>
+    <div class="decorative-circle circle-3"></div>
+    <div class="decorative-circle circle-4"></div>
+    
+    <!-- Hero Content -->
     <div class="hero-content animate__animated animate__fadeIn">
         <h1>Create Your Transport Announcement</h1>
-        <p class="lead">Connect with clients looking for reliable transport services across Tunisia</p>
+        <p class="lead">Connect with clients across Tunisia through our professional network</p>
+        
+        <!-- Professional Service Highlights -->
+        <div class="service-highlights">
+            <div class="highlight-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Reach thousands of potential clients</span>
+            </div>
+            <div class="highlight-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Real-time notifications</span>
+            </div>
+        </div>
+        
         <div class="scroll-indicator">
             <i class="fas fa-chevron-down"></i>
         </div>
@@ -87,6 +112,33 @@
                         <i class="fas fa-times me-2"></i>Cancel
                     </a>
                 </div>
+
+                <!-- Professional Tips Section -->
+        <div class="professional-tips mt-5">
+            <h4><i class="fas fa-lightbulb"></i> Professional Tips</h4>
+            <ul>
+                <li>Be specific about your services and capacity</li>
+                <li>Include clear pricing information if possible</li>
+        
+                <li>Respond quickly to client inquiries</li>
+            </ul>
+        </div>
+
+        <!-- Trust Badges -->
+        <div class="trust-badges">
+            <div class="badge-item">
+                <i class="fas fa-shield-alt"></i>
+                <span>Secure Platform</span>
+            </div>
+            <div class="badge-item">
+                <i class="fas fa-headset"></i>
+                <span>24/7 Support</span>
+            </div>
+            <div class="badge-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Verified Transporters</span>
+            </div>
+        </div>
             </div>
         {{ form_end(form) }}
     </div>
@@ -94,98 +146,7 @@
 {% endblock %}
 
 {% block page_javascripts %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/vanilla-tilt@1.7.0/dist/vanilla-tilt.min.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize 3D tilt effect
-    VanillaTilt.init(document.querySelectorAll("[data-3d]"), {
-        max: 5,
-        speed: 400,
-        glare: true,
-        "max-glare": 0.2,
-    });
-
-    // Form submission handling
-    const form = document.getElementById('announcement-form');
-    
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(form);
-        const submitButton = form.querySelector('button[type="submit"]');
-        const originalText = submitButton.innerHTML;
-        
-        submitButton.disabled = true;
-        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Publishing...';
-        
-        fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast('success', data.message);
-                setTimeout(() => {
-                    window.location.href = data.redirectUrl;
-                }, 1500);
-            } else {
-                displayFormErrors(data.errors);
-            }
-        })
-        .catch(error => {
-            showToast('error', 'An error occurred while processing your request');
-        })
-        .finally(() => {
-            submitButton.disabled = false;
-            submitButton.innerHTML = originalText;
-        });
-    });
-    
-    function displayFormErrors(errors) {
-        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-        document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
-        
-        errors.forEach(error => {
-            const field = error.split('"')[1] || '';
-            const errorMessage = error.replace(`"${field}"`, '').trim();
-            
-            if (field) {
-                const input = form.querySelector(`[name*="${field.toLowerCase()}"]`);
-                if (input) {
-                    input.classList.add('is-invalid');
-                    const feedback = input.closest('.form-group').querySelector('.invalid-feedback');
-                    if (feedback) {
-                        feedback.textContent = errorMessage;
-                    }
-                }
-            } else {
-                showToast('error', errorMessage);
-            }
-        });
-    }
-    
-    function showToast(type, message) {
-        // Implement a proper toast notification here
-        const toast = document.createElement('div');
-        toast.className = `toast-notification ${type}`;
-        toast.innerHTML = `<span>${message}</span>`;
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => {
-                    toast.remove();
-                }, 300);
-            }, 3000);
-        }, 100);
-    }
-});
-</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanilla-tilt@1.7.0/dist/vanilla-tilt.min.js"></script>
+    <script src="{{ asset('js/front/announcement/transporter-announcement.js') }}"></script>
 {% endblock %}

@@ -15,16 +15,19 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Repository\AnnouncementRepository;
 
+use Doctrine\ORM\EntityManagerInterface;
+
+
 #[Route('/transporter/announcements')]
 class TransporterAnnouncementController extends AbstractController
 {
     private const HARDCODED_DRIVER_ID = 6;
 
+
     public function __construct(
         private readonly AnnouncementService $announcementService,
         private readonly DriverRepository $driverRepository,
-        PaginatorInterface $paginator
-        
+        private readonly PaginatorInterface $paginator
     ) {
     }
 
@@ -39,40 +42,56 @@ class TransporterAnnouncementController extends AbstractController
         $announcement = new Announcement();
         $announcement->setDriver($driver);
         $announcement->setStatus(true);
-        $announcement->setDate(new \DateTime());
+        //$announcement->setDate((new \DateTime())); 
     
         $form = $this->createForm(TransporterAnnouncementType::class, $announcement);
         $form->handleRequest($request);
     
-        if ($form->isSubmitted() && $form->isValid()) {
-            try {
-                $this->announcementService->createAnnouncement(
-                    $driver,
-                    $announcement->getTitle(),
-                    $announcement->getContent(),
-                    $announcement->getZone(),
-                    $announcement->getDate(),
-                    $announcement->isStatus()
-                );
+        if ($form->isSubmitted()) {
+            if ($form->isValid()) {
+                try {
+                    $this->announcementService->createAnnouncement(
+                        $driver,
+                        $announcement->getTitle(),
+                        $announcement->getContent(),
+                        $announcement->getZone(),
+                        $announcement->getDate(),
+                        $announcement->isStatus()
+                    );
     
-                if ($request->isXmlHttpRequest()) {
-                    return new JsonResponse([
-                        'success' => true,
-                        'message' => 'Annonce créée avec succès!',
-                        'redirectUrl' => $this->generateUrl('app_transporter_announcement_list')
-                    ]);
+                    if ($request->isXmlHttpRequest()) {
+                        return new JsonResponse([
+                            'success' => true,
+                            'message' => 'Annonce créée avec succès!',
+                            'redirectUrl' => $this->generateUrl('app_transporter_announcement_list')
+                        ]);
+                    }
+    
+                    $this->addFlash('success', 'Annonce créée avec succès!');
+                    return $this->redirectToRoute('app_transporter_announcement_list');
+                } catch (\Exception $e) {
+                    if ($request->isXmlHttpRequest()) {
+                        return new JsonResponse([
+                            'success' => false,
+                            'message' => 'Erreur système: ' . $e->getMessage()
+                        ], 500);
+                    }
+                    $this->addFlash('error', 'Une erreur est survenue: ' . $e->getMessage());
                 }
-    
-                $this->addFlash('success', 'Annonce créée avec succès!');
-                return $this->redirectToRoute('app_transporter_announcement_list');
-            } catch (\Exception $e) {
+            } else {
+                $errors = $this->getFormErrors($form);
+            
+                foreach ($errors as $field => $message) {
+                    $this->addFlash('error', is_array($message) ? implode(' ', $message) : $message);
+                }
+                
                 if ($request->isXmlHttpRequest()) {
                     return new JsonResponse([
                         'success' => false,
-                        'errors' => ['Erreur système: ' . $e->getMessage()]
-                    ], 500);
+                        'message' => 'Veuillez corriger les erreurs',
+                        'errors' => $errors
+                    ], 422);
                 }
-                $this->addFlash('error', 'Une erreur est survenue: ' . $e->getMessage());
             }
         }
     
@@ -80,6 +99,25 @@ class TransporterAnnouncementController extends AbstractController
             'form' => $form->createView()
         ]);
     }
+    
+    private function getFormErrors($form): array
+{
+    $errors = [];
+    foreach ($form->getErrors(true) as $error) {
+        $fieldName = $error->getOrigin()->getName();
+        if (!isset($errors[$fieldName])) {
+            $errors[$fieldName] = $error->getMessage();
+        } else {
+            // Si plusieurs erreurs pour le même champ, les concaténer
+            if (is_array($errors[$fieldName])) {
+                $errors[$fieldName][] = $error->getMessage();
+            } else {
+                $errors[$fieldName] = [$errors[$fieldName], $error->getMessage()];
+            }
+        }
+    }
+    return $errors;
+}
 
     #[Route('/', name: 'app_transporter_announcement_list', methods: ['GET'])]
 public function list(Request $request, PaginatorInterface $paginator): Response
@@ -105,15 +143,33 @@ public function list(Request $request, PaginatorInterface $paginator): Response
 #[Route('/{id}/delete', name: 'app_transporter_announcement_delete', methods: ['POST'])]
 public function delete(Request $request, Announcement $announcement): Response
 {
-    if ($this->isCsrfTokenValid('delete'.$announcement->getIdAnnouncement(), $request->request->get('_token'))) {
-        try {
-            $this->announcementService->deleteAnnouncement($announcement);
-            $this->addFlash('success', 'Announcement deleted successfully');
-        } catch (\Exception $e) {
-            $this->addFlash('error', 'Error deleting announcement: '.$e->getMessage());
+    if (!$this->isCsrfTokenValid('delete'.$announcement->getIdAnnouncement(), $request->request->get('_token'))) {
+        if ($request->isXmlHttpRequest()) {
+            return new JsonResponse(['error' => 'Invalid CSRF token'], 403);
         }
-    } else {
         $this->addFlash('error', 'Invalid CSRF token');
+        return $this->redirectToRoute('app_transporter_announcement_list');
+    }
+
+    try {
+        $this->announcementService->deleteAnnouncement($announcement);
+        
+        if ($request->isXmlHttpRequest()) {
+            return new JsonResponse([
+                'success' => true,
+                'message' => 'Announcement deleted successfully',
+                'redirectUrl' => $this->generateUrl('app_transporter_announcement_list')
+            ]);
+        }
+        
+        $this->addFlash('success', 'Announcement deleted successfully');
+    } catch (\Exception $e) {
+        if ($request->isXmlHttpRequest()) {
+            return new JsonResponse([
+                'error' => 'Error deleting announcement: '.$e->getMessage()
+            ], 500);
+        }
+        $this->addFlash('error', 'Error deleting announcement: '.$e->getMessage());
     }
 
     return $this->redirectToRoute('app_transporter_announcement_list');
@@ -135,6 +191,66 @@ public function details(int $id, AnnouncementRepository $announcementRepository)
         'date' => $announcement->getDate()->format('d M Y, H:i'),
         'status' => $announcement->isStatus()
     ]);
+}
+
+#[Route('/{id}/edit', name: 'app_transporter_announcement_edit', methods: ['GET', 'POST'])]
+public function edit(
+    Request $request,
+    int $id,
+    AnnouncementRepository $announcementRepository,
+    EntityManagerInterface $em
+): Response {
+    $announcement = $announcementRepository->find($id);
+    
+    if (!$announcement) {
+        if ($request->isXmlHttpRequest()) {
+            return new JsonResponse(['error' => 'Announcement not found'], 404);
+        }
+        throw $this->createNotFoundException('Announcement not found');
+    }
+
+    $form = $this->createForm(TransporterAnnouncementType::class, $announcement);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+        try {
+            $em->flush();
+
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse([
+                    'success' => true,
+                    'message' => 'Announcement updated successfully!',
+                    'html' => $this->renderView('front/announcement/transporter/_announcement_card.html.twig', [
+                        'announcement' => $announcement
+                    ])
+                ]);
+            }
+
+            $this->addFlash('success', 'Announcement updated successfully!');
+            return $this->redirectToRoute('app_transporter_announcement_list');
+            
+        } catch (\Exception $e) {
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Error: ' . $e->getMessage()
+                ], 500);
+            }
+            $this->addFlash('error', 'Error updating announcement');
+        }
+    }
+
+    $view = $request->isXmlHttpRequest() 
+        ? 'front/announcement/transporter/_edit_form.html.twig'
+        : 'front/announcement/transporter/edit.html.twig';
+
+    return $this->render($view, [
+        'form' => $form->createView(),
+        'announcement' => $announcement
+    ], new Response(
+        null,
+        $form->isSubmitted() && !$form->isValid() ? 422 : 200
+    ));
 }
     
 }

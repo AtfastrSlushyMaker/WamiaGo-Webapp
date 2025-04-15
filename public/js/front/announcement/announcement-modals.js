@@ -326,6 +326,35 @@ function closeModalAndRefreshList() {
         });
 }
 
+// Initialisation de la modale de suppression
+function initializeDeleteModal() {
+    const deleteModal = new bootstrap.Modal('#deleteModal');
+    let currentAnnouncementId = null;
 
-// Initialisation quand le DOM est prêt
-document.addEventListener('DOMContentLoaded', initializeAnnouncementModals);
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-delete')) {
+            const button = e.target.closest('.btn-delete');
+            currentAnnouncementId = button.dataset.id;
+            const announcementTitle = button.dataset.title;
+            
+            // Mettre à jour le contenu de la modale
+            document.getElementById('announcementTitleToDelete').textContent = announcementTitle;
+            
+            // Mettre à jour le formulaire
+            const form = document.getElementById('deleteAnnouncementForm');
+            form.action = `/transporter/announcements/${currentAnnouncementId}/delete`;
+            
+            // Ajouter le token CSRF
+            document.getElementById('deleteCsrfToken').value = button.dataset.csrf || '';
+            
+            // Afficher la modale
+            deleteModal.show();
+        }
+    });
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeAnnouncementModals();
+    initializeDeleteModal();
+});

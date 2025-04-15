@@ -64,6 +64,7 @@
                                 <span>{{ announcement.date|date('d M Y, H:i') }}</span>
                             </div>
                         </div>
+                   
                     </div>
                     
                     <div class="card-footer">
@@ -71,10 +72,13 @@
                             <i class="fas fa-eye"></i> Details
                         </button>
                         <div class="card-actions">
-                            <button class="btn-edit" data-id="{{ announcement.id_announcement }}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn-delete" data-id="{{ announcement.id_announcement }}" data-title="{{ announcement.title }}">
+                           <button class="btn-edit" data-id="{{ announcement.id_announcement }}">
+    <i class="fas fa-edit"></i>
+</button>
+                            <button class="btn-delete" 
+                                    data-id="{{ announcement.id_announcement }}" 
+                                    data-title="{{ announcement.title }}"
+                                    data-csrf="{{ csrf_token('delete' ~ announcement.id_announcement) }}">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
@@ -94,6 +98,8 @@
     
     <!-- Details Modal -->
     {% include 'front/announcement/transporter/_partials/details_modal.html.twig' %}
+
+    {% include 'front/announcement/transporter/_partials/_toast.html.twig' %}
 </div>
 {% endblock %}
 
