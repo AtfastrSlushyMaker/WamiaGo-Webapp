@@ -13,6 +13,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class RequestController extends AbstractController
 {
@@ -26,39 +27,118 @@ class RequestController extends AbstractController
     }
 
     #[Route('/taxi/request', name: 'app_taxi_request', methods: ['GET', 'POST'])]
-    public function createRequest(Request $request, LocationService $locationService): Response
+    public function createRequest(Request $request, LocationService $locationService, ValidatorInterface $validator): Response
     {
+        // Initialize variables
+        $formData = [
+            'pickupLocation' => '',
+            'pickupLat' => '',
+            'pickupLng' => '',
+            'arrivalLocation' => '',
+            'arrivalLat' => '',
+            'arrivalLng' => '',
+        ];
+        $validationErrors = [];
+        
         if ($request->isMethod('POST')) {
             // Retrieve form data
-            $pickupAddress = $request->request->get('pickupLocation');
-            $pickupLat = (float)$request->request->get('pickupLat');
-            $pickupLng = (float)$request->request->get('pickupLng');
-            $arrivalAddress = $request->request->get('arrivalLocation');
-            $arrivalLat = (float)$request->request->get('arrivalLat');
-            $arrivalLng = (float)$request->request->get('arrivalLng');
-            $userId = 114; // Static user ID for now (replace with session-based user retrieval later)
-
-            try {
-                // Retrieve the user using the EntityManager
-                $user = $this->entityManager->getRepository(User::class)->find($userId);
-                if (!$user) {
-                    throw $this->createNotFoundException('User not found.');
+            $formData = [
+                'pickupLocation' => trim($request->request->get('pickupLocation', '')),
+                'pickupLat' => $request->request->get('pickupLat', ''),
+                'pickupLng' => $request->request->get('pickupLng', ''),
+                'arrivalLocation' => trim($request->request->get('arrivalLocation', '')),
+                'arrivalLat' => $request->request->get('arrivalLat', ''),
+                'arrivalLng' => $request->request->get('arrivalLng', ''),
+            ];
+            
+            // Basic form validation
+            if (empty($formData['pickupLocation'])) {
+                $validationErrors['pickupLocation'] = 'Pickup location is required';
+            }
+            if (empty($formData['pickupLat']) || empty($formData['pickupLng'])) {
+                $validationErrors['pickupLocation'] = 'Pickup location is required';
+            }
+            if (empty($formData['arrivalLocation'])) {
+                $validationErrors['arrivalLocation'] = 'Arrival location is required';
+            }
+            if (empty($formData['arrivalLat']) || empty($formData['arrivalLng'])) {
+                $validationErrors['arrivalLocation'] = 'Arrival location is required';
+            }
+            
+            // Check if pickup and arrival are the same
+           else  if ( 
+                $formData['pickupLat'] === $formData['arrivalLat'] && 
+                $formData['pickupLng'] === $formData['arrivalLng']) {
+                $validationErrors['arrivalLocation'] = 'Departure and arrival locations cannot be the same';
+            }
+            
+            // Proceed if basic validation passes
+            if (empty($validationErrors)) {
+                try {
+                    // Get user
+                    $userId = 114; // Static user ID for demo
+                    $user = $this->entityManager->getRepository(User::class)->find($userId);
+                    if (!$user) {
+                        throw $this->createNotFoundException('User not found');
+                    }
+                    
+                    // Create location objects
+                    $pickupLocation = $locationService->createLocation(
+                        $formData['pickupLocation'], 
+                        (float)$formData['pickupLat'], 
+                        (float)$formData['pickupLng']
+                    );
+                    
+                    $arrivalLocation = $locationService->createLocation(
+                        $formData['arrivalLocation'], 
+                        (float)$formData['arrivalLat'], 
+                        (float)$formData['arrivalLng']
+                    );
+                    
+                    // Create request entity
+                    $taxiRequest = new TaxiRequest();
+                    $taxiRequest->setUser($user)
+                        ->setDepartureLocation($pickupLocation)
+                        ->setArrivalLocation($arrivalLocation)
+                        ->setStatus(REQUEST_STATUS::PENDING)
+                        ->setRequestDate(new \DateTime());
+                    
+                    // Validate entity using Assert constraints
+                    $constraints = $validator->validate($taxiRequest);
+                    
+                    if (count($constraints) > 0) {
+                        // Convert constraint violations to error messages
+                        foreach ($constraints as $constraint) {
+                            $propertyPath = $constraint->getPropertyPath();
+                            $message = $constraint->getMessage();
+                            
+                            // Map property paths to form fields
+                            if (strpos($propertyPath, 'departureLocation') !== false) {
+                                $validationErrors['pickupLocation'] = $message;
+                            } elseif (strpos($propertyPath, 'arrivalLocation') !== false) {
+                                $validationErrors['arrivalLocation'] = $message;
+                            } else {
+                                $validationErrors[$propertyPath] = $message;
+                            }
+                        }
+                    } else {
+                        // Save valid request
+                        $this->entityManager->persist($taxiRequest);
+                        $this->entityManager->flush();
+                        
+                        $this->addFlash('success', 'Your taxi request has been created successfully!');
+                        return $this->redirectToRoute('app_taxi_management');
+                    }
+                } catch (\Exception $e) {
+                    $this->addFlash('error', 'An error occurred: ' . $e->getMessage());
                 }
-
-                // Create the pickup and arrival locations
-                $pickupLocation = $locationService->createLocation($pickupAddress, $pickupLat, $pickupLng);
-                $arrivalLocation = $locationService->createLocation($arrivalAddress, $arrivalLat, $arrivalLng);
-
-                // Create the request
-                $this->requestService->createRequest($user, $pickupLocation, $arrivalLocation);
-
-                $this->addFlash('success', 'Your request has been created successfully!');
-                return $this->redirectToRoute('app_taxi_management');
-            } catch (\Exception $e) {
-                $this->addFlash('error', 'Error creating request: ' . $e->getMessage());
             }
         }
-
-        return $this->render('front/taxi/request.html.twig');
+        
+        // Render the form with validation errors and form data
+        return $this->render('front/taxi/request.html.twig', [
+            'formData' => $formData,
+            'validationErrors' => $validationErrors
+        ]);
     }
 }

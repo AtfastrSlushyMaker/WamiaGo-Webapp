@@ -42,27 +42,73 @@
         <div class="col-md-6">
             <div class="form-container">
                 <h3>Request a Taxi</h3>
-                <form id="requestForm" action="{{ path('app_taxi_request') }}" method="POST" onsubmit="return handleFormSubmit(event)">
-                    <!-- Pickup Location -->
-                    <div class="mb-3">
-                        <label for="pickupLocation" class="form-label">Pickup Location</label>
-                        <input type="text" class="form-control" id="pickupLocation" name="pickupLocation" placeholder="Select on the map" required readonly>
-                    </div>
-                    <!-- Pickup Latitude and Longitude (hidden) -->
-                    <input type="hidden" id="pickupLat" name="pickupLat">
-                    <input type="hidden" id="pickupLng" name="pickupLng">
-
-                    <!-- Arrival Location -->
-                    <div class="mb-3">
-                        <label for="arrivalLocation" class="form-label">Arrival Location</label>
-                        <input type="text" class="form-control" id="arrivalLocation" name="arrivalLocation" placeholder="Select on the map" required readonly>
-                    </div>
-                    <!-- Arrival Latitude and Longitude (hidden) -->
-                    <input type="hidden" id="arrivalLat" name="arrivalLat">
-                    <input type="hidden" id="arrivalLng" name="arrivalLng">
-
-                    <button type="submit" class="btn btn-primary w-100">Submit Request</button>
-                </form>
+          <form id="requestForm" action="{{ path('app_taxi_request') }}" method="POST" onsubmit="return handleFormSubmit(event)">
+                            {# Pickup Location #}
+                            <div class="mb-3">
+                                <label for="pickupLocation" class="form-label">Pickup Location</label>
+                                <input type="text" 
+                                       class="form-control {% if validationErrors is defined and validationErrors['pickupLocation'] is defined %}is-invalid{% endif %}" 
+                                       id="pickupLocation" 
+                                       name="pickupLocation" 
+                                       placeholder="Select on the map" 
+                                       required 
+                                       readonly
+                                       value="{{ formData.pickupLocation|default('') }}">
+                                {% if validationErrors is defined and validationErrors['pickupLocation'] is defined %}
+                                    <div class="invalid-feedback">
+                                        {{ validationErrors['pickupLocation'] }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            {# Pickup Coordinates (hidden) #}
+                            <input type="hidden" id="pickupLat" name="pickupLat" value="{{ formData.pickupLat|default('') }}">
+                            <input type="hidden" id="pickupLng" name="pickupLng" value="{{ formData.pickupLng|default('') }}">
+                            
+                            {# Arrival Location #}
+                            <div class="mb-3">
+                                <label for="arrivalLocation" class="form-label">Arrival Location</label>
+                                <input type="text" 
+                                       class="form-control {% if validationErrors is defined and validationErrors['arrivalLocation'] is defined %}is-invalid{% endif %}" 
+                                       id="arrivalLocation" 
+                                       name="arrivalLocation" 
+                                       placeholder="Select on the map" 
+                                       required 
+                                       readonly
+                                       value="{{ formData.arrivalLocation|default('') }}">
+                                {% if validationErrors is defined and validationErrors['arrivalLocation'] is defined %}
+                                    <div class="invalid-feedback">
+                                        {{ validationErrors['arrivalLocation'] }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            {# Arrival Coordinates (hidden) #}
+                            <input type="hidden" id="arrivalLat" name="arrivalLat" value="{{ formData.arrivalLat|default('') }}">
+                            <input type="hidden" id="arrivalLng" name="arrivalLng" value="{{ formData.arrivalLng|default('') }}">
+                            
+                            {# Display other validation errors #}
+                            {% if validationErrors is defined and validationErrors|length > 0 %}
+                                {% set otherErrors = [] %}
+                                {% for key, error in validationErrors %}
+                                    {% if key != 'pickupLocation' and key != 'arrivalLocation' %}
+                                        {% set otherErrors = otherErrors|merge([error]) %}
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if otherErrors|length > 0 %}
+                                    <div class="alert alert-danger mb-3">
+                                        <ul class="mb-0">
+                                            {% for error in otherErrors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                            
+                            <button type="submit" class="btn btn-primary w-100">Submit Request</button>
+                        </form>
                 <button class="btn btn-secondary mt-3" onclick="resetFormAndMap()">Reset Map</button>
             </div>
         </div>
@@ -179,7 +225,7 @@
     }
 
     // Function to handle form submission
-    function handleFormSubmit(event) {
+  /*  function handleFormSubmit(event) {
         event.preventDefault(); // Prevent default form submission
 
         const pickupLocation = document.getElementById('pickupLocation').value;
@@ -207,6 +253,6 @@
         setTimeout(() => {
             event.target.submit();
         }, 2000);
-    }
+    }*/
 </script>
 {% endblock %}
