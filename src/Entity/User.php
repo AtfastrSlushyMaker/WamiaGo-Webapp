@@ -6,140 +6,18 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
+
 use App\Repository\UserRepository;
-use Symfony\Component\Serializer\Annotation\Groups;
-use App\Enum\ACCOUNT_STATUS;
-use App\Enum\STATUS;
-use App\Enum\ROLE;
-use App\Enum\GENDER;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'user')]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id_user = null;
 
-    #[Groups(['user:read'])]
-    #[ORM\Column(name: 'name', type: 'string', nullable: false)]
-    private ?string $name = null;
-
-    #[Groups(['user:read'])]
-    #[ORM\Column(type: 'string', nullable: false)]
-    private ?string $email = null;
-
-    #[ORM\Column(type: 'string', nullable: false)]
-    private ?string $password = null;
-
-    #[Groups(['user:read'])]
-    #[ORM\Column(type: 'string', nullable: false)]
-    private ?string $phone_number = null;
-
-    #[ORM\Column(type: 'string', enumType: ROLE::class)]
-    private ROLE $role;
-
-    #[ORM\ManyToOne(targetEntity: Location::class, inversedBy: 'users')]
-    #[ORM\JoinColumn(name: 'id_location', referencedColumnName: 'id_location')]
-    private ?Location $location = null;
-
-    #[ORM\Column(type: 'string', enumType: GENDER::class)]
-    private GENDER $gender;
-
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private ?string $profile_picture = null;
-
-    #[ORM\Column(type: 'boolean', options: ['default' => false])]
-    private bool $is_verified = false;
-
-    #[ORM\Column(type: 'string', length: 20, enumType: ACCOUNT_STATUS::class, options: ['default' => 'ACTIVE'])]
-    private ACCOUNT_STATUS $account_status = ACCOUNT_STATUS::ACTIVE;
-
-    #[Groups(['user:read'])]
-    #[ORM\Column(type: 'date', nullable: true)]
-    private ?\DateTimeInterface $date_of_birth = null;
-
-    #[ORM\Column(type: 'string', length: 20, enumType: \App\Enum\STATUS::class, options: ['default' => 'OFFLINE'])]
-    private STATUS $status = STATUS::OFFLINE;
-
-    #[ORM\OneToMany(targetEntity: BicycleRental::class, mappedBy: 'user')]
-    private Collection $bicycleRentals;
-
-    #[ORM\OneToMany(targetEntity: Booking::class, mappedBy: 'user')]
-    private Collection $bookings;
-
-    #[ORM\OneToMany(targetEntity: Driver::class, mappedBy: 'user')]
-    private Collection $drivers;
-
-    #[ORM\OneToMany(targetEntity: Rating::class, mappedBy: 'user')]
-    private Collection $ratings;
-
-    #[ORM\OneToMany(targetEntity: Reclamation::class, mappedBy: 'user')]
-    private Collection $reclamations;
-
-    #[ORM\OneToMany(targetEntity: Request::class, mappedBy: 'user')]
-    private Collection $requests;
-
-    #[ORM\OneToMany(targetEntity: Reservation::class, mappedBy: 'user')]
-    private Collection $reservations;
-
-    public function __construct()
-    {
-        $this->bicycleRentals = new ArrayCollection();
-        $this->bookings = new ArrayCollection();
-        $this->drivers = new ArrayCollection();
-        $this->ratings = new ArrayCollection();
-        $this->reclamations = new ArrayCollection();
-        $this->requests = new ArrayCollection();
-        $this->reservations = new ArrayCollection();
-    }
-
-    // UserInterface methods
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
-    public function getUserIdentifier(): string
-    {
-        return (string) $this->email;
-    }
-
-    /**
-     * @see UserInterface
-     */
-    public function getRoles(): array
-    {
-        $role = $this->role->value; // Convert ROLE enum to string
-
-        // Debug
-        error_log('User role: ' . $role);
-
-        // Keep your existing code
-        if (!str_starts_with($role, 'ROLE_')) {
-            if ($role === 'CLIENT') {
-                return ['ROLE_USER'];
-            } elseif ($role === 'ADMIN') {
-                return ['ROLE_ADMIN'];
-            } else {
-                return ['ROLE_' . strtoupper($role)];
-            }
-        }
-
-        return [$role];
-    }
-    /**
-     * @see UserInterface
-     */
-    public function eraseCredentials(): void
-    {
-        // If you store any temporary, sensitive data on the user, clear it here
-    }
-
-    // Original getters and setters
     public function getId_user(): ?int
     {
         return $this->id_user;
@@ -150,6 +28,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->id_user = $id_user;
         return $this;
     }
+
+    #[ORM\Column(type: 'string', nullable: false)]
+    private ?string $name = null;
 
     public function getName(): ?string
     {
@@ -162,6 +43,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    #[ORM\Column(type: 'string', nullable: false)]
+    private ?string $email = null;
+
     public function getEmail(): ?string
     {
         return $this->email;
@@ -172,6 +56,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->email = $email;
         return $this;
     }
+
+    #[ORM\Column(type: 'string', nullable: false)]
+    private ?string $password = null;
 
     public function getPassword(): ?string
     {
@@ -184,6 +71,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    #[ORM\Column(type: 'string', nullable: false)]
+    private ?string $phone_number = null;
+
     public function getPhone_number(): ?string
     {
         return $this->phone_number;
@@ -195,16 +85,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    // Ensure the ROLE enum is converted to a string value in the getRole method
-    public function getRole(): string
+    #[ORM\Column(type: 'string', nullable: false)]
+    private ?string $role = null;
+
+    public function getRole(): ?string
     {
-        return $this->role->value;
+        return $this->role;
     }
 
-    public function setRole(ROLE $role): void
+    public function setRole(string $role): self
     {
         $this->role = $role;
+        return $this;
     }
+
+    #[ORM\ManyToOne(targetEntity: Location::class, inversedBy: 'users')]
+    #[ORM\JoinColumn(name: 'id_location', referencedColumnName: 'id_location')]
+    private ?Location $location = null;
 
     public function getLocation(): ?Location
     {
@@ -217,22 +114,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    #[Groups(['user:read'])]
-    public function getGender(): GENDER
+    #[ORM\Column(type: 'string', nullable: false)]
+    private ?string $gender = null;
+
+    public function getGender(): ?string
     {
         return $this->gender;
     }
 
-    public function setGender(GENDER $gender): void
+    public function setGender(string $gender): self
     {
         $this->gender = $gender;
+        return $this;
     }
 
-    #[Groups(['user:read'])]
-    public function getDateOfBirth(): ?string
-    {
-        return $this->date_of_birth?->format('Y-m-d');
-    }
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $profile_picture = null;
 
     public function getProfile_picture(): ?string
     {
@@ -245,6 +142,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    #[ORM\Column(type: 'boolean', nullable: false)]
+    private ?bool $is_verified = null;
+
     public function is_verified(): ?bool
     {
         return $this->is_verified;
@@ -256,15 +156,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getAccount_status(): ACCOUNT_STATUS
+    #[ORM\Column(type: 'string', nullable: false)]
+    private ?string $account_status = null;
+
+    public function getAccount_status(): ?string
     {
         return $this->account_status;
     }
 
-    public function setAccount_status(ACCOUNT_STATUS $account_status): void
+    public function setAccount_status(string $account_status): self
     {
         $this->account_status = $account_status;
+        return $this;
     }
+
+    #[ORM\Column(type: 'date', nullable: true)]
+    private ?\DateTimeInterface $date_of_birth = null;
 
     public function getDate_of_birth(): ?\DateTimeInterface
     {
@@ -277,23 +184,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getStatus(): STATUS
+    #[ORM\Column(type: 'string', nullable: false)]
+    private ?string $status = null;
+
+    public function getStatus(): ?string
     {
         return $this->status;
     }
 
-
-    public function setStatus(STATUS $status): self
+    public function setStatus(string $status): self
     {
-        error_log('setStatus called with value: ' . print_r($status, true));
-
-        if (!$status instanceof \App\Enum\STATUS) {
-            throw new \InvalidArgumentException('Invalid value passed to setStatus. Expected an instance of STATUS enum.');
-        }
-
         $this->status = $status;
         return $this;
     }
+
+    #[ORM\OneToMany(targetEntity: BicycleRental::class, mappedBy: 'user')]
+    private Collection $bicycleRentals;
 
     /**
      * @return Collection<int, BicycleRental>
@@ -320,6 +226,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    #[ORM\OneToMany(targetEntity: Booking::class, mappedBy: 'user')]
+    private Collection $bookings;
+
     /**
      * @return Collection<int, Booking>
      */
@@ -344,6 +253,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->getBookings()->removeElement($booking);
         return $this;
     }
+
+    #[ORM\OneToMany(targetEntity: Driver::class, mappedBy: 'user')]
+    private Collection $drivers;
 
     /**
      * @return Collection<int, Driver>
@@ -370,6 +282,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    #[ORM\OneToMany(targetEntity: Rating::class, mappedBy: 'user')]
+    private Collection $ratings;
+
     /**
      * @return Collection<int, Rating>
      */
@@ -394,6 +309,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->getRatings()->removeElement($rating);
         return $this;
     }
+
+    #[ORM\OneToMany(targetEntity: Reclamation::class, mappedBy: 'user')]
+    private Collection $reclamations;
 
     /**
      * @return Collection<int, Reclamation>
@@ -420,6 +338,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    #[ORM\OneToMany(targetEntity: Request::class, mappedBy: 'user')]
+    private Collection $requests;
+
     /**
      * @return Collection<int, Request>
      */
@@ -443,6 +364,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->getRequests()->removeElement($request);
         return $this;
+    }
+
+    #[ORM\OneToMany(targetEntity: Reservation::class, mappedBy: 'user')]
+    private Collection $reservations;
+
+    public function __construct()
+    {
+        $this->bicycleRentals = new ArrayCollection();
+        $this->bookings = new ArrayCollection();
+        $this->drivers = new ArrayCollection();
+        $this->ratings = new ArrayCollection();
+        $this->reclamations = new ArrayCollection();
+        $this->requests = new ArrayCollection();
+        $this->reservations = new ArrayCollection();
     }
 
     /**
@@ -470,7 +405,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    // PSR-compliant getters and setters for Symfony Form component
     public function getIdUser(): ?int
     {
         return $this->id_user;
@@ -484,6 +418,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPhoneNumber(string $phone_number): static
     {
         $this->phone_number = $phone_number;
+
         return $this;
     }
 
@@ -495,6 +430,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setProfilePicture(?string $profile_picture): static
     {
         $this->profile_picture = $profile_picture;
+
         return $this;
     }
 
@@ -506,28 +442,31 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsVerified(bool $is_verified): static
     {
         $this->is_verified = $is_verified;
+
         return $this;
     }
 
-    public function getAccountStatus(): ACCOUNT_STATUS
+    public function getAccountStatus(): ?string
     {
         return $this->account_status;
     }
 
-    public function setAccountStatus(ACCOUNT_STATUS $account_status): void
+    public function setAccountStatus(string $account_status): static
     {
         $this->account_status = $account_status;
+
+        return $this;
     }
 
+    public function getDateOfBirth(): ?\DateTimeInterface
+    {
+        return $this->date_of_birth;
+    }
 
     public function setDateOfBirth(?\DateTimeInterface $date_of_birth): static
     {
         $this->date_of_birth = $date_of_birth;
-        return $this;
-    }
 
-    public function hasRole(string $role): bool
-    {
-        return in_array($role, $this->getRoles(), true);
+        return $this;
     }
 }

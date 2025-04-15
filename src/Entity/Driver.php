@@ -250,5 +250,18 @@ class Driver
 
         return $this;
     }
+    public function getAverageRating(): ?float
+    {
+        if ($this->ratings->isEmpty()) {
+            return null; // No ratings available
+        }
+
+        $total = 0;
+        foreach ($this->ratings as $rating) {
+            $total += $rating->getValue(); // Assuming `Rating` has a `getValue()` method
+        }
+
+        return $total / $this->ratings->count();
+    }
 
 }

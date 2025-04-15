@@ -1,0 +1,626 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Reserved Seats - WamiaGo{% endblock %}
+
+{% block page_stylesheets %}
+    <link href="{{ asset('css/front/Trip/trip-booking.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
+    <style>
+        /* Modern color scheme */
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: #eff6ff;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-light: #f8f9fa;
+            --gray-medium: #e9ecef;
+            --gray-dark: #495057;
+        }
+
+        .seats-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .seats-card {
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .seats-header {
+            background: linear-gradient(45deg, var(--primary-dark), var(--primary));
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .seats-header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .seats-summary {
+            padding: 2rem;
+            border-bottom: 1px solid var(--gray-medium);
+        }
+
+        .seats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .seat {
+            aspect-ratio: 1 / 1;
+            background-color: var(--gray-light);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--gray-dark);
+            border: 2px solid transparent;
+        }
+
+        .seat.selected {
+            background-color: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary-dark);
+        }
+
+        .seat.unavailable {
+            background-color: var(--gray-medium);
+            color: #adb5bd;
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .journey-info {
+            background-color: var(--gray-light);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .journey-route {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+        }
+
+        .journey-city {
+            background-color: white;
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .payment-options {
+            padding: 2rem;
+        }
+
+        .payment-option {
+            padding: 1.25rem;
+            border: 2px solid var(--gray-medium);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .payment-option:hover {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+        }
+
+        .payment-option.selected {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+        }
+
+        .payment-icon {
+            width: 48px;
+            height: 48px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .payment-details {
+            flex: 1;
+        }
+
+        .payment-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .radio-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 1rem;
+        }
+
+        .price-summary {
+            border-top: 1px dashed var(--gray-medium);
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .price-total {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-proceed {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            border: none;
+            flex: 3;
+            transition: all 0.2s ease;
+        }
+
+        .btn-proceed:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-back {
+            background-color: var(--gray-light);
+            color: var(--gray-dark);
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            border: none;
+            flex: 1;
+            transition: all 0.2s ease;
+        }
+
+        .btn-back:hover {
+            background-color: var(--gray-medium);
+        }
+
+        .seats-visual {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .seats-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .indicator-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .indicator-available {
+            background-color: var(--gray-light);
+            border: 1px solid var(--gray-medium);
+        }
+
+        .indicator-selected {
+            background-color: var(--primary-light);
+            border: 1px solid var(--primary);
+        }
+
+        .indicator-unavailable {
+            background-color: var(--gray-medium);
+            border: 1px solid #adb5bd;
+            opacity: 0.7;
+        }
+
+        .seats-count {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            font-weight: 700;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .journey-route {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .journey-route .fas {
+                transform: rotate(90deg);
+            }
+
+            .payment-option {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .payment-icon {
+                margin-right: 0;
+                margin-bottom: 1rem;
+            }
+
+            .radio-container {
+                margin-left: 0;
+                margin-top: 1rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+        <div class="seats-container">
+            <div class="seats-card">
+                <div class="seats-header">
+                    <h1>Reserved Seats</h1>
+                    <p class="mb-0">Complete your booking by selecting payment method</p>
+                </div>
+
+                <div class="seats-summary">
+                    <div class="journey-info">
+                        <div class="journey-route">
+                            <span class="journey-city">{{ trip.departure_city }}</span>
+                            <i class="fas fa-arrow-right"></i>
+                            <span class="journey-city">{{ trip.arrival_city }}</span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><i class="far fa-calendar-alt me-2"></i> <strong>Departure Date:</strong> {{ trip.departure_date|date('l, d M Y') }}</p>
+                                <p><i class="far fa-clock me-2"></i> <strong>Departure Time:</strong> {{ trip.departure_date|date('H:i') }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                {#  <p><i class="fas fa-map-marker-alt me-2"></i> <strong>Pickup Point:</strong> {{ pickup_point }}</p>
+                                <p><i class="fas fa-road me-2"></i> <strong>Travel Time:</strong> {{ travel_time }}</p> #}
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 class="mb-3">Selected Seats</h4>
+
+<div class="seats-count">
+    <i class="fas fa-chair"></i> <span id="selectedSeatsCount">0</span> Seat(s) Selected
+</div>
+
+<div class="seats-grid">
+{% for i in 1..trip.available_seats %}
+    {% if i in unavailable_seats %}
+        <div class="seat unavailable" data-seat="{{ i }}">{{ i }}</div>
+    {% else %}
+        <div class="seat" data-seat="{{ i }}">{{ i }}</div>
+    {% endif %}
+{% endfor %}
+</div>
+
+<div class="seats-visual">
+    <div class="seats-indicator">
+        <div class="indicator-box indicator-available"></div>
+        <span>Available</span>
+    </div>
+    <div class="seats-indicator">
+        <div class="indicator-box indicator-selected"></div>
+        <span>Selected</span>
+    </div>
+    <div class="seats-indicator">
+        <div class="indicator-box indicator-unavailable"></div>
+        <span>Unavailable</span>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const seats = document.querySelectorAll('.seat:not(.unavailable)');
+        const selectedSeatsCount = document.getElementById('selectedSeatsCount');
+        const maxSeats = {{ trip.available_seats }};
+        let selectedSeats = [];
+
+        seats.forEach(seat => {
+            seat.addEventListener('click', function () {
+                const seatNumber = parseInt(this.dataset.seat);
+
+                if (selectedSeats.includes(seatNumber)) {
+                    // Deselect the seat
+                    selectedSeats = selectedSeats.filter(s => s !== seatNumber);
+                    this.classList.remove('selected');
+                } else if (selectedSeats.length < maxSeats) {
+                    // Select the seat
+                    selectedSeats.push(seatNumber);
+                    this.classList.add('selected');
+                } else {
+                    alert(`You can only select up to ${maxSeats} seat(s).`);
+                }
+
+                // Update seat count
+                selectedSeatsCount.textContent = selectedSeats.length;
+            });
+        });
+    });
+</script>
+                </div>
+
+                <div class="payment-options">
+                    <h4 class="mb-3">Payment Method</h4>
+
+                    <form id="paymentForm" action="{{ path('app_front_confirm_booking', {'id': trip.id_trip}) }}" method="post">
+                        <input type="hidden" name="selected_seats" value="{{ selected_seats|join(',') }}">
+                        <input type="hidden" name="trip_id" value="{{ trip.id_trip }}">
+
+
+                        <div class="payment-option{% if payment_method == 'online' %} selected{% endif %}" onclick="selectPayment('online')">
+                            <div class="payment-icon">
+                                <i class="fas fa-credit-card text-primary"></i>
+                            </div>
+                            <div class="payment-details">
+                                <div class="payment-title">Online Payment</div>
+                                <div class="payment-description">Pay securely with credit card, e-dinar, or mobile money</div>
+                            </div>
+                            <div class="radio-container">
+                                <input type="radio" id="online" name="payment_method" value="online"{% if payment_method == 'online' %} checked{% endif %}>
+                            </div>
+                        </div>
+
+                        <div class="payment-option{% if payment_method == 'presential' %} selected{% endif %}" onclick="selectPayment('presential')">
+                            <div class="payment-icon">
+                                <i class="fas fa-money-bill-wave text-success"></i>
+                            </div>
+                            <div class="payment-details">
+                                <div class="payment-title">Pay at Pickup</div>
+                                <div class="payment-description">Pay in person with cash when you arrive for your trip</div>
+                            </div>
+                            <div class="radio-container">
+                                <input type="radio" id="presential" name="payment_method" value="presential"{% if payment_method == 'presential' %} checked{% endif %}>
+                            </div>
+                        </div>
+                    </form>
+
+
+
+                    <div class="price-summary">
+                            <div class="price-row">
+                                <span>Price per passenger:</span>
+                                <span id="pricePerPassenger">{{ price_per_passenger|number_format(3) }} TND</span>
+                            </div>
+                            <div class="price-row">
+                                <span>Number of seats:</span>
+                                <span id="numberOfSeats">{{ selected_seats|length }}</span>
+                            </div>
+                            <div class="price-row price-total">
+                                <span>Total amount:</span>
+                                <span id="totalAmount">{{ total_amount|number_format(3) }} TND</span>
+                            </div>
+                        </div>
+
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function () {
+                                const seats = document.querySelectorAll('.seat:not(.unavailable)');
+                                const numberOfSeatsElement = document.getElementById('numberOfSeats');
+                                const totalAmountElement = document.getElementById('totalAmount');
+                                const pricePerPassenger = parseFloat(document.getElementById('pricePerPassenger').textContent);
+                                let selectedSeats = [];
+
+                                // Function to update the summary
+                                function updateSummary() {
+                                    const selectedSeatsCount = selectedSeats.length;
+                                    numberOfSeatsElement.textContent = selectedSeatsCount;
+                                    totalAmountElement.textContent = (selectedSeatsCount * pricePerPassenger).toFixed(3) + ' TND';
+                                }
+
+                                // Function to handle seat selection
+                                function toggleSeatSelection(seat) {
+                                    const seatNumber = parseInt(seat.dataset.seat);
+
+                                    if (selectedSeats.includes(seatNumber)) {
+                                        // Deselect the seat
+                                        selectedSeats = selectedSeats.filter(s => s !== seatNumber);
+                                        seat.classList.remove('selected');
+                                    } else {
+                                        // Select the seat
+                                        selectedSeats.push(seatNumber);
+                                        seat.classList.add('selected');
+                                    }
+
+                                    // Update the summary
+                                    updateSummary();
+                                }
+
+                                // Add click event listeners to seats
+                                seats.forEach(seat => {
+                                    seat.addEventListener('click', function () {
+                                        toggleSeatSelection(this);
+                                    });
+                                });
+                            });
+                        </script>
+
+
+                    <!-- Form -->
+                    <form action="{{ path('app_front_select_seats', {'id': trip.id_trip}) }}" method="POST" id="bookingForm">
+                        <input type="hidden" name="selected_seats" id="selectedSeatsInput" value="">
+                        <div class="action-buttons">
+                            <button type="button" class="btn btn-back" onclick="window.location.href='{{ path('app_carpooling') }}'">
+                                <i class="fas fa-arrow-left me-2"></i> Back
+                            </button>
+                            <button type="submit" class="btn btn-proceed">
+                                Complete Booking <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Confirmation Modal -->
+                    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content text-center">
+                                <div class="modal-body">
+                                    <!-- Loading Spinner -->
+                                    <div id="loadingSpinner" class="d-flex justify-content-center align-items-center" style="height: 150px;">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Confirmation Message -->
+                                    <div id="confirmationMessage" class="d-none">
+                                        <div class="text-success mb-3">
+                                            <i class="fas fa-check-circle fa-3x"></i>
+                                        </div>
+                                        <h5>Booking Confirmed!</h5>
+                                        <p>Going back to trips...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            const form = document.getElementById('bookingForm');
+                            const modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+
+                            form.addEventListener('submit', function (e) {
+                                e.preventDefault(); // Prevent default form submission
+                                modal.show(); // Show the modal
+
+                                // Simulate loading effect for 3 seconds
+                                setTimeout(() => {
+                                    document.getElementById('loadingSpinner').classList.add('d-none');
+                                    document.getElementById('confirmationMessage').classList.remove('d-none');
+
+                                    // Redirect after 3 more seconds
+                                    setTimeout(() => {
+                                        form.submit(); // Submit the form after the delay
+                                    }, 3000);
+                                }, 3000);
+                            });
+                        });
+                    </script>
+
+                    <style>
+                        .modal-content {
+                            border-radius: 16px;
+                            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                        }
+
+                        .modal-body {
+                            padding: 2rem;
+                        }
+
+                        .text-success i {
+                            animation: pop 0.5s ease-in-out;
+                        }
+
+                        @keyframes pop {
+                            0% {
+                                transform: scale(0.5);
+                                opacity: 0;
+                            }
+                            100% {
+                                transform: scale(1);
+                                opacity: 1;
+                            }
+                        }
+                    </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectedSeatsInput = document.getElementById('selectedSeatsInput');
+        const seats = document.querySelectorAll('.seat.selected');
+
+        // Update the hidden input with selected seats
+        function updateSelectedSeats() {
+            const selectedSeats = Array.from(seats).map(seat => seat.dataset.seat);
+            selectedSeatsInput.value = selectedSeats.join(',');
+        }
+
+        // Add event listener to update the hidden input when seats are selected
+        seats.forEach(seat => {
+            seat.addEventListener('click', function () {
+                this.classList.toggle('selected');
+                updateSelectedSeats();
+            });
+        });
+    });
+</script>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block page_javascripts %}
+    <script>
+        function selectPayment(method) {
+            // Remove selected class from all options
+            document.querySelectorAll('.payment-option').forEach(function(option) {
+                option.classList.remove('selected');
+            });
+
+            // Add selected class to clicked option
+            const selectedOption = document.querySelector(`.payment-option:has(#${method})`);
+            selectedOption.classList.add('selected');
+
+            // Check the radio button
+            document.getElementById(method).checked = true;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the payment method selection
+            const checkedMethod = document.querySelector('input[name="payment_method"]:checked');
+            if (checkedMethod) {
+                selectPayment(checkedMethod.value);
+            } else {
+                selectPayment('online'); // Default selection
+            }
+        });
+    </script>
+{% endblock %}
