@@ -31,9 +31,6 @@
                             {% endif %}
                         </ul>
                     </div>
-                    <a href="{{ path('admin_bicycle_dashboard') }}" class="btn btn-primary">
-                        <i class="fas fa-home me-2"></i>Back to Dashboard
-                    </a>
                 </div>
             </div>
         </div>
@@ -44,22 +41,31 @@
         <div class="card-body p-0">
             <ul class="nav nav-tabs-custom" id="bicycleManagementTabs" role="tablist">
                 <li class="nav-item flex-fill text-center">
-                    <a class="nav-link d-flex flex-column align-items-center py-3 {{ active_tab == 'rentals' ? 'active' : '' }}"
-                       href="{{ path('admin_bicycle_dashboard', app.request.query.all|merge({'tab': 'rentals', 'page': 1})) }}">
+                    <a class="nav-link d-flex flex-column align-items-center py-3 {{ active_tab == 'rentals' ? 'active' : '' }} tab-link" 
+                       href="#" 
+                       data-tab="rentals"
+                       data-bs-toggle="tab"
+                       data-bs-target="#rentalsTab">
                         <i class="fas fa-receipt mb-1 tab-icon"></i>
                         <span>Rentals</span>
                     </a>
                 </li>
                 <li class="nav-item flex-fill text-center">
-                    <a class="nav-link d-flex flex-column align-items-center py-3 {{ active_tab == 'bicycles' ? 'active' : '' }}"
-                       href="{{ path('admin_bicycle_dashboard', app.request.query.all|merge({'tab': 'bicycles', 'page': 1})) }}">
+                    <a class="nav-link d-flex flex-column align-items-center py-3 {{ active_tab == 'bicycles' ? 'active' : '' }} tab-link" 
+                       href="#" 
+                       data-tab="bicycles"
+                       data-bs-toggle="tab"
+                       data-bs-target="#bicyclesTab">
                         <i class="fas fa-bicycle mb-1 tab-icon"></i>
                         <span>Bicycles</span>
                     </a>
                 </li>
                 <li class="nav-item flex-fill text-center">
-                    <a class="nav-link d-flex flex-column align-items-center py-3 {{ active_tab == 'stations' ? 'active' : '' }}"
-                       href="{{ path('admin_bicycle_dashboard', app.request.query.all|merge({'tab': 'stations', 'page': 1})) }}">
+                    <a class="nav-link d-flex flex-column align-items-center py-3 {{ active_tab == 'stations' ? 'active' : '' }} tab-link"
+                       href="#" 
+                       data-tab="stations"
+                       data-bs-toggle="tab"
+                       data-bs-target="#stationsTab">
                         <i class="fas fa-map-marker-alt mb-1 tab-icon"></i>
                         <span>Stations</span>
                     </a>
@@ -70,23 +76,32 @@
 
     <!-- Tab Content with Animation -->
     <div class="tab-content fade-in" id="bicycleManagementTabsContent">
-        {% if active_tab == 'rentals' %}
-            <div class="tab-pane fade show active">
-                {% include 'back-office/bicycle/rental.html.twig' with {
-                    'rentals': rentals|default([]),
-                    'stations': stations|default([]),
-                    'stats': stats|default({})
-                } %}
-            </div>
-        {% elseif active_tab == 'bicycles' %}
-            <div class="tab-pane fade show active">
-                {% include 'back-office/bicycle/bicycle.html.twig' %}
-            </div>
-        {% elseif active_tab == 'stations' %}
-            <div class="tab-pane fade show active">
-                {% include 'back-office/bicycle/station.html.twig' %}
-            </div>
-        {% endif %}
+        <div class="tab-pane fade {{ active_tab == 'rentals' ? 'show active' : '' }}" id="rentalsTab" role="tabpanel">
+            {% include 'back-office/bicycle/rental.html.twig' with {
+                'rentals': rentals|default([]),
+                'stations': stations|default([]),
+                'stats': stats|default({})
+            } %}
+        </div>
+        <div class="tab-pane fade {{ active_tab == 'bicycles' ? 'show active' : '' }}" id="bicyclesTab" role="tabpanel">
+            {% include 'back-office/bicycle/bicycle.html.twig' with {
+                'bicycles': bicycles|default([]),
+                'stations': stations|default([]),
+                'addBicycleForm': addBicycleForm is defined ? addBicycleForm : false,
+                'editBicycleForm': editBicycleForm is defined ? editBicycleForm : false,
+                'stationAssignForm': stationAssignForm is defined ? stationAssignForm : false,
+                'maintenanceForm': maintenanceForm is defined ? maintenanceForm : false,
+                'availableCount': availableCount is defined ? availableCount : 0,
+                'inUseCount': inUseCount is defined ? inUseCount : 0,
+                'maintenanceCount': maintenanceCount is defined ? maintenanceCount : 0,
+                'chargingCount': chargingCount is defined ? chargingCount : 0
+            } %}
+        </div>
+        <div class="tab-pane fade {{ active_tab == 'stations' ? 'show active' : '' }}" id="stationsTab" role="tabpanel">
+            {% include 'back-office/bicycle/station.html.twig' with {
+                'stations': stations|default([])
+            } %}
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -126,7 +141,7 @@
     }
     
     .nav-tabs-custom .nav-link:hover {
-        color: #495057;
+        color: #212529;
         background-color: rgba(13, 110, 253, 0.05);
     }
     
@@ -144,211 +159,24 @@
         position: absolute;
         bottom: 0;
         left: 0;
-        width: 100%;
+        right: 0;
         height: 3px;
         background-color: #0d6efd;
+        animation: slideIn 0.3s ease-out;
     }
     
-    .nav-tabs-custom .nav-link.active .tab-icon {
-        transform: translateY(-3px);
-        color: #0d6efd;
+    @keyframes slideIn {
+        from { transform: scaleX(0); }
+        to { transform: scaleX(1); }
     }
     
-    /* Bicycle-specific styling for active tab */
-    .nav-tabs-custom .nav-link.active[href*="tab=bicycles"] {
-        color: #66bb6a;
-        background-color: rgba(102, 187, 106, 0.1);
-    }
-    
-    .nav-tabs-custom .nav-link.active[href*="tab=bicycles"]::after {
-        background-color: #66bb6a;
-    }
-    
-    .nav-tabs-custom .nav-link.active[href*="tab=bicycles"] .tab-icon {
-        color: #66bb6a;
-    }
-    
-    /* Stations-specific styling for active tab */
-    .nav-tabs-custom .nav-link.active[href*="tab=stations"] {
-        color: #ff9800;
-        background-color: rgba(255, 152, 0, 0.1);
-    }
-    
-    .nav-tabs-custom .nav-link.active[href*="tab=stations"]::after {
-        background-color: #ff9800;
-    }
-    
-    .nav-tabs-custom .nav-link.active[href*="tab=stations"] .tab-icon {
-        color: #ff9800;
-    }
-    
-    /* Animation for tab transitions */
     .fade-in {
-        animation: fadeIn 0.5s ease-in;
+        animation: fadeIn 0.5s ease-in-out;
     }
     
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
-    }
-    
-    /* Card enhancements */
-    .card {
-        border-radius: 0.5rem;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        transition: all 0.2s;
-    }
-    
-    .card:hover {
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    }
-    
-    /* Border-left cards styling */
-    .border-left-primary {
-        border-left: 4px solid #0d6efd;
-    }
-    
-    .border-left-success {
-        border-left: 4px solid #66bb6a;
-    }
-    
-    .border-left-warning {
-        border-left: 4px solid #ff9800;
-    }
-    
-    .border-left-info {
-        border-left: 4px solid #0dcaf0;
-    }
-    
-    /* Battery level styling */
-    .battery-indicator {
-        width: 100%;
-        height: 10px;
-        background-color: #e9ecef;
-        border-radius: 5px;
-        overflow: hidden;
-    }
-    
-    .battery-level {
-        height: 100%;
-        transition: width 0.3s ease;
-    }
-    
-    /* Status badges */
-    .status-badge {
-        padding: 0.35em 0.65em;
-        font-size: 0.75em;
-        font-weight: 700;
-        border-radius: 50rem;
-        display: inline-flex;
-        align-items: center;
-    }
-    
-    .status-badge i {
-        margin-right: 0.25rem;
-    }
-    
-    .status-available {
-        background-color: rgba(102, 187, 106, 0.1);
-        color: #2e7d32;
-    }
-    
-    .status-in-use {
-        background-color: rgba(33, 150, 243, 0.1);
-        color: #0d47a1;
-    }
-    
-    .status-maintenance {
-        background-color: rgba(255, 152, 0, 0.1);
-        color: #e65100;
-    }
-    
-    .status-inactive {
-        background-color: rgba(158, 158, 158, 0.1);
-        color: #424242;
-    }
-
-    /* Station Assignment Quick Actions */
-    .station-quick-assign {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        z-index: 1000;
-    }
-
-    .station-quick-assign .btn {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    }
-
-    .station-quick-assign .btn i {
-        font-size: 24px;
-    }
-
-    .station-action-menu {
-        position: absolute;
-        bottom: 70px;
-        right: 10px;
-        width: 250px;
-        border-radius: 8px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        display: none;
-    }
-
-    .station-action-menu.show {
-        display: block;
-        animation: slideUp 0.3s ease;
-    }
-
-    @keyframes slideUp {
-        from { transform: translateY(20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-    }
-
-    /* Station map styling */
-    .station-map {
-        height: 250px;
-        border-radius: 4px;
-        margin-bottom: 15px;
-    }
-
-    /* Drag and drop station assignment */
-    .bicycle-draggable {
-        cursor: grab;
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .bicycle-draggable:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-
-    .bicycle-draggable.dragging {
-        opacity: 0.7;
-        transform: scale(0.95);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
-
-    .station-dropzone {
-        border: 2px dashed #ddd;
-        border-radius: 8px;
-        min-height: 100px;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 20px;
-        background-color: rgba(0,0,0,0.02);
-    }
-
-    .station-dropzone.dragover {
-        border-color: #66bb6a;
-        background-color: rgba(102, 187, 106, 0.1);
     }
 </style>
 {% endblock %}
@@ -356,97 +184,38 @@
 {% block javascripts %}
 {{ parent() }}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize DataTables with enhanced styling
-        const tables = document.querySelectorAll('.datatable');
-        tables.forEach(table => {
-            new DataTable(table, {
-                responsive: true,
-                lengthChange: true,
-                pageLength: 10,
-                dom: '<"top d-flex justify-content-between align-items-center mb-3"<"d-flex align-items-center"l><"d-flex"f>>rt<"bottom d-flex justify-content-between align-items-center"<"d-flex"i><"d-flex"p>>',
-                language: {
-                    search: "",
-                    searchPlaceholder: "Search records..."
-                },
-                initComplete: function() {
-                    // Enhance search input
-                    const searchInput = document.querySelector('.dataTables_filter input');
-                    if (searchInput) {
-                        searchInput.classList.add('form-control');
-                        searchInput.style.marginLeft = '10px';
-                    }
-                    
-                    // Enhance length select
-                    const lengthSelect = document.querySelector('.dataTables_length select');
-                    if (lengthSelect) {
-                        lengthSelect.classList.add('form-select');
-                        lengthSelect.style.width = 'auto';
-                        lengthSelect.style.marginLeft = '5px';
-                        lengthSelect.style.marginRight = '5px';
-                    }
-                }
-            });
-        });
-        
-        // Initialize tooltips
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-        
-        // Update Export Excel link if it exists
-        const exportExcelBtn = document.getElementById('export-excel');
-        if (exportExcelBtn) {
-            exportExcelBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                window.location.href = '{{ path('admin_bicycle_rental_export') }}' + window.location.search + '&format=excel';
-            });
-        });
-        
-        // Handle Modal Confirmations for rentals
-        const confirmModal = document.getElementById('confirmActionModal');
-        if (confirmModal) {
-            const modalInstance = new bootstrap.Modal(confirmModal);
-            let activeForm = null;
+document.addEventListener('DOMContentLoaded', function() {
+    // Tab switching without page reload
+    const tabLinks = document.querySelectorAll('.tab-link');
+    
+    tabLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
             
-            // Setup action buttons
-            document.querySelectorAll('.activate-rental-btn, .cancel-rental-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const rentalId = this.getAttribute('data-rental-id');
-                    const isCancel = this.classList.contains('cancel-rental-btn');
-                    const formId = isCancel ? 'cancelRentalForm' : 'activateRentalForm';
-                    
-                    const form = document.getElementById(formId);
-                    if (form) {
-                        const path = isCancel 
-                            ? '{{ path('admin_bicycle_rental_cancel', {'id': '0'}) }}'.replace('/0', `/${rentalId}`)
-                            : '{{ path('admin_bicycle_rental_activate', {'id': '0'}) }}'.replace('/0', `/${rentalId}`);
-                            
-                        form.setAttribute('action', path);
-                        
-                        // Setup modal content
-                        document.getElementById('confirmActionTitle').textContent = isCancel ? 'Cancel Rental' : 'Activate Rental';
-                        document.getElementById('confirmActionBody').textContent = isCancel
-                            ? 'Are you sure you want to cancel this rental? This action cannot be undone.'
-                            : 'Are you sure you want to activate this rental? This will mark the bicycle as in use and start the rental timer.';
-                        document.getElementById('confirmActionBtn').className = isCancel ? 'btn btn-danger' : 'btn btn-success';
-                        document.getElementById('confirmActionBtn').textContent = isCancel ? 'Cancel Rental' : 'Activate';
-                        
-                        activeForm = form;
-                        modalInstance.show();
-                    }
-                });
-            });
+            // Get the tab name
+            const tabName = this.dataset.tab;
             
-            // Handle confirm action button
-            document.getElementById('confirmActionBtn')?.addEventListener('click', function() {
-                if (activeForm) {
-                    activeForm.submit();
-                }
-                modalInstance.hide();
-            });
+            // Update URL without reloading the page (for bookmark-ability)
+            const url = new URL(window.location);
+            url.searchParams.set('tab', tabName);
+            window.history.pushState({}, '', url);
+            
+            // The Bootstrap tab toggling is handled by data-bs-toggle and data-bs-target
+        });
+    });
+    
+    // Handle browser back/forward navigation
+    window.addEventListener('popstate', function() {
+        const url = new URL(window.location);
+        const tabName = url.searchParams.get('tab') || 'rentals';
+        
+        // Find and activate the correct tab
+        const tabToActivate = document.querySelector(`.tab-link[data-tab="${tabName}"]`);
+        if (tabToActivate) {
+            const tab = new bootstrap.Tab(tabToActivate);
+            tab.show();
         }
     });
+});
 </script>
 {% endblock %}

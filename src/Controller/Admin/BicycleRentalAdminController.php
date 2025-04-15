@@ -8,12 +8,18 @@ use App\Entity\BicycleRental;
 use App\Entity\User;
 use App\Enum\BICYCLE_STATUS;
 use App\Form\BicycleRentalType;
+use App\Form\BicycleType;
 use App\Service\BicycleService;
 use App\Service\BicycleStationService;
 use App\Service\BicycleRentalService;
+use App\Service\LocationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,6 +37,7 @@ class BicycleRentalAdminController extends AbstractController
     private $bicycleService;
     private $stationService;
     private $rentalService;
+    private $locationService;
     private $logger;
     private $paginator;
 
@@ -40,14 +47,93 @@ class BicycleRentalAdminController extends AbstractController
         BicycleStationService $stationService,
         BicycleRentalService $rentalService,
         LoggerInterface $logger,
-        PaginatorInterface $paginator
+        PaginatorInterface $paginator,
+        LocationService $locationService = null
     ) {
         $this->entityManager = $entityManager;
         $this->bicycleService = $bicycleService;
         $this->stationService = $stationService;
         $this->rentalService = $rentalService;
+        $this->locationService = $locationService;
         $this->logger = $logger;
         $this->paginator = $paginator;
+    }
+
+    /**
+     * Creates all the forms needed for the bicycle dashboard
+     */
+    private function createCommonForms(): array
+    {
+        // Create Add Bicycle Form
+        $newBicycle = new Bicycle();
+        $newBicycle->setLastUpdated(new \DateTime());
+        $newBicycle->setStatus(\App\Enum\BICYCLE_STATUS::AVAILABLE);
+        $addBicycleForm = $this->createForm(BicycleType::class, $newBicycle);
+        
+        // Create Edit Bicycle Form
+        $editBicycle = new Bicycle();
+        $editBicycleForm = $this->createForm(BicycleType::class, $editBicycle);
+        
+        // Create Station Assignment Form
+        $stationAssignForm = $this->createFormBuilder()
+            ->add('bicycles', EntityType::class, [
+                'class' => Bicycle::class,
+                'choice_label' => function(Bicycle $bicycle) {
+                    return 'BIKE-' . sprintf('%04d', $bicycle->getIdBike());
+                },
+                'multiple' => true,
+                'required' => true
+            ])
+            ->add('station', EntityType::class, [
+                'class' => BicycleStation::class,
+                'choice_label' => 'name',
+                'required' => true
+            ])
+            ->getForm();
+        
+        // Create Maintenance Form
+        $maintenanceForm = $this->createFormBuilder()
+            ->add('bicycles', EntityType::class, [
+                'class' => Bicycle::class,
+                'choice_label' => function(Bicycle $bicycle) {
+                    return 'BIKE-' . sprintf('%04d', $bicycle->getIdBike());
+                },
+                'multiple' => true,
+                'required' => true
+            ])
+            ->add('maintenanceType', ChoiceType::class, [
+                'choices' => [
+                    'Routine Check' => 'routine',
+                    'Repair' => 'repair',
+                    'Battery Service' => 'battery',
+                    'Software Update' => 'software'
+                ],
+                'required' => true
+            ])
+            ->add('scheduledDate', DateTimeType::class, [
+                'widget' => 'single_text',
+                'required' => true,
+            ])
+            ->add('priority', ChoiceType::class, [
+                'choices' => [
+                    'Low' => 'low',
+                    'Medium' => 'medium',
+                    'High' => 'high',
+                    'Urgent' => 'urgent'
+                ],
+                'required' => true
+            ])
+            ->add('description', TextareaType::class, [
+                'required' => false
+            ])
+            ->getForm();
+            
+        return [
+            'addBicycleForm' => $addBicycleForm->createView(),
+            'editBicycleForm' => $editBicycleForm->createView(),
+            'stationAssignForm' => $stationAssignForm->createView(),
+            'maintenanceForm' => $maintenanceForm->createView(),
+        ];
     }
 
     /**
@@ -56,69 +142,72 @@ class BicycleRentalAdminController extends AbstractController
     #[Route('/', name: 'admin_bicycle_rentals_index')]
     public function index(Request $request): Response
     {
-        // Get query parameters for filtering
-        $status = $request->query->get('status');
-        $stationId = $request->query->get('station');
-        $dateFrom = $request->query->get('dateFrom');
-        $dateTo = $request->query->get('dateTo');
-        $page = $request->query->getInt('page', 1);
-        $perPage = $request->query->getInt('perPage', 10);
-        
-        // Create query builder for rentals
-        $queryBuilder = $this->entityManager->createQueryBuilder()
-            ->select('r')
-            ->from(BicycleRental::class, 'r')
-            ->leftJoin('r.bicycle', 'b')
-            ->leftJoin('r.user', 'u')
-            ->leftJoin('r.start_station', 'ss')
-            ->leftJoin('r.end_station', 'es')
-            ->orderBy('r.id_user_rental', 'DESC');
-        
-        // Apply filters
-        if ($status) {
-            switch($status) {
-                case 'active':
-                    $queryBuilder->andWhere('r.start_time IS NOT NULL')
-                                ->andWhere('r.end_time IS NULL');
-                    break;
-                case 'completed':
-                    $queryBuilder->andWhere('r.end_time IS NOT NULL');
-                    break;
-                case 'reserved':
-                    $queryBuilder->andWhere('r.start_time IS NULL')
-                                ->andWhere('r.end_time IS NULL');
-                    break;
-            }
-        }
-        
-        if ($stationId) {
-            $queryBuilder->andWhere('ss.id_station = :stationId')
-                        ->setParameter('stationId', $stationId);
-        }
-        
-        if ($dateFrom) {
-            $fromDate = new \DateTime($dateFrom);
-            $queryBuilder->andWhere('r.start_time >= :fromDate')
-                        ->setParameter('fromDate', $fromDate->format('Y-m-d 00:00:00'));
-        }
-        
-        if ($dateTo) {
-            $toDate = new \DateTime($dateTo);
-            $queryBuilder->andWhere('r.start_time <= :toDate')
-                        ->setParameter('toDate', $toDate->format('Y-m-d 23:59:59'));
-        }
-
         try {
-            // Get paginated results
-            $query = $queryBuilder->getQuery();
+            // Get query parameters for filtering
+            $status = $request->query->get('status');
+            $stationId = $request->query->get('station');
+            $dateFrom = $request->query->get('dateFrom');
+            $dateTo = $request->query->get('dateTo');
+            $page = $request->query->getInt('page', 1);
+            $perPage = $request->query->getInt('perPage', 10);
+            
+            // Create query builder for rentals
+            $queryBuilder = $this->entityManager->createQueryBuilder()
+                ->select('r')
+                ->from(BicycleRental::class, 'r')
+                ->leftJoin('r.bicycle', 'b')
+                ->leftJoin('r.user', 'u')
+                ->leftJoin('r.start_station', 'ss')
+                ->leftJoin('r.end_station', 'es')
+                ->orderBy('r.id_user_rental', 'DESC');
+            
+            // Apply filters
+            if ($status) {
+                switch($status) {
+                    case 'active':
+                        $queryBuilder->andWhere('r.start_time IS NOT NULL')
+                                    ->andWhere('r.end_time IS NULL');
+                        break;
+                    case 'completed':
+                        $queryBuilder->andWhere('r.end_time IS NOT NULL');
+                        break;
+                    case 'reserved':
+                        $queryBuilder->andWhere('r.start_time IS NULL')
+                                    ->andWhere('r.end_time IS NULL');
+                        break;
+                }
+            }
+            
+            if ($stationId) {
+                $queryBuilder->andWhere('ss.id_station = :stationId')
+                            ->setParameter('stationId', $stationId);
+            }
+            
+            if ($dateFrom) {
+                $fromDate = new \DateTime($dateFrom);
+                $queryBuilder->andWhere('r.start_time >= :fromDate')
+                            ->setParameter('fromDate', $fromDate->format('Y-m-d 00:00:00'));
+            }
+            
+            if ($dateTo) {
+                $toDate = new \DateTime($dateTo);
+                $queryBuilder->andWhere('r.start_time <= :toDate')
+                            ->setParameter('toDate', $toDate->format('Y-m-d 23:59:59'));
+            }
+
+            // Get paginated results - this is the key fix for pagination
             $rentals = $this->paginator->paginate(
-                $query,
+                $queryBuilder->getQuery(),
                 $page,
-                $perPage
+                $perPage,
+                [
+                    'defaultSortFieldName' => 'r.id_user_rental',
+                    'defaultSortDirection' => 'DESC',
+                ]
             );
             
             // Calculate statistics for the dashboard
-            $allRentals = $queryBuilder->getQuery()->getResult();
+            $allRentals = $this->rentalService->getAllRentals();
             
             $completedCount = 0;
             $activeCount = 0;
@@ -134,12 +223,36 @@ class BicycleRentalAdminController extends AbstractController
                 }
             }
             
-            // Get all stations for filter dropdown
-            $stations = $this->stationService->getAllStations();
+            // Get all bicycles to populate status cards
+            $bicycles = $this->bicycleService->getAllBicycles();
             
-            return $this->render('back-office/bicycle/rental.html.twig', [
+            // Calculate counts for the status cards
+            $availableCount = 0;
+            $inUseCount = 0;
+            $maintenanceCount = 0;
+            $chargingCount = 0;
+            
+            foreach ($bicycles as $bicycle) {
+                $status = $bicycle->getStatus()->value;
+                if ($status === 'available') {
+                    $availableCount++;
+                } elseif ($status === 'in_use') {
+                    $inUseCount++;
+                } elseif ($status === 'maintenance') {
+                    $maintenanceCount++;
+                } elseif ($status === 'charging') {
+                    $chargingCount++;
+                }
+            }
+            
+            // Create all necessary forms
+            $forms = $this->createCommonForms();
+            
+            // Pass all needed template variables
+            return $this->render('back-office/bicycle/rental.html.twig', array_merge([
                 'rentals' => $rentals,
-                'stations' => $stations,
+                'bicycles' => $bicycles,
+                'stations' => $this->stationService->getAllStations(),
                 'stats' => [
                     'totalRentals' => count($allRentals),
                     'completedCount' => $completedCount,
@@ -155,17 +268,30 @@ class BicycleRentalAdminController extends AbstractController
                     'stationId' => $stationId,
                     'dateFrom' => $dateFrom,
                     'dateTo' => $dateTo
-                ]
-            ]);
+                ],
+                'availableCount' => $availableCount,
+                'inUseCount' => $inUseCount,
+                'maintenanceCount' => $maintenanceCount,
+                'chargingCount' => $chargingCount,
+                'active_tab' => 'rentals',
+                'pagination' => $rentals,  // Explicitly adding the pagination variable for the view
+                'users' => $this->entityManager->getRepository(User::class)->findAll(),
+                'rentalService' => $this->rentalService,
+                'locationService' => $this->locationService,
+                'bicycleService' => $this->bicycleService,
+                'stationService' => $this->stationService
+            ], $forms));
         } catch (\Exception $e) {
             $this->logger->error('Error loading rentals: ' . $e->getMessage());
-            $this->addFlash('error', 'Error loading rentals: ' . $e->getMessage());
             
-            return $this->render('back-office/bicycle/rental.html.twig', [
+            $forms = $this->createCommonForms();
+            
+            return $this->render('back-office/bicycle/rental.html.twig', array_merge([
                 'rentals' => [],
                 'stations' => $this->stationService->getAllStations(),
-                'error' => $e->getMessage()
-            ]);
+                'error' => $e->getMessage(),
+                'active_tab' => 'rentals'
+            ], $forms));
         }
     }
 
@@ -216,12 +342,16 @@ class BicycleRentalAdminController extends AbstractController
         $users = $this->entityManager->getRepository(User::class)->findAll();
         $stations = $this->stationService->getAllStations();
         
-        return $this->render('back-office/bicycle/rental-new.html.twig', [
+        // Create all necessary forms
+        $forms = $this->createCommonForms();
+        
+        return $this->render('back-office/bicycle/rental-new.html.twig', array_merge([
             'rental' => $rental,
             'form' => $form->createView(),
             'users' => $users,
-            'stations' => $stations
-        ]);
+            'stations' => $stations,
+            'active_tab' => 'rentals'
+        ], $forms));
     }
 
     /**
@@ -237,9 +367,13 @@ class BicycleRentalAdminController extends AbstractController
             return $this->redirectToRoute('admin_bicycle_rentals_index');
         }
         
-        return $this->render('back-office/bicycle/rental-details.html.twig', [
-            'rental' => $rental
-        ]);
+        // Create all necessary forms
+        $forms = $this->createCommonForms();
+        
+        return $this->render('back-office/bicycle/rental-details.html.twig', array_merge([
+            'rental' => $rental,
+            'active_tab' => 'rentals'
+        ], $forms));
     }
 
     /**
@@ -290,11 +424,15 @@ class BicycleRentalAdminController extends AbstractController
         
         $stations = $this->stationService->getAllStations();
         
-        return $this->render('back-office/bicycle/rental-edit.html.twig', [
+        // Create all necessary forms
+        $forms = $this->createCommonForms();
+        
+        return $this->render('back-office/bicycle/rental-edit.html.twig', array_merge([
             'rental' => $rental,
             'form' => $form->createView(),
-            'stations' => $stations
-        ]);
+            'stations' => $stations,
+            'active_tab' => 'rentals'
+        ], $forms));
     }
 
     /**

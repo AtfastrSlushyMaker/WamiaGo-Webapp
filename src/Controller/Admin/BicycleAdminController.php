@@ -6,8 +6,9 @@ use App\Entity\Bicycle;
 use App\Entity\BicycleStation;
 use App\Entity\BicycleRental;
 use App\Entity\Location;
+use App\Enum\BICYCLE_STATUS;
 use App\Enum\BICYCLE_STATION_STATUS;
-use App\Form\BicycleStationType;
+use App\Form\BicycleType;
 use App\Service\BicycleService;
 use App\Service\BicycleStationService;
 use App\Service\BicycleRentalService;
@@ -15,14 +16,19 @@ use App\Service\LocationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use App\entity\User;
 use Knp\Component\Pager\PaginatorInterface;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 //#[IsGranted('ROLE_ADMIN')]
 #[Route('/admin/bicycle')]
@@ -54,265 +60,120 @@ class BicycleAdminController extends AbstractController
         $this->paginator = $paginator;
     }
 
-    #[Route('', name: 'admin_bicycle_dashboard')]
-    public function index(Request $request): Response
+    #[Route('/add', name: 'admin_bicycle_add', methods: ['GET', 'POST'])]
+    public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $tab = $request->query->get('tab', 'rentals');
-
-        $bicycles = $this->bicycleService->getAllBicycles();
-        $stations = $this->stationService->getAllStations();
-        $templateVars = [
-            'bicycles' => $bicycles,
-            'stations' => $stations,
-            'active_tab' => $tab
-        ];
-
-        if ($tab === 'rentals') {
-            // Paginated rentals with filters (same as BicycleRentalAdminController)
-            $status = $request->query->get('status');
-            $stationId = $request->query->get('station');
-            $dateFrom = $request->query->get('dateFrom');
-            $dateTo = $request->query->get('dateTo');
-            $page = $request->query->getInt('page', 1);
-            $perPage = $request->query->getInt('perPage', 10);
-
-            $queryBuilder = $this->entityManager->createQueryBuilder()
-                ->select('r')
-                ->from(BicycleRental::class, 'r')
-                ->leftJoin('r.bicycle', 'b')
-                ->leftJoin('r.user', 'u')
-                ->leftJoin('r.start_station', 'ss')
-                ->leftJoin('r.end_station', 'es')
-                ->orderBy('r.id_user_rental', 'DESC');
-
-            if ($status) {
-                switch($status) {
-                    case 'active':
-                        $queryBuilder->andWhere('r.start_time IS NOT NULL')
-                                    ->andWhere('r.end_time IS NULL');
-                        break;
-                    case 'completed':
-                        $queryBuilder->andWhere('r.end_time IS NOT NULL');
-                        break;
-                    case 'reserved':
-                        $queryBuilder->andWhere('r.start_time IS NULL')
-                                    ->andWhere('r.end_time IS NULL');
-                        break;
-                }
-            }
-            if ($stationId) {
-                $queryBuilder->andWhere('ss.id_station = :stationId')
-                            ->setParameter('stationId', $stationId);
-            }
-            if ($dateFrom) {
-                $fromDate = new \DateTime($dateFrom);
-                $queryBuilder->andWhere('r.start_time >= :fromDate')
-                            ->setParameter('fromDate', $fromDate->format('Y-m-d 00:00:00'));
-            }
-            if ($dateTo) {
-                $toDate = new \DateTime($dateTo);
-                $queryBuilder->andWhere('r.start_time <= :toDate')
-                            ->setParameter('toDate', $toDate->format('Y-m-d 23:59:59'));
-            }
-
-            $query = $queryBuilder->getQuery();
-            $rentals = $this->paginator->paginate($query, $page, $perPage);
-            $allRentals = $queryBuilder->getQuery()->getResult();
-
-            $completedCount = 0;
-            $activeCount = 0;
-            $reservedCount = 0;
-            foreach ($allRentals as $rental) {
-                if ($rental->getEndTime()) {
-                    $completedCount++;
-                } elseif ($rental->getStartTime()) {
-                    $activeCount++;
-                } else {
-                    $reservedCount++;
-                }
-            }
-            $templateVars['rentals'] = $rentals;
-            $templateVars['bicycle_rentals'] = $rentals;
-            $templateVars['stats'] = [
-                'totalRentals' => count($allRentals),
-                'completedCount' => $completedCount,
-                'activeCount' => $activeCount,
-                'reservedCount' => $reservedCount,
-                'completionRate' => count($allRentals) > 0 ? round(($completedCount / count($allRentals)) * 100) : 0,
-                'totalRevenue' => array_sum(array_map(function($r) { return $r->getCost() ?: 0; }, $allRentals))
-            ];
-            $templateVars['filters'] = [
-                'status' => $status,
-                'stationId' => $stationId,
-                'dateFrom' => $dateFrom,
-                'dateTo' => $dateTo
-            ];
-        } else {
-            // Calculate statistics for the rentals dashboard
-            $rentals = $this->rentalService->getAllRentals();
-            $completedCount = 0;
-            $activeCount = 0;
-            $reservedCount = 0;
-            foreach ($rentals as $rental) {
-                if ($rental->getEndTime()) {
-                    $completedCount++;
-                } elseif ($rental->getStartTime()) {
-                    $activeCount++;
-                } else {
-                    $reservedCount++;
-                }
-            }
-            $templateVars['rentals'] = $rentals;
-            $templateVars['bicycle_rentals'] = $rentals;
-            $templateVars['stats'] = [
-                'totalRentals' => count($rentals),
-                'completedCount' => $completedCount,
-                'activeCount' => $activeCount,
-                'reservedCount' => $reservedCount,
-                'completionRate' => count($rentals) > 0 ? round(($completedCount / count($rentals)) * 100) : 0,
-                'totalRevenue' => array_sum(array_map(function($r) { return $r->getCost() ?: 0; }, $rentals))
-            ];
-            $templateVars['filters'] = [
-                'status' => $request->query->get('status'),
-                'stationId' => $request->query->get('station'),
-                'dateFrom' => $request->query->get('dateFrom'),
-                'dateTo' => $request->query->get('dateTo')
-            ];
-        }
-
-        if ($tab === 'stations') {
-            $templateVars['stationCounts'] = $this->stationService->getStationCountsByStatus();
-            $templateVars['totalCapacity'] = $this->stationService->getTotalBicycleCapacity();
-            $templateVars['totalChargingDocks'] = $this->stationService->getTotalChargingDocks();
-            $templateVars['stationActivity'] = $this->stationService->getStationsWithRentalActivity(5);
-        }
-
-        // Add service references for all tabs
-        $templateVars['users'] = $this->entityManager->getRepository(User::class)->findAll();
-        $templateVars['rentalService'] = $this->rentalService;
-        $templateVars['locationService'] = $this->locationService;
-        $templateVars['bicycleService'] = $this->bicycleService;
-        $templateVars['stationService'] = $this->stationService;
-
-        return $this->render('back-office/bicycle-rentals.html.twig', $templateVars);
-    }
-
-    // Bicycle Management Routes
-    
-    #[Route('/bicycle/add', name: 'admin_bicycle_add', methods: ['POST'])]
-public function addBicycle(Request $request, ValidatorInterface $validator): Response
-{
-    $stationId = $request->request->get('stationId');
-    $batteryLevel = $request->request->get('batteryLevel');
-    $rangeKm = $request->request->get('rangeKm');
-    $status = $request->request->get('status', 'available');
-    
-    try {
-        $station = $this->stationService->getStation((int)$stationId);
-        
-        if (!$station) {
-            $this->addFlash('error', 'Station not found');
-            return $this->redirectToRoute('admin_bicycle_dashboard', ['tab' => 'bicycles']);
-        }
-        
-        // Create bicycle entity 
         $bicycle = new Bicycle();
-        $bicycle->setBicycleStation($station);
-        $bicycle->setBatteryLevel((float)$batteryLevel);
-        $bicycle->setRangeKm((float)$rangeKm);
-        $bicycle->setStatus(\App\Enum\BICYCLE_STATUS::from($status));
-        $bicycle->setLastUpdated(new \DateTime());
-        
-        // Validate the entity
-        $errors = $validator->validate($bicycle);
-        if (count($errors) > 0) {
-            $errorMessages = [];
-            foreach ($errors as $error) {
-                $errorMessages[] = $error->getMessage();
+        $form = $this->createForm(BicycleType::class, $bicycle);
+        $form->handleRequest($request);
+    
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($bicycle);
+            $entityManager->flush();
+    
+            $this->addFlash('success', 'Bicycle created successfully.');
+    
+            // Redirect back to the page that shows rentals (modal is in that page)
+            return $this->redirectToRoute('admin_bicycle_rentals');
+        }
+    
+        return $this->redirectToRoute('admin_bicycle_rentals');
+    }
+    #[Route('/{id}/edit', name: 'admin_bicycle_edit', methods: ['GET', 'POST'])]
+    public function editBicycle(
+        int $id, 
+        Request $request, 
+        EntityManagerInterface $em,
+        ValidatorInterface $validator
+    ): Response {
+        // Find the bicycle by ID
+        $bicycle = $em->getRepository(Bicycle::class)->find($id); // Fetch the bicycle by the ID parameter
+        if (!$bicycle) {
+            $this->addFlash('error', 'Bicycle not found.');
+            return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => 'bicycles']);
+        }
+    
+        // Ensure the status is set
+        if (!$bicycle->getStatus()) {
+            $bicycle->setStatus(BICYCLE_STATUS::AVAILABLE);
+        }
+    
+        // Create the form with the Bicycle entity
+        $form = $this->createForm(BicycleType::class, $bicycle);
+    
+        // Handle the form submission
+        $form->handleRequest($request);
+    
+        if ($form->isSubmitted() && $form->isValid()) {
+            try {
+                // Manually validate the entity
+                $validationErrors = $validator->validate($bicycle);
+                if (count($validationErrors) > 0) {
+                    // Collect validation errors
+                    $errorMessages = [];
+                    foreach ($validationErrors as $error) {
+                        $errorMessages[] = $error->getPropertyPath() . ': ' . $error->getMessage();
+                    }
+                    // Log the validation errors
+                    $this->logger->error('Entity validation errors: ', $errorMessages);
+                    $this->addFlash('error', 'Validation errors: ' . implode(', ', $errorMessages));
+    
+                    // Return to the list page with errors
+                    return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => 'bicycles']);
+                }
+    
+                // Save the updated bicycle to the database
+                $em->flush();
+    
+                // Success message
+                $this->addFlash('success', 'Bicycle updated successfully!');
+    
+                // Redirect to bicycle rentals page
+                return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => 'bicycles']);
+            } catch (\Exception $e) {
+                // Log the error and display a flash message
+                $this->logger->error('Error saving bicycle: ' . $e->getMessage());
+                $this->addFlash('error', 'Error saving bicycle: ' . $e->getMessage());
             }
-            $this->addFlash('error', implode(', ', $errorMessages));
-            return $this->redirectToRoute('admin_bicycle_dashboard', ['tab' => 'bicycles']);
         }
-        
-        // Create bicycle if validation passes
-        $this->bicycleService->createBicycle(
-            $station,
-            (float)$batteryLevel,
-            (float)$rangeKm,
-            \App\Enum\BICYCLE_STATUS::from($status)
-        );
-        
-        // Update station available bikes count
-        if ($status === 'available') {
-            $station->setAvailableBikes($station->getAvailableBikes() + 1);
-            $this->entityManager->flush();
-        }
-        
-        $this->addFlash('success', 'New bicycle added successfully');
-    } catch (\Exception $e) {
-        $this->logger->error('Error creating bicycle: ' . $e->getMessage());
-        $this->addFlash('error', 'Error creating bicycle: ' . $e->getMessage());
+    
+        // If form is not submitted or invalid, display the form again
+        return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => 'bicycles']);
     }
     
-    return $this->redirectToRoute('admin_bicycle_dashboard', ['tab' => 'bicycles']);
-}
 
-#[Route('/bicycle/edit/{id}', name: 'admin_bicycle_edit', methods: ['POST'])]
-public function editBicycle(Request $request, int $id, ValidatorInterface $validator): Response
-{
-    $bicycle = $this->bicycleService->getBicycle($id);
-
-    if (!$bicycle) {
-        $this->addFlash('error', 'Bicycle not found');
-        return $this->redirectToRoute('admin_bicycle_dashboard', ['tab' => 'bicycles']);
-    }
-
-    // Update bicycle properties
-    $stationId = $request->request->get('stationId');
-    if ($stationId) {
-        $station = $this->stationService->getStation((int)$stationId);
-        if ($station) {
-            $bicycle->setBicycleStation($station);
+    
+    
+    #[Route('/bicycle/{id}/data', name: 'admin_bicycle_data', methods: ['GET'])]
+    public function bicycleData(int $id): JsonResponse
+    {
+        try {
+            $bicycle = $this->bicycleService->getBicycle($id);
+            
+            if (!$bicycle) {
+                return new JsonResponse(['error' => 'Bicycle not found'], 404);
+            }
+            
+            // Return a complete set of data in a predictable format
+            return new JsonResponse([
+                'idBike' => $bicycle->getIdBike(),
+                'status' => $bicycle->getStatus()->value,
+                'batteryLevel' => $bicycle->getBatteryLevel(),
+                'rangeKm' => $bicycle->getRangeKm(),
+                'stationId' => $bicycle->getBicycleStation() ? $bicycle->getBicycleStation()->getIdStation() : null,
+                'lastUpdated' => $bicycle->getLastUpdated()->format('Y-m-d H:i:s'),
+                'success' => true
+            ]);
+        } catch (\Exception $e) {
+            $this->logger->error('Error getting bicycle data: ' . $e->getMessage());
+            return new JsonResponse([
+                'error' => 'Error retrieving bicycle data',
+                'message' => $e->getMessage(),
+                'success' => false
+            ], 500);
         }
     }
     
-    $batteryLevel = $request->request->get('batteryLevel');
-    if ($batteryLevel !== null) {
-        $bicycle->setBatteryLevel((float)$batteryLevel);
-    }
-    
-    $rangeKm = $request->request->get('rangeKm');
-    if ($rangeKm !== null) {
-        $bicycle->setRangeKm((float)$rangeKm);
-    }
-    
-    $status = $request->request->get('status');
-    if ($status) {
-        // Update the status if provided
-        $bicycle->setStatus(\App\Enum\BICYCLE_STATUS::from($status));
-    }
-    
-    // Set last updated time
-    $bicycle->setLastUpdated(new \DateTime());
-    
-    // Validate the entity before saving
-    $errors = $validator->validate($bicycle);
-    if (count($errors) > 0) {
-        $errorMessages = [];
-        foreach ($errors as $error) {
-            $errorMessages[] = $error->getMessage();
-        }
-        $this->addFlash('error', implode(', ', $errorMessages));
-        return $this->redirectToRoute('admin_bicycle_dashboard', ['tab' => 'bicycles']);
-    }
-    
-    // Update and save if validation passes
-    $this->bicycleService->updateBicycle($bicycle);
-    
-    $this->addFlash('success', 'Bicycle updated successfully');
-    return $this->redirectToRoute('admin_bicycle_dashboard', ['tab' => 'bicycles']);
-}
-
     #[Route('/bicycle/get-details', name: 'admin_bicycle_get_details', methods: ['GET'])]
     public function getBicycleDetails(Request $request): JsonResponse
     {
@@ -334,50 +195,29 @@ public function editBicycle(Request $request, int $id, ValidatorInterface $valid
         ]);
     }
     
-    #[Route('/bicycle/edit', name: 'admin_bicycle_edit', methods: ['POST'])]
-    public function updateBicycle(Request $request): Response
+    #[Route('/bicycle/{id}/json', name: 'admin_bicycle_json', methods: ['GET'])]
+    public function bicycleJson(int $id): JsonResponse
     {
-        $bicycleId = $request->request->get('bicycleId');
-        $bicycle = $this->bicycleService->getBicycle((int)$bicycleId);
+        $bicycle = $this->bicycleService->getBicycle($id);
         
         if (!$bicycle) {
-            $this->addFlash('error', 'Bicycle not found');
-            return $this->redirectToRoute('admin_bicycle_dashboard', ['tab' => 'bicycles']);
+            return new JsonResponse(['error' => 'Bicycle not found'], 404);
         }
         
-        // Update bicycle properties
-        $stationId = $request->request->get('stationId');
-        if ($stationId) {
-            $station = $this->stationService->getStation((int)$stationId);
-            if ($station) {
-                $bicycle->setBicycleStation($station);
-            }
-        }
-        
-        $batteryLevel = $request->request->get('batteryLevel');
-        if ($batteryLevel !== null) {
-            $bicycle->setBatteryLevel((float)$batteryLevel);
-        }
-        
-        $rangeKm = $request->request->get('rangeKm');
-        if ($rangeKm !== null) {
-            $bicycle->setRangeKm((float)$rangeKm);
-        }
-        
-        $status = $request->request->get('status');
-        if ($status) {
-            // Update the status if provided
-            $this->bicycleService->updateBicycleStatus($bicycle->getIdBike(), \App\Enum\BICYCLE_STATUS::from($status));
-        }
-        
-        // Set last updated time
-        $bicycle->setLastUpdated(new \DateTime());
-        
-        // Update and save
-        $this->bicycleService->updateBicycle($bicycle);
-        
-        $this->addFlash('success', 'Bicycle updated successfully');
-        return $this->redirectToRoute('admin_bicycle_dashboard', ['tab' => 'bicycles']);
+        return new JsonResponse([
+            'idBike' => $bicycle->getIdBike(),
+            'status' => [
+                'value' => $bicycle->getStatus()->value,
+                'name' => $bicycle->getStatus()->name
+            ],
+            'batteryLevel' => $bicycle->getBatteryLevel(),
+            'rangeKm' => $bicycle->getRangeKm(),
+            'bicycleStation' => $bicycle->getBicycleStation() ? [
+                'idStation' => $bicycle->getBicycleStation()->getIdStation(),
+                'name' => $bicycle->getBicycleStation()->getName()
+            ] : null,
+            'lastUpdated' => $bicycle->getLastUpdated()->format('Y-m-d H:i:s')
+        ]);
     }
     
     #[Route('/bicycle/delete', name: 'admin_bicycle_delete', methods: ['POST'])]
@@ -385,6 +225,15 @@ public function editBicycle(Request $request, int $id, ValidatorInterface $valid
     {
         $bicycleId = $request->request->get('bicycleId');
         $bicycle = $this->bicycleService->getBicycle((int)$bicycleId);
+        
+        // Get the referring URL or tab to redirect back correctly
+        $referer = $request->headers->get('referer');
+        $activeTab = 'bicycles'; // Default tab
+        
+        // Check if the referer contains a tab parameter
+        if ($referer && preg_match('/tab=([^&]+)/', $referer, $matches)) {
+            $activeTab = $matches[1];
+        }
         
         if (!$bicycle) {
             $this->addFlash('error', 'Bicycle not found');
@@ -398,7 +247,8 @@ public function editBicycle(Request $request, int $id, ValidatorInterface $valid
             }
         }
         
-        return $this->redirectToRoute('admin_bicycle_dashboard', ['tab' => 'bicycles']);
+        // Redirect back to the appropriate tab
+        return $this->redirectToRoute('admin_bicycle_dashboard', ['tab' => $activeTab]);
     }
     
     #[Route('/bicycle/change-status', name: 'admin_bicycle_change_status', methods: ['POST'])]
@@ -790,120 +640,120 @@ public function editBicycle(Request $request, int $id, ValidatorInterface $valid
     }
 
     #[Route('/api/stations', name: 'api_create_station', methods: ['POST'])]
-public function createStation(Request $request): JsonResponse
-{
-    try {
-        // Decode JSON data
-        $content = $request->getContent();
-        if (empty($content)) {
-            return new JsonResponse([
-                'success' => false,
-                'message' => 'No data received'
-            ], 400);
-        }
-        
-        $data = json_decode($content, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            return new JsonResponse([
-                'success' => false,
-                'message' => 'Invalid JSON: ' . json_last_error_msg()
-            ], 400);
-        }
-        
-        // Log received data for debugging
-        $this->logger->info('Received station creation request', $data ?? []);
-        
-        // Validate required fields
-        $requiredFields = ['name', 'totalDocks', 'availableBikes', 'status'];
-        $missingFields = [];
-        
-        foreach ($requiredFields as $field) {
-            if (!isset($data[$field]) || (is_string($data[$field]) && trim($data[$field]) === '')) {
-                $missingFields[] = $field;
-            }
-        }
-        
-        if (!empty($missingFields)) {
-            return new JsonResponse([
-                'success' => false,
-                'message' => 'Missing required fields: ' . implode(', ', $missingFields)
-            ], 400);
-        }
-        
-        // Create a new station
-        $station = new BicycleStation();
-        $station->setName($data['name']);
-        $station->setTotalDocks((int)$data['totalDocks']);
-        $station->setAvailableBikes((int)$data['availableBikes']);
-        $station->setAvailableDocks((int)$data['totalDocks'] - (int)$data['availableBikes']);
-        $station->setChargingBikes(0); // Initialize charging bikes
-        
-        // Set status
+    public function createStation(Request $request): JsonResponse
+    {
         try {
-            $station->setStatus(BICYCLE_STATION_STATUS::from($data['status']));
-        } catch (\Exception $e) {
-            return new JsonResponse([
-                'success' => false,
-                'message' => 'Invalid status value: ' . $data['status']
-            ], 400);
-        }
-            
-        // Handle location
-        $latitude = $data['latitude'] ?? null;
-        $longitude = $data['longitude'] ?? null;
-        $address = $data['address'] ?? null;
-        $locationId = $data['locationId'] ?? null;
-            
-        if ($locationId) {
-            // Use existing location
-            $location = $this->locationService->findLocationById((int)$locationId);
-            if (!$location) {
+            // Decode JSON data
+            $content = $request->getContent();
+            if (empty($content)) {
                 return new JsonResponse([
                     'success' => false,
-                    'message' => 'Location not found'
-                ], 404);
+                    'message' => 'No data received'
+                ], 400);
             }
-            $station->setLocation($location);
-        } else if ($latitude && $longitude) {
-            // Create new location
-            $location = new Location();
-            $location->setLatitude((float)$latitude);
-            $location->setLongitude((float)$longitude);
-            $location->setAddress($address ?: 'Unknown location');
             
-            $this->entityManager->persist($location);
-            $station->setLocation($location);
-        } else {
+            $data = json_decode($content, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Invalid JSON: ' . json_last_error_msg()
+                ], 400);
+            }
+            
+            // Log received data for debugging
+            $this->logger->info('Received station creation request', $data ?? []);
+            
+            // Validate required fields
+            $requiredFields = ['name', 'totalDocks', 'availableBikes', 'status'];
+            $missingFields = [];
+            
+            foreach ($requiredFields as $field) {
+                if (!isset($data[$field]) || (is_string($data[$field]) && trim($data[$field]) === '')) {
+                    $missingFields[] = $field;
+                }
+            }
+            
+            if (!empty($missingFields)) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Missing required fields: ' . implode(', ', $missingFields)
+                ], 400);
+            }
+            
+            // Create a new station
+            $station = new BicycleStation();
+            $station->setName($data['name']);
+            $station->setTotalDocks((int)$data['totalDocks']);
+            $station->setAvailableBikes((int)$data['availableBikes']);
+            $station->setAvailableDocks((int)$data['totalDocks'] - (int)$data['availableBikes']);
+            $station->setChargingBikes(0); // Initialize charging bikes
+            
+            // Set status
+            try {
+                $station->setStatus(BICYCLE_STATION_STATUS::from($data['status']));
+            } catch (\Exception $e) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Invalid status value: ' . $data['status']
+                ], 400);
+            }
+                
+            // Handle location
+            $latitude = $data['latitude'] ?? null;
+            $longitude = $data['longitude'] ?? null;
+            $address = $data['address'] ?? null;
+            $locationId = $data['locationId'] ?? null;
+                
+            if ($locationId) {
+                // Use existing location
+                $location = $this->locationService->findLocationById((int)$locationId);
+                if (!$location) {
+                    return new JsonResponse([
+                        'success' => false,
+                        'message' => 'Location not found'
+                    ], 404);
+                }
+                $station->setLocation($location);
+            } else if ($latitude && $longitude) {
+                // Create new location
+                $location = new Location();
+                $location->setLatitude((float)$latitude);
+                $location->setLongitude((float)$longitude);
+                $location->setAddress($address ?: 'Unknown location');
+                
+                $this->entityManager->persist($location);
+                $station->setLocation($location);
+            } else {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Location data is required'
+                ], 400);
+            }
+                
+            // Save the station
+            $this->entityManager->persist($station);
+            $this->entityManager->flush();
+                
+            return new JsonResponse([
+                'success' => true,
+                'stationId' => $station->getIdStation(),
+                'message' => 'Station created successfully'
+            ]);
+        } catch (\Exception $e) {
+            $this->logger->error('Error creating station: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+                
             return new JsonResponse([
                 'success' => false,
-                'message' => 'Location data is required'
-            ], 400);
+                'message' => 'Error: ' . $e->getMessage(),
+                'details' => 'Error occurred in ' . $e->getFile() . ' on line ' . $e->getLine()
+            ], 500);
         }
-            
-        // Save the station
-        $this->entityManager->persist($station);
-        $this->entityManager->flush();
-            
-        return new JsonResponse([
-            'success' => true,
-            'stationId' => $station->getIdStation(),
-            'message' => 'Station created successfully'
-        ]);
-    } catch (\Exception $e) {
-        $this->logger->error('Error creating station: ' . $e->getMessage(), [
-            'exception' => $e,
-            'trace' => $e->getTraceAsString(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine()
-        ]);
-            
-        return new JsonResponse([
-            'success' => false,
-            'message' => 'Error: ' . $e->getMessage(),
-            'details' => 'Error occurred in ' . $e->getFile() . ' on line ' . $e->getLine()
-        ], 500);
     }
-}
 
     #[Route('/api/locations', name: 'api_locations', methods: ['GET'])]
     public function getLocations(): JsonResponse
@@ -963,100 +813,113 @@ public function createStation(Request $request): JsonResponse
         }
     }
     #[Route('/bicycle/bulk-assign-station', name: 'admin_bicycle_bulk_assign_station', methods: ['POST'])]
-public function bulkAssignBicyclesToStation(Request $request, ValidatorInterface $validator): JsonResponse
-{
-    $response = null;
-    $data = json_decode($request->getContent(), true);
-    
-    // Handle invalid data format
-    if (!$data || !isset($data['assignments']) || !is_array($data['assignments'])) {
-        $response = new JsonResponse(['success' => false, 'message' => 'Invalid data format'], 400);
-    } else {
-        $assignments = $data['assignments'];
-        $updatedCount = 0;
-        $errors = [];
+    public function bulkAssignBicyclesToStation(Request $request, ValidatorInterface $validator): JsonResponse
+    {
+        $response = null;
+        $data = json_decode($request->getContent(), true);
         
-        $this->entityManager->beginTransaction();
-        
-        try {
-            foreach ($assignments as $assignment) {
-                $bicycleId = $assignment['bicycleId'] ?? null;
-                $stationId = $assignment['stationId'] ?? null;
-                
-                if (!$bicycleId || !$stationId) {
-                    $errors[] = 'Missing bicycle ID or station ID';
-                    continue;
-                }
-                
-                $bicycle = $this->bicycleService->getBicycle((int)$bicycleId);
-                $station = $this->stationService->getStation((int)$stationId);
-                
-                if (!$bicycle) {
-                    $errors[] = "Bicycle #$bicycleId not found";
-                    continue;
-                }
-                
-                if (!$station) {
-                    $errors[] = "Station #$stationId not found";
-                    continue;
-                }
-                
-                // Check if station has available docks
-                if ($station->getAvailableDocks() <= 0) {
-                    $errors[] = "Station {$station->getName()} has no available docks";
-                    continue;
-                }
-                
-                // Update bicycle station
-                $bicycle->setBicycleStation($station);
-                
-                // Validate
-                $validationErrors = $validator->validate($bicycle);
-                if (count($validationErrors) > 0) {
-                    $errorMessages = [];
-                    foreach ($validationErrors as $error) {
-                        $errorMessages[] = $error->getMessage();
-                    }
-                    $errors[] = "Validation failed for bicycle #$bicycleId: " . implode(', ', $errorMessages);
-                    continue;
-                }
-                
-                // Update station available docks/bikes
-                $station->setAvailableDocks($station->getAvailableDocks() - 1);
-                $station->setAvailableBikes($station->getAvailableBikes() + 1);
-                
-                // Success
-                $updatedCount++;
-            }
+        // Handle invalid data format
+        if (!$data || !isset($data['assignments']) || !is_array($data['assignments'])) {
+            $response = new JsonResponse(['success' => false, 'message' => 'Invalid data format'], 400);
+        } else {
+            $assignments = $data['assignments'];
+            $updatedCount = 0;
+            $errors = [];
             
-            if ($updatedCount > 0) {
-                $this->entityManager->flush();
-                $this->entityManager->commit();
+            $this->entityManager->beginTransaction();
+            
+            try {
+                foreach ($assignments as $assignment) {
+                    $bicycleId = $assignment['bicycleId'] ?? null;
+                    $stationId = $assignment['stationId'] ?? null;
+                    
+                    if (!$bicycleId || !$stationId) {
+                        $errors[] = 'Missing bicycle ID or station ID';
+                        continue;
+                    }
+                    
+                    $bicycle = $this->bicycleService->getBicycle((int)$bicycleId);
+                    $station = $this->stationService->getStation((int)$stationId);
+                    
+                    if (!$bicycle) {
+                        $errors[] = "Bicycle #$bicycleId not found";
+                        continue;
+                    }
+                    
+                    if (!$station) {
+                        $errors[] = "Station #$stationId not found";
+                        continue;
+                    }
+                    
+                    // Check if station has available docks
+                    if ($station->getAvailableDocks() <= 0) {
+                        $errors[] = "Station {$station->getName()} has no available docks";
+                        continue;
+                    }
+                    
+                    // Update bicycle station
+                    $bicycle->setBicycleStation($station);
+                    
+                    // Validate
+                    $validationErrors = $validator->validate($bicycle);
+                    if (count($validationErrors) > 0) {
+                        $errorMessages = [];
+                        foreach ($validationErrors as $error) {
+                            $errorMessages[] = $error->getMessage();
+                        }
+                        $errors[] = "Validation failed for bicycle #$bicycleId: " . implode(', ', $errorMessages);
+                        continue;
+                    }
+                    
+                    // Update station available docks/bikes
+                    $station->setAvailableDocks($station->getAvailableDocks() - 1);
+                    $station->setAvailableBikes($station->getAvailableBikes() + 1);
+                    
+                    // Success
+                    $updatedCount++;
+                }
                 
-                $response = new JsonResponse([
-                    'success' => true, 
-                    'updatedCount' => $updatedCount,
-                    'errors' => $errors
-                ]);
-            } else {
+                if ($updatedCount > 0) {
+                    $this->entityManager->flush();
+                    $this->entityManager->commit();
+                    
+                    $response = new JsonResponse([
+                        'success' => true, 
+                        'updatedCount' => $updatedCount,
+                        'errors' => $errors
+                    ]);
+                } else {
+                    $this->entityManager->rollback();
+                    
+                    $response = new JsonResponse([
+                        'success' => false,
+                        'message' => 'No bicycles were assigned. ' . implode('; ', $errors)
+                    ], 400);
+                }
+            } catch (\Exception $e) {
                 $this->entityManager->rollback();
+                $this->logger->error('Error assigning bicycles to station: ' . $e->getMessage());
                 
                 $response = new JsonResponse([
                     'success' => false,
-                    'message' => 'No bicycles were assigned. ' . implode('; ', $errors)
-                ], 400);
+                    'message' => 'Error: ' . $e->getMessage()
+                ], 500);
             }
-        } catch (\Exception $e) {
-            $this->entityManager->rollback();
-            $this->logger->error('Error assigning bicycles to station: ' . $e->getMessage());
-            
-            $response = new JsonResponse([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ], 500);
         }
+        
+        return $response;
     }
-    
-    return $response;
-}
+
+    /**
+     * Helper function to get bicycle status choices
+     */
+    private function getStatusChoices(): array
+    {
+        $choices = [];
+        foreach (BICYCLE_STATUS::cases() as $status) {
+            $label = ucfirst(strtolower(str_replace('_', ' ', $status->name)));
+            $choices[$label] = $status->value;
+        }
+        return $choices;
+    }
 }

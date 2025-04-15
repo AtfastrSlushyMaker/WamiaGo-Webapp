@@ -154,14 +154,14 @@ class BicycleRentalService
         $rental->setBatteryUsed($batteryUsed);
         $rental->setCost($finalCost);
         
-        // Update bicycle
-        $bicycle->setStatus(BICYCLE_STATUS::AVAILABLE);
-        $bicycle->setBicycleStation($endStation);
-        $bicycle->setBatteryLevel($bicycle->getBatteryLevel() - $batteryUsed);
+        // Update bicycle - use the bicycleService to safely reassign
+        // This ensures proper status and station metrics are updated
+        $this->bicycleService->reassignBicycleToStation($bicycle, $endStation, BICYCLE_STATUS::AVAILABLE);
         
-        // Update station stats
-        $endStation->setAvailableBikes($endStation->getAvailableBikes() + 1);
+        // Since reassignBicycleToStation handles updating station metrics, we don't need 
+        // to manually update endStation's available bikes or docks
         
+        // Persist changes
         $this->entityManager->flush();
     }
 

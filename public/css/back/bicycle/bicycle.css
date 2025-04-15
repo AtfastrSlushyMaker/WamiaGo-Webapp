@@ -97,3 +97,16 @@
     padding: 1rem;
     vertical-align: middle;
 }
+
+/* Dropdown menu fix for admin table */
+.dropdown-menu {
+    z-index: 1050 !important;
+    position: absolute !important;
+    /* Ensure dropdown is above cards/tables */
+}
+
+/* Prevent parent overflow from hiding dropdowns */
+.table-responsive,
+.table {
+    overflow: visible !important;
+}

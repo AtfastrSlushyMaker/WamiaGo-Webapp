@@ -143,9 +143,31 @@
                     <a href="{{ path('app_front_my_reservations') }}" class="btn btn-success flex-grow-1">
                         <i class="fas fa-bicycle me-2"></i> Go to My Reservations
                     </a>
-                    <a href="{{ path('app_front_cancel_rental', {'id': rental.idUserRental}) }}" class="btn btn-outline-danger flex-grow-1">
+                    <button type="button" class="btn btn-outline-danger flex-grow-1" data-bs-toggle="modal" data-bs-target="#cancelModal">
                         <i class="fas fa-times me-2"></i> Cancel Reservation
-                    </a>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Cancel Reservation Modal -->
+            <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="cancelModalLabel">Cancel Reservation</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Are you sure you want to cancel your reservation? This action cannot be undone.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <form method="post" action="{{ path('app_front_cancel_rental', {'id': rental.idUserRental}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('cancel_rental_' ~ rental.idUserRental) }}">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-danger">Yes, Cancel Reservation</button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
             
