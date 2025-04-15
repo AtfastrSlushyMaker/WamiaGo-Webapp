@@ -1653,10 +1653,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Station
                 const stationField = document.querySelector('#editBicycleForm [name*="[bicycleStation]"]');
-                if (stationField && data.bicycleStation) {
-                    Array.from(stationField.options).forEach(option => {
-                        option.selected = option.value == data.bicycleStation.idStation;
-                    });
+                if (stationField) {
+                    // Check if data.stationId exists and is not null
+                    if (data.stationId !== null && data.stationId !== undefined) {
+                        // Set the value of the select element directly using data.stationId
+                        stationField.value = data.stationId;
+                    } else {
+                        // If no station ID is provided, select the placeholder/empty option.
+                        stationField.value = ""; 
+                    }
                 }
                 
                 // Last updated
