@@ -49,15 +49,15 @@ final class CarpoolingController extends AbstractController
         ]);
     }
 
-    #[Route('/booking/cancel/{id}', name: 'app_front_cancel_booking')]
-    public function deleteBooking(int $id, EntityManagerInterface $entityManager): RedirectResponse
+    #[Route('/booking/cancel/{id}', name: 'app_front_cancel_booking', methods: ['GET'])]
+    public function deleteBooking(int $id, EntityManagerInterface $entityManager): \Symfony\Component\HttpFoundation\RedirectResponse
     {
         // Fetch the booking by ID
         $booking = $entityManager->getRepository(Booking::class)->find($id);
 
         if (!$booking) {
             $this->addFlash('error', 'Booking not found.');
-            return $this->redirectToRoute('app_front_show_booking_details', ['id' => $id]);
+            return $this->redirectToRoute('app_carpooling_client_booking', ['id' => $id]);
         }
 
         // Remove the booking from the database
@@ -65,7 +65,7 @@ final class CarpoolingController extends AbstractController
         $entityManager->flush();
 
         $this->addFlash('success', 'Booking has been successfully deleted.');
-        return $this->redirectToRoute('app_carpooling');
+        return $this->redirectToRoute('app_carpooling_client_booking');
     }
 
     #[Route('/trip/confirm/{id}', name: 'app_trip_confirm', methods: ['GET', 'POST'])]
@@ -212,6 +212,23 @@ final class CarpoolingController extends AbstractController
         // Redirect to the carpooling main page
         return $this->redirectToRoute('app_carpooling');
     }
+    #[Route('/carpooling/client-booking', name: 'app_carpooling_client_booking', methods: ['GET'])]
+    public function clientBookingPage(EntityManagerInterface $entityManager): Response
+    {
+        // Fetch bookings for the static user with ID 1
+        $user = $entityManager->getRepository(User::class)->find(1);
+
+        if (!$user) {
+            throw $this->createNotFoundException('Static user with ID 1 not found.');
+        }
+
+        $bookings = $entityManager->getRepository(Booking::class)->findBy(['user' => $user]);
+
+        return $this->render('front/carpooling/ClientBookingPage.twig', [
+            'bookings' => $bookings,
+        ]);
+    }
+
 
 
 }

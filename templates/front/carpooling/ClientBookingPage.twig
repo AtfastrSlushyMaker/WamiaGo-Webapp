@@ -1,0 +1,457 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}My Bookings - WamiaGo{% endblock %}
+
+{% block page_stylesheets %}
+    <link href="{{ asset('css/front/Bookings/bookings.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
+    <style>
+        /* Bookings specific styles */
+        .bg-bookings {
+            background-color: #4c6ef5;
+        }
+
+        .bg-bookings-light {
+            background-color: rgba(76, 110, 245, 0.1);
+        }
+
+        .text-bookings {
+            color: #4c6ef5;
+        }
+
+        .btn-bookings {
+            background-color: #4c6ef5;
+            border-color: #4c6ef5;
+            color: white;
+        }
+
+        .btn-bookings:hover {
+            background-color: #3b5bdb;
+            border-color: #3b5bdb;
+            color: white;
+        }
+
+        .btn-outline-bookings {
+            background-color: transparent;
+            border-color: #4c6ef5;
+            color: #4c6ef5;
+        }
+
+        .btn-outline-bookings:hover {
+            background-color: #4c6ef5;
+            color: white;
+        }
+
+        .booking-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .booking-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+        }
+
+        .booking-header {
+            padding: 1.5rem;
+            background: linear-gradient(45deg, #4c6ef5, #6382ff);
+            color: white;
+        }
+
+        .booking-body {
+            padding: 1.5rem;
+        }
+
+        .booking-status {
+            display: inline-block;
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+            .status-confirmed {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .status-pending {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .status-canceled {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .status-completed {
+            background-color: rgba(79, 70, 229, 0.1);
+            color: #4f46e5;
+        }
+
+        .booking-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .booking-info i {
+            width: 24px;
+            color: #4c6ef5;
+            margin-right: 0.75rem;
+        }
+
+        .booking-seats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .seat-badge {
+            background-color: rgba(76, 110, 245, 0.1);
+            color: #4c6ef5;
+            font-weight: 600;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .booking-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-action {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-details {
+            background-color: #4c6ef5;
+            color: white;
+        }
+
+        .btn-details:hover {
+            background-color: #3b5bdb;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-cancel {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .btn-cancel:hover {
+            background-color: rgba(239, 68, 68, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .booking-details-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .empty-bookings {
+            text-align: center;
+            padding: 4rem 2rem;
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .empty-bookings i {
+            font-size: 3rem;
+            color: #adb5bd;
+            margin-bottom: 1.5rem;
+        }
+
+        .journey-route {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: #ecf0f1; /* Light text for contrast */
+            font-size: 1.25rem;
+            padding: 0.5rem 1rem; /* Add padding for better appearance */
+            font-weight: 500;
+            border-radius: 8px; /* Rounded corners */
+        }
+
+        .journey-city {
+            background-color: #3b5bdb; /* Darker blue tone */
+            color: white; /* Light text for contrast */
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Slightly darker shadow */
+        }
+
+        .payment-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        .payment-online {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .payment-presential {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .filter-bar {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 2rem;
+        }
+
+        .section-title-container {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            position: relative;
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+
+        .section-title:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 50px;
+            height: 3px;
+            background: #4c6ef5;
+        }
+
+        .tabs-container {
+            display: flex;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e9ecef;
+            overflow-x: auto;
+        }
+
+        .tab-item {
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .tab-item:hover {
+            color: #4c6ef5;
+        }
+
+        .tab-item.active {
+            color: #4c6ef5;
+            border-bottom: 3px solid #4c6ef5;
+        }
+
+        .badge-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #f8f9fa;
+            color: #4c6ef5;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+
+        .tab-item.active .badge-count {
+            background-color: #4c6ef5;
+            color: white;
+        }
+    </style>
+{% endblock %}
+
+{% block hero %}
+    <div class="hero-section bg-bookings text-white">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-4 fw-bold">My Bookings</h1>
+                    <p class="lead">Manage and track all your travel reservations in one place</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <section class="py-5">
+        <div class="container">
+            <div class="section-title-container">
+                <h2 class="section-title">Your Travel Bookings</h2>
+            </div>
+
+            <div class="tabs-container">
+                <div class="tab-item active" data-status="all">
+                    All Bookings <span class="badge-count">{{ bookings|length }}</span>
+                </div>
+                <div class="tab-item" data-status="confirmed">
+                    Confirmed <span class="badge-count">{{ bookings|filter(b => b.status == 'confirmed')|length }}</span>
+                </div>
+                <div class="tab-item" data-status="pending">
+                    Pending <span class="badge-count">{{ bookings|filter(b => b.status == 'pending')|length }}</span>
+                </div>
+                <div class="tab-item" data-status="completed">
+                    Completed <span class="badge-count">{{ bookings|filter(b => b.status == 'completed')|length }}</span>
+                </div>
+                <div class="tab-item" data-status="canceled">
+                    Canceled <span class="badge-count">{{ bookings|filter(b => b.status == 'canceled')|length }}</span>
+                </div>
+            </div>
+
+            {% if bookings is empty %}
+                <div class="empty-bookings">
+                    <i class="fas fa-ticket-alt"></i>
+                    <h4>No Bookings Found</h4>
+                    <p class="text-muted mb-4">You haven't made any trip bookings yet.</p>
+                    <a href="{{ path('app_carpooling') }}" class="btn btn-bookings">
+                        <i class="fas fa-search me-2"></i> Find a Trip
+                    </a>
+                </div>
+            {% else %}
+                <div class="row">
+                    {% for booking in bookings %}
+                        <div class="col-lg-6 booking-item" data-status="{{ booking.status }}">
+                            <div class="booking-card">
+                                <div class="booking-header">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="booking-status status-{{ booking.status }}">
+                                        {% if booking.status == 'confirmed' %}
+                                            <i class="fas fa-check-circle me-1"></i> Confirmed
+                                        {% elseif booking.status == 'pending' %}
+                                            <i class="fas fa-clock me-1"></i> Pending
+                                        {% elseif booking.status == 'completed' %}
+                                            <i class="fas fa-flag-checkered me-1"></i> Completed
+                                        {% elseif booking.status == 'canceled' %}
+                                            <i class="fas fa-times-circle me-1"></i> Canceled
+                                        {% endif %}
+                                    </span>
+                                        <span class="text-white-50">Booking #{{ booking.id_booking }}</span>
+                                    </div>
+
+                                    <div class="journey-route">
+                                        <span class="journey-city">{{ booking.trip.departure_city }}</span>
+                                        <i class="fas fa-arrow-right"></i>
+                                        <span class="journey-city">{{ booking.trip.arrival_city }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="booking-body">
+                                    <div class="booking-info">
+                                        <i class="far fa-calendar-alt"></i>
+                                        <div>
+                                            <strong>Departure Date:</strong> {{ booking.trip.departure_date|date('l, d M Y') }}
+                                        </div>
+                                    </div>
+
+                                    <div class="booking-info">
+                                        <i class="far fa-clock"></i>
+                                        <div>
+                                            <strong>Departure Time:</strong> {{ booking.trip.departure_date|date('H:i') }}
+                                        </div>
+                                    </div>
+
+                                    <div class="booking-info">
+                                        <i class="fas fa-chair"></i>
+                                        <div>
+                                            <strong>Selected Seats:</strong>
+                                        </div>
+                                    </div>
+
+                                    <div class="booking-seats">
+                                        {% for seat in booking.reserved_seats|split(',') %}
+                                            <div class="seat-badge">
+                                                <i class="fas fa-chair me-1"></i> Seat {{ seat }}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+
+                                    {# <div class="payment-badge {{ booking.payment_method == 'online' ? 'payment-online' : 'payment-presential' }}">
+                                        {% if booking.payment_method == 'online' %}
+                                            <i class="fas fa-credit-card"></i> Paid Online
+                                        {% else %}
+                                            <i class="fas fa-money-bill-wave"></i> Pay at Pickup
+                                        {% endif %}
+                                    </div>  #}
+
+                                    <div class="booking-actions">
+                                        <a href="{{ path('app_front_show_booking_details', {'id': booking.id_booking}) }}" class="btn btn-action btn-details">
+                                            <i class="fas fa-info-circle"></i> Details
+                                        </a>
+
+                                        {% if booking.status == 'confirmed' or booking.status == 'pending' %}
+                                            <a href="{{ path('app_front_cancel_booking', {'id': booking.id_booking}) }}" class="btn btn-action btn-cancel"
+                                               onclick="return confirm('Are you sure you want to cancel this booking?')">
+                                                <i class="fas fa-times"></i> Cancel
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}
+
+{% block page_javascripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab filtering functionality
+            const tabs = document.querySelectorAll('.tab-item');
+            const bookingItems = document.querySelectorAll('.booking-item');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+
+                    const status = this.getAttribute('data-status');
+
+                    // Filter bookings
+                    bookingItems.forEach(item => {
+                        if (status === 'all' || item.getAttribute('data-status') === status) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            });
+
+            // Initialize with 'all' tab active
+            document.querySelector('.tab-item[data-status="all"]').click();
+        });
+    </script>
+{% endblock %}
