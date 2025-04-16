@@ -44,7 +44,7 @@
                 <div class="col-md-6">
                     <div class="card text-center daily-goal-card">
                         <div class="card-body">
-                            <h4 class="mb-4"><i class="fas fa-bullseye"></i> Daily Goal</h4>
+                            <h4 class="mb-4"><i class="fas fa-bullseye"></i> MARKI NAHREK!</h4>
                             <div class="d-flex justify-content-around mb-4">
                                 {% for goal in [50, 100, 200] %}
                                     <div class="goal-option">
@@ -197,28 +197,32 @@
                                     </script>
                                 </div>
                             </div>        <!-- Available Requests Section -->
-                <div class="col-md-12">
-                    <h5><i class="fas fa-list"></i> Available Requests</h5>
-                    {% for request in availableRequests %}
-                        <div class="card request-card me-3 mb-3" style="width: 20rem; height: 26rem;">
-                            <div class="card-body p-3">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h6 class="card-title mb-2">Request {{ request.userName }}</h6>
-                                    <span class="badge bg-warning status-badge">{{ request.status }}</span>
+                <div class="col-md-12 text-center">
+                    <h5><i class="fas fa-clipboard-list text-black"></i> Available Requests</h5>
+                    <div class="d-flex flex-wrap justify-content-center">
+                        {% for request in availableRequests %}
+                            <div class="card request-card me-3 mb-3" style="width: 20rem; height: 24rem;">
+                                <div class="card-body p-3 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h6 class="card-title mb-2">Request {{ request.userName }}</h6>
+                                            <span class="badge bg-warning status-badge">{{ request.status }}</span>
+                                        </div>
+                                        <p class="mb-2"><i class="fas fa-map-marker-alt text-danger"></i> From: {{ request.pickupLocation }}</p>
+                                        <p class="mb-2"><i class="fas fa-map-marker-alt text-success"></i> To: {{ request.dropoffLocation }}</p>
+                                    </div>
+                                    <div class="d-flex justify-content-center mt-3">
+                                        <button class="btn btn-sm btn-success accept-request-btn" style="background-color: lightgreen; border-color: lightgreen;" data-request-id="{{ request.id }}">Accept</button>
+                                    </div>
                                 </div>
-                                <p class="mb-2"><i class="fas fa-map-marker-alt text-danger"></i> From: {{ request.pickupLocation }}</p>
-                                <p class="mb-2"><i class="fas fa-map-marker-alt text-success"></i> To: {{ request.dropoffLocation }}</p>
-                                <button class="btn btn-sm btn-primary accept-request-btn" data-request-id="{{ request.id }}">Accept</button>
                             </div>
-                        </div>
-                    {% else %}
-                        <p>No available requests at the moment.</p>
-                    {% endfor %}
-                </div>        <!-- Map Section -->
-                <div class="d-flex justify-content-center">
+                        {% else %}
+                            <p>No available requests at the moment.</p>
+                        {% endfor %}
+                    </div>
+                </div>        </div>        <div class="d-flex justify-content-center">
                     <div id="map" class="map-container" style="width: 80%; height: 300px;"></div>
-                </div>        <!-- Modal for Setting Duration -->
-            <div class="modal fade" id="setDurationModal" tabindex="-1" aria-labelledby="setDurationModalLabel" aria-hidden="true">
+                </div>        <div class="modal fade" id="setDurationModal" tabindex="-1" aria-labelledby="setDurationModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -251,115 +255,49 @@
                 const map = L.map('map').setView([36.8065, 10.1815], 12);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-               document.addEventListener('DOMContentLoaded', function () {
-    const acceptButtons = document.querySelectorAll('.accept-request-btn');
-    const setDurationModal = new bootstrap.Modal(document.getElementById('setDurationModal'));
-    const modalRequestIdInput = document.getElementById('modalRequestId');
-    const rideDurationInput = document.getElementById('rideDuration');
-    const submitDurationButton = document.getElementById('submitDuration');
-    const durationForm = document.getElementById('setDurationForm');
-    
-    // Add validation feedback element
-    const feedbackDiv = document.createElement('div');
-    feedbackDiv.className = 'invalid-feedback';
-    rideDurationInput.after(feedbackDiv);
-    
-    // Function to validate duration
-    function validateDuration(value) {
-        if (!value) {
-            feedbackDiv.textContent = 'Duration is required';
-            return false;
-        }
-        
-        const duration = parseInt(value);
-        if (isNaN(duration)) {
-            feedbackDiv.textContent = 'Duration must be a number';
-            return false;
-        }
-        
-        if (duration < 1) {
-            feedbackDiv.textContent = 'Duration must be at least 1 minute';
-            return false;
-        }
-        
-        if (duration > 90) {
-            feedbackDiv.textContent = 'Duration cannot exceed 90 minutes';
-            return false;
-        }
-        
-        return true;
-    }
-    
-    // Live validation as user types
-    rideDurationInput.addEventListener('input', function() {
-        const isValid = validateDuration(this.value);
-        
-        if (isValid) {
-            this.classList.remove('is-invalid');
-            this.classList.add('is-valid');
-            feedbackDiv.style.display = 'none';
-        } else {
-            this.classList.remove('is-valid');
-            this.classList.add('is-invalid');
-            feedbackDiv.style.display = 'block';
-        }
-        
-        // Update submit button state
-        submitDurationButton.disabled = !isValid;
-    });
-    
-    acceptButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            const requestId = this.getAttribute('data-request-id');
-            modalRequestIdInput.value = requestId;
-            // Reset form state when opening modal
-            rideDurationInput.value = '';
-            rideDurationInput.classList.remove('is-valid', 'is-invalid');
-            feedbackDiv.style.display = 'none';
-            submitDurationButton.disabled = true;
-            setDurationModal.show();
-        });
-    });
+                document.addEventListener('DOMContentLoaded', function () {
+                    const acceptButtons = document.querySelectorAll('.accept-request-btn');
+                    const setDurationModal = new bootstrap.Modal(document.getElementById('setDurationModal'));
+                    const modalRequestIdInput = document.getElementById('modalRequestId');
+                    const rideDurationInput = document.getElementById('rideDuration');
+                    const submitDurationButton = document.getElementById('submitDuration');
 
-    submitDurationButton.addEventListener('click', function () {
-        const requestId = modalRequestIdInput.value;
-        const rideDuration = rideDurationInput.value;
+                    acceptButtons.forEach(button => {
+                        button.addEventListener('click', function () {
+                            const requestId = this.getAttribute('data-request-id');
+                            modalRequestIdInput.value = requestId;
+                            setDurationModal.show();
+                        });
+                    });
 
-        if (!validateDuration(rideDuration)) {
-            return;
-        }
+                    submitDurationButton.addEventListener('click', function () {
+                        const requestId = modalRequestIdInput.value;
+                        const rideDuration = rideDurationInput.value;
 
-        fetch(`/driver/accept-request/${requestId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-Token': '{{ csrf_token('accept_request') }}'
-            },
-            body: JSON.stringify({ requestId: requestId, duration: rideDuration })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else if (data.errors) {
-                // Handle server-side validation errors
-                feedbackDiv.textContent = data.errors.duration || 'An error occurred';
-                rideDurationInput.classList.add('is-invalid');
-                feedbackDiv.style.display = 'block';
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while processing your request.');
-        });
-    });
-});
+                        if (!rideDuration || rideDuration <= 0 || rideDuration > 90) {
+                            return;
+                        }
+
+                        fetch(`/driver/accept-request/${requestId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-Token': '{{ csrf_token('accept_request') }}'
+                            },
+                            body: JSON.stringify({ requestId: requestId, duration: rideDuration })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            location.reload();
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+
+                        setDurationModal.hide();
+                    });
+                });
             </script>       
              <style>
          

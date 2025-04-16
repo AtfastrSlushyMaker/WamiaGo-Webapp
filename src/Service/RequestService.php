@@ -148,7 +148,10 @@ public function getAllRequests(): array
     return $this->requestRepository->findBy(['status' => REQUEST_STATUS::PENDING]);
 }
 
-
+public function getRealyAllRequest():array
+{
+    return $this->requestRepository->findAll();
+}
 
 public function acceptRequest(int $requestId): Request
 {
