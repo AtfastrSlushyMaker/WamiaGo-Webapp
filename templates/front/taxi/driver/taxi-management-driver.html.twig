@@ -251,49 +251,115 @@
                 const map = L.map('map').setView([36.8065, 10.1815], 12);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-                document.addEventListener('DOMContentLoaded', function () {
-                    const acceptButtons = document.querySelectorAll('.accept-request-btn');
-                    const setDurationModal = new bootstrap.Modal(document.getElementById('setDurationModal'));
-                    const modalRequestIdInput = document.getElementById('modalRequestId');
-                    const rideDurationInput = document.getElementById('rideDuration');
-                    const submitDurationButton = document.getElementById('submitDuration');
+               document.addEventListener('DOMContentLoaded', function () {
+    const acceptButtons = document.querySelectorAll('.accept-request-btn');
+    const setDurationModal = new bootstrap.Modal(document.getElementById('setDurationModal'));
+    const modalRequestIdInput = document.getElementById('modalRequestId');
+    const rideDurationInput = document.getElementById('rideDuration');
+    const submitDurationButton = document.getElementById('submitDuration');
+    const durationForm = document.getElementById('setDurationForm');
+    
+    // Add validation feedback element
+    const feedbackDiv = document.createElement('div');
+    feedbackDiv.className = 'invalid-feedback';
+    rideDurationInput.after(feedbackDiv);
+    
+    // Function to validate duration
+    function validateDuration(value) {
+        if (!value) {
+            feedbackDiv.textContent = 'Duration is required';
+            return false;
+        }
+        
+        const duration = parseInt(value);
+        if (isNaN(duration)) {
+            feedbackDiv.textContent = 'Duration must be a number';
+            return false;
+        }
+        
+        if (duration < 1) {
+            feedbackDiv.textContent = 'Duration must be at least 1 minute';
+            return false;
+        }
+        
+        if (duration > 90) {
+            feedbackDiv.textContent = 'Duration cannot exceed 90 minutes';
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Live validation as user types
+    rideDurationInput.addEventListener('input', function() {
+        const isValid = validateDuration(this.value);
+        
+        if (isValid) {
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+            feedbackDiv.style.display = 'none';
+        } else {
+            this.classList.remove('is-valid');
+            this.classList.add('is-invalid');
+            feedbackDiv.style.display = 'block';
+        }
+        
+        // Update submit button state
+        submitDurationButton.disabled = !isValid;
+    });
+    
+    acceptButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const requestId = this.getAttribute('data-request-id');
+            modalRequestIdInput.value = requestId;
+            // Reset form state when opening modal
+            rideDurationInput.value = '';
+            rideDurationInput.classList.remove('is-valid', 'is-invalid');
+            feedbackDiv.style.display = 'none';
+            submitDurationButton.disabled = true;
+            setDurationModal.show();
+        });
+    });
 
-                    acceptButtons.forEach(button => {
-                        button.addEventListener('click', function () {
-                            const requestId = this.getAttribute('data-request-id');
-                            modalRequestIdInput.value = requestId;
-                            setDurationModal.show();
-                        });
-                    });
+    submitDurationButton.addEventListener('click', function () {
+        const requestId = modalRequestIdInput.value;
+        const rideDuration = rideDurationInput.value;
 
-                    submitDurationButton.addEventListener('click', function () {
-                        const requestId = modalRequestIdInput.value;
-                        const rideDuration = rideDurationInput.value;
+        if (!validateDuration(rideDuration)) {
+            return;
+        }
 
-                        if (!rideDuration || rideDuration <= 0 || rideDuration > 90) {
-                            return;
-                        }
-
-                        fetch(`/driver/accept-request/${requestId}`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'X-CSRF-Token': '{{ csrf_token('accept_request') }}'
-                            },
-                            body: JSON.stringify({ requestId: requestId, duration: rideDuration })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            location.reload();
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                        });
-
-                        setDurationModal.hide();
-                    });
-                });
+        fetch(`/driver/accept-request/${requestId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-Token': '{{ csrf_token('accept_request') }}'
+            },
+            body: JSON.stringify({ requestId: requestId, duration: rideDuration })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else if (data.errors) {
+                // Handle server-side validation errors
+                feedbackDiv.textContent = data.errors.duration || 'An error occurred';
+                rideDurationInput.classList.add('is-invalid');
+                feedbackDiv.style.display = 'block';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
+        });
+    });
+});
             </script>       
              <style>
          
