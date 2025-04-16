@@ -16,7 +16,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/driver')]
 class TaxiDriverController extends AbstractController
@@ -76,73 +75,60 @@ class TaxiDriverController extends AbstractController
 
 
     #[Route('/accept-request/{id}', name: 'app_accept_request', methods: ['POST'])]
-    public function acceptRequest(int $id, ValidatorInterface $validator): JsonResponse
-    {
-        try {
-            $this->logger->info("Accepting request with ID: $id");
-    
-            $requestData = $this->requestStack->getCurrentRequest();
-            $data = json_decode($requestData->getContent(), true);
-    
-            if (!isset($data['duration'])) {
-                throw new \Exception('The duration field is required.');
-            }
-    
-            // Create Ride and set duration for validation
-            $ride = new Ride();
-            $ride->setDuration((int)$data['duration']);
-    
-            // Validate the ride entity (especially duration constraints)
-            $errors = $validator->validate($ride);
-    
-            if (count($errors) > 0) {
-                $errorMessages = [];
-                foreach ($errors as $error) {
-                    $errorMessages[] = $error->getPropertyPath() . ': ' . $error->getMessage();
-                }
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => implode(' | ', $errorMessages),
-                ], 422);
-            }
-    
-            $this->logger->info("Duration validated: {$data['duration']} minutes");
-    
-            // Fetch the request
-            $request = $this->entityManager->getRepository(Request::class)->find($id);
-    
-            if (!$request) {
-                throw new \Exception("Request not found with ID: $id");
-            }
-    
-            // Hardcoded driver (ID 1)
-            $driver = $this->entityManager->getRepository(Driver::class)->find(1);
-    
-            if (!$driver) {
-                throw new \Exception("Driver with ID 1 not found.");
-            }
-    
-            // Update request status
-            $request->setStatus(REQUEST_STATUS::ACCEPTED);
-            $this->entityManager->flush();
-    
-            // Create and persist the ride (now validated)
-            $ride = $this->rideService->createRide($request, $driver, (int)$data['duration']);
-    
-            return new JsonResponse([
-                'success' => true,
-                'message' => 'Request accepted and ride created successfully.',
-                'rideId' => $ride->getId_ride(),
-            ]);
-        } catch (\Exception $e) {
-            $this->logger->error("Error in acceptRequest: " . $e->getMessage());
-            return new JsonResponse([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 400);
+public function acceptRequest(int $id): JsonResponse
+{
+    try {
+        $this->logger->info("Accepting request with ID: $id");
+        
+        $data = json_decode($this->requestStack->getCurrentRequest()?->getContent(), true);
+        $data = json_decode($this->requestStack->getCurrentRequest()->getContent(), true);
+        $duration = isset($data['duration']) ? (int)$data['duration'] : null;
+        
+        if (!$duration || $duration <= 0) {
+            throw new \Exception('Please provide a valid duration.');
         }
+        
+        $this->logger->info("Duration received: $duration minutes");
+
+        // Find the request
+        $request = $this->entityManager->getRepository(Request::class)->find($id);
+        
+        if (!$request) {
+            throw new \Exception('Request not found with ID: ' . $id);
+        }
+        
+        // Find driver with ID 1 directly
+        $driver = $this->entityManager->getRepository(Driver::class)->find(1);
+        
+        if (!$driver) {
+            throw new \Exception('Driver with ID 1 not found in the database.');
+        }
+        
+        $this->logger->info("Driver found with ID: 1");
+        
+        // Update request status
+        $request->setStatus(REQUEST_STATUS::ACCEPTED);
+        $this->entityManager->flush();
+        
+        // Create the ride with duration
+        $ride = $this->rideService->createRide($request, $driver, $duration);
+       // $request = $this->requestService->deleteRequest($id); 
+        
+        return new JsonResponse([
+            'success' => true,
+            'message' => 'Request accepted and ride created successfully.',
+            'rideId' => $ride->getId_ride(),
+        ]);
+    } catch (\Exception $e) {
+        $this->logger->error("Error: " . $e->getMessage());
+        return new JsonResponse([
+            'success' => false,
+            'message' => $e->getMessage(),
+        ], 400);
     }
-    
+}
+
+
 
 
 #[Route('/ride/delete/{id}', name: 'app_delete_ride', methods: ['DELETE'])]

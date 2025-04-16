@@ -218,41 +218,28 @@
                 <div class="d-flex justify-content-center">
                     <div id="map" class="map-container" style="width: 80%; height: 300px;"></div>
                 </div>        <!-- Modal for Setting Duration -->
- <div class="modal fade" id="setDurationModal" tabindex="-1" aria-labelledby="setDurationModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="setDurationModalLabel">Set Ride Duration</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="setDurationForm">
-                    <div class="mb-3">
-                        <label for="rideDuration" class="form-label">Duration (in minutes)</label>
-                        <input 
-                            type="number" 
-                            class="form-control" 
-                            id="rideDuration" 
-                            name="rideDuration" 
-                            min="0" 
-                            max="90" 
-                            required 
-                            oninvalid="this.setCustomValidity('Please enter a duration between 0 and 90 minutes.')"
-                            oninput="this.setCustomValidity('')"
-                        >
-                        <div class="form-text text-muted">Maximum allowed duration: 90 minutes</div>
+            <div class="modal fade" id="setDurationModal" tabindex="-1" aria-labelledby="setDurationModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="setDurationModalLabel">Set Ride Duration</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="setDurationForm">
+                                <div class="mb-3">
+                                    <label for="rideDuration" class="form-label">Duration (in minutes)</label>
+                                    <input type="number" class="form-control" id="rideDuration" name="rideDuration" min="1" required>
+                                </div>
+                                <input type="hidden" id="modalRequestId" name="requestId">
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="submitDuration">Submit</button>
+                        </div>
                     </div>
-                    <input type="hidden" id="modalRequestId" name="requestId">
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="submitDuration">Submit</button>
-            </div>
-        </div>
-    </div>
-</div>
-
+                </div>
             </div>
         {% endblock %}
 

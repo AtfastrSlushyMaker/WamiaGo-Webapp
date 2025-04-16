@@ -7,8 +7,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use App\Repository\RideRepository;
-use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: RideRepository::class)]
 #[ORM\Table(name: 'ride')]
@@ -60,11 +58,6 @@ class Ride
     }
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    #[Assert\PositiveOrZero(message: "Duration must be a positive number or zero")]
-    #[Assert\LessThanOrEqual(
-        value: 90,
-        message: "Duration cannot exceed 90 minutes (1.5 hours)"
-    )]
     private ?int $duration = null;
 
     public function getDuration(): ?int
