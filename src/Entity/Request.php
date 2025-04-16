@@ -69,7 +69,7 @@ class Request
         $this->request_date = new \DateTime(); // Default to current date/time
     }
 
-    // Validation method that can be called by a validator
+   
     #[Assert\Callback]
     public function validateLocations(ExecutionContextInterface $context, $payload)
     {
