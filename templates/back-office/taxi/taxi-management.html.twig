@@ -7,83 +7,120 @@
 {% block content %}
 <div class="dashboard-container">
     <h1 class="dashboard-title">Taxi Management Dashboard</h1>
+    <meta name="csrf-token" content="{{ csrf_token('delete_request') }}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     
     <div class="dashboard-layout">
-        <!-- Requests Panel -->
-        <div class="dashboard-panel">
-            <div class="panel-header requests-header">
-                <i class="bi bi-car-front-fill me-2"></i>Ride Requests
-            </div>
-            <div class="panel-body">
-                <div class="table-responsive">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>User</th>
-                                <th>Pickup Location</th>
-                                <th>Dropoff Location</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>John Doe</td>
-                                <td>123 Main St</td>
-                                <td>456 Elm St</td>
-                                <td><span class="status-badge status-pending">Pending</span></td>
-                                <td>2025-04-15</td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn btn-primary">Assign</button>
-                                        <button class="btn btn-info">View</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>Jane Smith</td>
-                                <td>789 Oak St</td>
-                                <td>321 Pine St</td>
-                                <td><span class="status-badge status-accepted">Accepted</span></td>
-                                <td>2025-04-14</td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn btn-primary" disabled>Assign</button>
-                                        <button class="btn btn-info">View</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>3</td>
-                                <td>Robert Williams</td>
-                                <td>555 Cedar Ave</td>
-                                <td>777 Maple Rd</td>
-                                <td><span class="status-badge status-pending">Pending</span></td>
-                                <td>2025-04-16</td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn btn-primary">Assign</button>
-                                        <button class="btn btn-info">View</button>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <ul class="pagination">
-                    <li class="disabled"><a href="#">Previous</a></li>
-                    <li class="active"><a href="#">1</a></li>
-                    <li><a href="#">2</a></li>
-                    <li><a href="#">3</a></li>
-                    <li><a href="#">Next</a></li>
-                </ul>
-            </div>
+       <!-- Requests Panel -->
+<div class="dashboard-panel">
+    <div class="panel-header requests-header">
+        <i class="bi bi-car-front-fill me-2"></i>Ride Requests
+    </div>
+    <div class="panel-body">
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>User</th>
+                        <th>Pickup Location</th>
+                        <th>Dropoff Location</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in availableRequests|default([]) %}
+                        <tr>
+                            <td>{{ request.id }}</td>
+                            <td>{{ request.userName }}</td>
+                            <td>{{ request.pickupLocation }}</td>
+                            <td>{{ request.dropoffLocation }}</td>
+                            <td>
+                                <span class="status-badge status-{{ request.status|lower }}">{{ request.status }}</span>
+                            </td>
+                            <td>{{ request.time }}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-danger delete-btn" data-id="{{ request.id }}">Delete</button>
+                                    <button class="btn btn-info">View</button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center">No requests available</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        
+
+        <!-- Pagination (Optional) -->
+        <ul class="pagination">
+            <li class="disabled"><a href="#">Previous</a></li>
+            <li class="active"><a href="#">1</a></li>
+            <li><a href="#">2</a></li>
+            <li><a href="#">3</a></li>
+            <li><a href="#">Next</a></li>
+        </ul>
+    </div>
+</div>
+
+       <script>
+document.addEventListener('DOMContentLoaded', function () {
+    const deleteButtons = document.querySelectorAll('.delete-btn');
+
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const requestId = button.getAttribute('data-id');
+            const row = button.closest('tr');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'Do you really want to delete this request? This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then(result => {
+                if (result.isConfirmed) {
+                    fetch(`/request/delete/${requestId}`, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            row.style.transition = 'opacity 0.5s ease';
+                            row.style.opacity = '0';
+                            setTimeout(() => row.remove(), 500);
+                            Swal.fire('Deleted!', 'The request has been deleted.', 'success');
+                        } else {
+                            Swal.fire('Error!', data.message || 'Failed to delete request.', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        Swal.fire('Error!', 'Something went wrong. Try again later.', 'error');
+                    });
+                }
+            });
+        });
+    });
+});
+</script>
+
         <!-- Rides Panel -->
         <div class="dashboard-panel">
             <div class="panel-header rides-header">Active Rides</div>
@@ -102,49 +139,23 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>Michael Brown</td>
-                                <td>123 Main St → 456 Elm St</td>
-                                <td>10 km</td>
-                                <td>$15</td>
-                                <td><span class="status-badge status-ongoing">Ongoing</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn btn-info">Track</button>
-                                        <button class="btn btn-success">Complete</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>Sarah Johnson</td>
-                                <td>789 Oak St → 321 Pine St</td>
-                                <td>8 km</td>
-                                <td>$12</td>
-                                <td><span class="status-badge status-completed">Completed</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn btn-info">View</button>
-                                        <button class="btn btn-secondary">Invoice</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>3</td>
-                                <td>David Wilson</td>
-                                <td>222 Birch Ln → 444 Walnut Dr</td>
-                                <td>12 km</td>
-                                <td>$18</td>
-                                <td><span class="status-badge status-completed">Completed</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn btn-info">View</button>
-                                        <button class="btn btn-secondary">Invoice</button>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
+    {% for ride in availableRides %}
+    <tr data-id="{{ ride.id }}">
+        <td>{{ loop.index }}</td>
+        <td>{{ ride.userName }}</td>
+        <td>{{ ride.pickupLocation }} → {{ ride.dropoffLocation }}</td>
+        <td>{{ ride.distance }} km </td>
+        <td>{{ ride.price }}Dt</td>
+        <td><span class="status-badge status-{{ ride.status|lower }}">{{ ride.status }}</span></td>
+        <td>
+            <div class="action-buttons">
+              <button class="btn btn-danger delete-btn" data-id="{{ ride.id }}">Delete</button>
+             <button class="btn btn-info">View</button>
+            </div>
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
                     </table>
                 </div>
                 <ul class="pagination">
@@ -157,7 +168,56 @@
             </div>
         </div>
     </div>
-    
+
+   <script>
+document.addEventListener('DOMContentLoaded', function () {
+    const deleteButtons = document.querySelectorAll('.delete-btn');
+
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const row = button.closest('tr');
+            const rideId = row.getAttribute('data-id');
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'Do you want to delete this ride? This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/ride/delete/${rideId}`, { // ✅ UPDATED URL
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Response:', data); // for debugging
+                        if (data.status === 'success') {
+                            row.style.transition = 'opacity 0.5s ease';
+                            row.style.opacity = '0';
+                            setTimeout(() => row.remove(), 500);
+                            Swal.fire('Deleted!', data.message, 'success');
+                        } else {
+                            Swal.fire('Error!', data.message || 'Deletion failed.', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                        Swal.fire('Error!', 'Something went wrong. Try again later.', 'error');
+                    });
+                }
+            });
+        });
+    });
+});
+</script>
     <!-- Summary Cards -->
     <div class="summary-cards">
         <div class="summary-card card-requests">
@@ -357,10 +417,15 @@
     }
     
     .pagination {
-        display: flex;
-        justify-content: flex-end;
-        padding: 15px;
-        list-style: none;
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+
+    .delete-btn:hover {
+        background-color: #c82333;
+        color: white;
     }
     
     .pagination li {

@@ -104,7 +104,10 @@ class RideService
         $this->entityManager->flush();
         return $ride;
     }
-
+    public function getAllRides()
+    {
+        return $this->rideRepository->findAll();
+    }
     private function calculatePrice(float $distance): float
     {
         $basePrice = 3.0; // Base price in TND
