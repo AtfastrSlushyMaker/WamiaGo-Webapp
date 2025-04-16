@@ -364,7 +364,7 @@ class BicycleRentalAdminController extends AbstractController
         
         if (!$rental) {
             $this->addFlash('error', 'Rental not found');
-            return $this->redirectToRoute('admin_bicycle_rentals_index');
+            return $this->redirectToRoute('admin_bicycle_rentals',["tab"=>"rentals"]);
         }
         
         // Create all necessary forms
@@ -657,5 +657,24 @@ class BicycleRentalAdminController extends AbstractController
         }
         
         return $this->redirectToRoute('admin_bicycle_dashboard', $params);
+    }
+
+    #[Route('/{id}/details', name:'admin_bicycle_rental_details', methods: ['GET'])]
+    public function rental_details(Request $request, int $id): Response
+    {
+        $rental = $this->entityManager->getRepository(BicycleRental::class)->find($id);
+        
+        if (!$rental) {
+            $this->addFlash('error', 'Rental not found');
+            return $this->redirectToRoute('admin_bicycle_rentals_index');
+        }
+        
+        // Create all necessary forms
+        $forms = $this->createCommonForms();
+        
+        return $this->render('back-office/bicycle/rental-details.html.twig', array_merge([
+            'rental' => $rental,
+            'active_tab' => 'rentals'
+        ], $forms));
     }
 }
