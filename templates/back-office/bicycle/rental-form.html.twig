@@ -10,7 +10,6 @@
             <div class="d-flex justify-content-between align-items-center">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_dashboard', {'tab': 'rentals'}) }}">Dashboard</a></li>
                         <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_rentals_index') }}">Rentals</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             {{ mode == 'edit' ? 'Edit Rental #' ~ rental.idUserRental : 'Create New Rental' }}
