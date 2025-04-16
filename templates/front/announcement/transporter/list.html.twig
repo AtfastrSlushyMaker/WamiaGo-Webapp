@@ -95,6 +95,26 @@
 
     <!-- Delete Modal -->
     {% include 'front/announcement/transporter/_partials/delete_modal.html.twig' %}
+
+    <!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-draggable">
+        <div class="modal-content border-0">
+            <div class="modal-header bg-gradient-primary text-white cursor-move">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-edit me-3 fs-4"></i>
+                    <h5 class="modal-title mb-0">EDIT ANNOUNCEMENT</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" id="editModalBody">
+                <!-- Contenu chargé dynamiquement via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100"></div>
     
     <!-- Details Modal -->
     {% include 'front/announcement/transporter/_partials/details_modal.html.twig' %}

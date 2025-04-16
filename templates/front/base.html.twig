@@ -25,6 +25,7 @@
     {% block page_stylesheets %}{% endblock %}
     {% endblock %}
     <meta name="csrf-token" content="{{ csrf_token('bicycle_reservation') }}">
+    <meta name="csrf-token" content="{{ csrf_token('reservation') }}">
 </head>
 <body>
     {% block header %}

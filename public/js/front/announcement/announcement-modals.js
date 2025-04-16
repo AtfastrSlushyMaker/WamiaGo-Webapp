@@ -353,8 +353,279 @@ function initializeDeleteModal() {
     });
 }
 
+// Initialisation des boutons d'édition
+function initializeEditButtons() {
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-edit')) {
+            const button = e.target.closest('.btn-edit');
+            const announcementId = button.dataset.id;
+            openEditModal(announcementId);
+        }
+    });
+}
+
+async function openEditModal(announcementId) {
+    try {
+        const editModalEl = document.getElementById('editModal');
+        if (!editModalEl) {
+            console.error('Edit modal element not found');
+            return;
+        }
+
+        const editModal = new bootstrap.Modal(editModalEl);
+        const modalBody = editModalEl.querySelector('#editModalBody');
+        
+        // Afficher le loader
+        modalBody.innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3 text-muted">Loading edit form...</p>
+            </div>
+        `;
+
+        editModal.show();
+
+        // Charger le formulaire
+        const response = await fetch(`/transporter/announcements/${announcementId}/edit`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        if (!response.ok) throw new Error('Failed to load edit form');
+
+        const html = await response.text();
+        modalBody.innerHTML = html;
+
+        // Initialiser le drag & drop
+        initEditModalDrag();
+
+    } catch (error) {
+        console.error('Edit modal error:', error);
+        const modalBody = document.querySelector('#editModalBody');
+        if (modalBody) {
+            modalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Error loading edit form: ${error.message}
+                </div>
+            `;
+        }
+    }
+}
+
+function initEditModalDrag() {
+    const modal = document.querySelector('#editModal .modal-dialog');
+    const header = document.querySelector('#editModal .modal-header');
+    
+    if (!modal || !header) return;
+
+    let isDragging = false;
+    let startX, startY, startLeft, startTop;
+
+    header.addEventListener('mousedown', function(e) {
+        if (e.target.closest('.btn-close')) return;
+        
+        isDragging = true;
+        modal.classList.add('modal-dialog-draggable');
+        document.body.classList.add('no-select');
+        
+        startLeft = modal.offsetLeft;
+        startTop = modal.offsetTop;
+        startX = e.clientX;
+        startY = e.clientY;
+        
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+        
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        
+        let newLeft = startLeft + dx;
+        let newTop = startTop + dy;
+        
+        // Limites de l'écran
+        newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - modal.offsetWidth));
+        newTop = Math.max(0, Math.min(newTop, window.innerHeight - 100));
+        
+        modal.style.left = `${newLeft}px`;
+        modal.style.top = `${newTop}px`;
+    });
+
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+        document.body.classList.remove('no-select');
+    });
+}
+
+// Gestion de la soumission du formulaire
+function handleEditFormSubmission() {
+    document.addEventListener('submit', async function(e) {
+        if (e.target.id === 'edit-announcement-form') {
+            e.preventDefault();
+            
+            const form = e.target;
+            const formData = new FormData(form);
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Updating...';
+            
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    
+                    // Fermer le modal après un délai
+                    setTimeout(() => {
+                        bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                        
+                        // Mettre à jour la carte
+                        updateAnnouncementCard(data.announcement);
+                    }, 1500);
+                } else {
+                    displayFormErrors(form, data.errors || {});
+                    showToast(data.message || 'Error updating announcement', 'error');
+                }
+            } catch (error) {
+                showToast('Network error: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        }
+    });
+}
+
+
+function updateAnnouncementCard(announcementData) {
+    const card = document.querySelector(`.announcement-card[data-id="${announcementData.id}"]`);
+    if (!card) return;
+    
+    // Mettre à jour les éléments de la carte
+    if (card.querySelector('.card-title')) {
+        card.querySelector('.card-title').textContent = announcementData.title;
+    }
+    
+    if (card.querySelector('.card-content')) {
+        card.querySelector('.card-content').textContent = 
+            announcementData.content.length > 120 
+                ? announcementData.content.substring(0, 120) + '...' 
+                : announcementData.content;
+    }
+    
+    if (card.querySelector('.card-badge')) {
+        const badge = card.querySelector('.card-badge');
+        badge.className = `card-badge ${announcementData.status ? 'active' : 'inactive'}`;
+        badge.textContent = announcementData.status ? 'ACTIVE' : 'INACTIVE';
+    }
+    
+    // Mettre à jour la zone et date si nécessaire
+    const metaItems = card.querySelectorAll('.meta-item span');
+    if (metaItems.length > 0) {
+        metaItems[0].textContent = announcementData.zone;
+        metaItems[1].textContent = announcementData.date;
+    }
+}
+
+async function handleEditFormSubmit(form) {
+    const formData = new FormData(form);
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Updating...';
+    
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showToast(data.message, 'success');
+            
+            // Fermer le modal après un délai
+            setTimeout(() => {
+                const editModal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
+                if (editModal) editModal.hide();
+                
+                // Mettre à jour la carte
+                if (data.announcement) {
+                    updateAnnouncementCard(data.announcement);
+                }
+            }, 1500);
+        } else {
+            displayFormErrors(form, data.errors || {});
+            showToast(data.message || 'Error updating announcement', 'error');
+        }
+    } catch (error) {
+        console.error('Update error:', error);
+        showToast('Network error: ' + error.message, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+}
+
+function displayFormErrors(form, errors) {
+    // Réinitialiser les erreurs précédentes
+    form.querySelectorAll('.is-invalid').forEach(el => {
+        el.classList.remove('is-invalid');
+    });
+    
+    form.querySelectorAll('.invalid-feedback').forEach(el => {
+        el.textContent = '';
+    });
+    
+    // Afficher les nouvelles erreurs
+    Object.entries(errors).forEach(([field, message]) => {
+        const input = form.querySelector(`[name*="${field}"]`);
+        if (input) {
+            input.classList.add('is-invalid');
+            const feedback = input.closest('.form-group')?.querySelector('.invalid-feedback');
+            if (feedback) {
+                feedback.textContent = message;
+            }
+        }
+    });
+}
+
+
+
+
+
+
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeAnnouncementModals();
     initializeDeleteModal();
+    initializeEditButtons();
+    handleEditFormSubmission();
+    document.addEventListener('submit', function(e) {
+        if (e.target.id === 'edit-announcement-form') {
+            e.preventDefault();
+            handleEditFormSubmit(e.target);
+        }
+    });
 });
+

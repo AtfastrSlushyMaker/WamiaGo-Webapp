@@ -26,8 +26,10 @@ class TransporterAnnouncementController extends AbstractController
 
     public function __construct(
         private readonly AnnouncementService $announcementService,
+        private readonly AnnouncementRepository $announcementRepository,
         private readonly DriverRepository $driverRepository,
         private readonly PaginatorInterface $paginator
+
     ) {
     }
 
@@ -44,7 +46,9 @@ class TransporterAnnouncementController extends AbstractController
         $announcement->setStatus(true);
         //$announcement->setDate((new \DateTime())); 
     
-        $form = $this->createForm(TransporterAnnouncementType::class, $announcement);
+        $form = $this->createForm(TransporterAnnouncementType::class, $announcement, [
+            'validation_groups' => ['Default']
+        ]);
         $form->handleRequest($request);
     
         if ($form->isSubmitted()) {
@@ -101,23 +105,25 @@ class TransporterAnnouncementController extends AbstractController
     }
     
     private function getFormErrors($form): array
-{
-    $errors = [];
-    foreach ($form->getErrors(true) as $error) {
-        $fieldName = $error->getOrigin()->getName();
-        if (!isset($errors[$fieldName])) {
-            $errors[$fieldName] = $error->getMessage();
-        } else {
-            // Si plusieurs erreurs pour le même champ, les concaténer
-            if (is_array($errors[$fieldName])) {
-                $errors[$fieldName][] = $error->getMessage();
-            } else {
-                $errors[$fieldName] = [$errors[$fieldName], $error->getMessage()];
+    {
+        $errors = [];
+        
+        // Global form errors
+        foreach ($form->getErrors() as $error) {
+            $errors['_global'][] = $error->getMessage();
+        }
+        
+        // Field-specific errors
+        foreach ($form->all() as $child) {
+            if (!$child->isValid()) {
+                foreach ($child->getErrors() as $error) {
+                    $errors[$child->getName()] = $error->getMessage();
+                }
             }
         }
+        
+        return $errors;
     }
-    return $errors;
-}
 
     #[Route('/', name: 'app_transporter_announcement_list', methods: ['GET'])]
 public function list(Request $request, PaginatorInterface $paginator): Response
@@ -193,14 +199,10 @@ public function details(int $id, AnnouncementRepository $announcementRepository)
     ]);
 }
 
-#[Route('/{id}/edit', name: 'app_transporter_announcement_edit', methods: ['GET', 'POST'])]
-public function edit(
-    Request $request,
-    int $id,
-    AnnouncementRepository $announcementRepository,
-    EntityManagerInterface $em
-): Response {
-    $announcement = $announcementRepository->find($id);
+#[Route('/{id}/edit', name: 'app_transporter_announcement_edit', methods: ['GET'])]
+public function edit(int $id, Request $request): Response
+{
+    $announcement = $this->announcementRepository->findOneBy(['id_announcement' => $id]);
     
     if (!$announcement) {
         if ($request->isXmlHttpRequest()) {
@@ -210,47 +212,72 @@ public function edit(
     }
 
     $form = $this->createForm(TransporterAnnouncementType::class, $announcement);
+    
+    if ($request->isXmlHttpRequest()) {
+        return $this->render('front/announcement/transporter/_partials/edit_modal_content.html.twig', [
+            'form' => $form->createView(),
+            'announcement' => $announcement
+        ]);
+    }
+
+    return $this->render('front/announcement/transporter/edit.html.twig', [
+        'form' => $form->createView(),
+        'announcement' => $announcement
+    ]);
+}
+
+#[Route('/{id}/update', name: 'app_transporter_announcement_update', methods: ['POST'])]
+public function update(Request $request, int $id): Response
+{
+    $announcement = $this->announcementRepository->findOneBy(['id_announcement' => $id]);
+    if (!$announcement) {
+        return new JsonResponse(['error' => 'Announcement not found'], 404);
+    }
+
+    $form = $this->createForm(TransporterAnnouncementType::class, $announcement);
     $form->handleRequest($request);
 
-    if ($form->isSubmitted() && $form->isValid()) {
-        try {
-            $em->flush();
-
-            if ($request->isXmlHttpRequest()) {
+    if ($form->isSubmitted()) {
+        if ($form->isValid()) {
+            try {
+                $this->announcementService->updateAnnouncement($announcement);
+                
                 return new JsonResponse([
                     'success' => true,
                     'message' => 'Announcement updated successfully!',
-                    'html' => $this->renderView('front/announcement/transporter/_announcement_card.html.twig', [
-                        'announcement' => $announcement
-                    ])
+                    'announcement' => [
+                        'id' => $announcement->getIdAnnouncement(),
+                        'title' => $announcement->getTitle(),
+                        'content' => $announcement->getContent(),
+                        'zone' => $announcement->getZone()->value,
+                        'date' => $announcement->getDate()->format('d M Y, H:i'),
+                        'status' => $announcement->isStatus()
+                    ]
                 ]);
-            }
-
-            $this->addFlash('success', 'Announcement updated successfully!');
-            return $this->redirectToRoute('app_transporter_announcement_list');
-            
-        } catch (\Exception $e) {
-            if ($request->isXmlHttpRequest()) {
+            } catch (\Exception $e) {
                 return new JsonResponse([
                     'success' => false,
                     'message' => 'Error: ' . $e->getMessage()
                 ], 500);
             }
-            $this->addFlash('error', 'Error updating announcement');
         }
+
+        $errors = [];
+        foreach ($form->getErrors(true) as $error) {
+            $errors[$error->getOrigin()->getName()] = $error->getMessage();
+        }
+        
+        return new JsonResponse([
+            'success' => false,
+            'message' => 'Please correct the errors',
+            'errors' => $errors
+        ], 422);
     }
 
-    $view = $request->isXmlHttpRequest() 
-        ? 'front/announcement/transporter/_edit_form.html.twig'
-        : 'front/announcement/transporter/edit.html.twig';
-
-    return $this->render($view, [
-        'form' => $form->createView(),
-        'announcement' => $announcement
-    ], new Response(
-        null,
-        $form->isSubmitted() && !$form->isValid() ? 422 : 200
-    ));
+    return new JsonResponse([
+        'success' => false,
+        'message' => 'Invalid form submission'
+    ], 400);
 }
     
 }

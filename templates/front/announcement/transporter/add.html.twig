@@ -57,14 +57,17 @@
             <div class="form-card">
                 <!-- Title Field -->
                 <div class="form-group floating-label">
-                    {{ form_widget(form.title, {'attr': {
-                        'class': 'form-control' ~ (form.title.vars.valid ? '' : ' is-invalid'),
-                        'placeholder': ' ',
-                        'data-3d': 'true'
-                    }}) }}
-                    {{ form_label(form.title) }}
-                    <div class="invalid-feedback">{{ form_errors(form.title)|striptags }}</div>
-                </div>
+    {{ form_widget(form.title, {'attr': {
+        'class': 'form-control' ~ (form.title.vars.errors|length ? ' is-invalid' : ''),
+        'placeholder': ' '
+    }}) }}
+    {{ form_label(form.title) }}
+    <div class="invalid-feedback">
+        {% for error in form.title.vars.errors %}
+            {{ error.message }}
+        {% endfor %}
+    </div>
+</div>
 
                 <!-- Content Field -->
                 <div class="form-group floating-label">

@@ -1,0 +1,48 @@
+/* public/css/front/reservation/reservation-cards.css */
+.reservations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.reservation-card {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+/* Status-based styling */
+.reservation-card.confirmed {
+    opacity: 0.7;
+    border-left: 4px solid #28a745;
+}
+
+.reservation-card.cancelled {
+    opacity: 0.7;
+    border-left: 4px solid #dc3545;
+}
+
+/* Status badges */
+.badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.badge.pending {
+    background: #ffc107;
+    color: #000;
+}
+
+.badge.confirmed {
+    background: #28a745;
+    color: white;
+}
+
+.badge.cancelled {
+    background: #dc3545;
+    color: white;
+}

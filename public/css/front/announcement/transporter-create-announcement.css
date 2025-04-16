@@ -522,3 +522,36 @@ textarea.form-control {
 .badge-item i {
     color: var(--primary);
 }
+
+/* edit-announcement.css */
+.edit-announcement-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.edit-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    border: none;
+}
+
+.edit-card .card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: none;
+}
+
+.edit-card .card-body {
+    padding: 2rem;
+}
+
+@media (max-width: 768px) {
+    .edit-announcement-container {
+        padding: 0 0.5rem;
+    }
+    
+    .edit-card .card-body {
+        padding: 1.5rem;
+    }
+}

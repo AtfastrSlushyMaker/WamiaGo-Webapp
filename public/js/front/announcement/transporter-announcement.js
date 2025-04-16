@@ -1,16 +1,20 @@
 function showToast(message, type = 'success') {
-    const toastContainer = document.getElementById('toast-container');
+    // Créer le conteneur s'il n'existe pas
+    let toastContainer = document.getElementById('toast-container');
     if (!toastContainer) {
-        console.warn('Toast container not found');
-        return;
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        toastContainer.style.zIndex = '1100';
+        document.body.appendChild(toastContainer);
     }
-    
+
     const toast = document.createElement('div');
-    toast.className = `toast show align-items-center text-white bg-${type}`;
+    toast.className = `toast show align-items-center text-white bg-${type} border-0`;
     toast.setAttribute('role', 'alert');
     toast.setAttribute('aria-live', 'assertive');
     toast.setAttribute('aria-atomic', 'true');
-    
+
     toast.innerHTML = `
         <div class="d-flex">
             <div class="toast-body">
@@ -20,9 +24,9 @@ function showToast(message, type = 'success') {
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     `;
-    
+
     toastContainer.appendChild(toast);
-    
+
     // Auto-hide after 5 seconds
     setTimeout(() => {
         toast.remove();
@@ -132,58 +136,59 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!form) return;
 
     // Gestion de la soumission du formulaire
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(form);
-        const submitButton = form.querySelector('button[type="submit"]');
-        const originalText = submitButton.innerHTML;
-        
-        // Afficher l'état de chargement
-        submitButton.disabled = true;
-        submitButton.innerHTML = '<span class="submit-spinner"><i class="fas fa-spinner fa-spin"></i></span> Publication en cours...';
-        
-        try {
-            const response = await fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                // Succès
-                form.classList.add('submit-success');
-                showToast(data.message || 'Annonce publiée avec succès !', 'success');
-                
-                // Redirection après 1.5 secondes
-                setTimeout(() => {
-                    window.location.href = data.redirectUrl || '/transporter/announcements';
-                }, 1500);
-            } else {
-                // Erreurs
-                if (data.errors) {
-                    displayFormErrors(form, data.errors);
-                }
-                showToast(data.message || 'Erreur lors de la soumission du formulaire', 'error');
-                form.classList.add('submit-error');
-                setTimeout(() => form.classList.remove('submit-error'), 1000);
+   // Gestion de la soumission du formulaire
+form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(form);
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalText = submitButton.innerHTML;
+    
+    // Afficher l'état de chargement
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<span class="submit-spinner"><i class="fas fa-spinner fa-spin"></i></span> Publication en cours...';
+    
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
             }
-        } catch (error) {
-            showToast('Erreur réseau. Veuillez réessayer.', 'error');
-        } finally {
-            submitButton.disabled = false;
-            submitButton.innerHTML = originalText;
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Succès
+            form.classList.add('submit-success');
+            showToast(data.message || 'Annonce publiée avec succès !', 'success');
+            
+            // Redirection après 1.5 secondes
+            setTimeout(() => {
+                window.location.href = data.redirectUrl || '/transporter/announcements';
+            }, 1500);
+        } else {
+            // Erreurs
+            if (data.errors) {
+                displayFormErrors(form, data.errors);
+            }
+            showToast(data.message || 'Erreur lors de la soumission du formulaire', 'error');
+            form.classList.add('submit-error');
+            setTimeout(() => form.classList.remove('submit-error'), 1000);
         }
-    });
+    } catch (error) {
+        showToast('Erreur réseau. Veuillez réessayer.', 'error');
+    } finally {
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalText;
+    }
+});
     
     // Fonction pour afficher les erreurs de formulaire
     function displayFormErrors(form, errors) {
-        // Réinitialiser les erreurs précédentes
+        // Clear previous errors
         document.querySelectorAll('.is-invalid').forEach(el => {
             el.classList.remove('is-invalid');
         });
@@ -192,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
             el.textContent = '';
         });
         
-        // Afficher les nouvelles erreurs
+        // Add new errors
         Object.entries(errors).forEach(([field, message]) => {
             const input = form.querySelector(`[name*="${field}"]`);
             if (input) {
@@ -201,6 +206,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (feedback) {
                     feedback.textContent = message;
                 }
+            } else if (field === '_global') {
+                // Show global errors as toasts
+                showToast(Array.isArray(message) ? message.join(' ') : message, 'error');
             }
         });
     }
@@ -215,8 +223,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Enhanced error display
-function displayFormErrors(errors) {
-    // Clear previous errors
+function displayFormErrors(form, errors) {
+    // Reset previous errors
     document.querySelectorAll('.is-invalid').forEach(el => {
         el.classList.remove('is-invalid');
     });
@@ -225,18 +233,30 @@ function displayFormErrors(errors) {
         el.textContent = '';
     });
     
-    // Add new errors
-    Object.entries(errors).forEach(([field, messages]) => {
-        const input = form.querySelector(`[name*="${field}"]`);
+    // Display new errors
+    Object.entries(errors).forEach(([field, message]) => {
+        // Handle dot notation for nested fields (e.g., 'parent.child')
+        const fieldPath = field.split('.');
+        const fieldName = fieldPath[fieldPath.length - 1];
+        
+        // Try different selectors to find the input
+        let input = form.querySelector(`[name="${field}"]`);
+        if (!input) {
+            input = form.querySelector(`[name$="[${fieldName}]"]`);
+        }
+        
         if (input) {
             input.classList.add('is-invalid');
-            const feedback = input.closest('.form-group').querySelector('.invalid-feedback');
-            if (feedback) {
-                feedback.textContent = Array.isArray(messages) ? messages.join(' ') : messages;
+            const formGroup = input.closest('.form-group');
+            if (formGroup) {
+                const feedback = formGroup.querySelector('.invalid-feedback');
+                if (feedback) {
+                    feedback.textContent = Array.isArray(message) ? message.join(' ') : message;
+                }
             }
         } else {
-            // Show general errors
-            showToast(messages, 'error');
+            // If field not found, show as a toast message
+            showToast(Array.isArray(message) ? message.join(' ') : message, 'error');
         }
     });
 }
@@ -296,17 +316,39 @@ async function openEditModal(announcementId) {
         const response = await fetch(`/transporter/announcements/${announcementId}/edit`, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         });
-        
+
+        // Vérifiez d'abord le statut de la réponse
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Failed to load edit form');
+            // Essayez de lire le message d'erreur JSON
+            try {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to load edit form');
+            } catch (e) {
+                // Si le parsing JSON échoue, lire comme texte
+                const errorText = await response.text();
+                throw new Error(errorText || 'Unknown error occurred');
+            }
         }
-        
+
+        // Si tout va bien, traiter la réponse comme HTML
         const html = await response.text();
-        // ... reste du code
+        const modalContainer = document.createElement('div');
+        modalContainer.innerHTML = html;
+        document.body.appendChild(modalContainer);
+        
+        const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+        editModal.show();
+        
+        // Nettoyage après fermeture
+        editModal._element.addEventListener('hidden.bs.modal', () => {
+            modalContainer.remove();
+        });
+
     } catch (error) {
         console.error('Edit error:', error);
-        showToast(error.message, 'error');
+        // Afficher seulement le début du message pour éviter les contenus HTML longs
+        const shortError = error.message.substring(0, 100);
+        showToast('Error: ' + shortError, 'error');
     }
 }
 
@@ -385,4 +427,59 @@ function updateAnnouncementCard(id, data) {
 // Appelez initEditButtons au chargement
 document.addEventListener('DOMContentLoaded', function() {
     initEditButtons();
+});
+
+function handleEditFormSubmission() {
+    document.addEventListener('submit', async function(e) {
+        if (e.target.id === 'edit-announcement-form') {
+            e.preventDefault();
+            
+            const form = e.target;
+            const formData = new FormData(form);
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Updating...';
+            
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Announcement updated successfully!', 'success');
+                    
+                    // Fermer le modal après un délai
+                    setTimeout(() => {
+                        bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                        
+                        // Mettre à jour la carte
+                        if (data.announcement) {
+                            updateAnnouncementCard(data.announcement);
+                        }
+                    }, 1500);
+                } else {
+                    displayFormErrors(form, data.errors || {});
+                    showToast(data.message || 'Error updating announcement', 'error');
+                }
+            } catch (error) {
+                showToast('Network error: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        }
+    });
+}
+
+// Initialiser au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    handleEditFormSubmission();
 });
