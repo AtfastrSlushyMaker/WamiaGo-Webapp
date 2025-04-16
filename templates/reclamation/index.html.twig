@@ -1,41 +1,341 @@
+{% extends 'back-office/base.html.twig' %}
+
+{% block content %}
 <!DOCTYPE html>
-
-<title>Reclamation index</title>
-
-{% block body %}
-    <h1>Reclamation index</h1>
-
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id_reclamation</th>
-                <th>Content</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Title</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for reclamation in reclamations %}
-            <tr>
-                <td>{{ reclamation.idReclamation }}</td>
-                <td>{{ reclamation.content }}</td>
-                <td>{{ reclamation.date ? reclamation.date|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ reclamation.status ? 'Yes' : 'No' }}</td>
-                <td>{{ reclamation.title }}</td>
-                <td>
-                    <a href="{{ path('app_reclamation_show', {'id_reclamation': reclamation.id_reclamation}) }}">show</a>
-                    <a href="{{ path('app_reclamation_edit', {'id_reclamation': reclamation.id_reclamation}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="6">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
-    <a href="{{ path('app_reclamation_new') }}">Create new</a>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reclamation index</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .table-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .table thead {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .table th {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .table td {
+            vertical-align: middle;
+        }
+        
+        .status-badge {
+            padding: 0.35rem 0.65rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .status-true {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-false {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .btn-action {
+            border-radius: 50px;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.85rem;
+            margin-right: 0.5rem;
+        }
+        
+        .no-records {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+        
+        .actions-column {
+            min-width: 150px;
+        }
+        
+        .filter-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .filter-active {
+            background-color: var(--primary-color) !important;
+            color: white !important;
+        }
+        
+        @media (max-width: 768px) {
+            .table-responsive {
+                overflow-x: auto;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% block body %}
+    <div class="container">
+        <div class="filter-container">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" id="searchInput" class="form-control" placeholder="Rechercher par titre ou utilisateur...">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn btn-outline-secondary filter-btn" data-filter="all">
+                            <i class="fas fa-list me-1"></i> Toutes
+                        </button>
+                        <button class="btn btn-outline-secondary filter-btn" data-filter="true">
+                            <i class="fas fa-check-circle me-1"></i> Traitées
+                        </button>
+                        <button class="btn btn-outline-secondary filter-btn" data-filter="false">
+                            <i class="fas fa-clock me-1"></i> Non traitées
+                        </button>
+                        <div class="dropdown">
+                            
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item sort-option" href="#" data-sort="date-desc">Date (récent)</a></li>
+                                <li><a class="dropdown-item sort-option" href="#" data-sort="date-asc">Date (ancien)</a></li>
+                                <li><a class="dropdown-item sort-option" href="#" data-sort="title-asc">Titre (A-Z)</a></li>
+                                <li><a class="dropdown-item sort-option" href="#" data-sort="title-desc">Titre (Z-A)</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-hover" id="reclamationsTable">
+                    <thead>
+                        <tr>
+                            <th>Utilisateur</th>
+                            <th>Titre</th>
+                            <th>Date</th>
+                            <th>Statut</th>
+                            <th class="actions-column">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for reclamation in reclamations %}
+                        <tr data-status="{{ reclamation.status ? 'true' : 'false' }}" 
+                            data-title="{{ reclamation.title|lower }}" 
+                            data-user="{{ reclamation.user.name|lower }}"
+                            data-date="{{ reclamation.date|date('Y-m-d H:i:s') }}">
+                            <td>{{ reclamation.user.name }}</td>
+                            <td>{{ reclamation.title }}</td>
+                            <td>
+                                <span class="badge bg-light text-dark">
+                                    <i class="far fa-calendar-alt me-1"></i>
+                                    {{ reclamation.date ? reclamation.date|date('Y-m-d H:i:s') : '' }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="status-badge status-{{ reclamation.status ? 'true' : 'false' }}" onclick="filterByStatus({{ reclamation.status ? 'true' : 'false' }})">
+                                    {{ reclamation.status ? 'Traité' : 'Non traité' }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{{ path('app_reclamation_detail', {'id_reclamation': reclamation.id_reclamation}) }}" class="btn btn-action btn-primary btn-sm">
+                                    <i class="fas fa-eye"></i> Détails
+                                </a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6">
+                                <div class="no-records">
+                                    <i class="far fa-folder-open fa-3x mb-3"></i>
+                                    <h4>Aucune réclamation trouvée</h4>
+                                    <p class="text-muted">Il n'y a aucune réclamation à afficher pour le moment.</p>
+                                    <a href="#" class="btn btn-primary mt-2">
+                                        <i class="fas fa-plus me-1"></i> Créer une réclamation
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if reclamations %}
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="text-muted">
+                    Affichage de <strong>{{ reclamations|length }}</strong> réclamations
+                </div>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Précédent</a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">Suivant</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Filtrage par statut
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const filterValue = this.getAttribute('data-filter');
+                    
+                    // Mettre à jour l'état actif des boutons
+                    filterButtons.forEach(btn => btn.classList.remove('filter-active'));
+                    this.classList.add('filter-active');
+                    
+                    // Filtrer les lignes
+                    const rows = document.querySelectorAll('#reclamationsTable tbody tr');
+                    rows.forEach(row => {
+                        if (filterValue === 'all') {
+                            row.style.display = '';
+                        } else {
+                            const rowStatus = row.getAttribute('data-status');
+                            if (rowStatus === filterValue) {
+                                row.style.display = '';
+                            } else {
+                                row.style.display = 'none';
+                            }
+                        }
+                    });
+                });
+            });
+            
+            // Recherche
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('keyup', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = document.querySelectorAll('#reclamationsTable tbody tr');
+                
+                rows.forEach(row => {
+                    const title = row.getAttribute('data-title');
+                    const user = row.getAttribute('data-user');
+                    
+                    if (title.includes(searchTerm) || user.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+            
+            // Tri
+            const sortOptions = document.querySelectorAll('.sort-option');
+            sortOptions.forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const sortValue = this.getAttribute('data-sort');
+                    sortReclamations(sortValue);
+                });
+            });
+        });
+        
+        function filterByStatus(status) {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            filterButtons.forEach(btn => {
+                btn.classList.remove('filter-active');
+                if (btn.getAttribute('data-filter') === status.toString()) {
+                    btn.classList.add('filter-active');
+                }
+            });
+            
+            const rows = document.querySelectorAll('#reclamationsTable tbody tr');
+            rows.forEach(row => {
+                const rowStatus = row.getAttribute('data-status');
+                if (rowStatus === status.toString()) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        function sortReclamations(sortType) {
+            const rows = Array.from(document.querySelectorAll('#reclamationsTable tbody tr'));
+            const tbody = document.querySelector('#reclamationsTable tbody');
+            
+            rows.sort((a, b) => {
+                switch(sortType) {
+                    case 'date-desc':
+                        return new Date(b.getAttribute('data-date')) - new Date(a.getAttribute('data-date'));
+                    case 'date-asc':
+                        return new Date(a.getAttribute('data-date')) - new Date(b.getAttribute('data-date'));
+                    case 'title-asc':
+                        return a.getAttribute('data-title').localeCompare(b.getAttribute('data-title'));
+                    case 'title-desc':
+                        return b.getAttribute('data-title').localeCompare(a.getAttribute('data-title'));
+                    default:
+                        return 0;
+                }
+            });
+            
+            // Vider et réinsérer les lignes triées
+            tbody.innerHTML = '';
+            rows.forEach(row => tbody.appendChild(row));
+        }
+    </script>
+    {% endblock %}
+</body>
+</html>
 {% endblock %}
+
+{% block title %}Gestion des réclamations{% endblock %}

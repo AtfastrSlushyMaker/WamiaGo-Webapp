@@ -1,0 +1,172 @@
+{% extends 'back-office/base.html.twig' %}
+
+{% block content %}
+    <div class="container-fluid px-4">
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800 font-weight-600">Détails de la réclamation</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb bg-transparent p-0">
+                    <li class="breadcrumb-item"><a href="{{ path('app_reclamation_list') }}" class="text-primary">Gestion des réclamations</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Détails #{{ reclamation.id }}</li>
+                </ol>
+            </nav>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-white">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-ticket-alt mr-2"></i>Réclamation #{{ reclamation.id }}
+                </h6>
+                <div class="dropdown no-arrow">
+                    <a class="dropdown-toggle" href="#" role="button" data-toggle="dropdown">
+                        <i class="fas fa-ellipsis-v text-gray-400"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in">
+                        <a class="dropdown-item" href="#"><i class="fas fa-print mr-2"></i>Imprimer</a>
+                        <a class="dropdown-item" href="#"><i class="fas fa-file-pdf mr-2"></i>Exporter en PDF</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item text-danger" href="#"><i class="fas fa-trash-alt mr-2"></i>Archiver</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-xl-8">
+                        <div class="card mb-4 border-left-primary">
+                            <div class="card-body">
+                                <h5 class="card-title text-gray-800 font-weight-bold">titre de reclamation :  {{ reclamation.title }}</h5>
+                                <hr class="mt-2 mb-3">
+                                <div class="content-box bg-gray-100 p-3 rounded">
+                                    <p class="mb-0">{{ reclamation.content }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-xl-4">
+                        <div class="card mb-4">
+                            <div class="card-header py-3 bg-white">
+                                <h6 class="m-0 font-weight-bold text-primary">Métadonnées</h6>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                                        <span class="text-gray-600"><i class="far fa-calendar-alt mr-2"></i>Date</span>
+                                        <span class="font-weight-bold">{{ reclamation.date|date('d/m/Y à H:i') }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                                        <span class="text-gray-600"><i class="fas fa-user mr-2"></i>Créateur</span>
+                                        <span class="font-weight-bold">{{ reclamation.user.name }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                                        <span class="text-gray-600"><i class="fas fa-info-circle mr-2"></i>Statut</span>
+                                        <span class="badge status-{{ reclamation.status ? 'true' : 'false' }} p-2">
+                                            {{ reclamation.status ? 'Traité' : 'En attente' }}
+                                            <i class="fas {{ reclamation.status ? 'fa-check-circle' : 'fa-clock' }} ml-1"></i>
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card border-left-info">
+                            <div class="card-header py-3 bg-white">
+                                <h6 class="m-0 font-weight-bold text-primary">Actions</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex flex-wrap gap-3">
+                                    {% if not reclamation.status %}
+    <form action="{{ path('app_response_update_status', {'id': reclamation.id_reclamation}) }}" method="post" class="d-inline">
+        <input type="hidden" name="_token" value="{{ csrf_token('update' ~ reclamation.id_reclamation) }}">
+        <button type="submit" class="btn btn-success btn-icon-split">
+            <span class="icon text-white-50">
+                <i class="fas fa-check"></i>
+            </span>
+            <span class="text">Marquer comme résolu</span>
+        </button>
+    </form>
+{% endif %}
+                                    
+                                    <button class="btn btn-primary btn-icon-split">
+                                        <span class="icon text-white-50">
+                                            <i class="fas fa-reply"></i>
+                                        </span>
+                                        <span class="text">Répondre</span>
+                                    </button>
+                                    
+                                    <form action="{{ path('app_reclamation_delete', {'id_reclamation': reclamation.id_reclamation}) }}" method="post" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reclamation.id_reclamation) }}">
+                                        <button type="submit" class="btn btn-danger btn-icon-split" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette réclamation ?')">
+                                            <span class="icon text-white-50">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </span>
+                                            <span class="text">Supprimer</span>
+                                        </button>
+                                    </form>
+                                    
+                                    <a href="{{ path('app_reclamation_list') }}" class="btn btn-secondary btn-icon-split">
+                                        <span class="icon text-white-50">
+                                            <i class="fas fa-arrow-left"></i>
+                                        </span>
+                                        <span class="text">Retour à la liste</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .content-box {
+            border-left: 3px solid #4e73df;
+            background-color: #f8f9fc;
+        }
+        
+        .status-true {
+            background-color: #1cc88a;
+            color: white;
+        }
+        
+        .status-false {
+            background-color: #e74a3b;
+            color: white;
+        }
+        
+        .btn-icon-split {
+            position: relative;
+            padding-left: 2.5rem;
+        }
+        
+        .btn-icon-split .icon {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-top-left-radius: 0.35rem;
+            border-bottom-left-radius: 0.35rem;
+        }
+        
+        .gap-3 > * {
+            margin-right: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+{% endblock %}
+{% block javascripts %}
+ {{parent() }}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+{% endblock %}

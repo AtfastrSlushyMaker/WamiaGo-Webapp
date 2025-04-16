@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Reclamation;
 use App\Entity\Response;
 use App\Form\ResponseType;
 use App\Repository\ResponseRepository;
@@ -62,10 +63,7 @@ final class ResponseController extends AbstractController
             return $this->redirectToRoute('app_response_index', [], HttpResponse::HTTP_SEE_OTHER);
         }
 
-        return $this->render('response/edit.html.twig', [
-            'response' => $response,
-            'form' => $form,
-        ]);
+        return $this->redirectToRoute("admin_response");
     }
 
     #[Route('/{id_response}', name: 'app_response_delete', methods: ['POST'])]
@@ -77,5 +75,17 @@ final class ResponseController extends AbstractController
         }
 
         return $this->redirectToRoute('app_response_index', [], HttpResponse::HTTP_SEE_OTHER);
+    }
+
+    #[Route('/{id}/update-status', name: 'app_response_update_status', methods: ['POST'])]
+    public function updateReponseStatus(int $id, EntityManagerInterface $entityManager): HttpResponse
+    {
+        $reclamation = $entityManager->getRepository(Reclamation::class)->find($id);
+            $reclamation->setStatus(1);
+            $entityManager->persist($reclamation);
+            $entityManager->flush();
+        
+
+        return $this->redirectToRoute('app_reclamation_list', [], HttpResponse::HTTP_SEE_OTHER);
     }
 }

@@ -18,6 +18,9 @@ class Reclamation
     #[ORM\Column(type: 'integer')]
     private ?int $id_reclamation = null;
 
+ 
+
+
     public function getId_reclamation(): ?int
     {
         return $this->id_reclamation;
@@ -137,5 +140,19 @@ class Reclamation
     {
         return $this->id_reclamation;
     }
+
+
+
+    public function getId(): ?int
+    {
+        return $this->id_reclamation;
+    }
+    public function setId(int $id): self
+    {
+        $this->id_reclamation = $id;
+        return $this;
+    }    
+    
+    
 
 }
