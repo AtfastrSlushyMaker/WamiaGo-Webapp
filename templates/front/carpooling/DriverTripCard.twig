@@ -1,0 +1,126 @@
+<div class="col-md-6 col-lg-4">
+    <div class="card trip-card shadow-sm border-0 mb-4">
+        <!-- Trip Status Badge -->
+        <div class="trip-status">
+            {% if trip.bookings|length > 0 %}
+                <span class="badge badge-booked">
+                    <i class="fas fa-users me-1"></i> Booked
+                </span>
+            {% else %}
+                <span class="badge bg-success rounded-pill px-3 py-2">
+                    <i class="fas fa-check-circle me-1"></i> Available
+                </span>
+            {% endif %}
+        </div>
+
+        <!-- Trip Header -->
+        <div class="card-header trip-card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold">
+                    <i class="fas fa-map-marker-alt text-danger me-2"></i>{{ trip.departureCity }}
+                    <i class="fas fa-arrow-right text-carpooling mx-2"></i>
+                    <i class="fas fa-map-marker-alt text-success me-2"></i>{{ trip.arrivalCity }}
+                </h5>
+            </div>
+            <p class="text-muted mb-0 mt-2">
+                <i class="far fa-calendar-alt me-2"></i>
+                {{ trip.departureDate|date('D, M d, Y') }} at {{ trip.departureDate|date('h:i A') }}
+            </p>
+        </div>
+
+        <!-- Trip Details -->
+        <div class="card-body">
+            <!-- Route Visualization -->
+            <div class="trip-route-visual">
+                <div class="city-point" data-bs-toggle="tooltip" title="{{ trip.departureCity }}"></div>
+                <div class="route-line">
+                    <i class="fas fa-car text-carpooling" style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%);"></i>
+                </div>
+                <div class="city-point" data-bs-toggle="tooltip" title="{{ trip.arrivalCity }}"></div>
+            </div>
+
+            <!-- Trip Details -->
+            <div class="trip-detail-row">
+                <div class="trip-detail-icon">
+                    <i class="fas fa-chair"></i>
+                </div>
+                <div>
+                    <p class="mb-0"><strong>Available Seats:</strong>
+                        <span class="text-carpooling">{{ trip.availableSeats - trip.bookings|length }}/{{ trip.availableSeats }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="trip-detail-row">
+                <div class="trip-detail-icon">
+                    <i class="fas fa-tag"></i>
+                </div>
+                <div>
+                    <p class="mb-0"><strong>Price per Passenger:</strong>
+                        <span class="text-carpooling">{{ trip.price_per_passenger|number_format(3) }} TND</span>
+                    </p>
+                </div>
+            </div>
+
+            {#{% if trip.notes %}
+                <div class="trip-detail-row">
+                    <div class="trip-detail-icon">
+                        <i class="fas fa-comment-alt"></i>
+                    </div>
+                    <div>
+                        <p class="mb-0"><strong>Notes:</strong>  {{ trip.notes }} </p>
+                    </div>
+                </div>
+            {% endif %}#}
+
+            <!-- Passengers Preview -->
+            {% if trip.bookings|length > 0 %}
+                <div class="mt-4">
+                    <h6 class="fw-bold"><i class="fas fa-users me-2 text-carpooling"></i>Passengers</h6>
+                    <div class="passenger-preview-container">
+                        {% set displayCount = 5 %}
+                        {% for booking in trip.bookings|slice(0, displayCount) %}
+                            <div class="passenger-preview">
+                                {# {{ booking.passenger.firstName|first|upper }}{{ booking.passenger.lastName|first|upper }}  #}
+                            </div>
+                        {% endfor %}
+                        {% if trip.bookings|length > displayCount %}
+                            <div class="passenger-preview passenger-count-more">
+                                +{{ trip.bookings|length - displayCount }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Trip Actions -->
+        <div class="card-footer">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="status-container">
+                    <div class="status-dot {% if trip.bookings|length > 0 %}dot-booked{% else %}dot-available{% endif %}"></div>
+                    <span class="fw-medium">{{ trip.bookings|length > 0 ? 'Booked' : 'Available' }}</span>
+                </div>
+                <div class="trip-actions">
+                    <button class="btn btn-sm-action edit edit-trip-btn"
+                            data-id="{{ trip.id_trip }}"
+                            data-trip="{{ {
+                                'departureCity': trip.departureCity,
+                                'arrivalCity': trip.arrivalCity,
+                                'departureDate': trip.departureDate,
+                                'availableSeats': trip.availableSeats,
+                                'pricePerPassenger': trip.price_per_passenger,
+
+                            }|json_encode|e('html_attr') }}">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm-action delete delete-trip-btn"
+                            data-id="{{ trip.id_trip     }}"
+                            data-has-bookings="{{ trip.bookings|length > 0 ? 'true' : 'false' }}">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

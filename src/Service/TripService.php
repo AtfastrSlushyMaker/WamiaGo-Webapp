@@ -22,38 +22,55 @@ class TripService
         return $this->tripRepository->find($id);
     }
 
-    public function createTrip(array $data): Trip
-    {
-        $trip = new Trip();
-        $trip->setStartLocation($data['startLocation']);
-        $trip->setEndLocation($data['endLocation']);
-        $trip->setDistance($data['distance']);
-        $trip->setStartTime(new \DateTime($data['startTime']));
-        $trip->setEndTime(new \DateTime($data['endTime']));
+public function createTrip(array $data): Trip
+{
+    // Define required keys
+    $requiredKeys = [
+        'departure_city',
+        'arrival_city',
+        'departure_date',
+        'available_seats',
+        'price_per_passenger',
+        'id_driver',
+        'id_vehicle'
+    ];
 
-        $this->entityManager->persist($trip);
-        $this->entityManager->flush();
 
-        return $trip;
-    }
+    // Create and populate the Trip entity
+    $trip = new Trip();
+    $trip->setDeparture_city($data['departure_city']);
+    $trip->setArrival_city($data['arrival_city']);
+    $trip->setDeparture_date(new \DateTime($data['departure_date']));
+    $trip->setAvailableSeats($data['available_seats']);
+    $trip->setPricePerPassenger($data['price_per_passenger']);
+    $trip->setDriver($data['id_driver']);
+    $trip->setVehicle($data['id_vehicle']);
+
+    // Persist and flush the entity
+    $this->entityManager->persist($trip);
+    $this->entityManager->flush();
+
+    return $trip;
+}
 
     public function updateTrip(Trip $trip, array $data): Trip
     {
-        if (isset($data['startLocation'])) {
-            $trip->setStartLocation($data['startLocation']);
+        if (isset($data['departure_city'])) {
+            $trip->setDepartureCity($data['departure_city']);
         }
-        if (isset($data['endLocation'])) {
-            $trip->setEndLocation($data['endLocation']);
+        if (isset($data['arrival_city'])) {
+            $trip->setArrivalCity($data['arrival_city']);
         }
-        if (isset($data['distance'])) {
-            $trip->setDistance($data['distance']);
+        if (isset($data['departure_date'])) {
+            $trip->setDepartureDate(new \DateTime($data['departure_date']));
         }
-        if (isset($data['startTime'])) {
-            $trip->setStartTime(new \DateTime($data['startTime']));
+        if (isset($data['available_seats'])) {
+            $trip->setAvailableSeats($data['available_seats']);
         }
-        if (isset($data['endTime'])) {
-            $trip->setEndTime(new \DateTime($data['endTime']));
+        if (isset($data['price_per_passenger'])) {
+            $trip->setPricePerPassenger($data['price_per_passenger']);
         }
+
 
         $this->entityManager->flush();
 

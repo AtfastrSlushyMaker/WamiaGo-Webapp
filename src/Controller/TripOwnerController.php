@@ -34,74 +34,56 @@ final class TripOwnerController extends AbstractController
      */
 
 
-    #[Route('/driver/trip/save', name: 'app_driver_trip_save', methods: ['POST'])]
-    public function saveTrip(Request $request, TripService $tripService, EntityManagerInterface $entityManager): Response
-    {
-        // Static values for driver and vehicle
-        $driverId = 1;
-        $vehicleId = 1;
+#[Route('/driver/trip/save', name: 'app_driver_trip_save', methods: ['POST'])]
+public function saveTrip(Request $request, TripService $tripService, EntityManagerInterface $entityManager): Response
+{
+    // Static values for driver and vehicle
+    $driverId = 1;
+    $vehicleId = 1;
+    $cities = array_map(fn($zone) => $zone->value, \App\Enum\Zone::cases());
 
+    // Retrieve form data
+    $tripId = $request->request->get('tripId');
+    $departureCity = $request->request->get('departureCity');
+    $arrivalCity = $request->request->get('arrivalCity');
+    $departureDate = $request->request->get('departureDate');
+    $departureTime = $request->request->get('departureTime');
+    $availableSeats = (int) $request->request->get('availableSeats');
+    $pricePerPassenger = (float) $request->request->get('pricePerPassenger');
 
+    // Retrieve the trip by ID
+    $trip = $entityManager->getRepository(Trip::class)->find($tripId);
 
-        // Retrieve form data
-        $departureCityId = (int) $request->request->get('departureCity');
-        $arrivalCityId = (int) $request->request->get('arrivalCity');
-        $departureDate = $request->request->get('departureDate');
-        $departureTime = $request->request->get('departureTime');
-        $availableSeats = (int) $request->request->get('availableSeats');
-        $pricePerPassenger = (float) $request->request->get('pricePerPassenger');
-        $notes = $request->request->get('notes');
-
-        // Validate city IDs
-        $departureCity = null;
-        $arrivalCity = null;
-
-        foreach ($cities as $city) {
-            if ($city['id'] === $departureCityId) {
-                $departureCity = $city['name'];
-            }
-            if ($city['id'] === $arrivalCityId) {
-                $arrivalCity = $city['name'];
-            }
-        }
-
-        if (!$departureCity || !$arrivalCity) {
-            $this->addFlash('error', 'Invalid city selection.');
-            return $this->render('front/carpooling/DriverTripsManagement.twig', [
-                'driverTrips' => [],
-                'cities' => $cities,
-            ]);
-        }
-
-        // Prepare trip data
-        $tripData = [
-            'startLocation' => $departureCity,
-            'endLocation' => $arrivalCity,
-            'distance' => rand(50, 500),
-            'startTime' => $departureDate . ' ' . $departureTime,
-            'endTime' => (new \DateTime($departureDate . ' ' . $departureTime))
-                ->modify('+2 hours')
-                ->format('Y-m-d H:i:s'),
-            'availableSeats' => $availableSeats,
-            'pricePerPassenger' => $pricePerPassenger,
-            'notes' => $notes,
-            'driverId' => $driverId,
-            'vehicleId' => $vehicleId,
-        ];
-
-        // Create the trip
-        $tripService->createTrip($tripData);
-
-        $this->addFlash('success', 'Trip created successfully.');
-
-        // Fetch driver trips
-        $driverTrips = $entityManager->getRepository(Trip::class)->findBy(['driver' => $driverId]);
-
-        // Pass cities and driver trips to the template
-        return $this->render('front/carpooling/DriverTripsManagement.twig', [
-            'driverTrips' => $driverTrips,
-        ]);
+    if (!$trip) {
+        $this->addFlash('error', 'Trip not found.');
+        return $this->redirectToRoute('app_trip_owner');
     }
+
+    // Prepare updated trip data
+    $tripData = [
+        'departure_city' => $departureCity,
+        'arrival_city' => $arrivalCity,
+        'departure_date' => $departureDate . ' ' . $departureTime,
+        'available_seats' => $availableSeats,
+        'price_per_passenger' => $pricePerPassenger,
+        'id_driver' => $driverId,
+        'id_vehicle' => $vehicleId,
+    ];
+
+    // Update the trip
+    $tripService->updateTrip($trip, $tripData);
+
+    $this->addFlash('success', 'Trip updated successfully.');
+
+    // Fetch driver trips
+    $driverTrips = $entityManager->getRepository(Trip::class)->findBy(['driver' => $driverId]);
+
+    // Pass cities and driver trips to the template
+    return $this->render('front/carpooling/DriverTripsManagement.twig', [
+        'driverTrips' => $driverTrips,
+        'cities' => $cities, // Pass cities to the template
+    ]);
+}
     #[Route('/driver/trip/delete', name: 'app_driver_trip_delete', methods: ['POST'])]
     public function deleteTrip(Request $request, TripService $tripService, EntityManagerInterface $entityManager): Response
     {

@@ -1,10 +1,18 @@
 {% extends 'front/base.html.twig' %}
-
 {% block title %}Driver Dashboard - WamiaGo{% endblock %}
 
 {% block page_stylesheets %}
     <link href="{{ asset('css/front/Carpooling/carpooling.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
     <style>
+.modal-dialog {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 90%;
+    max-height: 90%;
+    overflow-y: auto;
+    margin: auto; /* Ensures proper centering */
+}
         /* Carpooling driver specific styles */
         .bg-carpooling {
             background-color: #4c6ef5;
@@ -368,6 +376,8 @@
 {% endblock %}
 
 {% block content %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <section class="py-4">
         <div class="container">
             <!-- Dashboard Stats -->
@@ -458,6 +468,7 @@
                         {% for trip in upcomingTrips %}
                             {% include 'front/carpooling/DriverTripCard.twig' with {'trip': trip} %}
                         {% endfor %}
+
                     {% else %}
                         <div class="col-12">
                             <div class="no-trips-container shadow-sm">
@@ -528,6 +539,7 @@
     </section>
 
     <!-- Floating Add Trip Button -->
+    <!-- Floating Add Trip Button -->
     <div class="add-trip-fab shadow" data-bs-toggle="modal" data-bs-target="#addTripModal">
         <i class="fas fa-plus"></i>
     </div>
@@ -536,7 +548,7 @@
     <div class="modal fade" id="addTripModal" tabindex="-1" aria-labelledby="addTripModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header bg-carpooling text-white">
                     <h5 class="modal-title" id="addTripModalLabel">
                         <i class="fas fa-car-side me-2"></i>
                         <span id="modalTitle">Add New Trip</span>
@@ -550,8 +562,10 @@
                         <div class="row g-4">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="departureCity" class="form-label">Departure City</label>
-                                    <select id="departureCity" name="departureCity" class="form-select" required>
+                                    <label for="departureCity" class="form-label">
+                                        <i class="fas fa-map-marker-alt text-danger me-2"></i>Departure City
+                                    </label>
+                                    <select id="departureCity" name="departureCity" class="form-select form-select-lg" required>
                                         <option value="">Select a city</option>
                                         {% for city in cities %}
                                             <option value="{{ city }}">{{ city }}</option>
@@ -561,8 +575,10 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="arrivalCity" class="form-label">Arrival City</label>
-                                    <select id="arrivalCity" name="arrivalCity" class="form-select" required>
+                                    <label for="arrivalCity" class="form-label">
+                                        <i class="fas fa-map-marker-alt text-success me-2"></i>Arrival City
+                                    </label>
+                                    <select id="arrivalCity" name="arrivalCity" class="form-select form-select-lg" required>
                                         <option value="">Select a city</option>
                                         {% for city in cities %}
                                             <option value="{{ city }}">{{ city }}</option>
@@ -572,39 +588,57 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="departureDate" class="form-label">Departure Date</label>
-                                    <input type="date" id="departureDate" name="departureDate" class="form-control" required min="{{ 'now'|date('Y-m-d') }}">
+                                    <label for="departureDate" class="form-label">
+                                        <i class="fas fa-calendar-alt text-carpooling me-2"></i>Departure Date
+                                    </label>
+                                    <input type="date" id="departureDate" name="departureDate" class="form-control form-control-lg" required min="{{ 'now'|date('Y-m-d') }}">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="departureTime" class="form-label">Departure Time</label>
-                                    <input type="time" id="departureTime" name="departureTime" class="form-control" required>
+                                    <label for="departureTime" class="form-label">
+                                        <i class="fas fa-clock text-carpooling me-2"></i>Departure Time
+                                    </label>
+                                    <input type="time" id="departureTime" name="departureTime" class="form-control form-control-lg" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="availableSeats" class="form-label">Available Seats</label>
-                                    <input type="number" id="availableSeats" name="availableSeats" class="form-control" min="1" max="8" required>
+                                    <label for="availableSeats" class="form-label">
+                                        <i class="fas fa-chair text-carpooling me-2"></i>Available Seats
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="number" id="availableSeats" name="availableSeats" class="form-control form-control-lg" min="1" max="8" required>
+                                        <span class="input-group-text bg-light"><i class="fas fa-users"></i></span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="pricePerPassenger" class="form-label">Price Per Passenger (TND)</label>
-                                    <input type="number" id="pricePerPassenger" name="pricePerPassenger" class="form-control" min="1" step="0.001" required>
+                                    <label for="pricePerPassenger" class="form-label">
+                                        <i class="fas fa-tag text-carpooling me-2"></i>Price Per Passenger
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="number" id="pricePerPassenger" name="pricePerPassenger" class="form-control form-control-lg" min="1" step="0.001" required>
+                                        <span class="input-group-text bg-light">TND</span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-12">
                                 <div class="form-group">
-                                    <label for="notes" class="form-label">Additional Notes (Optional)</label>
+                                    <label for="notes" class="form-label">
+                                        <i class="fas fa-comment-alt text-carpooling me-2"></i>Additional Notes (Optional)
+                                    </label>
                                     <textarea id="notes" name="notes" class="form-control" rows="3" placeholder="Any additional information for passengers..."></textarea>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-carpooling">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-carpooling btn-lg">
                             <i class="fas fa-save me-2"></i>
                             <span id="modalSubmitBtn">Save Trip</span>
                         </button>
@@ -613,6 +647,95 @@
             </div>
         </div>
     </div>
+
+    <!-- JavaScript for Modal Functionality -->
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize any Bootstrap components
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Reset form when adding a new trip
+            const addTripButton = document.querySelector('.add-trip-fab');
+            const addTripModal = document.getElementById('addTripModal');
+            const tripForm = document.getElementById('tripForm');
+
+            if (addTripButton) {
+                addTripButton.addEventListener('click', function() {
+                    tripForm.reset();
+                    document.getElementById('tripId').value = '';
+                    document.getElementById('modalTitle').textContent = 'Add New Trip';
+                    document.getElementById('modalSubmitBtn').textContent = 'Save Trip';
+                });
+            }
+
+            // Show modal on button click (manual trigger if data-bs-toggle doesn't work)
+            addTripButton.addEventListener('click', function() {
+                const modal = new bootstrap.Modal(addTripModal);
+                modal.show();
+            });
+
+            // Edit trip functionality
+            const editButtons = document.querySelectorAll('.edit-trip-btn');
+
+            editButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault(); // Prevent any default behavior
+                    e.stopPropagation(); // Stop event bubbling
+
+                    const tripId = this.getAttribute('data-id');
+                    const tripData = JSON.parse(this.getAttribute('data-trip'));
+
+                    // Set form fields
+                    document.getElementById('tripId').value = tripId;
+                    document.getElementById('departureCity').value = tripData.departureCity;
+                    document.getElementById('arrivalCity').value = tripData.arrivalCity;
+
+                    // Parse date and time with validation
+                    let dateStr = '';
+                    let timeStr = '';
+                    if (tripData.departureDate) {
+                        const departureDateTime = new Date(tripData.departureDate);
+                        if (!isNaN(departureDateTime.getTime())) { // Check if the date is valid
+                            dateStr = departureDateTime.toISOString().split('T')[0];
+
+                            // Format time as HH:MM
+                            let hours = departureDateTime.getHours();
+                            let minutes = departureDateTime.getMinutes();
+                            hours = hours < 10 ? '0' + hours : hours;
+                            minutes = minutes < 10 ? '0' + minutes : minutes;
+                            timeStr = `${hours}:${minutes}`;
+                        } else {
+                            console.error("Invalid date provided:", tripData.departureDate);
+                            // Handle invalid date, e.g., by setting default values or showing an error message
+                            dateStr = '';
+                            timeStr = '';
+                        }
+                    } else {
+                        console.error("departureDate is missing in tripData:", tripData);
+                    }
+
+                    document.getElementById('departureDate').value = dateStr;
+                    document.getElementById('departureTime').value = timeStr;
+                    document.getElementById('availableSeats').value = tripData.availableSeats;
+                    document.getElementById('pricePerPassenger').value = tripData.pricePerPassenger;
+                    document.getElementById('notes').value = tripData.notes || '';
+
+                    // Update modal title and button
+                    document.getElementById('modalTitle').textContent = 'Edit Trip';
+                    document.getElementById('modalSubmitBtn').textContent = 'Update Trip';
+
+                    // Show modal
+                    const modal = new bootstrap.Modal(document.getElementById('addTripModal'));
+                    modal.show();
+                });
+            });
+        });
+    </script>
 
     <!-- Delete Trip Confirmation Modal -->
     <div class="modal fade" id="deleteTripModal" tabindex="-1" aria-labelledby="deleteTripModalLabel" aria-hidden="true">

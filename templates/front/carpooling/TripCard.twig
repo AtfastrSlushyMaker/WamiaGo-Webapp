@@ -40,9 +40,14 @@
         </div>
 
         <div class="card-body">
+            <!-- Trip Route Visual with elegant confirm interaction -->
             <div class="trip-route-visual">
                 <div class="city-point"></div>
-                <div class="route-line"></div>
+                <div class="route-line" id="confirmTripAction">
+                    <div class="car-icon">
+                        <i class="fas fa-car"></i>
+                    </div>
+                </div>
                 <div class="city-point"></div>
             </div>
             <p class="text-muted mb-2">
@@ -56,6 +61,137 @@
             </p>
         </div>
 
+        <!-- Modern Confirmation Modal -->
+        <div class="modal fade" id="tripConfirmModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-body text-center p-5">
+                        <div class="confirmation-animation mb-4">
+                            <i class="fas fa-car-side text-primary"></i>
+                        </div>
+                        <h3 class="mb-3">Have a good trip</h3>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                                 role="progressbar" id="confirmProgressBar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            <div class="card-body">
+                <!-- Trip Route Visual with elegant confirm interaction -->
+                <div class="trip-route-visual">
+                    <div class="city-point"></div>
+                    <div class="route-line" id="confirmTripAction">
+                        <div class="car-icon">
+                            <i class="fas fa-car"></i>
+                        </div>
+                    </div>
+                    <div class="city-point"></div>
+                </div>
+                <p class="text-muted mb-2">
+                    <i class="fas fa-calendar-alt me-2"></i> {{ trip.departureDate|date('Y-m-d') }} at {{ trip.departureDate|date('H:i') }}
+                </p>
+                <p class="text-muted mb-2">
+                    <i class="fas fa-chair me-2"></i> {{ trip.availableSeats }} seat{{ trip.availableSeats > 1 ? 's' : '' }} available
+                </p>
+                <p class="text-muted mb-0">
+                    <i class="fas fa-coins me-2"></i> {{ trip.price_per_passenger|number_format(3) }} TND per passenger
+                </p>
+            </div>
+
+            <!-- Modern Confirmation Modal -->
+            <div class="modal fade" id="tripConfirmModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-body text-center p-5">
+                            <div class="confirmation-animation mb-4">
+                                <i class="fas fa-car-side text-primary"></i>
+                            </div>
+                            <h3 class="mb-3">Have a good trip</h3>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                                     role="progressbar" id="confirmProgressBar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </script>
+        <style>
+            /* Styling for the trip route visual */
+            .trip-route-visual {
+                display: flex;
+                align-items: center;
+                margin-bottom: 20px;
+                position: relative;
+            }
+
+            .city-point {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                background-color: #007bff;
+                z-index: 2;
+            }
+
+            .route-line {
+                flex-grow: 1;
+                height: 3px;
+                background-color: #e9ecef;
+                margin: 0 5px;
+                position: relative;
+                transition: background-color 0.3s ease;
+            }
+
+            .car-icon {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background-color: white;
+                border-radius: 50%;
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 2px solid #e9ecef;
+                color: #6c757d;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+
+            .car-icon:hover {
+                border-color: #007bff;
+                color: #007bff;
+                transform: translate(-50%, -50%) scale(1.1);
+                box-shadow: 0 4px 10px rgba(0,123,255,0.2);
+            }
+
+            /* Modal animation */
+            .confirmation-animation {
+                font-size: 3rem;
+                animation: drive 1.5s infinite alternate;
+            }
+
+            @keyframes drive {
+                0% { transform: translateX(-20px); }
+                100% { transform: translateX(20px); }
+            }
+
+            #confirmProgressBar {
+                width: 0%;
+                transition: width 3s linear;
+            }
+
+            /* Modal styling */
+            .modal-content {
+                border-radius: 15px;
+            }
+        </style>
         <div class="card-footer">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="passenger-preview-container">

@@ -2,6 +2,9 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Trip;
+use App\Service\TripService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -30,9 +33,30 @@ class AdminController extends AbstractController
     }
 
     #[Route('/admin/ride-sharing', name: 'admin_ride_sharing')]
-    public function rideSharing(): Response
+    public function rideSharing(EntityManagerInterface $entityManager): Response
     {
-        return $this->render('back-office/ride-sharing.html.twig');
+        // Fetch all trips from the database
+        $trips = $entityManager->getRepository(Trip::class)->findAll();
+
+        // Pass the trips to the template
+        return $this->render('back-office/ride-sharing.html.twig', [
+            'trips' => $trips,
+        ]);
+    }
+    #[Route('/admin/trip/delete/{id}', name: 'admin_trip_delete', methods: ['POST'])]
+    public function deleteTrip(int $id, EntityManagerInterface $entityManager, TripService $tripService): Response
+    {
+        $trip = $entityManager->getRepository(Trip::class)->find($id);
+
+        if (!$trip) {
+            $this->addFlash('error', 'Trip not found.');
+            return $this->redirectToRoute('admin_ride_sharing');
+        }
+
+        $tripService->deleteTrip($trip);
+
+        $this->addFlash('success', 'Trip deleted successfully.');
+        return $this->redirectToRoute('admin_ride_sharing');
     }
 
     #[Route('/admin/taxi-bookings', name: 'admin_taxi_bookings')]
