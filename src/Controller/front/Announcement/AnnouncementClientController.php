@@ -6,11 +6,14 @@ use App\Entity\User;
 use App\Enum\Zone;
 use App\Service\AnnouncementService;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\Reservation;
+use App\Entity\Location;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Enum\ReservationStatus;
 
 #[Route('/announcements')]
 class AnnouncementClientController extends AbstractController
@@ -115,4 +118,65 @@ class AnnouncementClientController extends AbstractController
             'Cache-Control' => 'no-store'
         ]);
     }
+
+    #[Route('/{id}/create-reservation', name: 'app_front_announcement_create_reservation', methods: ['POST'])]
+public function createReservation(Request $request, Announcement $announcement): JsonResponse
+{
+    $data = json_decode($request->getContent(), true);
+    
+    // Validation des données
+    if (empty($data['description']) || empty($data['date']) || empty($data['startLocation']) || empty($data['endLocation'])) {
+        return $this->json(['error' => 'Tous les champs sont obligatoires'], 400);
+    }
+
+    try {
+        // Création de la réservation
+        $reservation = new Reservation();
+        $reservation->setDescription($data['description']);
+        $reservation->setDate(new \DateTime($data['date']));
+        $reservation->setStatus(ReservationStatus::ON_GOING);
+        
+        // Récupérer les locations depuis la base
+        $startLocation = $this->entityManager->getRepository(Location::class)->find($data['startLocation']);
+        $endLocation = $this->entityManager->getRepository(Location::class)->find($data['endLocation']);
+        
+        if (!$startLocation || !$endLocation) {
+            return $this->json(['error' => 'Localisation invalide'], 400);
+        }
+        
+        $reservation->setStartLocation($startLocation);
+        $reservation->setEndLocation($endLocation);
+        $reservation->setAnnouncement($announcement);
+        $reservation->setUser($this->getUser());
+        
+        $this->entityManager->persist($reservation);
+        $this->entityManager->flush();
+        
+        return $this->json([
+            'success' => true,
+            'message' => 'Réservation créée avec succès!',
+            'reservationId' => $reservation->getIdReservation()
+        ]);
+        
+    } catch (\Exception $e) {
+        return $this->json(['error' => 'Erreur lors de la création: ' . $e->getMessage()], 500);
+    }
+}
+
+#[Route('/api/locations', name: 'app_api_locations', methods: ['GET'])]
+public function getLocations(): JsonResponse
+{
+    $locations = $this->entityManager->getRepository(Location::class)->findAll();
+    $data = [];
+    
+    foreach ($locations as $location) {
+        $data[] = [
+            'id' => $location->getIdLocation(),
+            'name' => $location->getName(),
+            'address' => $location->getAddress()
+        ];
+    }
+    
+    return $this->json($data);
+}
 }

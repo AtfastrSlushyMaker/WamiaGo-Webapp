@@ -110,16 +110,7 @@
                     </button>
                 </div>
                 
-                <div class="zone-filter">
-                    <select class="zone-select">
-                        <option value="">All Zones</option>
-                        {% for zone in zones %}
-                            <option value="{{ zone.name }}" {% if selectedZone is defined and selectedZone == zone %}selected{% endif %}>
-                                {{ zone.value }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
+                
             </div>
         </div>
 
@@ -169,10 +160,11 @@
                                 <i class="fas fa-eye"></i> Details
                             </a>
                             
-                            <a href="{{ path('app_front_announcement_reserve', {'id': announcement.id_announcement}) }}" 
-                            class="reserve-button"
-                            data-announcement-id="{{ announcement.id_announcement }}">
-                                <i class="fas fa-calendar-check"></i> Reserve
+                            <a href="#" 
+   class="reserve-button"
+   data-announcement-id="{{ announcement.id_announcement }}"
+   onclick="event.preventDefault();">
+    <i class="fas fa-calendar-check"></i> Reserve
                             </a>
                         </div>
                     </div>
@@ -193,27 +185,7 @@
         </div>
         
         {# Pagination #}
-        {% if announcements|length > 0 %}
-            <div class="pagination-container">
-                <nav aria-label="Announcements pagination">
-                    <ul class="pagination">
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
-                                <i class="fas fa-chevron-left"></i>
-                            </a>
-                        </li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item">
-                            <a class="page-link" href="#">
-                                <i class="fas fa-chevron-right"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-        {% endif %}
+        
     </div>
 
 
@@ -314,6 +286,10 @@
 {% endblock %}
 
 {% block page_javascripts %}
+{{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.all.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="{{ asset('js/front/announcement/reservation.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize modal avec des options spécifiques
