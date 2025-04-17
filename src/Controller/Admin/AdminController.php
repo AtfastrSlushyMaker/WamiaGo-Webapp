@@ -89,7 +89,12 @@ class AdminController extends AbstractController
         $newStation = new \App\Entity\BicycleStation();
         $newStation->setStatus(\App\Enum\BICYCLE_STATION_STATUS::ACTIVE);
         $newStation->setChargingBikes(0);
+        $newStation->setTotalDocks(10);
+        $newStation->setAvailableBikes(0);
+        $newStation->setAvailableDocks(10);
         $stationForm = $this->formFactory->create(\App\Form\BicycleStationType::class, $newStation);
+
+        $createStationForm = $this->formFactory->create(\App\Form\BicycleStationType::class, $newStation);
 
         $stationAssignForm = $this->formFactory->createBuilder()
             ->add('bicycles', \Symfony\Bridge\Doctrine\Form\Type\EntityType::class, [
@@ -229,6 +234,7 @@ class AdminController extends AbstractController
             'addBicycleForm' => $addBicycleForm->createView(),
             'editBicycleForm' => $editBicycleForm->createView(),
             'stationForm' => $stationForm->createView(),
+            'createStationForm' => $createStationForm->createView(),
             'stationAssignForm' => $stationAssignForm->createView(),
             'maintenanceForm' => $maintenanceForm->createView(),
             'stats' => [

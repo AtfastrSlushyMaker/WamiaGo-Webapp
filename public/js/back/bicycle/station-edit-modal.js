@@ -104,8 +104,8 @@
         }
 
         // Get coordinates from form inputs
-        const latitude = parseFloat(latitudeInput.value) || 0;
-        const longitude = parseFloat(longitudeInput.value) || 0;
+        const latitude = parseFloat(latitudeInput.value) || 36.8065;
+        const longitude = parseFloat(longitudeInput.value) || 10.1815;
 
         // Get map element
         const mapElement = document.getElementById('stationEditMap');
@@ -119,29 +119,39 @@
         mapElement.style.width = '100%';
 
         try {
-            // Initialize or update map
+            // Initialize map
             if (!editMap) {
                 editMap = L.map('stationEditMap').setView([latitude, longitude], 15);
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                // Use the same tile layer as the create form
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                    maxZoom: 19,
+                    subdomains: 'abcd'
                 }).addTo(editMap);
 
-                // Force map to render correctly
+                // Force map to render correctly with a delay
                 setTimeout(() => {
                     editMap.invalidateSize();
-                }, 100);
+                }, 200);
             } else {
+                // Update existing map
                 editMap.setView([latitude, longitude], 15);
                 editMap.invalidateSize();
             }
 
-            // Add marker
+            // Add marker with the same style as create form
             if (editMarker) {
                 editMarker.setLatLng([latitude, longitude]);
             } else {
                 editMarker = L.marker([latitude, longitude], {
-                    draggable: true
+                    draggable: true,
+                    icon: L.divIcon({
+                        className: 'custom-marker-icon',
+                        html: '<div style="background-color: #6571ff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); border: 2px solid white;"><i class="ti ti-map-pin" style="color: white; font-size: 20px;"></i></div>',
+                        iconSize: [36, 36],
+                        iconAnchor: [18, 36],
+                        popupAnchor: [0, -36]
+                    })
                 }).addTo(editMap);
 
                 // Update coordinates when marker is dragged
@@ -205,18 +215,28 @@
             })
             .catch(error => console.error('Error getting address:', error));
     }
+
     function validateEditForm(form) {
-        // Validate name
-        const nameInput = form.querySelector('#edit_name');
-        if (!nameInput) {
-            console.error('Station name input not found');
-            showToast('Form validation error: Station name input not found', 'danger');
+        if (!form) {
+            console.error('Edit form not found', form);
+            showToast('Form validation error: Edit form not found', 'danger');
             return false;
         }
 
-        if (!nameInput.value || !nameInput.value.trim()) {
+        // Validate name
+        // FIRST TRY: Try to get the name input by ID
+        let nameInput = form.querySelector('#edit_name');
+
+        // SECOND TRY: Try using name attribute (Symfony form style)
+        if (!nameInput) {
+            nameInput = form.querySelector('[name$="[name]"]');
+        }
+
+        console.log('validateEditForm: nameInput', nameInput, nameInput ? nameInput.value : null);
+
+        if (!nameInput || !nameInput.value || !nameInput.value.trim()) {
             showToast('Station name cannot be empty', 'danger');
-            nameInput.focus();
+            if (nameInput) nameInput.focus();
             return false;
         }
 
@@ -226,10 +246,18 @@
             return false;
         }
 
-        // Validate total docks
-        const totalDocksInput = form.querySelector('#edit_totalDocks');
+        // Validate total docks - Try multiple ways to find the field
+        let totalDocksInput = form.querySelector('#edit_totalDocks');
         if (!totalDocksInput) {
-            console.error('Total docks input not found');
+            totalDocksInput = form.querySelector('[name$="[totalDocks]"]');
+        }
+        if (!totalDocksInput) {
+            totalDocksInput = form.querySelector('input[name*="totalDocks" i]');
+        }
+
+        console.log('validateEditForm: totalDocksInput', totalDocksInput, totalDocksInput ? totalDocksInput.value : null);
+
+        if (!totalDocksInput) {
             showToast('Form validation error: Total docks input not found', 'danger');
             return false;
         }
@@ -242,71 +270,38 @@
         }
 
         // Validate available bikes
-        const bikesInput = form.querySelector('#edit_availableBikes');
-        if (!bikesInput) {
-            console.error('Available bikes input not found');
-            showToast('Form validation error: Available bikes input not found', 'danger');
-            return false;
+        let availableBikesInput = form.querySelector('#edit_availableBikes');
+        if (!availableBikesInput) {
+            availableBikesInput = document.querySelector('#edit_availableBikes');
         }
 
-        const bikes = parseInt(bikesInput.value);
-        if (isNaN(bikes) || bikes < 0) {
-            showToast('Available bikes cannot be negative', 'danger');
-            bikesInput.focus();
-            return false;
+        if (availableBikesInput) {
+            const availableBikes = parseInt(availableBikesInput.value);
+            if (isNaN(availableBikes) || availableBikes < 0) {
+                showToast('Available bikes cannot be negative', 'danger');
+                availableBikesInput.focus();
+                return false;
+            }
+            if (availableBikes > totalDocks) {
+                showToast('Available bikes cannot exceed total docks', 'danger');
+                availableBikesInput.focus();
+                return false;
+            }
         }
-
-        // Validate bikes <= total docks
-        if (bikes > totalDocks) {
-            showToast('Available bikes cannot exceed total docks', 'danger');
-            bikesInput.focus();
-            return false;
-        }
-
-        // Validate latitude and longitude
-        const latInput = document.getElementById('edit_latitude');
-        if (!latInput) {
-            console.error('Latitude input not found');
-            showToast('Form validation error: Latitude input not found', 'danger');
-            return false;
-        }
-
-        const lngInput = document.getElementById('edit_longitude');
-        if (!lngInput) {
-            console.error('Longitude input not found');
-            showToast('Form validation error: Longitude input not found', 'danger');
-            return false;
-        }
-
-        if (!latInput.value || !lngInput.value) {
-            showToast('Please set a location for the station', 'danger');
-            return false;
-        }
-
-        const lat = parseFloat(latInput.value);
-        const lng = parseFloat(lngInput.value);
-
-        if (isNaN(lat) || lat < -90 || lat > 90) {
-            showToast('Latitude must be between -90 and 90', 'danger');
-            latInput.focus();
-            return false;
-        }
-
-        if (isNaN(lng) || lng < -180 || lng > 180) {
-            showToast('Longitude must be between -180 and 180', 'danger');
-            lngInput.focus();
-            return false;
-        }
-
         return true;
     }
+
     function setupEditForm() {
         const updateBtn = document.getElementById('updateStationBtn');
         const form = document.getElementById('stationEditForm');
-
         if (updateBtn && form) {
             updateBtn.addEventListener('click', function () {
-                // Validate the form first
+                // Only run if modal and form are visible
+                const modal = document.getElementById('stationEditModal');
+                if (!modal || !modal.classList.contains('show')) {
+                    console.warn('Edit modal not open, skipping validation.');
+                    return;
+                }
                 if (!validateEditForm(form)) {
                     return;
                 }
@@ -321,49 +316,115 @@
                 updateBtn.innerHTML = '<i class="ti ti-loader ti-spin me-1"></i> Saving...';
                 updateBtn.disabled = true;
 
-                // Get form data
-                const formData = new FormData(form);
+                // Create a new FormData object manually instead of from the form
+                const formData = new FormData();
 
-                // Get the station ID from the hidden input or form action URL
-                const stationId = formData.get('stationId') || form.getAttribute('data-station-id') ||
+                // Extract form fields and add them with flat keys instead of nested arrays
+
+                // Get the name field
+                const nameInput = form.querySelector('#bicycle_station_name') ||
+                    form.querySelector('[name$="[name]"]');
+                if (nameInput) {
+                    formData.append('name', nameInput.value);
+                }
+
+                // Get the status field
+                const statusInput = form.querySelector('#bicycle_station_status') ||
+                    form.querySelector('[name$="[status]"]');
+                if (statusInput) {
+                    formData.append('status', statusInput.value);
+                }
+
+                // Get the totalDocks field
+                const totalDocksInput = form.querySelector('#bicycle_station_totalDocks') ||
+                    form.querySelector('[name$="[totalDocks]"]');
+                if (totalDocksInput) {
+                    formData.append('totalDocks', totalDocksInput.value);
+                }
+
+                // Get available bikes field
+                const availableBikesInput = document.getElementById('edit_availableBikes');
+                if (availableBikesInput) {
+                    formData.append('availableBikes', availableBikesInput.value);
+                }
+
+                // Add location data
+                const latitudeInput = document.getElementById('edit_latitude');
+                const longitudeInput = document.getElementById('edit_longitude');
+                const addressInput = document.getElementById('edit_address');
+
+                if (latitudeInput && longitudeInput) {
+                    formData.append('latitude', latitudeInput.value);
+                    formData.append('longitude', longitudeInput.value);
+                    if (addressInput) {
+                        formData.append('address', addressInput.value);
+                    }
+                }
+
+                // Get the station ID
+                const stationIdInput = document.getElementById('stationId');
+                const stationId = stationIdInput ? stationIdInput.value :
+                    form.getAttribute('data-station-id') ||
                     (form.action && form.action.match(/\/station\/(\d+)\/edit/)?.[1]);
 
-                if (!stationId) {
-                    console.error('Station ID not found');
-                    showToast('Error: Station ID not found', 'danger');
-                    updateBtn.innerHTML = '<i class="ti ti-device-floppy me-1"></i> Update Station';
-                    updateBtn.disabled = false;
-                    return;
+                // Add station ID to form data
+                if (stationId) {
+                    formData.append('stationId', stationId);
                 }
+
+                // Log what we're submitting
+                const formValues = {};
+                formData.forEach((value, key) => {
+                    formValues[key] = value;
+                });
+                console.log("Edit form data being submitted:", formValues);
 
                 // Submit form via AJAX to the correct endpoint
                 fetch(`/admin/bicycle/station/station/${stationId}/edit`, {
                     method: 'POST',
                     body: formData,
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json' // Explicitly accept JSON
+                        'X-Requested-With': 'XMLHttpRequest'
                     }
                 })
                     .then(response => {
-                        // Check content type before parsing JSON
-                        const contentType = response.headers.get("content-type");
-                        if (contentType && contentType.indexOf("application/json") !== -1) {
-                            if (!response.ok) {
-                                // If JSON error response, parse it
-                                return response.json().then(data => {
-                                    throw new Error(data.message || `Server responded with ${response.status}`);
+                        // Check if response is OK
+                        if (!response.ok) {
+                            // Try to extract more detailed error information
+                            const contentType = response.headers.get('content-type');
+
+                            if (contentType && contentType.includes('application/json')) {
+                                // If JSON error, parse it for detailed message
+                                return response.json().then(errorData => {
+                                    throw new Error(errorData.message || `Server error: ${response.status}`);
+                                });
+                            } else if (contentType && contentType.includes('text/html')) {
+                                // If HTML error page, try to extract useful information
+                                return response.text().then(html => {
+                                    console.error("Server HTML Error:", html.substring(0, 1000) + "...");
+
+                                    // Try to extract error message from HTML
+                                    const errorMatch = html.match(/<div class="exception-message">(.*?)<\/div>/s);
+                                    const messageMatch = html.match(/<h1.*?>(.*?)<\/h1>/s);
+                                    const extractedError = errorMatch ? errorMatch[1].trim() :
+                                        messageMatch ? messageMatch[1].trim() :
+                                            `Server error: ${response.status}`;
+
+                                    throw new Error(extractedError);
                                 });
                             }
+
+                            throw new Error(`Server responded with ${response.status}`);
+                        }
+
+                        // Check content type for normal handling
+                        const contentType = response.headers.get("content-type");
+                        if (contentType && contentType.includes("application/json")) {
                             return response.json();
                         } else {
-                            // If not JSON, likely an HTML error page
                             return response.text().then(text => {
-                                console.error("Server response was not JSON:", text);
-                                // Extract a snippet or title if possible, otherwise generic error
-                                const titleMatch = text.match(/<title>(.*?)<\/title>/i);
-                                const errorHint = titleMatch ? titleMatch[1] : 'Unexpected server response format.';
-                                throw new Error(`Failed to update station: ${errorHint} (Status: ${response.status})`);
+                                console.error("Unexpected non-JSON response:", text.substring(0, 1000) + "...");
+                                throw new Error("Unexpected server response format");
                             });
                         }
                     })

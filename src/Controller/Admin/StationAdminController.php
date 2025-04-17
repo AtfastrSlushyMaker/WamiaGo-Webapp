@@ -83,27 +83,42 @@ class StationAdminController extends AbstractController
             // Create a new station
             $station = new BicycleStation();
             
-            // Get data from request
+            // Log raw request data for debugging
+            $this->logger->info('Create station request received', [
+                'request_data' => $request->request->all()
+            ]);
+            
+            // Get direct values from request (no nested arrays)
             $name = $request->request->get('name');
-            $totalDocks = (int)$request->request->get('totalDocks');
-            $availableBikes = (int)$request->request->get('availableBikes');
-            $statusValue = $request->request->get('status');
-            $latitude = $request->request->get('latitude');
-            $longitude = $request->request->get('longitude');
-            $address = $request->request->get('address');
-            $locationId = $request->request->get('locationId');
+            $totalDocks = (int)$request->request->get('totalDocks', 0);
+            $availableBikes = (int)$request->request->get('availableBikes', 0);
+            $statusValue = $request->request->get('status', 'active');
+            
+            // Get location data
+            $latitude = $request->request->get('station_latitude');
+            $longitude = $request->request->get('station_longitude');
+            $address = $request->request->get('station_address');
+            $locationId = $request->request->get('station_location_id');
+            
+            // Validate required fields
+            if (empty($name)) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Station name is required'
+                ], 400);
+            }
             
             // Set basic station properties
             $station->setName($name);
             $station->setTotalDocks($totalDocks);
             $station->setAvailableBikes($availableBikes);
             $station->setAvailableDocks($totalDocks - $availableBikes);
-            $station->setChargingBikes(0); // Initialize charging bikes to 0
+            $station->setChargingBikes(0);
             
             // Set status using the enum
-            if ($statusValue) {
+            try {
                 $station->setStatus(BICYCLE_STATION_STATUS::from($statusValue));
-            } else {
+            } catch (\ValueError $e) {
                 $station->setStatus(BICYCLE_STATION_STATUS::ACTIVE);
             }
             
@@ -231,20 +246,56 @@ class StationAdminController extends AbstractController
             if (!$station) {
                 return new JsonResponse(['success' => false, 'message' => 'Station not found'], 404);
             }
+            
+            $this->logger->info('Edit station request received', [
+                'request_data' => $request->request->all()
+            ]);
 
-            // Get form data
-            $name = $request->request->get('name');
-            $statusValue = $request->request->get('status');
-            $totalDocks = (int) $request->request->get('totalDocks');
-            $availableBikes = (int) $request->request->get('availableBikes');
+            // Get form data - handle both direct fields and Symfony form fields
+            $name = $request->request->get('bicycle_station')['name'] 
+                  ?? $request->request->get('name')
+                  ?? null;
+                  
+            $statusValue = $request->request->get('bicycle_station')['status']
+                         ?? $request->request->get('status')
+                         ?? null;
+                         
+            $totalDocks = (int)($request->request->get('bicycle_station')['totalDocks'] 
+                       ?? $request->request->get('totalDocks')
+                       ?? $station->getTotalDocks());
+                       
+            $availableBikes = (int)($request->request->get('availableBikes') 
+                           ?? $station->getAvailableBikes());
 
-            // Check if using existing location or creating new one
-            $locationId = $request->request->get('locationId');
+            // Validate required fields
+            if (empty($name)) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Station name is required'
+                ], 400);
+            }
 
             // Get location data
-            $latitude = $request->request->get('latitude');
-            $longitude = $request->request->get('longitude');
-            $address = $request->request->get('address');
+            $latitude = $request->request->get('edit_latitude') 
+                      ?? $request->request->get('latitude');
+                      
+            $longitude = $request->request->get('edit_longitude')
+                       ?? $request->request->get('longitude');
+                       
+            $address = $request->request->get('edit_address')
+                     ?? $request->request->get('address');
+                     
+            $locationId = $request->request->get('locationId');
+
+            $this->logger->info('Parsed station edit data', [
+                'name' => $name,
+                'status' => $statusValue,
+                'totalDocks' => $totalDocks,
+                'availableBikes' => $availableBikes,
+                'latitude' => $latitude,
+                'longitude' => $longitude,
+                'address' => $address
+            ]);
 
             // Update station properties
             $station->setName($name);
@@ -255,13 +306,14 @@ class StationAdminController extends AbstractController
                     $statusEnum = BICYCLE_STATION_STATUS::from($statusValue);
                     $station->setStatus($statusEnum);
                 } catch (ValueError $e) {
-                    $this->redirectToRoute('admin_bicycle_rentals', ['tab' => 'stations']);
+                    $this->logger->error('Invalid status value: ' . $statusValue);
+                    return new JsonResponse([
+                        'success' => false,
+                        'message' => 'Invalid status value: ' . $statusValue
+                    ], 400);
                 }
             } else {
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => 'Status is required.'
-                ], 400);
+                $station->setStatus(BICYCLE_STATION_STATUS::ACTIVE);
             }
 
             $station->setTotalDocks($totalDocks);
