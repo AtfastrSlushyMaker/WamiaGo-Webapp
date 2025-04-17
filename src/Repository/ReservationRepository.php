@@ -24,4 +24,10 @@ class ReservationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function save(Reservation $reservation): void
+    {
+        $this-> getEntityManager()->persist($reservation);
+        $this->getEntityManager()->flush();
+    }
 }

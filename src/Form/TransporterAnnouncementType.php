@@ -24,6 +24,7 @@ class TransporterAnnouncementType extends AbstractType
     $builder
         ->add('title', TextType::class, [
             'label' => 'Service Title',
+            'required' => false,
             'attr' => [
                 'class' => 'form-control',
                 'placeholder' => 'Enter announcement title'
@@ -32,6 +33,7 @@ class TransporterAnnouncementType extends AbstractType
         ])
         ->add('content', TextareaType::class, [
             'label' => 'Service Description',
+            'required' => false,
             'attr' => [
                 'class' => 'form-control',
                 'rows' => 6,
@@ -41,6 +43,8 @@ class TransporterAnnouncementType extends AbstractType
         ])
         ->add('zone', ChoiceType::class, [
             'label' => 'Service Area',
+            'required' => false,
+            'placeholder' => '— Choisir une zone —',
             'choices' => array_combine(
                 array_map(fn(Zone $zone) => $zone->getDisplayName(), Zone::cases()),
                 array_map(fn(Zone $zone) => $zone->value, Zone::cases())

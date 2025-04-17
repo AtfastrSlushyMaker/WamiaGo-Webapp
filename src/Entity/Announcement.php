@@ -104,7 +104,7 @@ class Announcement
     }
 
     #[ORM\Column(enumType: Zone::class)]
-    #[Assert\NotNull(message: "Please select a service zone")]
+    #[Assert\NotBlank(message: "Please select a service zone")]
     private Zone $zone = Zone::NOT_SPECIFIED;
 
     public function getZone(): Zone
@@ -139,7 +139,7 @@ class Announcement
     public function __construct()
     {
         $this->reservations = new ArrayCollection();
-        $this->date = new \DateTime(); // Set date to current time by default
+        $this->date = new \DateTime(); 
     }
 
     /**

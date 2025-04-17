@@ -1,48 +1,81 @@
-/* public/css/front/reservation/reservation-cards.css */
-.reservations-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
+/* public/css/front/reservation/modal-details.css */
+#detailsModal .modal-dialog {
+    max-width: 700px;
+    margin: 1.75rem auto;
 }
 
-.reservation-card {
-    background: white;
-    border-radius: 10px;
+#detailsModal .modal-content {
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 
-/* Status-based styling */
-.reservation-card.confirmed {
-    opacity: 0.7;
-    border-left: 4px solid #28a745;
+#detailsModal .modal-header {
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #5A6BE5 0%, #3A4BCC 100%);
+    border-bottom: none;
 }
 
-.reservation-card.cancelled {
-    opacity: 0.7;
-    border-left: 4px solid #dc3545;
+#detailsModal .modal-title {
+    font-weight: 600;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
 }
 
-/* Status badges */
-.badge {
-    padding: 0.25rem 0.5rem;
-    border-radius: 1rem;
-    font-size: 0.75rem;
-    font-weight: bold;
+#detailsModal .modal-body {
+    padding: 1.5rem 2rem;
+    max-height: 70vh;
+    overflow-y: auto;
 }
 
-.badge.pending {
-    background: #ffc107;
-    color: #000;
+/* Detail cards in modal */
+.detail-card {
+    margin-bottom: 1.5rem;
+    padding: 1.25rem;
+    background: #F8F9FA;
+    border-radius: 8px;
+    border-left: 3px solid #5A6BE5;
 }
 
-.badge.confirmed {
-    background: #28a745;
-    color: white;
+.detail-card h4 {
+    color: #2D3748;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
 }
 
-.badge.cancelled {
-    background: #dc3545;
-    color: white;
+.detail-card .text-muted {
+    color: #718096 !important;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.detail-card hr {
+    margin: 1.25rem 0;
+    border-color: #EDF2F7;
+}
+
+.location-details p {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    color: #4A5568;
+}
+
+.location-details i {
+    margin-right: 0.75rem;
+    width: 1.25rem;
+    text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #detailsModal .modal-dialog {
+        margin: 0.5rem auto;
+    }
+    
+    #detailsModal .modal-body {
+        padding: 1rem;
+    }
 }

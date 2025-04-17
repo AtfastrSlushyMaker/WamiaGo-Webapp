@@ -17,6 +17,7 @@ use App\Repository\AnnouncementRepository;
 
 use Doctrine\ORM\EntityManagerInterface;
 
+use function PHPUnit\Framework\throwException;
 
 #[Route('/transporter/announcements')]
 class TransporterAnnouncementController extends AbstractController
@@ -35,7 +36,12 @@ class TransporterAnnouncementController extends AbstractController
 
     #[Route('/new', name: 'app_transporter_announcement_new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
-    {
+    {/*
+        $data= $request->request->all();
+        if($data['transporter_announcement']['zone']==""){
+            throw $this->createNotFoundException('Zone invalid');
+        }
+        exit();*/
         $driver = $this->driverRepository->find(self::HARDCODED_DRIVER_ID);
         if (!$driver) {
             throw $this->createNotFoundException('Driver not found');
@@ -50,8 +56,10 @@ class TransporterAnnouncementController extends AbstractController
             'validation_groups' => ['Default']
         ]);
         $form->handleRequest($request);
-    
+       
         if ($form->isSubmitted()) {
+
+           
             if ($form->isValid()) {
                 try {
                     $this->announcementService->createAnnouncement(

@@ -7,6 +7,9 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\QueryBuilder;
 
+use App\Entity\Driver;
+
+
 /**
  * @extends ServiceEntityRepository<Relocation>
  *
@@ -133,6 +136,18 @@ class RelocationRepository extends ServiceEntityRepository
             ->select('SUM(r.cost)')
             ->getQuery()
             ->getSingleScalarResult() ?? 0;
+    }
+
+    public function findByDriver(Driver $driver): array
+    {
+        return $this->createQueryBuilder('r')
+            ->join('r.reservation', 'res')
+            ->join('res.announcement', 'a')
+            ->where('a.driver = :driver')
+            ->setParameter('driver', $driver)
+            ->orderBy('r.date', 'DESC')
+            ->getQuery()
+            ->getResult();
     }
 
 

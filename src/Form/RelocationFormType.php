@@ -2,15 +2,14 @@
 
 namespace App\Form;
 
-use App\Entity\Relocation;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Validator\Constraints as Assert;
 
-class RelocationType extends AbstractType
+class RelocationFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -18,25 +17,25 @@ class RelocationType extends AbstractType
             ->add('date', DateType::class, [
                 'widget' => 'single_text',
                 'html5' => true,
-                'attr' => ['class' => 'form-control']
-            ])
-            ->add('cost', NumberType::class, [
-                'attr' => [
-                    'class' => 'form-control',
-                    'placeholder' => 'Enter cost...',
-                    'step' => '0.01'
+                'constraints' => [
+                    new Assert\NotBlank(),
+                    new Assert\GreaterThan('today')
                 ]
             ])
-            ->add('submit', SubmitType::class, [
-                'label' => 'Confirm Relocation',
-                'attr' => ['class' => 'btn btn-primary']
+            ->add('cost', NumberType::class, [
+                'constraints' => [
+                    new Assert\NotBlank(),
+                    new Assert\Positive()
+                ]
             ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => Relocation::class,
+            'csrf_protection' => true,
+            'csrf_field_name' => '_token',
+            'csrf_token_id' => 'relocation'
         ]);
     }
 }
