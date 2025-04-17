@@ -208,7 +208,13 @@
     function validateEditForm(form) {
         // Validate name
         const nameInput = form.querySelector('#edit_name');
-        if (!nameInput.value.trim()) {
+        if (!nameInput) {
+            console.error('Station name input not found');
+            showToast('Form validation error: Station name input not found', 'danger');
+            return false;
+        }
+
+        if (!nameInput.value || !nameInput.value.trim()) {
             showToast('Station name cannot be empty', 'danger');
             nameInput.focus();
             return false;
@@ -222,6 +228,12 @@
 
         // Validate total docks
         const totalDocksInput = form.querySelector('#edit_totalDocks');
+        if (!totalDocksInput) {
+            console.error('Total docks input not found');
+            showToast('Form validation error: Total docks input not found', 'danger');
+            return false;
+        }
+
         const totalDocks = parseInt(totalDocksInput.value);
         if (isNaN(totalDocks) || totalDocks < 1) {
             showToast('Total docks must be at least 1', 'danger');
@@ -231,6 +243,12 @@
 
         // Validate available bikes
         const bikesInput = form.querySelector('#edit_availableBikes');
+        if (!bikesInput) {
+            console.error('Available bikes input not found');
+            showToast('Form validation error: Available bikes input not found', 'danger');
+            return false;
+        }
+
         const bikes = parseInt(bikesInput.value);
         if (isNaN(bikes) || bikes < 0) {
             showToast('Available bikes cannot be negative', 'danger');
@@ -247,7 +265,18 @@
 
         // Validate latitude and longitude
         const latInput = document.getElementById('edit_latitude');
+        if (!latInput) {
+            console.error('Latitude input not found');
+            showToast('Form validation error: Latitude input not found', 'danger');
+            return false;
+        }
+
         const lngInput = document.getElementById('edit_longitude');
+        if (!lngInput) {
+            console.error('Longitude input not found');
+            showToast('Form validation error: Longitude input not found', 'danger');
+            return false;
+        }
 
         if (!latInput.value || !lngInput.value) {
             showToast('Please set a location for the station', 'danger');
@@ -308,7 +337,6 @@
                 }
 
                 // Submit form via AJAX to the correct endpoint
-                // Corrected URL path based on debug:router output
                 fetch(`/admin/bicycle/station/station/${stationId}/edit`, {
                     method: 'POST',
                     body: formData,
@@ -346,14 +374,22 @@
                             const modal = bootstrap.Modal.getInstance(document.getElementById('stationEditModal'));
                             if (modal) modal.hide();
 
-                            // Instead of reloading, call a function to update the UI
+                            // If a redirect URL is provided, navigate to it
+                            if (data.redirect) {
+                                window.location.href = data.redirect;
+                                return;
+                            }
+
+                            // Otherwise, update the UI or reload
                             if (typeof window.updateStationUI === 'function') {
                                 // Pass the updated station data received from the server
                                 window.updateStationUI(data.station);
                             } else {
-                                console.warn("window.updateStationUI function not found. UI will not be updated automatically. Please refresh manually.");
-                                // Optionally, still provide a manual refresh hint
-                                showToast('Station updated. Refresh page to see changes.', 'info');
+                                console.warn("window.updateStationUI function not found. UI will not be updated automatically. Reloading page...");
+                                // Reload the page to see the changes
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 1000);
                             }
                         } else {
                             // Handle application-level errors returned as JSON

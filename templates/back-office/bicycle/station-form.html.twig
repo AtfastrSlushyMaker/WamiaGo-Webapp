@@ -81,48 +81,68 @@
             
             <!-- Right Column: Form Fields -->
             <div class="col-lg-5 p-4 bg-light">
-              <form id="stationForm" class="needs-validation" method="post" action="{{ is_new ? path('admin_bicycle_station_new') : path('admin_bicycle_station_edit', {'id': station.idStation|default(0)}) }}">
+              {{ form_start(stationForm, {'attr': {'id': 'stationForm', 'class': 'needs-validation'}}) }}
+                {{ form_errors(stationForm) }}
+                
                 <div class="form-floating mb-3">
-                  <input type="text" class="form-control" id="station_name" name="name" placeholder="Station Name" 
-                         value="{% if station.name is defined %}{{ station.name }}{% endif %}" required>
-                  <label for="station_name">Station Name</label>
-                  <div class="invalid-feedback">Please provide a station name.</div>
+                  {{ form_widget(stationForm.name, {
+                    'attr': {
+                      'class': 'form-control' ~ (stationForm.name.vars.valid ? '' : ' is-invalid'),
+                      'placeholder': 'Station Name',
+                      'id': 'station_name'
+                    }
+                  }) }}
+                  {{ form_label(stationForm.name, 'Station Name', {'label_attr': {'for': 'station_name'}}) }}
+                  {{ form_errors(stationForm.name, {'attr': {'class': 'invalid-feedback'}}) }}
                 </div>
                 
                 <div class="row g-3 mb-3">
                   <div class="col-md-6">
                     <div class="form-floating">
-                      <select class="form-select status-select" id="station_status" name="status" required>
-                        <option value="active" {% if station.status is defined and station.status.value == 'active' %}selected{% endif %}>Active</option>
-                        <option value="maintenance" {% if station.status is defined and station.status.value == 'maintenance' %}selected{% endif %}>Maintenance</option>
-                        <option value="inactive" {% if station.status is defined and station.status.value == 'inactive' %}selected{% endif %}>Inactive</option>
-                        <option value="disabled" {% if station.status is defined and station.status.value == 'disabled' %}selected{% endif %}>Disabled</option>
-                      </select>
-                      <label for="station_status">Status</label>
+                      {{ form_widget(stationForm.status, {
+                        'attr': {
+                          'class': 'form-select status-select' ~ (stationForm.status.vars.valid ? '' : ' is-invalid'),
+                          'id': 'station_status'
+                        }
+                      }) }}
+                      {{ form_label(stationForm.status, 'Status', {'label_attr': {'for': 'station_status'}}) }}
+                      {{ form_errors(stationForm.status, {'attr': {'class': 'invalid-feedback'}}) }}
+                      <div class="form-text small">Determines if the station appears in the app</div>
                     </div>
-                    <div class="form-text small">Determines if the station appears in the app</div>
                   </div>
                   <div class="col-md-6">
                     <div class="form-floating">
-                      <input type="number" class="form-control" id="station_totalDocks" name="totalDocks" 
-                             min="1" value="{% if station.totalDocks is defined %}{{ station.totalDocks }}{% else %}5{% endif %}" 
-                             placeholder="Total Docks" required>
-                      <label for="station_totalDocks">Total Docks</label>
-                      <div class="invalid-feedback">Please specify at least 1 dock.</div>
+                      {{ form_widget(stationForm.totalDocks, {
+                        'attr': {
+                          'class': 'form-control' ~ (stationForm.totalDocks.vars.valid ? '' : ' is-invalid'),
+                          'placeholder': 'Total Docks',
+                          'min': 1,
+                          'id': 'station_totalDocks'
+                        }
+                      }) }}
+                      {{ form_label(stationForm.totalDocks, 'Total Docks', {'label_attr': {'for': 'station_totalDocks'}}) }}
+                      {{ form_errors(stationForm.totalDocks, {'attr': {'class': 'invalid-feedback'}}) }}
+                      <div class="form-text small">Total docking spots available</div>
                     </div>
-                    <div class="form-text small">Total docking spots available</div>
                   </div>
                 </div>
                 
                 <div class="form-floating mb-4">
                   <input type="number" class="form-control" id="availableBikes" 
                          name="availableBikes" min="0" 
-                         max="{% if station.totalDocks is defined %}{{ station.totalDocks }}{% else %}5{% endif %}"
+                         max="{{ stationForm.totalDocks.vars.value|default(5) }}"
                          value="{% if station.availableBikes is defined %}{{ station.availableBikes }}{% else %}0{% endif %}" 
                          placeholder="Available Bikes">
                   <label for="availableBikes">Available Bikes</label>
                   <div class="form-text small">Number of bikes currently available</div>
                 </div>
+
+                <!-- Hidden location fields -->
+                {{ form_row(stationForm.location, {'attr': {'class': 'd-none'}}) }}
+                <input type="hidden" id="station_latitude" name="station_latitude" value="{% if station.location is defined %}{{ station.location.latitude|default('') }}{% endif %}">
+                <input type="hidden" id="station_longitude" name="station_longitude" value="{% if station.location is defined %}{{ station.location.longitude|default('') }}{% endif %}">
+                <input type="hidden" id="station_address" name="station_address" value="{% if station.location is defined %}{{ station.location.address|default('') }}{% endif %}">
+                <input type="hidden" id="station_location_id" name="station_location_id" value="{% if station.location is defined %}{{ station.location.id|default('') }}{% endif %}">
                 
                 <!-- Capacity Visualization -->
                 <div class="capacity-card p-3 mb-4 bg-white rounded-3 shadow-sm">
@@ -156,11 +176,7 @@
                   </div>
                 </div>
                 
-                <!-- Include CSRF token if needed -->
-                {% if csrf_token is defined %}
-                <input type="hidden" name="_token" value="{{ csrf_token('station_form') }}">
-                {% endif %}
-              </form>
+              {{ form_end(stationForm, {'render_rest': true}) }}
             </div>
           </div>
         </div>

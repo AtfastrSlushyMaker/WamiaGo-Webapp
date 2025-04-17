@@ -165,17 +165,12 @@ class StationAdminController extends AbstractController
             $this->entityManager->persist($station);
             $this->entityManager->flush();
             
+            // Return a proper JSON response - the front-end will handle the redirect
             return new JsonResponse([
                 'success' => true,
                 'message' => 'Station created successfully',
-                'station' => [
-                    'id' => $station->getIdStation(),
-                    'name' => $station->getName(),
-                    'status' => $station->getStatus()->value,
-                    'totalDocks' => $station->getTotalDocks(),
-                    'availableBikes' => $station->getAvailableBikes(),
-                    'availableDocks' => $station->getAvailableDocks()
-                ]
+                'stationId' => $station->getIdStation(),
+                'redirect' => $this->generateUrl('admin_bicycle_rentals', ['tab' => 'stations'])
             ]);
         } catch (\Exception $e) {
             $this->logger->error('Error creating station: ' . $e->getMessage(), [
@@ -190,8 +185,43 @@ class StationAdminController extends AbstractController
         }
     }
 
+    #[Route("/{id}/delete", name: "admin_bicycle_station_delete", methods: ["POST"])]
+    public function deleteStation(int $id): Response
+    {
+        try {
+            $this->logger->info('Deleting station with ID: ' . $id);
+
+            // Get the station
+            $station = $this->stationService->getStation($id);
+            if (!$station) {
+                return new JsonResponse(['success' => false, 'message' => 'Station not found'], 404);
+            }
+
+            // Remove the station
+            $this->entityManager->remove($station);
+            $this->entityManager->flush();
+
+            $this->logger->info('Station deleted successfully', ['stationId' => $id]);
+
+            return $this->redirectToRoute("admin_bicycle_rentals", ['tab' => 'stations']);
+        } catch (\Exception $e) {
+            $this->logger->error('Error deleting station: ' . $e->getMessage(), [
+                'exception' => $e,
+                'stationId' => $id,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'An internal error occurred while deleting the station. Please check logs.'
+            ], 500);
+        }
+    }
+
     #[Route('/station/{id}/edit', name: 'admin_bicycle_station_edit', methods: ['POST'])]
-    public function editStation(int $id, Request $request, ValidatorInterface $validator): JsonResponse
+    public function editStation(int $id, Request $request, ValidatorInterface $validator): Response
     {
         try {
             $this->logger->info('Updating station with ID: ' . $id);
@@ -225,11 +255,7 @@ class StationAdminController extends AbstractController
                     $statusEnum = BICYCLE_STATION_STATUS::from($statusValue);
                     $station->setStatus($statusEnum);
                 } catch (ValueError $e) {
-                    $this->logger->warning('Invalid status value provided for station update: ' . $statusValue, ['stationId' => $id]);
-                    return new JsonResponse([
-                        'success' => false,
-                        'message' => 'Invalid status value provided: ' . $statusValue
-                    ], 400);
+                    $this->redirectToRoute('admin_bicycle_rentals', ['tab' => 'stations']);
                 }
             } else {
                 return new JsonResponse([
@@ -315,7 +341,8 @@ class StationAdminController extends AbstractController
                     'latitude' => $station->getLocation()?->getLatitude(),
                     'longitude' => $station->getLocation()?->getLongitude(),
                     'address' => $station->getLocation()?->getAddress(),
-                ]
+                ],
+                'redirect' => $this->generateUrl('admin_bicycle_rentals', ['tab' => 'stations'])
             ]);
         } catch (\Exception $e) {
             $this->logger->error('Error updating station: ' . $e->getMessage(), [

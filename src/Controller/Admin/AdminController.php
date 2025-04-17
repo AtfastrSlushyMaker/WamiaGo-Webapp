@@ -9,6 +9,7 @@ use App\Service\BicycleRentalService;
 use App\Service\BicycleStationService;
 use App\Service\BicycleService;
 use App\Form\BicycleType;
+use App\Form\BicycleStationType;
 use Symfony\Component\Form\FormFactoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -83,6 +84,13 @@ class AdminController extends AbstractController
         $addBicycleForm = $this->formFactory->create(\App\Form\BicycleType::class, $newBicycle);
         $editBicycle = new \App\Entity\Bicycle();
         $editBicycleForm = $this->formFactory->create(BicycleType::class, $editBicycle, ['bicycleId' => $newBicycle->getIdBike()]);
+
+        // Create Station Form using BicycleStationType
+        $newStation = new \App\Entity\BicycleStation();
+        $newStation->setStatus(\App\Enum\BICYCLE_STATION_STATUS::ACTIVE);
+        $newStation->setChargingBikes(0);
+        $stationForm = $this->formFactory->create(\App\Form\BicycleStationType::class, $newStation);
+
         $stationAssignForm = $this->formFactory->createBuilder()
             ->add('bicycles', \Symfony\Bridge\Doctrine\Form\Type\EntityType::class, [
                 'class' => \App\Entity\Bicycle::class,
@@ -220,6 +228,7 @@ class AdminController extends AbstractController
             'rentals' => $rentals,
             'addBicycleForm' => $addBicycleForm->createView(),
             'editBicycleForm' => $editBicycleForm->createView(),
+            'stationForm' => $stationForm->createView(),
             'stationAssignForm' => $stationAssignForm->createView(),
             'maintenanceForm' => $maintenanceForm->createView(),
             'stats' => [

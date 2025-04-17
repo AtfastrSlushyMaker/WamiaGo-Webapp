@@ -53,36 +53,44 @@
             
             <!-- Right Column: Station Details -->
             <div class="col-lg-5 p-4">
-              <form id="stationEditForm" method="post" action="{{ path('admin_bicycle_station_edit', {'id': station.idStation|default(0)}) }}">
+              {{ form_start(stationForm, {'attr': {'id': 'stationEditForm', 'action': path('admin_bicycle_station_edit', {'id': station.idStation|default(0)})}}) }}
+                {{ form_errors(stationForm) }}
                 <h6 class="fw-bold mb-3"><i class="ti ti-info-circle text-primary me-2"></i> Station Details</h6>
                 
                 <div class="form-floating mb-3">
-                  <input type="text" class="form-control" id="edit_name" name="name" 
-                    value="{{ station.name|default('') }}" required>
-                  <label for="edit_name">Station Name</label>
+                  {{ form_widget(stationForm.name, {
+                    'attr': {
+                      'class': 'form-control' ~ (stationForm.name.vars.valid ? '' : ' is-invalid'),
+                      'placeholder': 'Station Name',
+                      'id': 'edit_name'
+                    }
+                  }) }}
+                  {{ form_label(stationForm.name, 'Station Name', {'label_attr': {'for': 'edit_name'}}) }}
+                  {{ form_errors(stationForm.name, {'attr': {'class': 'invalid-feedback'}}) }}
                 </div>
                 
                 <div class="form-floating mb-3">
-                  <select class="form-select" id="edit_status" name="status" required>
-                    {% if statuses is defined %}
-                      {% for status in statuses %}
-                        <option value="{{ status.value }}" {% if station.status is defined and station.status == status %}selected{% endif %}>
-                          {{ status.value|capitalize }}
-                        </option>
-                      {% endfor %}
-                    {% else %}
-                      <option value="active">Active</option>
-                      <option value="maintenance">Maintenance</option>
-                      <option value="inactive">Inactive</option>
-                    {% endif %}
-                  </select>
-                  <label for="edit_status">Status</label>
+                  {{ form_widget(stationForm.status, {
+                    'attr': {
+                      'class': 'form-select' ~ (stationForm.status.vars.valid ? '' : ' is-invalid'),
+                      'id': 'edit_status'
+                    }
+                  }) }}
+                  {{ form_label(stationForm.status, 'Status', {'label_attr': {'for': 'edit_status'}}) }}
+                  {{ form_errors(stationForm.status, {'attr': {'class': 'invalid-feedback'}}) }}
                 </div>
                 
                 <div class="form-floating mb-3">
-                  <input type="number" class="form-control" id="edit_totalDocks" name="totalDocks" 
-                    value="{{ station.totalDocks|default(0) }}" required min="1">
-                  <label for="edit_totalDocks">Total Docks</label>
+                  {{ form_widget(stationForm.totalDocks, {
+                    'attr': {
+                      'class': 'form-control' ~ (stationForm.totalDocks.vars.valid ? '' : ' is-invalid'),
+                      'placeholder': 'Total Docks',
+                      'min': 1,
+                      'id': 'edit_totalDocks'
+                    }
+                  }) }}
+                  {{ form_label(stationForm.totalDocks, 'Total Docks', {'label_attr': {'for': 'edit_totalDocks'}}) }}
+                  {{ form_errors(stationForm.totalDocks, {'attr': {'class': 'invalid-feedback'}}) }}
                 </div>
                 
                 <div class="form-floating mb-3">
@@ -111,7 +119,7 @@
                 </div>
                 
                 <input type="hidden" name="stationId" value="{{ station.idStation|default(0) }}">
-              </form>
+              {{ form_end(stationForm, {'render_rest': false}) }}
             </div>
           </div>
         </div>

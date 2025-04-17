@@ -47,10 +47,15 @@ function validateForm() {
         return false;
     }
 
-    // Check if available bikes doesn't exceed total docks
-    const availableBikes = parseInt(document.getElementById('availableBikes').value) || 0;
-    const totalDocks = parseInt(document.getElementById('station_totalDocks').value) || 0;
+    // Get the field names based on Symfony's naming convention
+    const namePattern = /bicycle_station\[totalDocks\]/;
+    const totalDocksInput = form.querySelector(`[name$="[totalDocks]"]`);
 
+    // Find availableBikes (this is a custom field, not part of the Symfony form)
+    const availableBikes = parseInt(document.getElementById('availableBikes').value) || 0;
+    const totalDocks = totalDocksInput ? parseInt(totalDocksInput.value) : 0;
+
+    // Check if available bikes doesn't exceed total docks
     if (availableBikes > totalDocks) {
         alert('Available bikes cannot exceed total docks.');
         return false;
@@ -58,7 +63,6 @@ function validateForm() {
 
     return true;
 }
-
 
 function showNotification(type, message) {
     // If you have a notification system, use it here
@@ -78,30 +82,33 @@ function submitStationForm() {
     const loadingOverlay = document.getElementById('modalLoadingOverlay');
     if (loadingOverlay) loadingOverlay.style.display = 'flex';
 
-    // Get form data
-    const formData = new FormData();
-    formData.append('name', document.getElementById('station_name').value);
-    formData.append('totalDocks', document.getElementById('station_totalDocks').value);
-    formData.append('availableBikes', document.getElementById('availableBikes').value);
-    formData.append('status', document.getElementById('station_status').value);
-    formData.append('latitude', document.getElementById('station_latitude').value);
-    formData.append('longitude', document.getElementById('station_longitude').value);
-    formData.append('address', document.getElementById('station_address').value);
+    // Get the form element
+    const form = document.getElementById('stationForm');
+
+    // Create FormData from the form (this will include all fields with their Symfony names)
+    const formData = new FormData(form);
+
+    // Add additional location fields that might not be part of the Symfony form
+    formData.append('station_latitude', document.getElementById('station_latitude').value);
+    formData.append('station_longitude', document.getElementById('station_longitude').value);
+    formData.append('station_address', document.getElementById('station_address').value);
 
     // Add location ID if it exists
     const locationId = document.getElementById('station_location_id').value;
     if (locationId) {
-        formData.append('locationId', locationId);
+        formData.append('station_location_id', locationId);
     }
 
     // Get the action URL from the form
-    const form = document.getElementById('stationForm');
     const actionUrl = form.getAttribute('action') || '/admin/bicycle/station/new';
 
     // Submit data using AJAX
     fetch(actionUrl, {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
     })
         .then(response => {
             if (!response.ok) {
@@ -118,10 +125,15 @@ function submitStationForm() {
                 const modal = bootstrap.Modal.getInstance(document.getElementById('stationFormModal'));
                 if (modal) modal.hide();
 
-                // Reload page after a short delay
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
+                // Check if we have a redirect URL and navigate to it
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                } else {
+                    // Fallback - reload page after a short delay
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                }
             } else {
                 showNotification('error', data.message || 'Error saving station');
                 if (loadingOverlay) loadingOverlay.style.display = 'none';
@@ -397,93 +409,6 @@ function setupFormListeners() {
 }
 
 /**
- * Submit the station form
- */
-function submitStationForm() {
-    if (!validateForm()) {
-        return;
-    }
-
-    // Show loading overlay
-    const loadingOverlay = document.getElementById('modalLoadingOverlay');
-    if (loadingOverlay) loadingOverlay.style.display = 'flex';
-
-    // Get form data
-    const stationData = {
-        name: document.getElementById('station_name').value,
-        totalDocks: parseInt(document.getElementById('station_totalDocks').value),
-        availableBikes: parseInt(document.getElementById('availableBikes').value),
-        status: document.getElementById('station_status').value,
-        latitude: parseFloat(document.getElementById('station_latitude').value),
-        longitude: parseFloat(document.getElementById('station_longitude').value),
-        address: document.getElementById('station_address').value,
-        locationId: document.getElementById('station_location_id').value || null
-    };
-
-    // Submit data to API
-    fetch('/admin/bicycle/api/stations', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(stationData)
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                // Reload page to show new station
-                window.location.reload();
-            } else {
-                alert(data.error || 'Unknown error occurred');
-                if (loadingOverlay) loadingOverlay.style.display = 'none';
-            }
-        })
-        .catch(error => {
-            console.error('Error creating station:', error);
-            alert('Failed to create station. Please try again.');
-            if (loadingOverlay) loadingOverlay.style.display = 'none';
-        });
-}
-
-/**
- * Validate the form
- */
-function validateForm() {
-    const form = document.getElementById('stationForm');
-
-    // Add validation classes
-    form.classList.add('was-validated');
-
-    // Check if form is valid
-    if (!form.checkValidity()) {
-        return false;
-    }
-
-    // Check if location is selected
-    if (!document.getElementById('station_latitude').value ||
-        !document.getElementById('station_longitude').value) {
-        alert('Please select a location on the map.');
-        return false;
-    }
-
-    // Check if available bikes doesn't exceed total docks
-    const availableBikes = parseInt(document.getElementById('availableBikes').value) || 0;
-    const totalDocks = parseInt(document.getElementById('station_totalDocks').value) || 0;
-
-    if (availableBikes > totalDocks) {
-        alert('Available bikes cannot exceed total docks.');
-        return false;
-    }
-
-    return true;
-}
-
-/**
  * Search for a location
  */
 function searchLocation() {
@@ -530,7 +455,12 @@ function searchLocation() {
  * Update the capacity visualization
  */
 function updateCapacityVisualization() {
-    const totalDocks = parseInt(document.getElementById('station_totalDocks').value) || 0;
+    const form = document.getElementById('stationForm');
+
+    // Get the totalDocks input using the Symfony naming pattern
+    const totalDocksInput = form.querySelector('[name$="[totalDocks]"]');
+    const totalDocks = totalDocksInput ? parseInt(totalDocksInput.value) || 0 : 0;
+
     const availableBikes = parseInt(document.getElementById('availableBikes').value) || 0;
 
     // Ensure availableBikes doesn't exceed totalDocks

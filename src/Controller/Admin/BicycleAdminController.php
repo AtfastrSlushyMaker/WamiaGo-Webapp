@@ -9,6 +9,7 @@ use App\Entity\Location;
 use App\Enum\BICYCLE_STATUS;
 use App\Enum\BICYCLE_STATION_STATUS;
 use App\Form\BicycleType;
+use App\Form\BicycleStationType;
 use App\Service\BicycleService;
 use App\Service\BicycleStationService;
 use App\Service\BicycleRentalService;
@@ -319,8 +320,14 @@ class BicycleAdminController extends AbstractController
     // Station Management Routes
     
     #[Route('/stations', name: 'admin_bicycle_stations')]
-    public function bicycleStations(): Response
+    public function bicycleStations(Request $request): Response
     {
+        // Create a new station form
+        $station = new BicycleStation();
+        $station->setStatus(BICYCLE_STATION_STATUS::ACTIVE);
+        $station->setChargingBikes(0);
+        $stationForm = $this->createForm(BicycleStationType::class, $station);
+        
         // Get all stations with their details
         $stations = $this->stationService->getAllStations();
 
@@ -334,7 +341,7 @@ class BicycleAdminController extends AbstractController
         // Get stations with rental activity
         $stationActivity = $this->stationService->getStationsWithRentalActivity(5);
 
-        return $this->render('back-office/bicycle-rentals.html.twig', [
+        return $this->render('back-office/bicycle/station.html.twig', [
             'bicycles' => $this->bicycleService->getAllBicycles(),
             'stations' => $stations,
             'bicycle_rentals' => $this->entityManager->getRepository(BicycleRental::class)->findAll(),
@@ -342,7 +349,8 @@ class BicycleAdminController extends AbstractController
             'totalCapacity' => $totalCapacity,
             'totalChargingDocks' => $totalChargingDocks,
             'stationActivity' => $stationActivity,
-            'tab' => 'stations'
+            'tab' => 'stations',
+            'stationForm' => $stationForm->createView()
         ]);
     }
 
@@ -352,63 +360,70 @@ class BicycleAdminController extends AbstractController
         try {
             // Create a new station
             $station = new BicycleStation();
+            $form = $this->createForm(BicycleStationType::class, $station);
             
-            // Get data from request
-            $name = $request->request->get('name');
-            $totalDocks = (int)$request->request->get('totalDocks');
-            $availableBikes = (int)$request->request->get('availableBikes');
-            $statusValue = $request->request->get('status');
-            $latitude = $request->request->get('latitude');
-            $longitude = $request->request->get('longitude');
-            $address = $request->request->get('address');
-            $locationId = $request->request->get('locationId');
+            // Submit the form without validation to get the data
+            $form->handleRequest($request);
             
-            // Set basic station properties
-            $station->setName($name);
-            $station->setTotalDocks($totalDocks);
-            $station->setAvailableBikes($availableBikes);
-            $station->setAvailableDocks($totalDocks - $availableBikes);
-            $station->setChargingBikes(0); // Initialize charging bikes to 0
+            // Get location data from custom fields that are not part of the form
+            $latitude = $request->request->get('station_latitude');
+            $longitude = $request->request->get('station_longitude');
+            $address = $request->request->get('station_address');
+            $locationId = $request->request->get('station_location_id');
+            $availableBikes = (int)$request->request->get('availableBikes', 0);
             
-            // Set status using your enum
-            if ($statusValue) {
-                $station->setStatus(BICYCLE_STATION_STATUS::from($statusValue));
-            } else {
-                $station->setStatus(BICYCLE_STATION_STATUS::ACTIVE);
-            }
-            
-            // Handle location
-            if ($locationId) {
-                // Use existing location
-                $location = $this->locationService->findLocationById((int)$locationId);
-                if ($location) {
-                    $station->setLocation($location);
-                }
-            } else if ($latitude && $longitude) {
-                // Create new location
-                $location = new Location();
-                $location->setLatitude((float)$latitude);
-                $location->setLongitude((float)$longitude);
-                $location->setAddress($address ?: 'Unknown location');
+            // Now validate the form
+            if ($form->isSubmitted() && $form->isValid()) {
+                // Set calculated values
+                $totalDocks = $station->getTotalDocks();
+                $station->setAvailableBikes($availableBikes);
+                $station->setAvailableDocks($totalDocks - $availableBikes);
+                $station->setChargingBikes(0); // Initialize charging bikes to 0
                 
-                $this->entityManager->persist($location);
-                $station->setLocation($location);
+                // Handle location
+                if ($locationId) {
+                    // Use existing location
+                    $location = $this->locationService->findLocationById((int)$locationId);
+                    if ($location) {
+                        $station->setLocation($location);
+                    }
+                } else if ($latitude && $longitude) {
+                    // Create new location
+                    $location = new Location();
+                    $location->setLatitude((float)$latitude);
+                    $location->setLongitude((float)$longitude);
+                    $location->setAddress($address ?: 'Unknown location');
+                    
+                    $this->entityManager->persist($location);
+                    $station->setLocation($location);
+                } else {
+                    return new JsonResponse([
+                        'success' => false,
+                        'message' => 'Location data is required'
+                    ], 400);
+                }
+                
+                // Save the station
+                $this->entityManager->persist($station);
+                $this->entityManager->flush();
+                
+                return new JsonResponse([
+                    'success' => true,
+                    'message' => 'Station created successfully',
+                    'stationId' => $station->getIdStation()
+                ]);
             } else {
+                // Form validation failed
+                $errors = [];
+                foreach ($form->getErrors(true) as $error) {
+                    $errors[] = $error->getMessage();
+                }
+                
                 return new JsonResponse([
                     'success' => false,
-                    'message' => 'Location data is required'
+                    'message' => 'Validation failed: ' . implode(', ', $errors)
                 ], 400);
             }
-            
-            // Save the station
-            $this->entityManager->persist($station);
-            $this->entityManager->flush();
-            
-            return new JsonResponse([
-                'success' => true,
-                'message' => 'Station created successfully',
-                'stationId' => $station->getIdStation()
-            ]);
         } catch (\Exception $e) {
             // Log the exception with detailed information
             $this->logger->error('Error creating station: ' . $e->getMessage(), [
@@ -437,57 +452,64 @@ class BicycleAdminController extends AbstractController
                 ], 404);
             }
             
-            // Get data from request
-            $name = $request->request->get('name');
-            $totalDocks = (int)$request->request->get('totalDocks');
-            $availableBikes = (int)$request->request->get('availableBikes');
-            $statusValue = $request->request->get('status');
-            $latitude = $request->request->get('latitude');
-            $longitude = $request->request->get('longitude');
-            $address = $request->request->get('address');
-            $locationId = $request->request->get('locationId');
+            // Create form for the station
+            $form = $this->createForm(BicycleStationType::class, $station);
+            $form->handleRequest($request);
             
-            // Update basic station properties
-            $station->setName($name);
-            $station->setTotalDocks($totalDocks);
-            $station->setAvailableBikes($availableBikes);
-            $station->setAvailableDocks($totalDocks - $availableBikes);
+            // Get additional data from request that's not part of the form
+            $availableBikes = (int)$request->request->get('availableBikes', $station->getAvailableBikes());
+            $latitude = $request->request->get('station_latitude');
+            $longitude = $request->request->get('station_longitude');
+            $address = $request->request->get('station_address');
+            $locationId = $request->request->get('station_location_id');
             
-            // Update status
-            if ($statusValue) {
-                $station->setStatus(BICYCLE_STATION_STATUS::from($statusValue));
-            }
-            
-            // Handle location update
-            if ($locationId) {
-                // Use existing location
-                $location = $this->locationService->findLocationById((int)$locationId);
-                if ($location) {
+            if ($form->isSubmitted() && $form->isValid()) {
+                // Update calculated fields
+                $totalDocks = $station->getTotalDocks();
+                $station->setAvailableBikes($availableBikes);
+                $station->setAvailableDocks($totalDocks - $availableBikes);
+                
+                // Handle location update
+                if ($locationId) {
+                    // Use existing location
+                    $location = $this->locationService->findLocationById((int)$locationId);
+                    if ($location) {
+                        $station->setLocation($location);
+                    }
+                } else if ($latitude && $longitude) {
+                    // Create or update location
+                    $location = $station->getLocation();
+                    
+                    if (!$location) {
+                        $location = new Location();
+                        $this->entityManager->persist($location);
+                    }
+                    
+                    $location->setLatitude((float)$latitude);
+                    $location->setLongitude((float)$longitude);
+                    $location->setAddress($address ?: 'Unknown location');
                     $station->setLocation($location);
                 }
-            } else if ($latitude && $longitude) {
-                // Create or update location
-                $location = $station->getLocation();
                 
-                if (!$location) {
-                    $location = new Location();
+                // Save the updated station
+                $this->entityManager->flush();
+                
+                return new JsonResponse([
+                    'success' => true,
+                    'message' => 'Station updated successfully'
+                ]);
+            } else {
+                // Form validation failed
+                $errors = [];
+                foreach ($form->getErrors(true) as $error) {
+                    $errors[] = $error->getMessage();
                 }
                 
-                $location->setLatitude((float)$latitude);
-                $location->setLongitude((float)$longitude);
-                $location->setAddress($address ?: 'Unknown location');
-                
-                $this->entityManager->persist($location);
-                $station->setLocation($location);
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Validation failed: ' . implode(', ', $errors)
+                ], 400);
             }
-            
-            // Save the updated station
-            $this->entityManager->flush();
-            
-            return new JsonResponse([
-                'success' => true,
-                'message' => 'Station updated successfully'
-            ]);
         } catch (\Exception $e) {
             $this->logger->error('Error updating station: ' . $e->getMessage(), [
                 'exception' => $e,
@@ -595,6 +617,46 @@ class BicycleAdminController extends AbstractController
         }
 
         return $this->redirectToRoute('admin_bicycle_stations', ['tab' => 'stations']);
+    }
+
+    #[Route('/station/{id}/delete', name: 'admin_bicycle_station_delete', methods: ['POST', 'GET'])]
+    public function deleteStation(int $id, Request $request): Response
+    {
+        try {
+            // CSRF check has been disabled
+            
+            // Find the station
+            $station = $this->entityManager->getRepository(BicycleStation::class)->find($id);
+            
+            if (!$station) {
+                $this->addFlash('error', 'Station not found.');
+                return $this->redirectToRoute('admin_bicycle_stations');
+            }
+            
+            // Check if there are bicycles at this station
+            $bicycles = $this->bicycleService->getBicyclesByStation($station);
+            if (count($bicycles) > 0) {
+                $this->addFlash('error', 'Cannot delete station: please reassign all bicycles from this station first.');
+                return $this->redirectToRoute('admin_bicycle_stations');
+            }
+            
+            // Remove the station
+            $stationName = $station->getName(); // Store name before deletion
+            $this->entityManager->remove($station);
+            $this->entityManager->flush();
+            
+            // Success message
+            $this->addFlash('success', sprintf('Station "%s" has been successfully deleted.', $stationName));
+        } catch (\Exception $e) {
+            $this->logger->error('Error deleting station: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            $this->addFlash('error', 'An error occurred while trying to delete the station: ' . $e->getMessage());
+        }
+        
+        return $this->redirectToRoute('admin_bicycle_stations');
     }
 
     // API Routes
@@ -781,7 +843,6 @@ class BicycleAdminController extends AbstractController
     public function getStationEditForm(int $id): Response
     {
         try {
-            // Log that we're entering this function
             $this->logger->info('Getting station edit form for ID: ' . $id);
             
             $station = $this->stationService->getStation($id);
@@ -791,13 +852,15 @@ class BicycleAdminController extends AbstractController
                 return new JsonResponse(['error' => 'Station not found'], 404);
             }
             
-            $this->logger->info('Found station: ' . $station->getName());
+            // Create form for the station
+            $form = $this->createForm(BicycleStationType::class, $station);
             
-            // Log what template we're trying to render
+            $this->logger->info('Found station: ' . $station->getName());
             $this->logger->info('Rendering template: back-office/bicycle/station-edit.html.twig');
             
             return $this->render('back-office/bicycle/station-edit.html.twig', [
-                'station' => $station
+                'station' => $station,
+                'stationForm' => $form->createView()
             ]);
         } catch (\Exception $e) {
             $this->logger->error('Error rendering station edit form: ' . $e->getMessage(), [
