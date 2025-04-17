@@ -31,15 +31,15 @@ class RequestService
         Location $pickupLocation,
         Location $arrivalLocation
     ): Request {
-        // Create the request
+        
         $request = new Request();
         $request->setUser($user)
             ->setDepartureLocation($pickupLocation)
             ->setArrivalLocation($arrivalLocation)
-            ->setRequest_date(new \DateTime()) // System date
-            ->setStatus(REQUEST_STATUS::PENDING); // Default status
+            ->setRequest_date(new \DateTime()) 
+            ->setStatus(REQUEST_STATUS::PENDING); 
     
-        // Persist the request
+    
         $this->entityManager->persist($request);
         $this->entityManager->flush();
     
@@ -77,27 +77,27 @@ class RequestService
         Location $arrivalLocation,
         REQUEST_STATUS $status
     ): Request {
-        // Find the existing request first
+        
         $request = $this->requestRepository->find($requestId);
         if (!$request) {
             throw new NotFoundHttpException('Request not found.');
         }
     
-        // Validate pickup location
+        
         if (empty($pickupLocation->getAddress()) || 
             !is_numeric($pickupLocation->getLatitude()) || 
             !is_numeric($pickupLocation->getLongitude())) {
             throw new \InvalidArgumentException('Pickup location must have valid address and coordinates');
         }
     
-        // Validate arrival location
+        
         if (empty($arrivalLocation->getAddress()) || 
             !is_numeric($arrivalLocation->getLatitude()) || 
             !is_numeric($arrivalLocation->getLongitude())) {
             throw new \InvalidArgumentException('Arrival location must have valid address and coordinates');
         }
     
-        // Create new Location objects with validated data
+        
         $newPickupLocation = new Location();
         $newPickupLocation->setAddress($pickupLocation->getAddress())
             ->setLatitude((float)$pickupLocation->getLatitude())
@@ -108,11 +108,11 @@ class RequestService
             ->setLatitude((float)$arrivalLocation->getLatitude())
             ->setLongitude((float)$arrivalLocation->getLongitude());
     
-        // Persist new locations
+    
         $this->entityManager->persist($newPickupLocation);
         $this->entityManager->persist($newArrivalLocation);
-    
-        // Update the request
+       
+       
         $request->setUser($user)
             ->setDepartureLocation($newPickupLocation)
             ->setArrivalLocation($newArrivalLocation)
@@ -126,6 +126,7 @@ class RequestService
     }
     public function getRequestLocations(int $requestId): array
 {
+
    
     $request = $this->requestRepository->find($requestId);
 
@@ -155,17 +156,17 @@ public function getRealyAllRequest():array
 
 public function acceptRequest(int $requestId): Request
 {
-    // Find the request by ID
+    
     $request = $this->requestRepository->find($requestId);
 
     if (!$request) {
         throw new NotFoundHttpException('Request not found.');
     }
 
-    // Update the status to ACCEPTED
+    
     $request->setStatus(REQUEST_STATUS::ACCEPTED);
 
-    // Persist the changes
+   
     $this->entityManager->persist($request);
     $this->entityManager->flush();
 

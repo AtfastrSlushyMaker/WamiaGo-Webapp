@@ -12,7 +12,9 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Service\RideService;
-use App\Enum\RideStatus; // Replace with the correct namespace for RIDE_STATUS
+use App\Enum\RIDE_STATUS;
+use Symfony\Component\HttpFoundation\Request as HttpRequest;
+
 
 #[Route('/services/taxi')]
 class TaxiController extends AbstractController
@@ -25,38 +27,38 @@ class TaxiController extends AbstractController
     {
         $this->entityManager = $entityManager;
         $this->requestService = $requestService;
-        $this->rideService = $rideService;// Initialize RideService with EntityManager
+        $this->rideService = $rideService;
     }
 
     #[Route('/taxi/management', name: 'app_taxi_management')]
     public function index(): Response
     {
-        // Fetch user with static ID 114
+       
         $user = $this->entityManager->getRepository(User::class)->find(114);
 
-        // Handle case where user with ID 114 doesn't exist
+       
         if (!$user) {
             throw $this->createNotFoundException('User with ID 114 not found.');
         }
 
-        // Use RequestService to fetch requests for the static user ID (114)
+      
         $requests = $this->requestService->getRequestsForUser($user->getIdUser());
-        $rides = $this->rideService->getRidesByUser($user->getIdUser());// Use getIdUser()
+        $rides = $this->rideService->getRidesByUser($user->getIdUser());
 
-        // Prepare data for rendering in the template
+        
         $requestData = [];
 
         foreach ($requests as $request) {
             $requestData[] = [
-                'id' => $request->getIdRequest(), // Request ID
-                'pickupLocation' => $request->getDepartureLocation() ? $request->getDepartureLocation()->getAddress() : 'Unknown', // Pickup address
-                'pickupLatitude' => $request->getDepartureLocation() ? $request->getDepartureLocation()->getLatitude() : null, // Pickup Latitude
-                'pickupLongitude' => $request->getDepartureLocation() ? $request->getDepartureLocation()->getLongitude() : null, // Pickup Longitude
-                'destination' => $request->getArrivalLocation() ? $request->getArrivalLocation()->getAddress() : 'Unknown', // Destination address
-                'destinationLatitude' => $request->getArrivalLocation() ? $request->getArrivalLocation()->getLatitude() : null, // Destination Latitude
-                'destinationLongitude' => $request->getArrivalLocation() ? $request->getArrivalLocation()->getLongitude() : null, // Destination Longitude
-                'requestTime' => $request->getRequestDate()->format('Y-m-d H:i:s'), // Request time
-                'status' => $request->getStatus()->value, // Request status
+                'id' => $request->getIdRequest(), 
+                'pickupLocation' => $request->getDepartureLocation() ? $request->getDepartureLocation()->getAddress() : 'Unknown', 
+                'pickupLatitude' => $request->getDepartureLocation() ? $request->getDepartureLocation()->getLatitude() : null, 
+                'pickupLongitude' => $request->getDepartureLocation() ? $request->getDepartureLocation()->getLongitude() : null, 
+                'destination' => $request->getArrivalLocation() ? $request->getArrivalLocation()->getAddress() : 'Unknown', 
+                'destinationLatitude' => $request->getArrivalLocation() ? $request->getArrivalLocation()->getLatitude() : null, 
+                'destinationLongitude' => $request->getArrivalLocation() ? $request->getArrivalLocation()->getLongitude() : null, 
+                'requestTime' => $request->getRequestDate()->format('Y-m-d H:i:s'), 
+                'status' => $request->getStatus()->value, 
             ];
         }
 
@@ -65,14 +67,14 @@ class TaxiController extends AbstractController
 
         foreach ($rides as $ride) {
             $rideData[] = [
-                'id' => $ride->getIdRide(), // Ride ID
-                'pickupLocation' => $ride->getRequest()->getDepartureLocation() ? $ride->getRequest()->getDepartureLocation()->getAddress() : 'Unknown', // Pickup address
-                'duration' => $ride->getDuration(), // Ride duration
-               // 'driverName' => $ride->getDriver() ? $ride->getDriver()->getname : 'Unknown', // Driver name
-                'destination' => $ride->getRequest()->getArrivalLocation() ? $ride->getRequest()->getArrivalLocation()->getAddress() : 'Unknown', // Destination address
-                'price' => $ride->getPrice(), // Ride price
-                'status' => $ride->getStatus()->value, // Ride status
-                'distance' => $ride->getDistance(), // Ride distance
+                'id' => $ride->getIdRide(), 
+                'pickupLocation' => $ride->getRequest()->getDepartureLocation() ? $ride->getRequest()->getDepartureLocation()->getAddress() : 'Unknown', 
+                'duration' => $ride->getDuration(), 
+               // 'driverName' => $ride->getDriver() ? $ride->getDriver()->getname : 'Unknown', 
+                'destination' => $ride->getRequest()->getArrivalLocation() ? $ride->getRequest()->getArrivalLocation()->getAddress() : 'Unknown', 
+                'price' => $ride->getPrice(), 
+                'status' => $ride->getStatus()->value, 
+                'distance' => $ride->getDistance(), 
             ];
         }
 
@@ -104,15 +106,15 @@ class TaxiController extends AbstractController
     #[Route('/request/update/{id}', name: 'request_update', methods: ['GET'])]
     public function requestUpdate(int $id): Response
     {
-        // Fetch the request by ID
+        
         $request = $this->entityManager->getRepository(Request::class)->find($id);
 
-        // Handle case where the request doesn't exist
+        
         if (!$request) {
             throw $this->createNotFoundException('Request not found.');
         }
 
-        // Pass the request data to the template
+        
         return $this->render('front/taxi/request-update.html.twig', [
             'request' => $request,
         ]);
@@ -122,7 +124,7 @@ class TaxiController extends AbstractController
     public function deleteRide(int $id): JsonResponse
     {
         try {
-            // Call the deleteRide method from the RideService
+           
             $this->rideService->deleteRide($id);
     
             return new JsonResponse([
