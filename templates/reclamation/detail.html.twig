@@ -136,10 +136,13 @@
                                               
                                             </div>
                                             
-                                            <form id="responseForm" action="{{ path('app_response_new_for_reclamation', {'id_reclamation': reclamation.id_reclamation}) }}" method="post">
+                                            <form id="responseForm" action="{{ path('app_response_new_for_reclamation', {'id_reclamation': reclamation.id_reclamation}) }}" method="post" novalidate>
                                               <div class="form-group mb-3">
                                                 <label for="responseContent" class="form-label">Votre réponse</label>
-                                                <textarea class="form-control" id="responseContent" name="response[content]" rows="5" required></textarea>
+                                                <textarea class="form-control" id="responseContent" name="response[content]" rows="5"></textarea>
+                                                <div class="invalid-feedback" id="responseContentError">
+                                                  Veuillez renseigner ce champ.
+                                                </div>
                                               </div>
                                               <input type="hidden" name="response[reclamation]" value="{{ reclamation.id_reclamation }}">
                                               <input type="hidden" name="token" value="{{ csrf_token('response_form') }}">
@@ -147,13 +150,66 @@
                                           </div>
                                           <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                            <button type="submit" form="responseForm" class="btn btn-primary">
+                                            <button type="submit" form="responseForm" class="btn btn-primary" id="submitResponseBtn">
                                               <i class="fas fa-paper-plane me-1"></i> Envoyer
                                             </button>
                                           </div>
                                         </div>
                                       </div>
                                     </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the response form and textarea
+    const responseForm = document.getElementById('responseForm');
+    const responseContent = document.getElementById('responseContent');
+    const responseContentError = document.getElementById('responseContentError');
+    const submitBtn = document.getElementById('submitResponseBtn');
+
+    if (responseForm && responseContent) {
+        // Form submission validation
+        responseForm.addEventListener('submit', function(event) {
+            const content = responseContent.value.trim();
+            let isValid = true;
+
+            // Reset validation state
+            responseContent.classList.remove('is-invalid');
+            responseContentError.textContent = '';
+
+            // Check if empty
+            if (content === '') {
+                isValid = false;
+                responseContent.classList.add('is-invalid');
+                responseContentError.textContent = 'Le message ne peut pas être vide';
+            } 
+            // Check if too short
+            else if (content.length < 10) {
+                isValid = false;
+                responseContent.classList.add('is-invalid');
+                responseContentError.textContent = 'Le message doit contenir au moins 10 caractères';
+            }
+
+            if (!isValid) {
+                event.preventDefault();
+            } else {
+                // Show loading state on submit
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Envoi en cours...';
+            }
+        });
+
+        // Live validation as user types
+        responseContent.addEventListener('input', function() {
+            const content = this.value.trim();
+            
+            // Remove error display when user starts typing enough content
+            if (content.length >= 10) {
+                responseContent.classList.remove('is-invalid');
+            }
+        });
+    }
+});
+</script>
                                     
                                     <form action="{{ path('app_reclamation_delete', {'id_reclamation': reclamation.id_reclamation}) }}" method="post" class="d-inline">
                                         <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reclamation.id_reclamation) }}">

@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response as HttpResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
-
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/response')]
 final class ResponseController extends AbstractController
@@ -27,17 +27,34 @@ final class ResponseController extends AbstractController
     }
 
     #[Route('/new', name: 'app_response_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): HttpResponse
+    public function new(Request $request, EntityManagerInterface $entityManager, ValidatorInterface $validator): HttpResponse
     {
         $response = new Response();
+        $response->setDate(new \DateTime()); // Set current date as default
+        
         $form = $this->createForm(ResponseType::class, $response);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($response);
-            $entityManager->flush();
+        if ($form->isSubmitted()) {
+            // Validate the entity
+            $errors = $validator->validate($response);
+            
+            if (count($errors) === 0) {
+                // If no validation errors, save the entity
+                $entityManager->persist($response);
+                $entityManager->flush();
 
-            return $this->redirectToRoute('app_response_index', [], HttpResponse::HTTP_SEE_OTHER);
+                $this->addFlash('success', 'Response has been created successfully.');
+                return $this->redirectToRoute('app_response_index', [], HttpResponse::HTTP_SEE_OTHER);
+            } else {
+                // If there are validation errors, add flash messages
+                foreach ($errors as $error) {
+                    $this->addFlash('error', $error->getMessage());
+                }
+                
+                // For debugging
+                $this->addFlash('error', 'Validation failed. Please check your input and try again.');
+            }
         }
 
         return $this->render('response/new.html.twig', [
@@ -55,18 +72,34 @@ final class ResponseController extends AbstractController
     }
 
     #[Route('/{id_response}/edit', name: 'app_response_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Response $response, EntityManagerInterface $entityManager): HttpResponse
+    public function edit(Request $request, Response $response, EntityManagerInterface $entityManager, ValidatorInterface $validator): HttpResponse
     {
         $form = $this->createForm(ResponseType::class, $response);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_response_index', [], HttpResponse::HTTP_SEE_OTHER);
+        if ($form->isSubmitted()) {
+            // Validate the entity
+            $errors = $validator->validate($response);
+            
+            if (count($errors) === 0) {
+                $entityManager->flush();
+                $this->addFlash('success', 'Response has been updated successfully.');
+                return $this->redirectToRoute('app_response_index', [], HttpResponse::HTTP_SEE_OTHER);
+            } else {
+                // If there are validation errors, add flash messages
+                foreach ($errors as $error) {
+                    $this->addFlash('error', $error->getMessage());
+                }
+                
+                // For debugging
+                $this->addFlash('error', 'Validation failed. Please check your input and try again.');
+            }
         }
 
-        return $this->redirectToRoute("admin_response");
+        return $this->render('response/edit.html.twig', [
+            'response' => $response,
+            'form' => $form,
+        ]);
     }
 
     #[Route('/{id_response}', name: 'app_response_delete', methods: ['POST'])]
@@ -97,7 +130,8 @@ final class ResponseController extends AbstractController
         Request $request, 
         EntityManagerInterface $entityManager, 
         int $id_reclamation,
-        MailerInterface $mailer
+        MailerInterface $mailer,
+        ValidatorInterface $validator
     ): HttpResponse
     {
         $reclamation = $entityManager->getRepository(Reclamation::class)->find($id_reclamation);
@@ -114,39 +148,61 @@ final class ResponseController extends AbstractController
         }
         
         $responseData = $request->request->all('response');
+        $content = trim($responseData['content'] ?? '');
         
-       // Create and persist the response
-       $response = new Response();
-       $response->setContent($responseData['content'] ?? '');
-       $response->setReclamation($reclamation);
-       $response->setDate(new \DateTime());
-       
-       $entityManager->persist($response);
-       $entityManager->flush();
-       
-       // Get the user from the reclamation
-       $user = $reclamation->getUser();
-       
-       // Send email to the user
-       if ($user && $user->getEmail()) {
-           $email = (new Email())
-               ->from('walikghrairi@gmail.com')
-               ->to($user->getEmail())
-               ->subject('Réponse à votre réclamation - WamiaGo')
-               ->html($this->renderView(
-                   'response/email.html.twig',
-                   [
-                       'reclamation' => $reclamation,
-                       'response' => $response,
-                       'user' => $user
-                   ]
-               ));
-           
-           try {
-               $mailer->send($email);
-           } catch (\Exception $e) {
-              // Log the error but continue
-              $this->addFlash('warning', 'La réponse a été enregistrée mais l\'email n\'a pas pu être envoyé.');
+        // Check if content is empty
+        if (empty($content)) {
+            $this->addFlash('error', 'Le message ne peut pas être vide');
+            return $this->redirectToRoute('app_reclamation_detail', ['id_reclamation' => $id_reclamation]);
+        }
+        
+        // Check if content is too short
+        if (strlen($content) < 10) {
+            $this->addFlash('error', 'Le message doit contenir au moins 10 caractères');
+            return $this->redirectToRoute('app_reclamation_detail', ['id_reclamation' => $id_reclamation]);
+        }
+        
+        // Create and persist the response
+        $response = new Response();
+        $response->setContent($content);
+        $response->setReclamation($reclamation);
+        $response->setDate(new \DateTime());
+        
+        // Validate the entity using validators defined in the entity
+        $errors = $validator->validate($response);
+        if (count($errors) > 0) {
+            foreach ($errors as $error) {
+                $this->addFlash('error', $error->getMessage());
+            }
+            return $this->redirectToRoute('app_reclamation_detail', ['id_reclamation' => $id_reclamation]);
+        }
+        
+        $entityManager->persist($response);
+        $entityManager->flush();
+        
+        // Get the user from the reclamation
+        $user = $reclamation->getUser();
+        
+        // Send email to the user
+        if ($user && $user->getEmail()) {
+            $email = (new Email())
+                ->from('walikghrairi@gmail.com')
+                ->to($user->getEmail())
+                ->subject('Réponse à votre réclamation - WamiaGo')
+                ->html($this->renderView(
+                    'response/email.html.twig',
+                    [
+                        'reclamation' => $reclamation,
+                        'response' => $response,
+                        'user' => $user
+                    ]
+                ));
+            
+            try {
+                $mailer->send($email);
+            } catch (\Exception $e) {
+               // Log the error but continue
+               $this->addFlash('warning', 'La réponse a été enregistrée mais l\'email n\'a pas pu être envoyé.');
             }
         }
         
@@ -154,4 +210,3 @@ final class ResponseController extends AbstractController
         return $this->redirectToRoute('app_reclamation_detail', ['id_reclamation' => $id_reclamation]);
     }
 }
-    

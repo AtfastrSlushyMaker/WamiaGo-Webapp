@@ -76,7 +76,7 @@ class ReclamationType extends AbstractType
         $resolver->setDefaults([
             'data_class' => Reclamation::class,
             'attr' => [
-                'novalidate' => 'novalidate', // Enables HTML5 validation
+                // Remove novalidate attribute to disable HTML5 validation
                 'class' => 'needs-validation',
             ],
             'csrf_protection' => true,

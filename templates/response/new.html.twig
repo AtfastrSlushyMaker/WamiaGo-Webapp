@@ -1,11 +1,57 @@
 <!DOCTYPE html>
 
-<title>New Response</title>
+{% extends 'base.html.twig' %}
+
+{% block title %}New Response{% endblock %}
 
 {% block body %}
-    <h1>Create new Response</h1>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h1 class="card-title">Create New Response</h1>
+                    </div>
+                    <div class="card-body">
+                        {% for flash_error in app.flashes('error') %}
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                {{ flash_error }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                        
+                        {% for flash_success in app.flashes('success') %}
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                {{ flash_success }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
 
-    {{ include('response/_form.html.twig') }}
+                        {{ include('response/_form.html.twig') }}
+                    </div>
+                    <div class="card-footer">
+                        <a href="{{ path('app_response_index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to list
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
 
-    <a href="{{ path('app_response_index') }}">back to list</a>
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+        .form-text {
+            font-size: 0.85rem;
+        }
+        .is-invalid ~ .invalid-feedback {
+            display: block;
+        }
+    </style>
 {% endblock %}
