@@ -461,7 +461,7 @@ class BicycleRentalAdminController extends AbstractController
             $this->addFlash('error', 'Error cancelling rental: ' . $e->getMessage());
         }
         
-        return $this->redirectToRoute('admin_bicycle_rentals_index');
+        return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => "rentals"]);
     }
 
     /**
@@ -474,7 +474,7 @@ class BicycleRentalAdminController extends AbstractController
         
         if (!$rental) {
             $this->addFlash('error', 'Rental not found');
-            return $this->redirectToRoute('admin_bicycle_rentals_index');
+            return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => "rentals"]);
         }
         
         try {
