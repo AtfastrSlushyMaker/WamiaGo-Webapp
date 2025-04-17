@@ -30,7 +30,7 @@ async function showDetailsModal(reservationId) {
         
         const data = await response.json();
         
-        // Create modal near the clicked button
+        // Référence à la carte de réservation
         const btn = document.querySelector(`.btn-details[data-id="${reservationId}"]`);
         const card = btn.closest('.reservation-card');
         const cardRect = card.getBoundingClientRect();
@@ -58,11 +58,28 @@ async function showDetailsModal(reservationId) {
             width: '600px',
             background: '#fff',
             backdrop: 'rgba(0,0,0,0.5)',
-            position: 'absolute',
+            customClass: {
+                container: 'reservation-modal-container',
+                popup: 'reservation-modal-popup'
+            },
             willOpen: () => {
                 const popup = Swal.getPopup();
-                popup.style.top = `${cardRect.top + window.scrollY - 20}px`;
-                popup.style.left = `${cardRect.left + window.scrollX - 100}px`;
+                
+                // Calcul d'une position qui soit visible et proche de la carte
+                let topPosition = cardRect.top + window.scrollY - 20;
+                
+                // S'assurer que la modale ne sort pas du haut de l'écran
+                if (topPosition < 20) topPosition = 20;
+                
+                // Positionnement horizontal aligné avec la carte
+                let leftPosition = cardRect.left + window.scrollX;
+                
+                // Ajustement pour que la modale ne dépasse pas à gauche
+                if (leftPosition < 20) leftPosition = 20;
+                
+                popup.style.top = `${topPosition}px`;
+                popup.style.left = `${leftPosition}px`;
+                popup.style.position = 'absolute';
             }
         });
         
@@ -78,6 +95,11 @@ async function showDetailsModal(reservationId) {
 
 async function handleAcceptReservation(reservationId) {
     try {
+        // Référence à la carte de réservation
+        const btn = document.querySelector(`.btn-accept[data-id="${reservationId}"]`);
+        const card = btn.closest('.reservation-card');
+        const cardRect = card.getBoundingClientRect();
+        
         const { value: formValues } = await Swal.fire({
             title: 'Accept Reservation',
             html: `
@@ -94,8 +116,16 @@ async function handleAcceptReservation(reservationId) {
             `,
             focusConfirm: false,
             showCancelButton: true,
-            confirmButtonText: 'Confirm',
-            cancelButtonText: 'Cancel',
+            confirmButtonText: '<i class="fas fa-check me-1"></i> Confirm',
+            cancelButtonText: '<i class="fas fa-times me-1"></i> Cancel',
+            confirmButtonColor: '#4caf50',
+            cancelButtonColor: '#f44336',
+            customClass: {
+                container: 'reservation-modal-container',
+                popup: 'reservation-modal-popup',
+                confirmButton: 'swal-confirm-button',
+                cancelButton: 'swal-cancel-button'
+            },
             preConfirm: () => {
                 return {
                     date: document.getElementById('relocationDate').value,
@@ -103,16 +133,18 @@ async function handleAcceptReservation(reservationId) {
                 };
             },
             willOpen: () => {
-                const btn = document.querySelector(`.btn-accept[data-id="${reservationId}"]`);
-                const card = btn.closest('.reservation-card');
-                const cardRect = card.getBoundingClientRect();
-                
                 const popup = Swal.getPopup();
-                popup.style.top = `${cardRect.top + window.scrollY - 20}px`;
-                popup.style.left = `${cardRect.left + window.scrollX - 100}px`;
-            },
-            customClass: {
-                popup: 'swal2-popup-wide'
+                
+                // Calcul d'une position qui soit visible et proche de la carte
+                let topPosition = cardRect.top + window.scrollY - 20;
+                if (topPosition < 20) topPosition = 20;
+                
+                let leftPosition = cardRect.left + window.scrollX;
+                if (leftPosition < 20) leftPosition = 20;
+                
+                popup.style.top = `${topPosition}px`;
+                popup.style.left = `${leftPosition}px`;
+                popup.style.position = 'absolute';
             }
         });
 
@@ -150,7 +182,10 @@ async function handleAcceptReservation(reservationId) {
                 icon: 'success',
                 title: 'Success',
                 text: data.message || 'Reservation accepted successfully',
-                timer: 3000
+                timer: 3000,
+                customClass: {
+                    popup: 'reservation-success-modal'
+                }
             });
         }
     } catch (error) {
@@ -165,22 +200,39 @@ async function handleAcceptReservation(reservationId) {
 
 async function handleRefuseReservation(reservationId) {
     try {
+        // Référence à la carte de réservation
+        const btn = document.querySelector(`.btn-refuse[data-id="${reservationId}"]`);
+        const card = btn.closest('.reservation-card');
+        const cardRect = card.getBoundingClientRect();
+        
         const { isConfirmed } = await Swal.fire({
             title: 'Are you sure?',
             text: "You won't be able to revert this!",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
+            confirmButtonColor: '#f44336',
             cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, refuse it!',
+            confirmButtonText: '<i class="fas fa-ban me-1"></i> Yes, refuse it!',
+            cancelButtonText: '<i class="fas fa-arrow-left me-1"></i> Cancel',
+            customClass: {
+                container: 'reservation-modal-container',
+                popup: 'reservation-modal-popup',
+                confirmButton: 'swal-confirm-button',
+                cancelButton: 'swal-cancel-button'
+            },
             willOpen: () => {
-                const btn = document.querySelector(`.btn-refuse[data-id="${reservationId}"]`);
-                const card = btn.closest('.reservation-card');
-                const cardRect = card.getBoundingClientRect();
-                
                 const popup = Swal.getPopup();
-                popup.style.top = `${cardRect.top + window.scrollY - 20}px`;
-                popup.style.left = `${cardRect.left + window.scrollX - 100}px`;
+                
+                // Calcul d'une position qui soit visible et proche de la carte
+                let topPosition = cardRect.top + window.scrollY - 20;
+                if (topPosition < 20) topPosition = 20;
+                
+                let leftPosition = cardRect.left + window.scrollX;
+                if (leftPosition < 20) leftPosition = 20;
+                
+                popup.style.top = `${topPosition}px`;
+                popup.style.left = `${leftPosition}px`;
+                popup.style.position = 'absolute';
             }
         });
 
@@ -211,7 +263,10 @@ async function handleRefuseReservation(reservationId) {
                 icon: 'success',
                 title: 'Refused!',
                 text: data.message || 'Reservation has been refused.',
-                timer: 3000
+                timer: 3000,
+                customClass: {
+                    popup: 'reservation-success-modal'
+                }
             });
         }
     } catch (error) {

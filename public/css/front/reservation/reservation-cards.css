@@ -215,3 +215,167 @@
     color: #718096;
     margin-bottom: 1.5rem;
 }
+
+/* Style pour les modales SweetAlert */
+.reservation-modal-container {
+    z-index: 1500 !important;
+}
+
+.reservation-modal-popup {
+    border-radius: 12px !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2) !important;
+    animation: swal-popup-appear 0.3s !important;
+    border-left: 5px solid #5A6BE5 !important;
+}
+
+.reservation-success-modal {
+    border-radius: 12px !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2) !important;
+}
+
+@keyframes swal-popup-appear {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Améliorations des boutons dans les cartes */
+.card-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+/* Style amélioré pour les boutons accept/refuse */
+.btn-accept, .btn-refuse {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-accept {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.btn-accept:hover {
+    background-color: #388E3C;
+    transform: scale(1.15);
+    box-shadow: 0 5px 10px rgba(76, 175, 80, 0.3);
+}
+
+.btn-refuse {
+    background-color: #F44336;
+    color: white;
+}
+
+.btn-refuse:hover {
+    background-color: #D32F2F;
+    transform: scale(1.15);
+    box-shadow: 0 5px 10px rgba(244, 67, 54, 0.3);
+}
+
+/* Style amélioré pour le bouton details */
+.btn-details {
+    background-color: #f8f9fa;
+    border: 1px solid #4299E1;
+    color: #4299E1;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 2px 4px rgba(66, 153, 225, 0.1);
+}
+
+.btn-details:hover {
+    background-color: #4299E1;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(66, 153, 225, 0.2);
+}
+
+/* Style amélioré pour les boutons SweetAlert */
+.swal-confirm-button, .swal-cancel-button {
+    border-radius: 6px !important;
+    padding: 12px 24px !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.5px !important;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1) !important;
+    transition: all 0.2s ease !important;
+}
+
+.swal-confirm-button:hover, .swal-cancel-button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Améliorations de la forme et des inputs */
+.swal2-popup .form-control {
+    padding: 0.75rem 1rem !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 8px !important;
+    font-size: 1rem !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out !important;
+}
+
+.swal2-popup .form-control:focus {
+    border-color: #5A6BE5 !important;
+    box-shadow: 0 0 0 3px rgba(90, 107, 229, 0.25) !important;
+    outline: none !important;
+}
+
+.swal2-popup .form-label {
+    margin-bottom: 0.75rem !important;
+    display: block !important;
+    font-weight: 500 !important;
+    color: #2D3748 !important;
+    font-size: 0.95rem !important;
+}
+
+.swal-close-button {
+    padding: 10px !important;
+    font-size: 24px !important;
+    transition: transform 0.2s, color 0.2s !important;
+    z-index: 9999 !important; /* S'assurer qu'il est au-dessus de tout */
+    cursor: pointer !important;
+    color: #718096 !important;
+}
+
+.swal-close-button:hover {
+    transform: scale(1.2) !important;
+    color: #e53e3e !important;
+}
+
+.swal2-close {
+    position: absolute !important;
+    top: 5px !important;
+    right: 5px !important;
+    z-index: 9999 !important;
+    padding: 10px !important;
+    font-size: 24px !important;
+    cursor: pointer !important;
+    opacity: 0.8 !important;
+    transition: opacity 0.2s, transform 0.2s !important;
+}
+
+.swal2-close:hover {
+    opacity: 1 !important;
+    transform: scale(1.1) !important;
+}
