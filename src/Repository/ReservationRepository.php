@@ -6,6 +6,7 @@ use App\Entity\Reservation;
 use App\Entity\Driver;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Entity\User;
 
 class ReservationRepository extends ServiceEntityRepository
 {
@@ -30,4 +31,16 @@ class ReservationRepository extends ServiceEntityRepository
         $this-> getEntityManager()->persist($reservation);
         $this->getEntityManager()->flush();
     }
+
+ 
+
+public function findByUser(User $user): array
+{
+    return $this->createQueryBuilder('r')
+        ->where('r.user = :user')
+        ->setParameter('user', $user)
+        ->orderBy('r.date', 'DESC')
+        ->getQuery()
+        ->getResult();
+}
 }

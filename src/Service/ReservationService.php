@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Reservation;
 use App\Entity\Driver;
 use App\Enum\ReservationStatus;
+use App\Entity\User;
 use App\Repository\ReservationRepository;
 use App\Entity\Relocation;
 
@@ -63,6 +64,27 @@ public function refuseReservation(Reservation $reservation): void
 
     $reservation->setStatus(ReservationStatus::CANCELLED);
     $this->em->flush();
+}
+
+
+
+public function getReservationsByUser(User $user): array
+{
+    return $this->reservationRepository->findBy([
+        'user' => $user
+    ], ['date' => 'DESC']);
+}
+
+public function getClientReservationDetails(Reservation $reservation): array
+{
+    return [
+        'title' => $reservation->getAnnouncement()->getTitle(),
+        'description' => $reservation->getDescription(),
+        'date' => $reservation->getDate()->format('d M Y, H:i'),
+        'status' => $reservation->getStatus()->value,
+        'startLocation' => $reservation->getStartLocation()->getAddress(),
+        'endLocation' => $reservation->getEndLocation()->getAddress()
+    ];
 }
 
     

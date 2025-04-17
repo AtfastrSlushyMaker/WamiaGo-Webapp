@@ -161,11 +161,7 @@
         </div>
     </div>
 
-    <!-- Temporary Alert -->
-    <div class="alert alert-warning mb-4">
-        <i class="fas fa-exclamation-triangle me-2"></i>
-        System is currently using test driver (ID: 6) - Authentication coming soon
-    </div>
+   
 
     <!-- Reservations Grid -->
     {% if reservations is empty %}
@@ -244,4 +240,26 @@
     {{ parent() }}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.all.min.js"></script>
     <script src="{{ asset('js/front/reservation/transporter-reservation.js') }}"></script>
+        <script>
+        // Gestionnaire global pour les fermetures de modales
+        document.addEventListener('click', function(e) {
+            // Boutons de fermeture Bootstrap
+            if (e.target.closest('[data-bs-dismiss="modal"]')) {
+                const modal = bootstrap.Modal.getInstance(e.target.closest('.modal'));
+                if (modal) modal.hide();
+            }
+            
+            // Boutons de fermeture SweetAlert
+            if (e.target.closest('.swal2-close')) {
+                Swal.close();
+            }
+        });
+
+        // Réinitialisation des modales cachées
+        document.addEventListener('hidden.bs.modal', function() {
+            document.body.classList.remove('modal-open');
+            document.body.style.paddingRight = '';
+            document.body.style.overflow = '';
+        });
+    </script>
 {% endblock %}

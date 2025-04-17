@@ -218,14 +218,112 @@
 
 /* Style pour les modales SweetAlert */
 .reservation-modal-container {
-    z-index: 1500 !important;
+    z-index: 99999 !important;
+    justify-content: center !important;
+}
+
+/* Supprimer ou modifier ces règles conflictuelles */
+.swal2-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    z-index: 99999 !important; /* Augmenter le z-index */
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+}
+
+/* Ajouter ces règles pour le message de succès */
+.swal2-success-popup {
+    background: white !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+    max-width: 400px !important;
+    width: 90% !important;
+    position: relative !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2) !important;
+    animation: swalSuccessIn 0.3s ease-out !important;
+}
+
+@keyframes swalSuccessIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Style pour le message de succès */
+.swal2-title.success-title {
+    color: #2D3748 !important;
+    font-size: 1.5rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.swal2-html-container.success-message {
+    color: #4A5568 !important;
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+}
+
+/* Suppression des styles conflictuels */
+.reservation-modal-container,
+.reservation-modal-popup {
+    position: static !important;
+    margin: 0 !important;
+    transform: none !important;
+}
+
+/* Ajouter ces nouvelles règles pour centrer la modale */
+.swal2-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    z-index: 1060 !important;
+}
+
+.swal2-popup {
+    margin: 0 !important;
+    position: relative !important;
+    width: auto !important;
+    max-width: 500px !important;
+    padding: 1.5rem !important;
+}
+
+.reservation-modal-popup {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+/* Améliorer l'animation d'apparition */
+@keyframes swal2-show {
+    0% {
+        transform: scale(0.7);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Corriger le scroll lock */
+body.swal2-shown {
+    overflow: hidden !important;
+    padding-right: 0 !important;
 }
 
 .reservation-modal-popup {
     border-radius: 12px !important;
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2) !important;
-    animation: swal-popup-appear 0.3s !important;
-    border-left: 5px solid #5A6BE5 !important;
 }
 
 .reservation-success-modal {
@@ -363,19 +461,138 @@
     color: #e53e3e !important;
 }
 
+/*  boutons de fermeture */
 .swal2-close {
     position: absolute !important;
-    top: 5px !important;
-    right: 5px !important;
-    z-index: 9999 !important;
-    padding: 10px !important;
+    top: 15px !important;
+    right: 15px !important;
+    width: 30px !important;
+    height: 30px !important;
     font-size: 24px !important;
+    color: #6B7280 !important;
+    transition: all 0.2s ease !important;
+    z-index: 9999 !important;
+    background: none !important;
+    border: none !important;
     cursor: pointer !important;
-    opacity: 0.8 !important;
-    transition: opacity 0.2s, transform 0.2s !important;
 }
 
 .swal2-close:hover {
-    opacity: 1 !important;
+    color: #EF4444 !important;
     transform: scale(1.1) !important;
 }
+
+/* Pour les modales Bootstrap */
+.btn-close {
+    filter: brightness(0) invert(1) !important;
+    opacity: 1 !important;
+    transition: transform 0.2s ease !important;
+}
+
+.btn-close:hover {
+    transform: rotate(90deg) !important;
+}
+
+/* Garantir que les modales sont toujours visibles */
+.reservation-modal-container {
+    z-index: 1060;  
+    display: none;  
+    justify-content: center !important;
+}
+
+.reservation-modal-popup {
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+}
+
+/* Animation d'apparition */
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.swal2-show {
+    animation: modalSlideIn 0.3s ease forwards !important;
+}
+
+/* Ajouter ces règles pour une meilleure gestion de la fermeture */
+.swal2-backdrop-hide {
+    opacity: 0 !important;
+}
+
+.swal2-hide {
+    opacity: 0 !important;
+    transform: scale(0.9) !important;
+}
+
+/* Améliorer l'animation de fermeture */
+.swal2-popup {
+    transition: all 0.3s ease-out !important;
+}
+
+.swal2-backdrop-show {
+    transition: background-color 0.3s !important;
+}
+
+/* Boutons plus visibles */
+.swal-confirm-button {
+    background-color: #5A6BE5 !important;
+    border: none !important;
+    padding: 10px 24px !important;
+    font-weight: 500 !important;
+}
+
+.swal-cancel-button {
+    background-color: #6B7280 !important;
+    border: none !important;
+    padding: 10px 24px !important;
+    font-weight: 500 !important;
+}
+
+/* Reset des styles de base de SweetAlert */
+.swal2-container {
+    overflow: hidden !important;
+    z-index: 99999 !important;
+}
+
+.swal2-close {
+    position: absolute !important;
+    top: 15px !important;
+    right: 15px !important;
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 24px !important;
+    color: #6B7280 !important;
+    transition: all 0.2s ease !important;
+    z-index: 99999 !important;
+    background: none !important;
+    border: none !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+}
+
+.swal2-close:hover {
+    color: #EF4444 !important;
+    transform: scale(1.1) !important;
+}
+
+/* Empêcher le body de se bloquer */
+body.swal2-shown {
+    overflow: hidden !important; 
+    padding-right: var(--swal2-padding-right) !important; 
+}
+
+/* Animation de fermeture */
+.swal2-container.swal2-shown {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(3px) !important;
+}
+
