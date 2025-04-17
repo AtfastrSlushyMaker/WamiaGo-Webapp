@@ -124,67 +124,72 @@ class AnnouncementClientController extends AbstractController
     }
 
     #[Route('/{id}/create-reservation', name: 'app_front_announcement_create_reservation', methods: ['POST'])]
-    public function createReservation(Request $request, Announcement $announcement): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-        
-        // Create new reservation
-        $reservation = new Reservation();
-        $reservation->setAnnouncement($announcement);
-        $reservation->setUser($this->getUser());
-        $reservation->setStatus(ReservationStatus::ON_GOING);
-        
-        // Manually bind data
-        $reservation->setDescription($data['description'] ?? null);
-        $reservation->setDate(new \DateTime($data['date'] ?? 'now'));
-        
-        // Set locations
-        $startLocation = $this->entityManager->getRepository(Location::class)->find($data['startLocation'] ?? null);
-        $endLocation = $this->entityManager->getRepository(Location::class)->find($data['endLocation'] ?? null);
-        
-        $reservation->setStartLocation($startLocation);
-        $reservation->setEndLocation($endLocation);
-        
-        // Validate
-        $errors = $this->validator->validate($reservation);
-        
-        if (count($errors) > 0) {
-            $errorMessages = [];
-            foreach ($errors as $error) {
-                // Mappez les noms des propriétés aux IDs des champs du formulaire
-                $field = match($error->getPropertyPath()) {
-                    'description' => 'description',
-                    'date' => 'date',
-                    'startLocation' => 'startLocation',
-                    'endLocation' => 'endLocation',
-                    default => $error->getPropertyPath()
-                };
-                $errorMessages[$field] = $error->getMessage();
-            }
-            
-            return $this->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $errorMessages
-            ], 422);
-        }
-        
-        try {
-            $this->entityManager->persist($reservation);
-            $this->entityManager->flush();
-            
-            return $this->json([
-                'success' => true,
-                'message' => 'Reservation created successfully!',
-                'reservationId' => $reservation->getIdReservation()
-            ]);
-        } catch (\Exception $e) {
-            return $this->json([
-                'success' => false,
-                'message' => 'Error creating reservation: ' . $e->getMessage()
-            ], 500);
-        }
+public function createReservation(Request $request, Announcement $announcement): JsonResponse
+{
+    $data = json_decode($request->getContent(), true);
+
+    // TEMPORAIRE : Utilisateur statique avec ID 115
+    $user = $this->entityManager->getRepository(User::class)->find(115);
+    if (!$user) {
+        return $this->json([
+            'success' => false,
+            'message' => 'User with ID 115 not found.'
+        ], 404);
     }
+
+    $reservation = new Reservation();
+    $reservation->setAnnouncement($announcement);
+    $reservation->setUser($user); // Utilisation de l'utilisateur statique
+    $reservation->setStatus(ReservationStatus::ON_GOING);
+
+    $reservation->setDescription($data['description'] ?? null);
+    $reservation->setDate(new \DateTime($data['date'] ?? 'now'));
+
+    $startLocation = $this->entityManager->getRepository(Location::class)->find($data['startLocation'] ?? null);
+    $endLocation = $this->entityManager->getRepository(Location::class)->find($data['endLocation'] ?? null);
+
+    $reservation->setStartLocation($startLocation);
+    $reservation->setEndLocation($endLocation);
+
+    $errors = $this->validator->validate($reservation);
+
+    if (count($errors) > 0) {
+        $errorMessages = [];
+        foreach ($errors as $error) {
+            $field = match($error->getPropertyPath()) {
+                'description' => 'description',
+                'date' => 'date',
+                'startLocation' => 'startLocation',
+                'endLocation' => 'endLocation',
+                default => $error->getPropertyPath()
+            };
+            $errorMessages[$field] = $error->getMessage();
+        }
+
+        return $this->json([
+            'success' => false,
+            'message' => 'Validation failed',
+            'errors' => $errorMessages
+        ], 422);
+    }
+
+    try {
+        $this->entityManager->persist($reservation);
+        $this->entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Reservation created successfully!',
+            'reservationId' => $reservation->getIdReservation()
+        ]);
+    } catch (\Exception $e) {
+        return $this->json([
+            'success' => false,
+            'message' => 'Error creating reservation: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
 #[Route('/api/locations', name: 'app_api_locations', methods: ['GET'])]
 public function getLocations(): JsonResponse
 {

@@ -250,12 +250,28 @@
 }
 
 .reserve-button {
-    background-color: #5A6BE5;
+    background-color: #4E8CFF; /* Bleu clair et amical */
     color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(78, 140, 255, 0.25);
 }
 
 .reserve-button:hover {
-    background-color: #3F51B5;
+    background-color: #3A7DFF; /* Légèrement plus soutenu */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(78, 140, 255, 0.35);
+}
+
+.reserve-button:active {
+    background-color: #2B6CFF;
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(78, 140, 255, 0.3);
 }
 
 /* Empty State */
@@ -931,4 +947,239 @@ body.dark-mode .accordion-body {
 
 .swal2-show {
     animation: modalAppear 0.4s ease forwards;
+}
+
+/* Styles pour le modal amélioré */
+.modal-dialog-draggable {
+    position: fixed !important;
+    margin: 0 !important;
+    z-index: 1060;
+    transition: transform 0.2s ease-out;
+}
+
+.cursor-move {
+    cursor: move;
+}
+
+.cursor-move.dragging {
+    cursor: grabbing;
+}
+
+.no-select {
+    user-select: none;
+}
+
+/* Animation du camion */
+.truck-animation-container {
+    position: relative;
+    height: 150px;
+    margin: 2rem 0;
+    overflow: hidden;
+}
+
+.truck-image {
+    position: absolute;
+    height: 100px;
+    left: 10%;
+    animation: truckDrive 4s linear infinite;
+    transform-origin: center;
+    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2));
+}
+
+.truck-wheel {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    animation: wheelSpin 1s linear infinite;
+}
+
+.wheel-front {
+    bottom: 8px;
+    left: 68px;
+}
+
+.wheel-rear {
+    bottom: 8px;
+    left: 12px;
+}
+
+.road {
+    position: absolute;
+    bottom: 30px;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        #5A6BE5 20%, 
+        #5A6BE5 80%, 
+        transparent 100%);
+    animation: roadMove 0.5s linear infinite;
+}
+
+@keyframes truckDrive {
+    0% { left: -20%; transform: translateY(0px); }
+    25% { transform: translateY(-3px); }
+    50% { left: 120%; transform: translateY(0px); }
+    100% { left: -20%; }
+}
+
+@keyframes wheelSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes roadMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 100px 0; }
+}
+
+/* Styles pour les cartes de détails */
+.detail-card {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 3px solid #5A6BE5;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.detail-icon {
+    font-size: 1.2rem;
+    color: #5A6BE5;
+    width: 30px;
+    text-align: center;
+}
+
+.detail-label {
+    color: #5A6BE5;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-value {
+    color: #495057;
+    margin-bottom: 0;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .modal-dialog-draggable {
+        position: static !important;
+        margin: 1.75rem auto !important;
+    }
+    
+    .truck-animation-container {
+        height: 100px;
+    }
+}
+
+/* Fixes for modal display issues */
+.announcement-modal {
+    --modal-animation-duration: 0.3s;
+    z-index: 1055 !important; /* Ensure modal is above other elements */
+}
+
+#announcementModal .modal-dialog {
+    display: flex;
+    align-items: flex-start; /* Changé de 'center' à 'flex-start' pour aligner en haut */
+    min-height: auto; /* Retiré le calcul de hauteur */
+    margin: 1rem auto; /* Ajustement des marges */
+    max-width: 800px;
+    padding-top: 5%; /* Ajout d'un padding en haut */
+}
+
+#announcementModal.fade .modal-dialog {
+    transition: transform var(--modal-animation-duration) ease-out;
+    transform: translate(0, -20px) scale(0.98); /* Réduction de la translation vers le bas */
+}
+
+#announcementModal.show .modal-dialog {
+    transform: none;
+}
+
+#announcementModal .modal-content {
+    width: 100%;
+    border: none;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+#announcementModal .modal-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+}
+
+/* Fix modal backdrop */
+.modal-backdrop {
+    z-index: 1050 !important;
+}
+
+/* Ensure modal buttons are visible and styled properly */
+#announcementModal .btn {
+    position: relative; /* Ensure button visibility */
+    z-index: 2;
+}
+
+/* Fix for modal detail cards */
+.detail-card {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.25rem;
+    height: 100%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s;
+}
+
+.detail-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Ensure modal images display properly */
+#announcementModal img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+/* Maintain proper spacing in modal footer */
+#announcementModal .modal-footer {
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    background-color: #f8f9fa;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Mobile responsiveness for modal */
+@media (max-width: 768px) {
+    #announcementModal .modal-dialog {
+        margin: 0.5rem;
+        min-height: calc(100% - 1rem);
+    }
+    
+    .detail-card {
+        margin-bottom: 1rem;
+    }
+    
+    #announcementModal .modal-body {
+        padding: 1.25rem;
+    }
 }

@@ -196,14 +196,24 @@
 
 
     {# Modal Structure #}
-    <div class="modal fade announcement-modal" id="announcementModal" tabindex="-1" aria-modal="true" role="dialog">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                {# Le contenu sera entièrement chargé via AJAX #}
-                <div id="modalBodyContent"></div>
+  
+
+{# Modal Structure #}
+<div class="modal fade announcement-modal" id="announcementModal" tabindex="-1" aria-labelledby="announcementModalLabel" aria-modal="true" role="dialog">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-loading d-none">
+                <div class="d-flex justify-content-center align-items-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 ms-3">Loading details...</p>
+                </div>
             </div>
+            <div id="modalBodyContent"></div>
         </div>
     </div>
+</div>
 
 {# FAQ Section  #}
 <section class="py-5 bg-light">
@@ -299,11 +309,15 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize modal avec des options spécifiques
     const modalEl = document.getElementById('announcementModal');
-    const modal = new bootstrap.Modal(modalEl, {
-        focus: true // Important pour la gestion du focus
+    const modalLoading = modalEl.querySelector('.modal-loading');
+    const modalBodyContent = document.getElementById('modalBodyContent');
+    let modal = new bootstrap.Modal(modalEl, {
+        backdrop: 'static',
+        keyboard: true,
+        focus: true
     });
     
-    // Gestion personnalisée du focus pour résoudre le problème ARIA
+    // Gestion du focus pour résoudre le problème ARIA
     modalEl.addEventListener('shown.bs.modal', function() {
         // Trouver le premier élément focusable
         const focusableElements = modalEl.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
@@ -319,19 +333,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const announcementId = this.dataset.announcementId;
             
             try {
-                // Show loading state
-                document.getElementById('modalBodyContent').innerHTML = `
-                    <div class="d-flex justify-content-center align-items-center py-5">
-                        <div class="text-center">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                            <p class="mt-2">Loading details...</p>
-                        </div>
-                    </div>
-                `;
+                // Réinitialiser le contenu du modal
+                modalBodyContent.innerHTML = '';
+                modalLoading.classList.remove('d-none');
                 
-                // Show modal avec gestion du focus
+                // Afficher le modal
                 modal.show();
                 
                 // Fetch content
@@ -340,41 +346,51 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const data = await response.json();
                 
-                // Handle JSON response
-                let modalContent = data;
+                // Parse et injecter le contenu
+                let modalContent;
                 if (typeof data === 'object' && data.content) {
                     modalContent = data.content;
                 } else if (typeof data === 'string') {
                     try {
-                        modalContent = JSON.parse(data).content;
+                        const parsedData = JSON.parse(data);
+                        modalContent = parsedData.content || data;
                     } catch (e) {
-                        console.error('JSON parsing error:', e);
-                        throw new Error('Invalid response format');
+                        modalContent = data;
                     }
+                } else {
+                    modalContent = data;
                 }
                 
-                // Inject content
-                document.getElementById('modalBodyContent').innerHTML = modalContent;
+                // Cacher le loader et afficher le contenu
+                modalLoading.classList.add('d-none');
+                modalBodyContent.innerHTML = modalContent;
                 
-                // Update reserve button URL if exists
+                // Mettre à jour le bouton de réservation si nécessaire
                 const reserveButton = document.getElementById('modalReserveButton');
                 if (reserveButton && data.reserveUrl) {
                     reserveButton.href = data.reserveUrl;
                 }
                 
-                // Gestion du focus après chargement
+                // Gérer le focus après le chargement du contenu
                 setTimeout(() => {
-                    const firstFocusable = modalEl.querySelector('[autofocus], button, [href], input, [tabindex]:not([tabindex="-1"])');
+                    const firstFocusable = modalBodyContent.querySelector('[autofocus], button, [href], input, [tabindex]:not([tabindex="-1"])');
                     if (firstFocusable) {
                         firstFocusable.focus();
                     }
                 }, 100);
                 
             } catch (error) {
-                document.getElementById('modalBodyContent').innerHTML = `
-                    <div class="alert alert-danger m-3">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        Error loading details: ${error.message}
+                modalLoading.classList.add('d-none');
+                modalBodyContent.innerHTML = `
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">Error</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Failed to load announcement details: ${error.message}
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" autofocus>
@@ -387,37 +403,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Zone filter handler
-    function setupZoneFilter() {
-        const zoneSelect = document.querySelector('.zone-select');
-        if (zoneSelect) {
-            zoneSelect.addEventListener('change', function() {
-                const zone = this.value;
-                window.location.href = zone ? `/announcements/zone/${zone}` : '/announcements';
+    // 5. Gestion des autres fonctionnalités
+    function setupSearch() {
+        const searchInput = document.querySelector('.search-input');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const keyword = searchInput.value.trim();
+                    if (keyword) {
+                        window.location.href = `/announcements/search?keyword=${encodeURIComponent(keyword)}`;
+                    }
+                }
             });
         }
     }
 
-    // Search handler
-    function setupSearch() {
-        const searchButton = document.querySelector('.search-button');
-        const searchInput = document.querySelector('.search-input');
-        
-        if (searchButton && searchInput) {
-            searchButton.addEventListener('click', searchHandler);
-            searchInput.addEventListener('keypress', (e) => e.key === 'Enter' && searchHandler());
-            
-            function searchHandler() {
-                const keyword = searchInput.value.trim();
-                if (keyword) {
-                    window.location.href = `/announcements/search?keyword=${encodeURIComponent(keyword)}`;
-                }
-            }
-        }
-    }
-
-    // Initialize all handlers
-    setupZoneFilter();
     setupSearch();
 });
 </script>

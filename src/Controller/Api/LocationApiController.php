@@ -19,7 +19,7 @@ class LocationApiController extends AbstractController
             return [
                 'id' => $location->getIdLocation(),
                 'address' => $location->getAddress(),
-                'latitude' => $location->getLatitude(),
+'latitude' => $location->getLatitude(),
                 'longitude' => $location->getLongitude()
             ];
         }, $locations);
