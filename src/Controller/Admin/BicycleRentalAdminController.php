@@ -504,6 +504,40 @@ class BicycleRentalAdminController extends AbstractController
     }
 
     /**
+     * Delete a rental.
+     */
+    #[Route('/{id}/delete', name: 'admin_bicycle_rental_delete', methods: ['POST'])]
+    public function delete(int $id): Response
+    {
+        $rental = $this->entityManager->getRepository(BicycleRental::class)->find($id);
+        
+        if (!$rental) {
+            $this->addFlash('error', 'Rental not found');
+            return $this->redirectToRoute('admin_bicycle_rentals_index');
+        }
+        
+        try {
+            // If the rental is active, we need to make the bicycle available again
+            if ($rental->getStartTime() && !$rental->getEndTime()) {
+                $bicycle = $rental->getBicycle();
+                if ($bicycle) {
+                    $bicycle->setStatus(BICYCLE_STATUS::AVAILABLE);
+                }
+            }
+            
+            // Use the service method to delete the rental
+            $this->rentalService->deleteBicycleRental($rental);
+            
+            $this->addFlash('success', 'Rental deleted successfully');
+        } catch (\Exception $e) {
+            $this->logger->error('Error deleting rental: ' . $e->getMessage());
+            $this->addFlash('error', 'Error deleting rental: ' . $e->getMessage());
+        }
+        
+        return $this->redirectToRoute('admin_bicycle_rentals');
+    }
+
+    /**
      * Get available bicycles at a station.
      */
     #[Route('/station/{id}/bicycles', name: 'admin_station_available_bicycles', methods: ['GET'])]

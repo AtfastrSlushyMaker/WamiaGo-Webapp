@@ -202,14 +202,14 @@
                                         {% if rental.endStation is defined and rental.endStation %}
                                             {{ rental.endStation.name|default('Unknown') }}
                                         {% else %}
-                                            -
+                                            - 
                                         {% endif %}
                                     </td>
                                     <td>
                                         {% if rental.endTime is defined and rental.endTime %}
                                             {{ rental.endTime|date('Y-m-d H:i') }}
                                         {% else %}
-                                            -
+                                            - 
                                         {% endif %}
                                     </td>
                                     <td>
@@ -224,28 +224,28 @@
                                             {% set minutes = duration.i %}
                                             {{ hours }}h {{ minutes }}m
                                         {% else %}
-                                            -
+                                            - 
                                         {% endif %}
                                     </td>
                                     <td>
                                         {% if rental.distanceKm is defined and rental.distanceKm is not null %}
                                             {{ rental.distanceKm|number_format(2) }}
                                         {% else %}
-                                            -
+                                            - 
                                         {% endif %}
                                     </td>
                                     <td>
                                         {% if rental.batteryUsed is defined and rental.batteryUsed is not null %}
                                             {{ rental.batteryUsed|number_format(1) }}%
                                         {% else %}
-                                            -
+                                            - 
                                         {% endif %}
                                     </td>
                                     <td>
                                         {% if rental.cost is defined and rental.cost %}
                                             {{ rental.cost|number_format(3) }} TND
                                         {% else %}
-                                            -
+                                            - 
                                         {% endif %}
                                     </td>
                                     <td>
@@ -284,6 +284,13 @@
                                                     <i class="fas fa-times"></i>
                                                 </button>
                                             {% endif %}
+                                            
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-danger delete-rental-btn" 
+                                                    data-rental-id="{{ rental.idUserRental }}"
+                                                    data-bs-toggle="tooltip" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -321,6 +328,7 @@
 <!-- Hidden Forms for POST actions -->
 <form id="activateRentalForm" method="POST" style="display: none;"></form>
 <form id="cancelRentalForm" method="POST" style="display: none;"></form>
+<form id="deleteRentalForm" method="POST" style="display: none;"></form>
 
 <!-- Modal for Confirmation -->
 <div class="modal fade" id="confirmActionModal" tabindex="-1" aria-labelledby="confirmActionModalLabel" aria-hidden="true">
@@ -379,6 +387,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Are you sure you want to cancel this rental? This action cannot be undone.';
             document.getElementById('confirmActionBtn').className = 'btn btn-danger';
             document.getElementById('confirmActionBtn').textContent = 'Cancel Rental';
+            
+            activeForm = form;
+            confirmModal.show();
+        });
+    });
+    
+    // Setup Delete Rental buttons
+    document.querySelectorAll('.delete-rental-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const rentalId = this.getAttribute('data-rental-id');
+            const form = document.getElementById('deleteRentalForm');
+            form.setAttribute('action', `{{ path('admin_bicycle_rental_delete', {'id': '0'}) }}`.replace('/0', `/${rentalId}`));
+            
+            // Setup modal for deletion
+            document.getElementById('confirmActionTitle').textContent = 'Delete Rental';
+            document.getElementById('confirmActionBody').textContent = 
+                'Are you sure you want to permanently delete this rental record? This action cannot be undone.';
+            document.getElementById('confirmActionBtn').className = 'btn btn-danger';
+            document.getElementById('confirmActionBtn').textContent = 'Delete Rental';
             
             activeForm = form;
             confirmModal.show();
