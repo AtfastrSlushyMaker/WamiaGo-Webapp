@@ -11,6 +11,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 
 
 #[Route('/response')]
@@ -90,8 +92,13 @@ final class ResponseController extends AbstractController
         return $this->redirectToRoute('app_reclamation_list', [], HttpResponse::HTTP_SEE_OTHER);
     }
  
-        #[Route('/new/reclamation/{id_reclamation}', name: 'app_response_new_for_reclamation', methods: ['POST'])]
-    public function newForReclamation(Request $request, EntityManagerInterface $entityManager, int $id_reclamation): HttpResponse
+    #[Route('/new/reclamation/{id_reclamation}', name: 'app_response_new_for_reclamation', methods: ['POST'])]
+    public function newForReclamation(
+        Request $request, 
+        EntityManagerInterface $entityManager, 
+        int $id_reclamation,
+        MailerInterface $mailer
+    ): HttpResponse
     {
         $reclamation = $entityManager->getRepository(Reclamation::class)->find($id_reclamation);
         
@@ -108,17 +115,43 @@ final class ResponseController extends AbstractController
         
         $responseData = $request->request->all('response');
         
-        // Create and persist the response
-        $response = new Response();
-        $response->setContent($responseData['content'] ?? '');
-        $response->setReclamation($reclamation);
-        $response->setDate(new \DateTime());
+       // Create and persist the response
+       $response = new Response();
+       $response->setContent($responseData['content'] ?? '');
+       $response->setReclamation($reclamation);
+       $response->setDate(new \DateTime());
+       
+       $entityManager->persist($response);
+       $entityManager->flush();
+       
+       // Get the user from the reclamation
+       $user = $reclamation->getUser();
+       
+       // Send email to the user
+       if ($user && $user->getEmail()) {
+           $email = (new Email())
+               ->from('walikghrairi@gmail.com')
+               ->to($user->getEmail())
+               ->subject('Réponse à votre réclamation - WamiaGo')
+               ->html($this->renderView(
+                   'response/email.html.twig',
+                   [
+                       'reclamation' => $reclamation,
+                       'response' => $response,
+                       'user' => $user
+                   ]
+               ));
+           
+           try {
+               $mailer->send($email);
+           } catch (\Exception $e) {
+              // Log the error but continue
+              $this->addFlash('warning', 'La réponse a été enregistrée mais l\'email n\'a pas pu être envoyé.');
+            }
+        }
         
-        $entityManager->persist($response);
-        $entityManager->flush();
-        
-        $this->addFlash('success', 'Votre réponse a été enregistrée avec succès.');
+        $this->addFlash('success', 'Votre réponse a été enregistrée avec succès et un email a été envoyé à l\'utilisateur.');
         return $this->redirectToRoute('app_reclamation_detail', ['id_reclamation' => $id_reclamation]);
     }
 }
-
+    

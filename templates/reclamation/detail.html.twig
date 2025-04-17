@@ -1,6 +1,14 @@
 {% extends 'back-office/base.html.twig' %}
 
 {% block content %}
+ {% for label, messages in app.flashes(['success', 'warning', 'error']) %}
+    {% for message in messages %}
+        <div class="alert alert-{{ label == 'success' ? 'success' : 'danger' }} alert-dismissible fade show flash-auto-hide" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endfor %}
     <div class="container-fluid px-4">
         <div class="d-sm-flex align-items-center justify-content-between mb-4">
             <h1 class="h3 mb-0 text-gray-800 font-weight-600">Détails de la réclamation</h1>
@@ -91,6 +99,13 @@
         </button>
     </form>
 {% endif %}
+<script>
+    setTimeout(function() {
+        document.querySelectorAll('.flash-auto-hide').forEach(function(el) {
+            el.classList.remove('show');
+        });
+    }, 5000);
+</script>
 <button type="button" class="btn btn-primary btn-icon-split" data-bs-toggle="modal" data-bs-target="#responseModal">
     <span class="icon text-white-50">
         <i class="fas fa-reply"></i>
@@ -107,6 +122,10 @@
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                           </div>
                                           <div class="modal-body">
+                                           <p>
+                                            <strong>Email du destinataire :</strong>
+                                                                            {{ reclamation.user.email is defined ? reclamation.user.email : 'Non défini' }}
+        </p>
                                             <div class="card mb-3 border-left-primary">
                                               <div class="card-body">
                                                 <h6 class="font-weight-bold">{{ reclamation.title }}</h6>
@@ -114,6 +133,7 @@
                                                   <p class="mb-0">{{ reclamation.content }}</p>
                                                 </div>
                                               </div>
+                                              
                                             </div>
                                             
                                             <form id="responseForm" action="{{ path('app_response_new_for_reclamation', {'id_reclamation': reclamation.id_reclamation}) }}" method="post">
@@ -199,6 +219,12 @@
             margin-bottom: 1rem;
         }
     </style>
+ {% if app.flashes('error') %}
+    <script>
+        var myModal = new bootstrap.Modal(document.getElementById('responseModal'));
+        window.onload = function() { myModal.show(); }
+    </script>
+{% endif %}
 {% endblock %}
 {% block javascripts %}
  {{parent() }}

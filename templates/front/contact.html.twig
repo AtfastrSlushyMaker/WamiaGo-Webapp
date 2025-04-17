@@ -109,48 +109,55 @@
         <div class="row">
             <div class="col-lg-8 mx-auto">
                 <div class="card border-0 shadow-lg form-card">
-                    <div class="card-body p-lg-5 position-relative form-wrapper {% if not app.user %}form-locked{% endif %}">
+                    <div class="card-body p-lg-5 position-relative form-wrapper ">
                         {% set currentUser = {'id': 1} %}
                         
                         <!-- Form content wrapper - this will get blurred on hover when locked -->
                         <div class="form-content">
-                            <!-- Form -->
-                            <form id="reclamationForm" method="post" action="{{ path('reclamation_create') }}" class="needs-validation" novalidate>
+                            {% if app.session.flashBag.has('success') %}
+                                <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                                    {% for message in app.flashes('success') %}
+                                        <i class="fas fa-check-circle me-2"></i> {{ message }}
+                                    {% endfor %}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Symfony Form -->
+                            {{ form_start(form, {'attr': {'id': 'reclamationForm', 'class': 'needs-validation'}}) }}
+                                
                                 <div class="mb-4">
-                                    <label for="title" class="form-label">Subject</label>
+                                    {{ form_label(form.title) }}
                                     <div class="input-group">
                                         <span class="input-group-text border-end-0">
                                             <i class="fas fa-heading text-primary"></i>
                                         </span>
-                                        <input type="text" class="form-control border-start-0 ps-0" id="title" name="title" placeholder="Briefly describe your issue" required>
+                                        {{ form_widget(form.title) }}
                                     </div>
-                                    <div class="invalid-feedback">Please provide a subject.</div>
+                                    <div class="form-text">{{ form_help(form.title) }}</div>
+                                    <div class="invalid-feedback">
+                                        {{ form_errors(form.title) }}
+                                    </div>
                                 </div>
                                 
                                 <div class="mb-4">
-                                    <label for="content" class="form-label">Message</label>
+                                    {{ form_label(form.content) }}
                                     <div class="input-group">
                                         <span class="input-group-text border-end-0 align-items-start pt-2">
                                             <i class="fas fa-comment-alt text-primary"></i>
                                         </span>
-                                        <textarea class="form-control border-start-0 ps-0" id="content" name="content" rows="6" placeholder="Please provide detailed information about your issue to help us assist you better" required></textarea>
+                                        {{ form_widget(form.content) }}
                                     </div>
-                                    <div class="invalid-feedback">Please provide details about your issue.</div>
                                     <div class="form-text text-end">
                                         <span id="charCount">0</span>/1000 characters
                                     </div>
+                                    <div class="invalid-feedback">
+                                        {{ form_errors(form.content) }}
+                                    </div>
                                 </div>
                                 
-
-                                
-                                <input type="hidden" name="user_id" value="{{ currentUser.id }}">
-                                <input type="hidden" name="date" value="{{ "now"|date("Y-m-d H:i:s") }}">
-                                <input type="hidden" name="status" value="0">
-                                
                                 <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-primary btn-lg py-3">
-                                        <i class="fas fa-paper-plane me-2"></i> Submit Reclamation
-                                    </button>
+                                    {{ form_widget(form.submit, {'label': '<i class="fas fa-paper-plane me-2"></i> Submit Reclamation', 'label_html': true}) }}
                                     <div class="submission-message text-center py-2 d-none">
                                         <div class="spinner-border text-primary" role="status">
                                             <span class="visually-hidden">Loading...</span>
@@ -158,7 +165,8 @@
                                         <span class="ms-2">Processing your submission...</span>
                                     </div>
                                 </div>
-                            </form>
+                                
+                            {{ form_end(form) }}
                             <!-- End of Form -->
                         </div>
                         
@@ -354,72 +362,98 @@
         const reclamationForm = document.getElementById('reclamationForm');
         if (reclamationForm) {
             // Character count for textarea
-            const contentTextarea = document.getElementById('content');
+            const contentTextarea = document.getElementById('reclamation_content');
             const charCount = document.getElementById('charCount');
             
-            contentTextarea.addEventListener('input', function() {
-                const count = this.value.length;
-                charCount.textContent = count;
+            if (contentTextarea && charCount) {
+                // Set initial count
+                charCount.textContent = contentTextarea.value.length;
                 
-                if (count > 1000) {
-                    this.value = this.value.substring(0, 1000);
-                    charCount.textContent = 1000;
-                }
-                
-                // Change color based on length
-                if (count > 800) {
-                    charCount.classList.add('text-danger');
-                } else {
-                    charCount.classList.remove('text-danger');
-                }
-            });
+                contentTextarea.addEventListener('input', function() {
+                    const count = this.value.length;
+                    charCount.textContent = count;
+                    
+                    const maxLength = 1000;
+                    
+                    if (count > maxLength) {
+                        this.value = this.value.substring(0, maxLength);
+                        charCount.textContent = maxLength;
+                    }
+                    
+                    // Change color based on length
+                    if (count > 800) {
+                        charCount.classList.add('text-danger');
+                    } else {
+                        charCount.classList.remove('text-danger');
+                    }
+                    
+                    // Validate field length
+                    if (count < 10) {
+                        this.classList.add('is-invalid');
+                        this.setCustomValidity('Your message should be at least 10 characters');
+                    } else {
+                        this.classList.remove('is-invalid');
+                        this.setCustomValidity('');
+                    }
+                });
+            }
+            
+            // Title field validation
+            const titleField = document.getElementById('reclamation_title');
+            if (titleField) {
+                titleField.addEventListener('input', function() {
+                    const length = this.value.trim().length;
+                    
+                    if (length < 5) {
+                        this.classList.add('is-invalid');
+                        this.setCustomValidity('Your subject should be at least 5 characters');
+                    } else if (length > 100) {
+                        this.classList.add('is-invalid');
+                        this.setCustomValidity('Your subject cannot be longer than 100 characters');
+                    } else {
+                        this.classList.remove('is-invalid');
+                        this.setCustomValidity('');
+                    }
+                });
+            }
             
             // Form submission
             reclamationForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
                 // Check if form is locked (user not logged in)
                 const formWrapper = document.querySelector('.form-wrapper');
                 if (formWrapper.classList.contains('form-locked')) {
+                    e.preventDefault();
+                    return;
+                }
+                
+                // Client-side validation
+                let isValid = true;
+                const title = document.getElementById('reclamation_title');
+                const content = document.getElementById('reclamation_content');
+                
+                if (title && (title.value.trim().length < 5 || title.value.trim().length > 100)) {
+                    title.classList.add('is-invalid');
+                    isValid = false;
+                }
+                
+                if (content && (content.value.trim().length < 10 || content.value.trim().length > 1000)) {
+                    content.classList.add('is-invalid');
+                    isValid = false;
+                }
+                
+                if (!isValid) {
+                    e.preventDefault();
                     return;
                 }
                 
                 // Show loading state
-                const submitButton = this.querySelector('button[type="submit"]');
-                const submissionMessage = this.querySelector('.submission-message');
+                const submitButton = document.querySelector('button[type="submit"]');
+                const submissionMessage = document.querySelector('.submission-message');
                 
-                submitButton.disabled = true;
-                submissionMessage.classList.remove('d-none');
-                
-                // Basic validation
-                let isValid = true;
-                const title = document.getElementById('title').value.trim();
-                const content = document.getElementById('content').value.trim();
-                
-                if (!title) {
-                    document.getElementById('title').classList.add('is-invalid');
-                    isValid = false;
-                } else {
-                    document.getElementById('title').classList.remove('is-invalid');
+                if (submitButton && submissionMessage) {
+                    submitButton.disabled = true;
+                    submissionMessage.classList.remove('d-none');
                 }
-                
-                if (!content) {
-                    document.getElementById('content').classList.add('is-invalid');
-                    isValid = false;
-                } else {
-                    document.getElementById('content').classList.remove('is-invalid');
-                }
-                
-                if (!isValid) {
-                    submitButton.disabled = false;
-                    submissionMessage.classList.add('d-none');
-                    return;
-                }
-                
-                // Simulate server processing (remove in production)
-                setTimeout(() => {
-                    this.submit();
-                }, 1500);
             });
         }
         

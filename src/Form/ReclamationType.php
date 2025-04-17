@@ -6,8 +6,11 @@ use App\Entity\Reclamation;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 class ReclamationType extends AbstractType
 {
@@ -16,9 +19,55 @@ class ReclamationType extends AbstractType
         $builder
             ->add('title', TextType::class, [
                 'label' => 'Subject',
+                'attr' => [
+                    'class' => 'form-control border-start-0 ps-0',
+                    'placeholder' => 'Briefly describe your issue',
+                    'autocomplete' => 'off',
+                ],
+                'label_attr' => ['class' => 'form-label'],
+                'row_attr' => ['class' => 'mb-4'],
+                'help' => 'Between 5 and 100 characters',
+                'help_attr' => ['class' => 'form-text'],
+                'constraints' => [
+                    new NotBlank(['message' => 'Please provide a subject for your reclamation']),
+                    new Length([
+                        'min' => 5,
+                        'max' => 100,
+                        'minMessage' => 'Your subject should be at least {{ limit }} characters',
+                        'maxMessage' => 'Your subject cannot be longer than {{ limit }} characters',
+                    ]),
+                ],
             ])
             ->add('content', TextareaType::class, [
                 'label' => 'Message',
+                'attr' => [
+                    'class' => 'form-control border-start-0 ps-0',
+                    'rows' => 6,
+                    'placeholder' => 'Please provide detailed information about your issue to help us assist you better',
+                    'data-max-length' => 1000,
+                ],
+                'label_attr' => ['class' => 'form-label'],
+                'row_attr' => ['class' => 'mb-4'],
+                'help' => 'Maximum 1000 characters',
+                'help_attr' => ['class' => 'form-text text-end char-counter'],
+                'constraints' => [
+                    new NotBlank(['message' => 'Please provide content for your reclamation']),
+                    new Length([
+                        'min' => 10,
+                        'max' => 1000,
+                        'minMessage' => 'Your message should be at least {{ limit }} characters',
+                        'maxMessage' => 'Your message cannot be longer than {{ limit }} characters',
+                    ]),
+                ],
+            ])
+            ->add('submit', SubmitType::class, [
+                'label' => 'Submit Reclamation',
+                'attr' => [
+                    'class' => 'btn btn-primary btn-lg py-3',
+                    'data-bs-toggle' => 'tooltip',
+                    'data-bs-placement' => 'top',
+                    'title' => 'Send your reclamation to our team',
+                ],
             ]);
     }
 
@@ -26,6 +75,13 @@ class ReclamationType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Reclamation::class,
+            'attr' => [
+                'novalidate' => 'novalidate', // Enables HTML5 validation
+                'class' => 'needs-validation',
+            ],
+            'csrf_protection' => true,
+            'csrf_field_name' => '_token',
+            'csrf_token_id' => 'reclamation_form',
         ]);
     }
 }
