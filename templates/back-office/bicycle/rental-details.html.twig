@@ -25,24 +25,50 @@
 {% set batteryLevel = rental.bicycle ? rental.bicycle.batteryLevel : 0 %}
 {% set batteryColor = batteryLevel > 70 ? 'success' : (batteryLevel > 30 ? 'warning' : 'danger') %}
 
-<div class="container-fluid px-4 py-5 animate__animated animate__fadeIn animate__faster">
-    <!-- Top Action Bar -->
+<!-- Main Header Banner -->
+<div class="bicycle-fleet-banner mb-4">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-auto">
+                <div class="banner-icon">
+                    <i class="fas fa-receipt"></i>
+                </div>
+            </div>
+            <div class="col">
+                <h1 class="banner-title">Rental Details</h1>
+                <p class="banner-subtitle mb-0">Management and tracking of bicycle rental B{{ '%05d'|format(rental.idUserRental) }}</p>
+            </div>
+          
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-4 animate__animated animate__fadeIn animate__faster">
+    <!-- Navigation Bar -->
+    <div class="card custom-card mb-4">
+        <div class="card-body p-0">
+            <div class="rental-nav">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 p-3">
+                        <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_rentals') }}" class="text-decoration-none"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_rentals_index') }}" class="text-decoration-none"><i class="fas fa-list me-1"></i>Rentals</a></li>
+                        <li class="breadcrumb-item active fw-semibold" aria-current="page">Rental B{{ '%05d'|format(rental.idUserRental) }}</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_rentals') }}" class="text-decoration-none"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_rentals_index') }}" class="text-decoration-none"><i class="fas fa-list me-1"></i>Rentals</a></li>
-                    <li class="breadcrumb-item active fw-semibold" aria-current="page">Rental B{{ '%05d'|format(rental.idUserRental) }}</li>
-                </ol>
-            </nav>
-            <h1 class="h2 mt-2 mb-0 d-flex align-items-center">
+            <h2 class="section-title">
                 <span class="badge rounded-pill bg-{{ statusColor }} me-2">
                     <i class="fas fa-{{ status == 'Reserved' ? 'clock' : (status == 'Active' ? 'bicycle' : 'check-circle') }} me-1"></i>
                     {{ status }}
                 </span>
                 Rental B{{ '%05d'|format(rental.idUserRental) }}
-            </h1>
+            </h2>
         </div>
         <div class="d-flex flex-wrap gap-2">
             {% if status == 'Reserved' %}
@@ -59,6 +85,7 @@
                     <i class="fas fa-ban me-2"></i>Cancel
                 </button>
             {% endif %}
+            
             <div class="btn-group">
                 <a href="{{ path('admin_bicycle_rental_edit', {'id': rental.idUserRental}) }}" class="btn btn-primary btn-lg">
                     <i class="fas fa-pen me-2"></i>Edit
@@ -71,6 +98,12 @@
                     <li><a class="dropdown-item" href="#" id="exportPdf"><i class="fas fa-file-pdf me-2"></i>Export as PDF</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#shareRentalModal"><i class="fas fa-share-alt me-2"></i>Share</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item text-danger delete-rental-btn" href="#" data-rental-id="{{ rental.idUserRental }}">
+                            <i class="fas fa-trash me-2"></i>Delete Rental
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>

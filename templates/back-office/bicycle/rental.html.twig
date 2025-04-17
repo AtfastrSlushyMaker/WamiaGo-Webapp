@@ -1,71 +1,576 @@
-{# Improved Bicycle Rentals Tab #}
-<div class="container-fluid px-0">
-    <!-- Statistics Cards -->
-    <div class="row">
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body d-flex align-items-center">
-                    <div class="rounded-circle p-3 bg-primary bg-opacity-10 me-3">
-                        <i class="fas fa-bicycle fa-2x text-primary"></i>
-                    </div>
-                    <div>
-                        <h6 class="text-muted mb-1">Total Rentals</h6>
-                        <h3 class="fw-bold mb-0">{{ stats.totalRentals is defined ? stats.totalRentals : (rentals is defined ? rentals|length : 0) }}</h3>
+
+
+
+
+{% block stylesheets %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+<style>
+    /* Main Banner Styles */
+    .bicycle-fleet-banner {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 0.75rem;
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+        margin-bottom: 2rem;
+        overflow: hidden;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .bicycle-fleet-banner::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .bicycle-fleet-banner::after {
+        content: "";
+        position: absolute;
+        bottom: -30%;
+        left: -5%;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .banner-icon {
+        width: 5rem;
+        height: 5rem;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        margin-right: 1.5rem;
+        box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s ease;
+    }
+    
+    .bicycle-fleet-banner:hover .banner-icon {
+        transform: scale(1.05) rotate(5deg);
+    }
+
+    .banner-title {
+        font-size: 2.25rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .banner-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        max-width: 80%;
+    }
+
+    /* Enhanced Stat Cards */
+    .stats-section {
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+        background: white;
+        position: relative;
+    }
+
+    .stat-card::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+        pointer-events: none;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-card-body {
+        display: flex;
+        align-items: center;
+        padding: 1.75rem;
+    }
+
+    .stat-card-icon {
+        width: 3.75rem;
+        height: 3.75rem;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        margin-right: 1.25rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .stat-card:hover .stat-card-icon {
+        transform: scale(1.1);
+    }
+
+    .stat-card-info {
+        flex: 1;
+    }
+
+    .stat-card-title {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-card-value {
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1.1;
+        color: #212529;
+    }
+    
+    .stat-card-trend {
+        font-size: 0.85rem;
+        color: #28a745;
+        display: flex;
+        align-items: center;
+        margin-top: 0.25rem;
+    }
+    
+    .trend-down {
+        color: #dc3545;
+    }
+
+    /* Filter Card Enhancements */
+    .filter-card {
+        margin-bottom: 2rem;
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    .filter-card .card-header {
+        background: white;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .filter-card .card-header h5 {
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+    
+    .filter-card .card-header h5 i {
+        margin-right: 0.75rem;
+        font-size: 1.25rem;
+        color: #0d6efd;
+    }
+
+    .filter-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .filter-card label.form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        border-radius: 0.5rem;
+        border-color: #ced4da;
+        padding: 0.6rem 1rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    /* Data Table Improvements */
+    .data-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .data-card .card-header {
+        background: white;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 1.25rem 1.5rem;
+    }
+
+    .datatable {
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+    .datatable th {
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.75rem;
+        padding: 1rem 1.25rem;
+        color: #495057;
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .datatable td {
+        vertical-align: middle;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .datatable tr:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+    
+    /* Highlighted rows for active rentals */
+    .datatable tr.active-rental {
+        background-color: rgba(13, 110, 253, 0.05);
+    }
+    
+    /* Row color variations */
+    .datatable tr.completed-rental {
+        background-color: rgba(40, 167, 69, 0.05);
+    }
+
+    /* Status Badge Styles */
+    .status-badge {
+        padding: 0.4rem 0.75rem;
+        border-radius: 2rem;
+        font-weight: 500;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        line-height: 1;
+    }
+    
+    .status-badge i {
+        margin-right: 0.35rem;
+        font-size: 0.75rem;
+    }
+    
+    .status-badge.completed {
+        background-color: rgba(40, 167, 69, 0.15);
+        color: #198754;
+    }
+    
+    .status-badge.active {
+        background-color: rgba(13, 110, 253, 0.15);
+        color: #0d6efd;
+    }
+    
+    .status-badge.reserved {
+        background-color: rgba(255, 193, 7, 0.15);
+        color: #997404;
+    }
+
+    /* Action Button Styles */
+    .btn-action {
+        width: 2.25rem;
+        height: 2.25rem;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        margin: 0 0.15rem;
+        transition: all 0.2s;
+    }
+    
+    .btn-action:hover {
+        transform: translateY(-2px);
+    }
+    
+    /* Export Button Group */
+    .export-buttons .btn {
+        border-radius: 0.5rem;
+        padding: 0.4rem 0.75rem;
+        font-weight: 500;
+        font-size: 0.85rem;
+    }
+    
+    /* Empty State Styling */
+    .empty-state {
+        padding: 3rem 0;
+        text-align: center;
+    }
+    
+    .empty-state-icon {
+        width: 5rem;
+        height: 5rem;
+        background: #f8f9fa;
+        border-radius: 50%;
+        margin: 0 auto 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: #adb5bd;
+    }
+    
+    /* Pagination Styling */
+    .pagination {
+        margin: 0;
+        padding: 1rem 0;
+    }
+    
+    .pagination .page-item .page-link {
+        margin: 0 0.15rem;
+        border-radius: 0.5rem;
+        color: #0d6efd;
+        padding: 0.5rem 0.85rem;
+        border: none;
+        background-color: #f8f9fa;
+        transition: all 0.2s;
+    }
+    
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        color: white;
+        box-shadow: 0 0.25rem 0.5rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .pagination .page-item .page-link:hover {
+        background-color: #e9ecef;
+        transform: translateY(-1px);
+    }
+    
+    /* Confirmation Modal Styling */
+    .modal-content {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .modal-success .modal-header {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border: none;
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .modal-danger .modal-header {
+        background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+        color: white;
+        border: none;
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .modal-primary .modal-header {
+        background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);
+        color: white;
+        border: none;
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .modal-body {
+        padding: 1.75rem;
+    }
+    
+    .modal-footer {
+        border: none;
+        padding: 1rem 1.5rem 1.5rem;
+    }
+
+    /* Custom Buttons */
+    .btn-custom-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        border: none;
+        color: white;
+        font-weight: 500;
+        border-radius: 0.5rem;
+        padding: 0.6rem 1.25rem;
+        transition: all 0.2s;
+        box-shadow: 0 0.25rem 0.5rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .btn-custom-primary:hover {
+        box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.35);
+        transform: translateY(-2px);
+    }
+    
+    /* Soft background colors */
+    .bg-primary-soft {
+        background-color: rgba(13, 110, 253, 0.15);
+    }
+
+    .bg-success-soft {
+        background-color: rgba(40, 167, 69, 0.15);
+    }
+
+    .bg-warning-soft {
+        background-color: rgba(255, 193, 7, 0.15);
+    }
+
+    .bg-danger-soft {
+        background-color: rgba(220, 53, 69, 0.15);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 576px) {
+        .bicycle-fleet-banner {
+            padding: 1.5rem;
+        }
+        
+        .banner-icon {
+            width: 4rem;
+            height: 4rem;
+            font-size: 2rem;
+            margin-right: 1rem;
+        }
+        
+        .banner-title {
+            font-size: 1.75rem;
+        }
+        
+        .banner-subtitle {
+            font-size: 1rem;
+            max-width: 100%;
+        }
+        
+        .stat-card-body {
+            padding: 1.25rem;
+        }
+        
+        .stat-card-value {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Main Header Banner -->
+<div class="bicycle-fleet-banner mb-4 animate__animated animate__fadeIn">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-auto">
+                <div class="banner-icon">
+                    <i class="fas fa-bicycle"></i>
+                </div>
+            </div>
+            <div class="col">
+                <h1 class="banner-title">Bicycle Rental Management</h1>
+                <p class="banner-subtitle mb-0">View, track and manage all bicycle rentals across the city network</p>
+            </div>
+            <div class="col-auto">
+                <a href="{{ path('admin_bicycle_rental_new') }}" class="btn btn-light btn-lg">
+                    <i class="fas fa-plus-circle me-2"></i>New Rental
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-4">
+    <!-- Statistics Cards Section -->
+    <div class="stats-section animate__animated animate__fadeInUp animate__delay-1s">
+        <div class="row g-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-card-body">
+                        <div class="stat-card-icon bg-primary-soft text-primary">
+                            <i class="fas fa-bicycle"></i>
+                        </div>
+                        <div class="stat-card-info">
+                            <div class="stat-card-title">Total Rentals</div>
+                            <div class="stat-card-value">{{ stats.totalRentals is defined ? stats.totalRentals : (rentals is defined ? rentals|length : 0) }}</div>
+                            <div class="stat-card-trend">
+                                <i class="fas fa-arrow-up me-1"></i> 12% this week
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body d-flex align-items-center">
-                    <div class="rounded-circle p-3 bg-success bg-opacity-10 me-3">
-                        <i class="fas fa-check-circle fa-2x text-success"></i>
-                    </div>
-                    <div>
-                        <h6 class="text-muted mb-1">Completed</h6>
-                        <h3 class="fw-bold mb-0">{{ stats.completedCount is defined ? stats.completedCount : 0 }}</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body d-flex align-items-center">
-                    <div class="rounded-circle p-3 bg-primary bg-opacity-10 me-3">
-                        <i class="fas fa-biking fa-2x text-primary"></i>
-                    </div>
-                    <div>
-                        <h6 class="text-muted mb-1">Active</h6>
-                        <h3 class="fw-bold mb-0">{{ stats.activeCount is defined ? stats.activeCount : 0 }}</h3>
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-card-body">
+                        <div class="stat-card-icon bg-success-soft text-success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-card-info">
+                            <div class="stat-card-title">Completed</div>
+                            <div class="stat-card-value">{{ stats.completedCount is defined ? stats.completedCount : 0 }}</div>
+                            <div class="stat-card-trend">
+                                <i class="fas fa-arrow-up me-1"></i> 8% this week
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body d-flex align-items-center">
-                    <div class="rounded-circle p-3 bg-warning bg-opacity-10 me-3">
-                        <i class="fas fa-bookmark fa-2x text-warning"></i>
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-card-body">
+                        <div class="stat-card-icon bg-primary-soft text-primary">
+                            <i class="fas fa-biking"></i>
+                        </div>
+                        <div class="stat-card-info">
+                            <div class="stat-card-title">Active</div>
+                            <div class="stat-card-value">{{ stats.activeCount is defined ? stats.activeCount : 0 }}</div>
+                            <div class="stat-card-trend">
+                                <i class="fas fa-arrow-up me-1"></i> 15% this week
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <h6 class="text-muted mb-1">Reserved</h6>
-                        <h3 class="fw-bold mb-0">{{ stats.reservedCount is defined ? stats.reservedCount : 0 }}</h3>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-card-body">
+                        <div class="stat-card-icon bg-warning-soft text-warning">
+                            <i class="fas fa-bookmark"></i>
+                        </div>
+                        <div class="stat-card-info">
+                            <div class="stat-card-title">Reserved</div>
+                            <div class="stat-card-value">{{ stats.reservedCount is defined ? stats.reservedCount : 0 }}</div>
+                            <div class="stat-card-trend trend-down">
+                                <i class="fas fa-arrow-down me-1"></i> 3% this week
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Filters -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white py-3">
-            <h5 class="mb-0 fw-bold">Filters</h5>
+    <!-- Filters Card -->
+    <div class="filter-card animate__animated animate__fadeInUp animate__delay-2s">
+        <div class="card-header">
+            <h5 class="fw-bold"><i class="fas fa-filter"></i> Search & Filters</h5>
         </div>
         <div class="card-body">
             <form action="{{ path('admin_bicycle_rentals_index') }}" method="GET" id="rentalFilterForm">
                 <div class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label fw-medium">Status</label>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label">Rental Status</label>
                         <select name="status" class="form-select">
                             <option value="">All Statuses</option>
                             <option value="active" {{ app.request.query.get('status') == 'active' ? 'selected' : '' }}>Active</option>
@@ -73,8 +578,8 @@
                             <option value="reserved" {{ app.request.query.get('status') == 'reserved' ? 'selected' : '' }}>Reserved</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-medium">Station</label>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label">Pickup Station</label>
                         <select name="station" class="form-select">
                             <option value="">All Stations</option>
                             {% for station in stations %}
@@ -84,244 +589,288 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-medium">From Date</label>
-                        <input type="date" name="dateFrom" class="form-control" value="{{ app.request.query.get('dateFrom') }}">
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label">From Date</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                            <input type="date" name="dateFrom" class="form-control" value="{{ app.request.query.get('dateFrom') }}">
+                        </div>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-medium">To Date</label>
-                        <input type="date" name="dateTo" class="form-control" value="{{ app.request.query.get('dateTo') }}">
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label">To Date</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                            <input type="date" name="dateTo" class="form-control" value="{{ app.request.query.get('dateTo') }}">
+                        </div>
                     </div>
                 </div>
-                <div class="mt-3 d-flex justify-content-between">
-                    <div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-filter me-2"></i>Apply Filters
+                <div class="mt-4 d-flex flex-wrap justify-content-between">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn-custom-primary">
+                            <i class="fas fa-search me-2"></i>Search
                         </button>
-                        <a href="{{ path('admin_bicycle_rentals_index') }}" class="btn btn-outline-secondary ms-2">
-                            <i class="fas fa-redo me-2"></i>Reset
+                        <a href="{{ path('admin_bicycle_rentals_index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-redo me-2"></i>Reset Filters
                         </a>
                     </div>
                     <a href="{{ path('admin_bicycle_rental_new') }}" class="btn btn-success">
-                        <i class="fas fa-plus me-2"></i>New Rental
+                        <i class="fas fa-plus-circle me-2"></i>Create New Rental
                     </a>
                 </div>
             </form>
         </div>
     </div>
     
-    <!-- Rentals Table Card -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-            <h5 class="mb-0 fw-bold">Bicycle Rentals</h5>
-            <div class="d-flex align-items-center">
-                <span class="me-3 text-muted">Export:</span>
+    <!-- Rentals Data Table Card -->
+    <div class="data-card animate__animated animate__fadeInUp animate__delay-3s">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold"><i class="fas fa-list me-2"></i>Bicycle Rentals</h5>
+            <div class="d-flex align-items-center export-buttons">
+                <span class="text-muted me-3">Export:</span>
                 <div class="btn-group">
-                    <a href="{{ path('admin_bicycle_rental_export') }}{% if app.request.query.all|length > 0 %}?{{ app.request.query.all|url_encode }}{% endif %}" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-file-csv me-2"></i>CSV
+                    <a href="{{ path('admin_bicycle_rental_export') }}{% if app.request.query.all|length > 0 %}?{{ app.request.query.all|url_encode }}{% endif %}&format=csv" class="btn btn-outline-primary">
+                        <i class="fas fa-file-csv me-1"></i>CSV
                     </a>
-                    <a href="#" class="btn btn-sm btn-outline-success" id="export-excel">
-                        <i class="fas fa-file-excel me-2"></i>Excel
+                    <a href="{{ path('admin_bicycle_rental_export') }}{% if app.request.query.all|length > 0 %}?{{ app.request.query.all|url_encode }}{% endif %}&format=excel" class="btn btn-outline-success">
+                        <i class="fas fa-file-excel me-1"></i>Excel
                     </a>
-                    <a href="#" class="btn btn-sm btn-outline-danger">
-                        <i class="fas fa-file-pdf me-2"></i>PDF
+                    <a href="#" class="btn btn-outline-danger">
+                        <i class="fas fa-file-pdf me-1"></i>PDF
                     </a>
                 </div>
             </div>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover mb-0 datatable">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>User</th>
-                            <th>Bicycle</th>
-                            <th>Start Station</th>
-                            <th>Start Time</th>
-                            <th>End Station</th>
-                            <th>End Time</th>
-                            <th>Duration</th>
-                            <th>Distance (km)</th>
-                            <th>Battery Used (%)</th>
-                            <th>Cost</th>
-                            <th>Status</th>
-                            <th class="text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% if rentals is defined and rentals|length > 0 %}
-                            {% for rental in rentals %}
-                                {% set status = 'Reserved' %}
-                                {% if rental.endTime is defined and rental.endTime %}
-                                    {% set status = 'Completed' %}
-                                {% elseif rental.startTime is defined and rental.startTime %}
-                                    {% set status = 'Active' %}
-                                {% endif %}
-                                
-                                <tr>
-                                    <td>
-                                        <span class="fw-medium">B{{ '%05d'|format(rental.idUserRental) }}</span>
-                                    </td>
-                                    <td>
-                                        {% if rental.user is defined and rental.user %}
-                                            {{ rental.user.name|default(rental.user.email)|default('Unknown') }}
-                                        {% else %}
-                                            Unknown
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if rental.bicycle is defined and rental.bicycle %}
-                                            <span class="fw-medium">Bike #{{ rental.bicycle.idBike }}</span>
-                                            <div class="small text-muted">
-                                                {% if rental.bicycle.batteryLevel > 90 %}
-                                                    Premium E-Bike
-                                                {% else %}
-                                                    Standard E-Bike
-                                                {% endif %}
-                                            </div>
-                                        {% else %}
-                                            Unknown
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if rental.startStation is defined and rental.startStation %}
-                                            {{ rental.startStation.name|default('Unknown') }}
-                                        {% else %}
-                                            Unknown
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if rental.startTime is defined and rental.startTime %}
-                                            {{ rental.startTime|date('Y-m-d H:i') }}
-                                        {% else %}
-                                            Not started
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if rental.endStation is defined and rental.endStation %}
-                                            {{ rental.endStation.name|default('Unknown') }}
-                                        {% else %}
-                                            - 
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if rental.endTime is defined and rental.endTime %}
-                                            {{ rental.endTime|date('Y-m-d H:i') }}
-                                        {% else %}
-                                            - 
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if status == 'Completed' and rental.startTime is defined and rental.endTime is defined %}
-                                            {% set duration = date(rental.endTime).diff(date(rental.startTime)) %}
-                                            {% set hours = duration.h + (duration.d * 24) %}
-                                            {% set minutes = duration.i %}
-                                            {{ hours }}h {{ minutes }}m
-                                        {% elseif status == 'Active' and rental.startTime is defined %}
-                                            {% set duration = date().diff(date(rental.startTime)) %}
-                                            {% set hours = duration.h + (duration.d * 24) %}
-                                            {% set minutes = duration.i %}
-                                            {{ hours }}h {{ minutes }}m
-                                        {% else %}
-                                            - 
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if rental.distanceKm is defined and rental.distanceKm is not null %}
-                                            {{ rental.distanceKm|number_format(2) }}
-                                        {% else %}
-                                            - 
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if rental.batteryUsed is defined and rental.batteryUsed is not null %}
-                                            {{ rental.batteryUsed|number_format(1) }}%
-                                        {% else %}
-                                            - 
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if rental.cost is defined and rental.cost %}
-                                            {{ rental.cost|number_format(3) }} TND
-                                        {% else %}
-                                            - 
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if status == 'Completed' %}
-                                            <span class="badge bg-success">Completed</span>
-                                        {% elseif status == 'Active' %}
-                                            <span class="badge bg-primary">In Progress</span>
-                                        {% else %}
-                                            <span class="badge bg-warning text-dark">Reserved</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-center">
-                                        <div class="btn-group">
-                                            <a href="{{ path('admin_bicycle_rental_show', {'id': rental.idUserRental}) }}" 
-                                               class="btn btn-sm btn-outline-primary" 
-                                               data-bs-toggle="tooltip" title="View Details">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{{ path('admin_bicycle_rental_edit', {'id': rental.idUserRental}) }}" 
-                                               class="btn btn-sm btn-outline-secondary" 
-                                               data-bs-toggle="tooltip" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            
-                                            {% if status == 'Reserved' %}
-                                                <button type="button" 
-                                                        class="btn btn-sm btn-outline-success activate-rental-btn" 
-                                                        data-rental-id="{{ rental.idUserRental }}"
-                                                        data-bs-toggle="tooltip" title="Activate Rental">
-                                                    <i class="fas fa-play"></i>
-                                                </button>
-                                                <button type="button" 
-                                                        class="btn btn-sm btn-outline-danger cancel-rental-btn" 
-                                                        data-rental-id="{{ rental.idUserRental }}"
-                                                        data-bs-toggle="tooltip" title="Cancel">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
+        
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} alert-dismissible fade show m-3" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-{{ label == 'success' ? 'check-circle' : (label == 'danger' ? 'exclamation-circle' : 'info-circle') }} me-2"></i>
+                        <div>{{ message }}</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+        
+        <div class="table-responsive">
+            <table class="table datatable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Bicycle</th>
+                        <th>Pick-up Station</th>
+                        <th>Start Time</th>
+                        <th>Return Station</th>
+                        <th>End Time</th>
+                        <th>Duration</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if rentals is defined and rentals|length > 0 %}
+                        {% for rental in rentals %}
+                            {% set status = 'Reserved' %}
+                            {% set rowClass = '' %}
+                            {% if rental.endTime is defined and rental.endTime %}
+                                {% set status = 'Completed' %}
+                                {% set rowClass = 'completed-rental' %}
+                            {% elseif rental.startTime is defined and rental.startTime %}
+                                {% set status = 'Active' %}
+                                {% set rowClass = 'active-rental' %}
+                            {% endif %}
+                            
+                            <tr class="{{ rowClass }}">
+                                <td>
+                                    <a href="{{ path('admin_bicycle_rental_show', {'id': rental.idUserRental}) }}" class="fw-bold text-decoration-none">
+                                        B{{ '%05d'|format(rental.idUserRental) }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle bg-primary-soft text-primary me-2">
+                                            {{ rental.user is defined and rental.user ? rental.user.name|slice(0, 1)|upper : 'U' }}
+                                        </div>
+                                        <div>
+                                            {% if rental.user is defined and rental.user %}
+                                                {{ rental.user.name|default(rental.user.email)|default('Unknown') }}
+                                            {% else %}
+                                                Unknown
                                             {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if rental.bicycle is defined and rental.bicycle %}
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-medium text-dark">Bike #{{ rental.bicycle.idBike }}</span>
+                                            <small class="text-muted">
+                                                {% if rental.bicycle.batteryLevel > 90 %}
+                                                    <span class="badge bg-success text-white rounded-pill">Premium</span>
+                                                {% else %}
+                                                    <span class="badge bg-info text-white rounded-pill">Standard</span>
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">Unknown</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rental.startStation is defined and rental.startStation %}
+                                        <div class="station-badge">
+                                            <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                                            {{ rental.startStation.name|default('Unknown') }}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">Unknown</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rental.startTime is defined and rental.startTime %}
+                                        <div class="d-flex flex-column">
+                                            <span>{{ rental.startTime|date('M d, Y') }}</span>
+                                            <small class="text-muted">{{ rental.startTime|date('h:i A') }}</small>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">Not started</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rental.endStation is defined and rental.endStation %}
+                                        <div class="station-badge">
+                                            <i class="fas fa-flag-checkered text-success me-1"></i>
+                                            {{ rental.endStation.name|default('Unknown') }}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rental.endTime is defined and rental.endTime %}
+                                        <div class="d-flex flex-column">
+                                            <span>{{ rental.endTime|date('M d, Y') }}</span>
+                                            <small class="text-muted">{{ rental.endTime|date('h:i A') }}</small>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if status == 'Completed' and rental.startTime is defined and rental.endTime is defined %}
+                                        {% set duration = date(rental.endTime).diff(date(rental.startTime)) %}
+                                        {% set hours = duration.h + (duration.d * 24) %}
+                                        {% set minutes = duration.i %}
+                                        <div class="duration-badge">{{ hours }}h {{ minutes }}m</div>
+                                    {% elseif status == 'Active' and rental.startTime is defined %}
+                                        {% set duration = date().diff(date(rental.startTime)) %}
+                                        {% set hours = duration.h + (duration.d * 24) %}
+                                        {% set minutes = duration.i %}
+                                        <div class="duration-badge running">
+                                            <i class="fas fa-stopwatch me-1"></i>
+                                            {{ hours }}h {{ minutes }}m
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rental.cost is defined and rental.cost %}
+                                        <div class="cost-badge">
+                                            <span class="fw-bold">{{ rental.cost|number_format(3) }}</span>
+                                            <small class="text-muted">TND</small>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if status == 'Completed' %}
+                                        <span class="status-badge completed">
+                                            <i class="fas fa-check-circle"></i>
+                                            Completed
+                                        </span>
+                                    {% elseif status == 'Active' %}
+                                        <span class="status-badge active">
+                                            <i class="fas fa-bicycle"></i>
+                                            In Progress
+                                        </span>
+                                    {% else %}
+                                        <span class="status-badge reserved">
+                                            <i class="fas fa-clock"></i>
+                                            Reserved
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex justify-content-center">
+                                        <a href="{{ path('admin_bicycle_rental_show', {'id': rental.idUserRental}) }}" 
+                                           class="btn btn-outline-primary btn-action" 
+                                           data-bs-toggle="tooltip" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        
+                                        <a href="{{ path('admin_bicycle_rental_edit', {'id': rental.idUserRental}) }}" 
+                                           class="btn btn-outline-secondary btn-action" 
+                                           data-bs-toggle="tooltip" title="Edit">
+                                            <i class="fas fa-pen"></i>
+                                        </a>
+                                        
+                                        {% if status == 'Reserved' %}
+                                            <button type="button" 
+                                                    class="btn btn-outline-success btn-action activate-rental-btn" 
+                                                    data-rental-id="{{ rental.idUserRental }}"
+                                                    data-bs-toggle="tooltip" title="Activate Rental">
+                                                <i class="fas fa-play"></i>
+                                            </button>
                                             
                                             <button type="button" 
-                                                    class="btn btn-sm btn-outline-danger delete-rental-btn" 
+                                                    class="btn btn-outline-danger btn-action cancel-rental-btn" 
                                                     data-rental-id="{{ rental.idUserRental }}"
-                                                    data-bs-toggle="tooltip" title="Delete">
-                                                <i class="fas fa-trash"></i>
+                                                    data-bs-toggle="tooltip" title="Cancel">
+                                                <i class="fas fa-times"></i>
                                             </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="13" class="text-center py-5">
-                                    <div class="d-flex flex-column align-items-center">
-                                        <div class="mb-3">
-                                            <i class="fas fa-search fa-3x text-muted"></i>
-                                        </div>
-                                        <h5>No rentals found</h5>
-                                        <p class="text-muted">Try adjusting your filters or create a new rental</p>
-                                        <a href="{{ path('admin_bicycle_rental_new') }}" class="btn btn-primary mt-2">
-                                            <i class="fas fa-plus me-2"></i>Create New Rental
-                                        </a>
+                                        {% endif %}
+                                        
+                                        <button type="button" 
+                                                class="btn btn-outline-danger btn-action delete-rental-btn" 
+                                                data-rental-id="{{ rental.idUserRental }}"
+                                                data-bs-toggle="tooltip" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
-            
-            <!-- Pagination -->
-            {% if rentals is defined and rentals.isPaginationObject is defined %}
-                <div class="d-flex justify-content-center p-3">
-                    {{ knp_pagination_render(rentals) }}
-                </div>
-            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="11">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">
+                                        <i class="fas fa-search"></i>
+                                    </div>
+                                    <h5>No rentals found</h5>
+                                    <p class="text-muted mb-3">No rental records match your search criteria</p>
+                                    <a href="{{ path('admin_bicycle_rental_new') }}" class="btn btn-primary">
+                                        <i class="fas fa-plus-circle me-2"></i>Create New Rental
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
         </div>
+        
+        <!-- Pagination -->
+        {% if rentals is defined and rentals.isPaginationObject is defined %}
+            <div class="d-flex justify-content-center p-3">
+                {{ knp_pagination_render(rentals) }}
+            </div>
+        {% endif %}
     </div>
 </div>
 
@@ -330,100 +879,159 @@
 <form id="cancelRentalForm" method="POST" style="display: none;"></form>
 <form id="deleteRentalForm" method="POST" style="display: none;"></form>
 
-<!-- Modal for Confirmation -->
-<div class="modal fade" id="confirmActionModal" tabindex="-1" aria-labelledby="confirmActionModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+<!-- Activation Confirmation Modal -->
+<div class="modal fade modal-success" id="activateRentalModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="confirmActionTitle">Confirm Action</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title"><i class="fas fa-play-circle me-2"></i>Activate Rental</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body" id="confirmActionBody">
-                Are you sure you want to perform this action?
+            <div class="modal-body">
+                <p>Are you sure you want to activate this rental? This will mark the bicycle as in use and start the rental timer.</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirm</button>
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-light activate-confirm-btn">
+                    <i class="fas fa-play me-2"></i>Activate Rental
+                </button>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Cancellation Confirmation Modal -->
+<div class="modal fade modal-danger" id="cancelRentalModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-ban me-2"></i>Cancel Rental</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel this rental? The bicycle will be marked as available again, and the reservation will be removed.</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    This action cannot be undone.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Keep Rental</button>
+                <button type="button" class="btn btn-light cancel-confirm-btn">
+                    <i class="fas fa-ban me-2"></i>Cancel Rental
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade modal-danger" id="deleteRentalModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-trash me-2"></i>Delete Rental</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to permanently delete this rental record?</p>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Warning:</strong> This action will permanently delete all data associated with this rental and cannot be recovered.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-light delete-confirm-btn">
+                    <i class="fas fa-trash me-2"></i>Delete Permanently
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Modal
-    const confirmModal = new bootstrap.Modal(document.getElementById('confirmActionModal'));
-    let activeForm = null;
+    // Initialize tooltips
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
     
-    // Setup Activate Rental buttons
+    // Initialize modals
+    const activateModal = new bootstrap.Modal(document.getElementById('activateRentalModal'));
+    const cancelModal = new bootstrap.Modal(document.getElementById('cancelRentalModal'));
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteRentalModal'));
+    
+    // Form references
+    const activateForm = document.getElementById('activateRentalForm');
+    const cancelForm = document.getElementById('cancelRentalForm');
+    const deleteForm = document.getElementById('deleteRentalForm');
+    
+    // Set up activate buttons
     document.querySelectorAll('.activate-rental-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const rentalId = this.getAttribute('data-rental-id');
-            const form = document.getElementById('activateRentalForm');
-            form.setAttribute('action', `{{ path('admin_bicycle_rental_activate', {'id': '0'}) }}`.replace('/0', `/${rentalId}`));
-            
-            // Setup modal for activation
-            document.getElementById('confirmActionTitle').textContent = 'Activate Rental';
-            document.getElementById('confirmActionBody').textContent = 
-                'Are you sure you want to activate this rental? This will mark the bicycle as in use and start the rental timer.';
-            document.getElementById('confirmActionBtn').className = 'btn btn-success';
-            document.getElementById('confirmActionBtn').textContent = 'Activate';
-            
-            activeForm = form;
-            confirmModal.show();
+            activateForm.setAttribute('action', `{{ path('admin_bicycle_rental_activate', {'id': '0'}) }}`.replace('/0', `/${rentalId}`));
+            activateModal.show();
         });
     });
     
-    // Setup Cancel Rental buttons
+    // Set up cancel buttons
     document.querySelectorAll('.cancel-rental-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const rentalId = this.getAttribute('data-rental-id');
-            const form = document.getElementById('cancelRentalForm');
-            form.setAttribute('action', `{{ path('admin_bicycle_rental_cancel', {'id': '0'}) }}`.replace('/0', `/${rentalId}`));
-            
-            // Setup modal for cancellation
-            document.getElementById('confirmActionTitle').textContent = 'Cancel Rental';
-            document.getElementById('confirmActionBody').textContent = 
-                'Are you sure you want to cancel this rental? This action cannot be undone.';
-            document.getElementById('confirmActionBtn').className = 'btn btn-danger';
-            document.getElementById('confirmActionBtn').textContent = 'Cancel Rental';
-            
-            activeForm = form;
-            confirmModal.show();
+            cancelForm.setAttribute('action', `{{ path('admin_bicycle_rental_cancel', {'id': '0'}) }}`.replace('/0', `/${rentalId}`));
+            cancelModal.show();
         });
     });
     
-    // Setup Delete Rental buttons
+    // Set up delete buttons
     document.querySelectorAll('.delete-rental-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const rentalId = this.getAttribute('data-rental-id');
-            const form = document.getElementById('deleteRentalForm');
-            form.setAttribute('action', `{{ path('admin_bicycle_rental_delete', {'id': '0'}) }}`.replace('/0', `/${rentalId}`));
-            
-            // Setup modal for deletion
-            document.getElementById('confirmActionTitle').textContent = 'Delete Rental';
-            document.getElementById('confirmActionBody').textContent = 
-                'Are you sure you want to permanently delete this rental record? This action cannot be undone.';
-            document.getElementById('confirmActionBtn').className = 'btn btn-danger';
-            document.getElementById('confirmActionBtn').textContent = 'Delete Rental';
-            
-            activeForm = form;
-            confirmModal.show();
+            deleteForm.setAttribute('action', `{{ path('admin_bicycle_rental_delete', {'id': '0'}) }}`.replace('/0', `/${rentalId}`));
+            deleteModal.show();
         });
     });
     
-    // Handle confirm action button
-    document.getElementById('confirmActionBtn').addEventListener('click', function() {
-        if (activeForm) {
-            activeForm.submit();
-        }
-        confirmModal.hide();
+    // Confirm button actions
+    document.querySelector('.activate-confirm-btn').addEventListener('click', function() {
+        activateForm.submit();
     });
     
-    // Export functionality
-    document.getElementById('export-excel').addEventListener('click', function(e) {
-        e.preventDefault();
-        window.location.href = '{{ path('admin_bicycle_rentals_index') }}' + window.location.search + '&format=excel';
+    document.querySelector('.cancel-confirm-btn').addEventListener('click', function() {
+        cancelForm.submit();
     });
+    
+    document.querySelector('.delete-confirm-btn').addEventListener('click', function() {
+        deleteForm.submit();
+    });
+    
+    // Row hover effects
+    document.querySelectorAll('.datatable tr').forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.querySelectorAll('.btn-action').forEach(btn => {
+                btn.classList.add('visible');
+            });
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.querySelectorAll('.btn-action').forEach(btn => {
+                btn.classList.remove('visible');
+            });
+        });
+    });
+    
+    // Add some animations for a more dynamic UI
+    setTimeout(() => {
+        document.querySelectorAll('.stat-card').forEach((card, index) => {
+            setTimeout(() => {
+                card.classList.add('animate__animated', 'animate__fadeInUp');
+            }, index * 100);
+        });
+    }, 500);
 });
 </script>
+{% endblock %}
