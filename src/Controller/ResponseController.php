@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
+
 #[Route('/response')]
 final class ResponseController extends AbstractController
 {
@@ -88,4 +89,36 @@ final class ResponseController extends AbstractController
 
         return $this->redirectToRoute('app_reclamation_list', [], HttpResponse::HTTP_SEE_OTHER);
     }
+ 
+        #[Route('/new/reclamation/{id_reclamation}', name: 'app_response_new_for_reclamation', methods: ['POST'])]
+    public function newForReclamation(Request $request, EntityManagerInterface $entityManager, int $id_reclamation): HttpResponse
+    {
+        $reclamation = $entityManager->getRepository(Reclamation::class)->find($id_reclamation);
+        
+        if (!$reclamation) {
+            throw $this->createNotFoundException('Reclamation not found');
+        }
+        
+        // Validate CSRF token
+        $submittedToken = $request->request->get('token');
+        if (!$this->isCsrfTokenValid('response_form', $submittedToken)) {
+            $this->addFlash('error', 'Invalid CSRF token');
+            return $this->redirectToRoute('app_reclamation_detail', ['id_reclamation' => $id_reclamation]);
+        }
+        
+        $responseData = $request->request->all('response');
+        
+        // Create and persist the response
+        $response = new Response();
+        $response->setContent($responseData['content'] ?? '');
+        $response->setReclamation($reclamation);
+        $response->setDate(new \DateTime());
+        
+        $entityManager->persist($response);
+        $entityManager->flush();
+        
+        $this->addFlash('success', 'Votre réponse a été enregistrée avec succès.');
+        return $this->redirectToRoute('app_reclamation_detail', ['id_reclamation' => $id_reclamation]);
+    }
 }
+
