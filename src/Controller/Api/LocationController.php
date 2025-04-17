@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/api')]
-class LocationApiController extends AbstractController
+class LocationController extends AbstractController
 {
     #[Route('/locations', name: 'api_locations', methods: ['GET'])]
     public function getLocations(LocationRepository $locationRepository): JsonResponse

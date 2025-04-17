@@ -6,6 +6,12 @@
     <link rel="stylesheet" href="{{ asset('css/front/announcement/announcement.css') }}">
 {% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/front/announcement/reservation.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.min.css" rel="stylesheet">
+{% endblock %}
+
 {% block hero %}
 <div class="hero-section bg-announcement text-white">
     <div class="container">
@@ -287,8 +293,7 @@
 
 {% block page_javascripts %}
 {{ parent() }}
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.all.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.min.css" rel="stylesheet">
+     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.all.min.js"></script>
     <script src="{{ asset('js/front/announcement/reservation.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
