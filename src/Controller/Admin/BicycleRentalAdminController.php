@@ -323,6 +323,17 @@ class BicycleRentalAdminController extends AbstractController
                 $rental->setBicycle($bicycle);
                 $rental->setStartStation($bicycle->getBicycleStation());
                 
+                // Validate the entity with our Assert constraints
+                $errors = $validator->validate($rental);
+                if (count($errors) > 0) {
+                    $errorMessages = [];
+                    foreach ($errors as $error) {
+                        $errorMessages[] = $error->getPropertyPath() . ': ' . $error->getMessage();
+                        $this->addFlash('error', $error->getPropertyPath() . ': ' . $error->getMessage());
+                    }
+                    throw new \Exception('Validation failed: ' . implode(', ', $errorMessages));
+                }
+                
                 // Create the rental
                 $this->rentalService->createBicycleRental($rental->getUser(), $rental);
                 
@@ -406,10 +417,38 @@ class BicycleRentalAdminController extends AbstractController
                     $distanceKm = (float)$request->request->get('distanceKm', 0);
                     $batteryUsed = (float)$request->request->get('batteryUsed', 0);
                     
+                    // Set values for validation
+                    $rental->setEndStation($endStation);
+                    $rental->setEndTime(new \DateTime());
+                    $rental->setDistanceKm($distanceKm);
+                    $rental->setBatteryUsed($batteryUsed);
+                    
+                    // Validate using Assert constraints
+                    $errors = $validator->validate($rental);
+                    if (count($errors) > 0) {
+                        $errorMessages = [];
+                        foreach ($errors as $error) {
+                            $errorMessages[] = $error->getPropertyPath() . ': ' . $error->getMessage();
+                            $this->addFlash('error', $error->getPropertyPath() . ': ' . $error->getMessage());
+                        }
+                        throw new \Exception('Validation failed: ' . implode(', ', $errorMessages));
+                    }
+                    
                     // Complete the rental
                     $this->rentalService->completeRental($rental, $endStation, $distanceKm, $batteryUsed);
                     $this->addFlash('success', 'Rental completed successfully');
                 } else {
+                    // Standard rental update - validate using Assert constraints
+                    $errors = $validator->validate($rental);
+                    if (count($errors) > 0) {
+                        $errorMessages = [];
+                        foreach ($errors as $error) {
+                            $errorMessages[] = $error->getPropertyPath() . ': ' . $error->getMessage();
+                            $this->addFlash('error', $error->getPropertyPath() . ': ' . $error->getMessage());
+                        }
+                        throw new \Exception('Validation failed: ' . implode(', ', $errorMessages));
+                    }
+                    
                     // Standard rental update
                     $this->entityManager->flush();
                     $this->addFlash('success', 'Rental updated successfully');

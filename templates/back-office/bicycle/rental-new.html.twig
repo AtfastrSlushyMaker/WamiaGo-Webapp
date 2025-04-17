@@ -342,6 +342,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Elements
     const stationSelect = document.getElementById('stationId');
     const bicycleSelect = document.getElementById('bicycleId');
     const bicycleDetails = document.querySelector('.bicycle-details');
@@ -353,56 +354,267 @@ document.addEventListener('DOMContentLoaded', function() {
     const rangeIndicator = document.querySelector('.range-indicator');
     const hourlyRate = document.querySelector('.hourly-rate');
     const costInput = document.querySelector('[name="bicycle_rental[cost]"]');
+    const form = document.getElementById('rental-form');
+    const startTimeField = document.querySelector('[name="bicycle_rental[startTime]"]');
+    const endTimeField = document.querySelector('[name="bicycle_rental[endTime]"]');
+    const distanceKmField = document.querySelector('[name="bicycle_rental[distanceKm]"]');
+    const batteryUsedField = document.querySelector('[name="bicycle_rental[batteryUsed]"]');
+    const userField = document.querySelector('[name="bicycle_rental[user]"]');
     
     // Synchronize hidden form fields with our custom selectors
     const formBicycleField = document.querySelector('[name="bicycle_rental[bicycle]"]');
     const formStartStationField = document.querySelector('[name="bicycle_rental[startStation]"]');
     
     // Set default values for measurement fields
-    document.querySelector('[name="bicycle_rental[distanceKm]"]').value = '0';
-    document.querySelector('[name="bicycle_rental[batteryUsed]"]').value = '0';
+    if (distanceKmField && !distanceKmField.value) {
+        distanceKmField.value = '0';
+    }
+    
+    if (batteryUsedField && !batteryUsedField.value) {
+        batteryUsedField.value = '0';
+    }
+    
+    // Add validation event listeners to selects and inputs for real-time feedback
+    userField?.addEventListener('change', function() {
+        validateField(this);
+    });
+    
+    stationSelect?.addEventListener('change', function() {
+        validateField(this);
+    });
+    
+    bicycleSelect?.addEventListener('change', function() {
+        validateField(this);
+    });
+    
+    costInput?.addEventListener('change', function() {
+        validateField(this, 'Cost must be greater than 0');
+    });
+    
+    costInput?.addEventListener('input', function() {
+        validateField(this, 'Cost must be greater than 0');
+    });
     
     // Form validation
-    const form = document.getElementById('rental-form');
-    form.addEventListener('submit', function(event) {
-        if (!bicycleSelect.value) {
-            event.preventDefault();
-            alert('Please select a bicycle');
-            return;
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            // Validate essential fields
+            let valid = true;
+            
+            // User field validation
+            if (!validateField(userField, 'Please select a user')) valid = false;
+            
+            // Station validation
+            if (!validateField(stationSelect, 'Please select a station')) valid = false;
+            
+            // Bicycle validation
+            if (!validateField(bicycleSelect, 'Please select a bicycle')) valid = false;
+            
+            // Cost validation
+            if (!validateField(costInput, 'Cost must be greater than 0')) valid = false;
+            
+            // Start time and end time validation
+            if (startTimeField && endTimeField && startTimeField.value && endTimeField.value) {
+                if (!validateEndTime()) valid = false;
+            }
+            
+            // Distance validation
+            if (distanceKmField && distanceKmField.value) {
+                if (!validateDistance()) valid = false;
+            }
+            
+            // Battery used validation
+            if (batteryUsedField && batteryUsedField.value) {
+                if (!validateBatteryUsed()) valid = false;
+            }
+            
+            // If validation fails, find the first error field and scroll to it
+            if (!valid) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Add validation class to help with styling
+                form.classList.add('was-validated');
+                
+                const firstErrorField = document.querySelector('.is-invalid');
+                if (firstErrorField) {
+                    firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstErrorField.focus();
+                }
+            }
+        });
+    }
+    
+    // Field validation helpers
+    function validateField(field, message) {
+        if (!field) return true;
+        
+        // Special validation for cost
+        if (field === costInput) {
+            const value = parseFloat(field.value);
+            if (!field.value || isNaN(value) || value <= 0) {
+                setFieldInvalid(field, message || 'Cost must be greater than 0');
+                return false;
+            } else {
+                setFieldValid(field);
+                return true;
+            }
         }
         
-        // Transfer values to the hidden form fields
-        formBicycleField.value = bicycleSelect.value;
-        formStartStationField.value = stationSelect.value;
-        
-        if (!form.checkValidity()) {
-            event.preventDefault();
-            event.stopPropagation();
+        // For selects and other fields, check if not empty
+        if (!field.value) {
+            setFieldInvalid(field, message || 'This field is required');
+            return false;
+        } else {
+            setFieldValid(field);
+            return true;
         }
-        form.classList.add('was-validated');
-    });
+    }
+    
+    function setFieldInvalid(field, message) {
+        if (!field) return;
+        
+        field.classList.add('is-invalid');
+        
+        // Find or create feedback element
+        let feedback = field.parentNode.querySelector('.invalid-feedback');
+        if (!feedback) {
+            feedback = document.createElement('div');
+            feedback.className = 'invalid-feedback';
+            
+            // Determine where to insert the feedback
+            const parent = field.closest('.input-group') || field.parentNode;
+            parent.parentNode.appendChild(feedback);
+        }
+        
+        feedback.textContent = message;
+        feedback.style.display = 'block';
+    }
+    
+    function setFieldValid(field) {
+        if (!field) return;
+        
+        field.classList.remove('is-invalid');
+        
+        // Hide any feedback
+        const parent = field.closest('.form-group') || field.parentNode;
+        const feedback = parent.querySelector('.invalid-feedback');
+        if (feedback) {
+            feedback.style.display = 'none';
+        }
+    }
+    
+    // Validate end time in relation to start time
+    function validateEndTime() {
+        if (!startTimeField || !endTimeField) return true;
+        
+        const startTime = new Date(startTimeField.value);
+        const endTime = new Date(endTimeField.value);
+        
+        if (endTime <= startTime) {
+            setFieldInvalid(endTimeField, 'End time must be after start time');
+            return false;
+        } else {
+            setFieldValid(endTimeField);
+            return true;
+        }
+    }
+    
+    // Set up validation for time fields
+    if (startTimeField) {
+        startTimeField.addEventListener('change', function() {
+            if (endTimeField && endTimeField.value) {
+                validateEndTime();
+                updateCostEstimate();
+            }
+        });
+        
+        // Also validate on input for better UX
+        startTimeField.addEventListener('input', function() {
+            if (endTimeField && endTimeField.value) {
+                validateEndTime();
+            }
+        });
+    }
+    
+    if (endTimeField) {
+        endTimeField.addEventListener('change', function() {
+            validateEndTime();
+            updateCostEstimate();
+        });
+        
+        // Also validate on input for better UX
+        endTimeField.addEventListener('input', function() {
+            validateEndTime();
+        });
+    }
+    
+    // Validate distance
+    function validateDistance() {
+        if (!distanceKmField) return true;
+        
+        const value = parseFloat(distanceKmField.value);
+        if (isNaN(value) || value < 0) {
+            setFieldInvalid(distanceKmField, 'Distance must be a positive number');
+            return false;
+        } else {
+            setFieldValid(distanceKmField);
+            return true;
+        }
+    }
+    
+    if (distanceKmField) {
+        distanceKmField.addEventListener('change', validateDistance);
+        distanceKmField.addEventListener('input', validateDistance);
+    }
+    
+    // Validate battery used percentage
+    function validateBatteryUsed() {
+        if (!batteryUsedField) return true;
+        
+        const value = parseFloat(batteryUsedField.value);
+        if (isNaN(value) || value < 0) {
+            setFieldInvalid(batteryUsedField, 'Battery used must be a positive number');
+            return false;
+        } else if (value > 100) {
+            setFieldInvalid(batteryUsedField, 'Battery used cannot exceed 100%');
+            return false;
+        } else {
+            setFieldValid(batteryUsedField);
+            return true;
+        }
+    }
+    
+    if (batteryUsedField) {
+        batteryUsedField.addEventListener('change', validateBatteryUsed);
+        batteryUsedField.addEventListener('input', validateBatteryUsed);
+    }
     
     // Update bicycles when station changes
     stationSelect.addEventListener('change', function() {
-        const stationId = this.value;
-        bicycleSelect.innerHTML = '<option value="">-- Choose a bicycle --</option>';
-        bicycleSelect.disabled = !stationId;
-        bicycleDetails.style.display = 'none';
-        
-        // Update the hidden station field
+        // Update hidden start station field
         if (formStartStationField) {
-            formStartStationField.value = stationId;
+            formStartStationField.value = this.value;
         }
         
+        // Reset bicycle selection
+        bicycleSelect.innerHTML = '<option value="">-- Loading bicycles... --</option>';
+        bicycleSelect.disabled = !this.value;
+        
+        // Hide bicycle details
+        if (bicycleDetails) {
+            bicycleDetails.style.display = 'none';
+        }
+        
+        const stationId = this.value;
         if (stationId) {
-            // Show loading state
-            bicycleSelect.innerHTML = '<option value=""><i class="fas fa-spinner fa-spin"></i> Loading bicycles...</option>';
-            
+            // Fetch available bicycles for this station
             fetch(`{{ path('admin_station_available_bicycles', {'id': '0'}) }}`.replace('/0', `/${stationId}`))
                 .then(response => response.json())
                 .then(bicycles => {
                     if (bicycles.length === 0) {
                         bicycleSelect.innerHTML = '<option value="">No available bicycles at this station</option>';
+                        setFieldInvalid(bicycleSelect, 'No available bicycles');
                     } else {
                         bicycleSelect.innerHTML = '<option value="">-- Choose a bicycle --</option>';
                         bicycles.forEach(bicycle => {
@@ -418,11 +630,13 @@ document.addEventListener('DOMContentLoaded', function() {
                             option.textContent = `${icon}Bicycle #${bicycle.id} - ${bicycle.batteryLevel}% battery`;
                             bicycleSelect.appendChild(option);
                         });
+                        setFieldValid(bicycleSelect);
                     }
                 })
                 .catch(error => {
                     console.error('Error fetching bicycles:', error);
                     bicycleSelect.innerHTML = '<option value="">Error loading bicycles</option>';
+                    setFieldInvalid(bicycleSelect, 'Error loading bicycles');
                 });
         }
     });
@@ -443,186 +657,165 @@ document.addEventListener('DOMContentLoaded', function() {
                 formBicycleField.value = this.value;
             }
             
-            // Update UI
-            bicycleType.textContent = isPremium ? 'Premium' : 'Standard';
-            bicycleType.className = `badge ${isPremium ? 'bg-success' : 'bg-primary'} text-white`;
-            
-            bicycleId.innerHTML = `<i class="fas fa-hashtag me-1"></i>Bicycle #${this.value}`;
-            batteryPercentage.textContent = `${battery}%`;
-            rangeKm.textContent = `${range} km`;
-            batteryLevel.style.width = `${battery}%`;
-            rangeIndicator.style.width = `${(range/50)*100}%`; // Assuming max range is 50km
+            // Update UI if elements exist
+            if (bicycleType) bicycleType.textContent = isPremium ? 'Premium' : 'Standard';
+            if (bicycleType) bicycleType.className = `badge ${isPremium ? 'bg-success' : 'bg-primary'} text-white`;
+            if (bicycleId) bicycleId.innerHTML = `<i class="fas fa-hashtag me-1"></i>Bicycle #${this.value}`;
+            if (batteryPercentage) batteryPercentage.textContent = `${battery}%`;
+            if (rangeKm) rangeKm.textContent = `${range} km`;
+            if (batteryLevel) batteryLevel.style.width = `${battery}%`;
+            if (rangeIndicator) rangeIndicator.style.width = `${(range/50)*100}%`; // Assuming max range is 50km
             
             // Set color based on battery level
-            if (battery > 70) {
-                batteryLevel.className = 'battery-level progress-bar bg-success';
-            } else if (battery > 30) {
-                batteryLevel.className = 'battery-level progress-bar bg-warning';
-            } else {
-                batteryLevel.className = 'battery-level progress-bar bg-danger';
+            if (batteryLevel) {
+                if (battery > 70) {
+                    batteryLevel.className = 'battery-level progress-bar bg-success';
+                } else if (battery > 30) {
+                    batteryLevel.className = 'battery-level progress-bar bg-warning';
+                } else {
+                    batteryLevel.className = 'battery-level progress-bar bg-danger';
+                }
             }
             
             // Update hourly rate
-            hourlyRate.textContent = `${rate.toFixed(3)} TND`;
+            if (hourlyRate) hourlyRate.textContent = `${rate.toFixed(3)} TND`;
             
             // Set estimated cost (for 1 hour by default)
-            costInput.value = rate.toFixed(3);
+            if (costInput) {
+                costInput.value = rate.toFixed(3);
+                validateField(costInput);
+            }
             
-            // Show bicycle details with animation
-            bicycleDetails.style.display = 'block';
-            bicycleDetails.classList.add('animate__animated', 'animate__fadeIn');
+            // Show bicycle details with animation if element exists
+            if (bicycleDetails) {
+                bicycleDetails.style.display = 'block';
+                bicycleDetails.classList.add('animate__animated', 'animate__fadeIn');
+            }
             
-            // Remove animation classes after animation ends
-            setTimeout(() => {
-                bicycleDetails.classList.remove('animate__animated', 'animate__fadeIn');
-            }, 1000);
+            // Validate
+            setFieldValid(this);
         } else {
-            bicycleDetails.style.display = 'none';
+            // Hide bicycle details
+            if (bicycleDetails) {
+                bicycleDetails.style.display = 'none';
+            }
             
-            // Clear the hidden bicycle field
+            // Clear hidden field
             if (formBicycleField) {
                 formBicycleField.value = '';
             }
+            
+            setFieldInvalid(this, 'Please select a bicycle');
         }
     });
+    
+    // Calculate cost when rental duration changes (if start and end times are provided)
+    function updateCostEstimate() {
+        const bicycleValue = bicycleSelect.value;
+        if (!bicycleValue || !costInput) return;
+        
+        const selectedOption = bicycleSelect.options[bicycleSelect.selectedIndex];
+        let rate = parseFloat(selectedOption.dataset.hourlyRate);
+        
+        // Calculate duration if both start and end times are provided
+        if (startTimeField && endTimeField && startTimeField.value && endTimeField.value) {
+            const startTime = new Date(startTimeField.value);
+            const endTime = new Date(endTimeField.value);
+            
+            if (endTime > startTime) {
+                // Calculate hours difference (minimum 1 hour)
+                const diffHours = Math.max(1, Math.ceil((endTime - startTime) / (1000 * 60 * 60)));
+                costInput.value = (rate * diffHours).toFixed(3);
+                setFieldValid(costInput);
+                return;
+            }
+        }
+        
+        // Default to 1 hour rate
+        costInput.value = rate.toFixed(3);
+    }
+    
+    // Initialize Select2 for better dropdowns if available
+    if (typeof $.fn.select2 !== 'undefined') {
+        $('select:not(#bicycleId)').select2({
+            theme: 'bootstrap-5',
+            width: '100%'
+        });
+    }
 });
 </script>
 {% endblock %}
 
 {% block stylesheets %}
 {{ parent() }}
-<link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
 <style>
-    /* Card Styles */
     .card {
-        border-radius: 0.8rem !important;
-        transition: all 0.3s ease;
-        overflow: hidden; /* This ensures the header radius is applied */
-    }
-    
-    .card:hover {
-        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1) !important;
-        transform: translateY(-3px);
+        border-radius: 0.5rem;
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     }
     
     .card-header {
-        border-bottom: none !important;
-        font-weight: 600;
-    }
-    
-    /* Form Controls & Inputs */
-    .custom-select, .custom-input {
-        height: 54px !important;
-        font-size: 1rem !important;
-        transition: all 0.3s ease;
-        background-color: white !important;
-    }
-    
-    .input-group-text {
-        height: 54px;
-        padding: 0 1rem;
-        font-size: 1.2rem;
-    }
-    
-    .input-group {
-        overflow: hidden;
-        border-radius: 0.5rem !important;
-        transition: all 0.3s ease;
-    }
-    
-    .input-group:focus-within {
-        box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.2) !important;
-    }
-    
-    .form-select:focus, .form-control:focus {
-        box-shadow: none !important;
-    }
-    
-    .form-group {
-        margin-bottom: 1.5rem;
+        border-radius: 0.5rem 0.5rem 0 0;
+        border-bottom: 1px solid #e9ecef;
     }
     
     .form-label {
+        font-weight: 500;
         color: #495057;
-        margin-bottom: 0.75rem !important;
     }
     
-    /* Button styles */
-    .btn-lg {
-        padding: 0.75rem 1.75rem;
-        font-size: 1.05rem;
+    .form-control, .form-select {
+        border-color: #dee2e6;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .bicycle-details {
         border-radius: 0.5rem;
-        font-weight: 500;
+        padding: 1rem;
+        border: 1px solid #e9ecef;
+        background-color: #f8f9fa;
+        margin-top: 1rem;
         transition: all 0.3s ease;
-    }
-    
-    .btn-primary {
-        background-color: #0d6efd;
-        border: none;
-        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.25);
-    }
-    
-    .btn-primary:hover {
-        background-color: #0b5ed7;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(13, 110, 253, 0.35);
-    }
-    
-    .btn-outline-secondary {
-        border: 2px solid #6c757d;
-        color: #6c757d;
-        font-weight: 500;
-    }
-    
-    .btn-outline-secondary:hover {
-        background-color: #6c757d;
-        color: white;
-    }
-    
-    /* Bicycle Details */
-    .battery-level, .range-indicator {
-        transition: width 0.5s ease, background-color 0.5s ease;
-        border-radius: 5px;
     }
     
     .bicycle-specs {
         transition: all 0.3s ease;
     }
     
-    .bicycle-details {
-        border-left: 4px solid #0d6efd;
-    }
-    
-    /* Types Badge */
-    .type-badge {
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-weight: 600;
-        border-radius: 1rem;
-    }
-    
-    /* Instructions List */
-    .instruction-list {
-        list-style-type: none;
-        padding-left: 0;
+    .battery-level, .range-indicator {
+        height: 12px;
+        border-radius: 6px;
+        transition: width 0.5s ease;
     }
     
     .step-icon {
-        width: 32px;
-        height: 32px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: #e7f1ff;
+        color: #0d6efd;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 50%;
-        background-color: rgba(13, 110, 253, 0.1);
     }
     
-    /* Icon Circles */
+    .price-tag {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.5rem;
+        margin-top: 0.25rem;
+        font-size: 0.875rem;
+    }
+    
     .icon-circle {
-        width: 2.75rem;
-        height: 2.75rem;
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -630,53 +823,45 @@ document.addEventListener('DOMContentLoaded', function() {
         font-size: 1.25rem;
     }
     
-    /* Price Tag */
-    .price-tag {
-        display: inline-block;
-        padding: 0.35rem 0.65rem;
-        border-radius: 0.25rem;
-        font-size: 0.875rem;
+    /* Validation styling */
+    .form-control.is-invalid,
+    .form-select.is-invalid,
+    .was-validated .form-control:invalid,
+    .was-validated .form-select:invalid {
+        border-color: #dc3545;
+        padding-right: calc(1.5em + 0.75rem);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
     }
     
-    /* Responsive fixes */
-    @media (max-width: 992px) {
-        .bicycleDetails {
-            margin-top: 2rem;
-        }
+    .invalid-feedback {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875em;
+        color: #dc3545;
     }
     
-    /* Helper classes */
-    .rounded-4 {
-        border-radius: 0.75rem !important;
+    .form-control.is-invalid ~ .invalid-feedback,
+    .form-select.is-invalid ~ .invalid-feedback,
+    .input-group.is-invalid ~ .invalid-feedback {
+        display: block;
     }
     
-    /* Fix for badge padding */
-    .badge {
-        padding: 0.5em 0.85em;
-    }
-
-    /* Animated hover effects */
-    .bicycle-type-item {
-        transition: transform 0.2s ease;
+    /* Animation classes for smoother UX */
+    .animate__animated {
+        animation-duration: 0.5s;
     }
     
-    .bicycle-type-item:hover {
-        transform: translateY(-3px);
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
     
-    /* Strong heading styles */
-    h1, h2, h3, h4, h5, h6, .fw-bold {
-        letter-spacing: -0.02em;
-    }
-    
-    /* Add bottom spacing for all form groups */
-    .form-group:last-child {
-        margin-bottom: 0;
-    }
-    
-    /* Fix dropdown arrow positioning */
-    select.form-select {
-        background-position: right 1rem center;
+    .animate__fadeIn {
+        animation-name: fadeIn;
     }
 </style>
 {% endblock %}

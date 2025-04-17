@@ -459,6 +459,22 @@ class BicycleRentalsController extends AbstractController
         
         return ['isValid' => true, 'errors' => []];
     }
-
     
+    /**
+     * Validate a BicycleRental entity using Symfony's validator
+     */
+    private function validateBicycleRental(BicycleRental $rental): array
+    {
+        $errors = $this->validator->validate($rental);
+        $errorMessages = [];
+        
+        if (count($errors) > 0) {
+            foreach ($errors as $error) {
+                $errorMessages[] = $error->getPropertyPath() . ': ' . $error->getMessage();
+            }
+            return ['isValid' => false, 'errors' => $errorMessages];
+        }
+        
+        return ['isValid' => true, 'errors' => []];
+    }
 }

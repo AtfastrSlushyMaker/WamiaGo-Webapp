@@ -75,7 +75,7 @@ class BicycleAdminController extends AbstractController
             $this->addFlash('success', 'Bicycle created successfully.');
     
             // Redirect back to the page that shows rentals (modal is in that page)
-            return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => $activeTab]);
+            return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => "bicycles"]);
         }
     
         return $this->redirectToRoute('admin_bicycle_rentals');
@@ -91,7 +91,7 @@ class BicycleAdminController extends AbstractController
         $bicycle = $em->getRepository(Bicycle::class)->find($id); // Fetch the bicycle by the ID parameter
         if (!$bicycle) {
             $this->addFlash('error', 'Bicycle not found.');
-            return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => $activeTab]);
+            return $this->redirectToRoute('admin_bicycle_rentals', ['tab' =>"bicycles"]);
         }
     
         // Ensure the status is set
@@ -120,7 +120,7 @@ class BicycleAdminController extends AbstractController
                     $this->addFlash('error', 'Validation errors: ' . implode(', ', $errorMessages));
     
                     // Return to the list page with errors
-                    return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => $activeTab]);
+                    return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => "bicycles"]);
                 }
     
                 // Save the updated bicycle to the database
@@ -139,7 +139,7 @@ class BicycleAdminController extends AbstractController
         }
     
         // If form is not submitted or invalid, display the form again
-        return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => $activeTab]);
+        return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => "bicycles"]);
     }
     
 
@@ -249,7 +249,7 @@ class BicycleAdminController extends AbstractController
         }
         
         // Redirect back to the appropriate tab
-        return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => $activeTab]);
+        return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => "bicycles"]);
     }
     
     #[Route('/bicycle/change-status', name: 'admin_bicycle_change_status', methods: ['POST'])]
