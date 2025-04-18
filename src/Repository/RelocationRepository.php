@@ -8,6 +8,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\QueryBuilder;
 
 use App\Entity\Driver;
+use App\Entity\User;
 
 
 /**
@@ -149,6 +150,17 @@ class RelocationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findByClient(User $client): array
+{
+    return $this->createQueryBuilder('r')
+        ->join('r.reservation', 'res')
+        ->where('res.user = :client')
+        ->setParameter('client', $client)
+        ->orderBy('r.date', 'DESC')
+        ->getQuery()
+        ->getResult();
+}
 
 
     //    /**

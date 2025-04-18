@@ -1,4 +1,4 @@
-/* public/css/front/reservation/reservation-cards.css */
+
 .reservations-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -595,4 +595,3 @@ body.swal2-shown {
     background-color: rgba(0, 0, 0, 0.5) !important;
     backdrop-filter: blur(3px) !important;
 }
-

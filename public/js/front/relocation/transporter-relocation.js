@@ -45,88 +45,137 @@ async function showRelocationDetails(relocationId) {
         }
         
         const data = await response.json();
-        const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
-        const modalBody = document.querySelector('#detailsModal .modal-body');
-        
-        modalBody.innerHTML = `
-            <div class="detail-card">
-                <h4>${data.reservationTitle}</h4>
-                <div class="d-flex justify-content-between mb-3">
-                    <span><i class="fas fa-user me-2"></i>${data.clientName}</span>
-                    <span class="badge bg-${data.status === 'Active' ? 'success' : 'secondary'}">${data.status}</span>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><i class="fas fa-calendar-alt me-2"></i> ${data.date}</p>
-                        <p><i class="fas fa-euro-sign me-2"></i> ${data.cost} €</p>
+
+        // Utiliser SweetAlert2 au lieu de Bootstrap Modal
+        await Swal.fire({
+            title: 'Relocation Details',
+            html: `
+                <div class="detail-card">
+                    <div class="detail-section">
+                        <div class="detail-item">
+                            <i class="fas fa-clipboard-list"></i>
+                            <div>
+                                <h6 class="detail-label">Reservation</h6>
+                                <p class="detail-value">${data.reservationTitle}</p>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-user"></i>
+                            <div>
+                                <h6 class="detail-label">Client</h6>
+                                <p class="detail-value">${data.clientName}</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <p><i class="fas fa-map-marker-alt me-2"></i> ${data.startLocation}</p>
-                        <p><i class="fas fa-flag-checkered me-2"></i> ${data.endLocation}</p>
+
+                    <div class="detail-section">
+                        <div class="detail-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <div>
+                                <h6 class="detail-label">Date</h6>
+                                <p class="detail-value">${data.date}</p>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-euro-sign"></i>
+                            <div>
+                                <h6 class="detail-label">Cost</h6>
+                                <p class="detail-value">${data.cost} €</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div>
+                                <h6 class="detail-label">Start Location</h6>
+                                <p class="detail-value">${data.startLocation}</p>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-flag-checkered"></i>
+                            <div>
+                                <h6 class="detail-label">End Location</h6>
+                                <p class="detail-value">${data.endLocation}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
-        
-        modal.show();
+            `,
+            width: '600px',
+            showCloseButton: true,
+            showConfirmButton: false,
+            customClass: {
+                container: 'relocation-modal-container',
+                popup: 'relocation-modal-popup',
+                title: 'relocation-modal-title',
+                closeButton: 'relocation-modal-close',
+                content: 'relocation-modal-content'
+            }
+        });
     } catch (error) {
         console.error('Error:', error);
         Swal.fire({
             title: 'Error',
             text: 'Failed to load relocation details',
-            icon: 'error'
+            icon: 'error',
+            confirmButtonColor: '#5A6BE5'
         });
     }
 }
 
 async function showEditForm(relocationId) {
     try {
-        // Charger les données de la relocation
         const response = await fetch(`/transporter/relocations/${relocationId}/edit`);
         const data = await response.json();
         
-        // Afficher le formulaire dans le modal
-        const modal = new bootstrap.Modal(document.getElementById('editRelocationModal'));
-        const formContainer = document.getElementById('editRelocationFormContainer');
-        
-        formContainer.innerHTML = `
-            <form id="editRelocationForm" method="post" 
-                  action="/transporter/relocations/${data.id}/update">
-                <div class="form-card">
-                    <div class="form-group floating-label">
-                        <input type="date" name="date" id="edit_date" 
-                               class="form-control" required
-                               value="${data.date}">
+        const { value: formValues } = await Swal.fire({
+            title: 'Edit Relocation',
+            html: `
+                <form id="editRelocationForm" class="edit-form">
+                    <div class="form-group">
                         <label for="edit_date">Relocation Date</label>
+                        <input type="date" id="edit_date" class="form-control" 
+                               value="${data.date}" required>
                     </div>
                     
-                    <div class="form-group floating-label">
-                        <input type="number" name="cost" id="edit_cost" 
-                               class="form-control" required step="0.01" min="0"
-                               value="${data.cost}">
+                    <div class="form-group">
                         <label for="edit_cost">Cost (€)</label>
+                        <input type="number" id="edit_cost" class="form-control" 
+                               value="${data.cost}" required step="0.01" min="0">
                     </div>
                     
-                    <div class="form-check form-switch mb-4">
-                        <input class="form-check-input" type="checkbox" name="status" 
-                               id="edit_status" ${data.status ? 'checked' : ''}>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="edit_status" 
+                               ${data.status ? 'checked' : ''}>
                         <label class="form-check-label" for="edit_status">Active</label>
                     </div>
-                    
-                    <input type="hidden" name="_token" 
-                           value="${generateCsrfToken('update' + data.id)}">
-                    
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-2"></i> Save Changes
-                        </button>
-                    </div>
-                </div>
-            </form>
-        `;
-        
-        modal.show();
+                </form>
+            `,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'Save Changes',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#5A6BE5',
+            width: '500px',
+            customClass: {
+                container: 'edit-modal-container',
+                popup: 'edit-modal-popup',
+                title: 'edit-modal-title',
+                confirmButton: 'edit-modal-confirm',
+                cancelButton: 'edit-modal-cancel'
+            },
+            preConfirm: () => ({
+                date: document.getElementById('edit_date').value,
+                cost: parseFloat(document.getElementById('edit_cost').value),
+                status: document.getElementById('edit_status').checked
+            })
+        });
+
+        if (formValues) {
+            await updateRelocation(relocationId, formValues);
+        }
     } catch (error) {
         showErrorAlert('Error', 'Failed to load edit form');
     }
@@ -171,7 +220,6 @@ async function submitEditForm(form) {
             });
             
             updateRelocationCard(data.relocation);
-            bootstrap.Modal.getInstance(document.getElementById('editRelocationModal')).hide();
         }
     } catch (error) {
         await Swal.fire({
@@ -226,25 +274,25 @@ async function confirmDelete(relocationId, title) {
 function updateRelocationCard(relocationData) {
     const card = document.querySelector(`.relocation-card[data-id="${relocationData.id}"]`);
     if (!card) return;
-    
-    // Mettre à jour la date
-    const dateElement = card.querySelector('.meta-item:nth-child(1) span');
-    if (dateElement) {
-        dateElement.textContent = relocationData.date;
-    }
-    
-    // Mettre à jour le coût
-    const costElement = card.querySelector('.meta-item:nth-child(2) span');
-    if (costElement) {
-        costElement.textContent = `${relocationData.cost} €`;
-    }
-    
-    // Mettre à jour le statut
-    const statusBadge = card.querySelector('.card-badge');
-    if (statusBadge) {
+
+    // Animation de mise à jour
+    card.style.transition = 'all 0.3s ease';
+    card.style.transform = 'scale(0.95)';
+    card.style.opacity = '0.7';
+
+    setTimeout(() => {
+        // Mettre à jour le contenu
+        card.querySelector('.meta-item:nth-child(1) span').textContent = relocationData.date;
+        card.querySelector('.meta-item:nth-child(2) span').textContent = `${relocationData.cost} €`;
+        
+        const statusBadge = card.querySelector('.card-badge');
         statusBadge.textContent = relocationData.status ? 'ACTIVE' : 'INACTIVE';
         statusBadge.className = `card-badge ${relocationData.status ? 'active' : 'inactive'}`;
-    }
+
+        // Animation de retour
+        card.style.transform = 'scale(1)';
+        card.style.opacity = '1';
+    }, 300);
 }
 
 function removeRelocationCard(relocationId) {
