@@ -22,36 +22,26 @@ class TripService
         return $this->tripRepository->find($id);
     }
 
-public function createTrip(array $data): Trip
-{
-    // Define required keys
-    $requiredKeys = [
-        'departure_city',
-        'arrival_city',
-        'departure_date',
-        'available_seats',
-        'price_per_passenger',
-        'id_driver',
-        'id_vehicle'
-    ];
+    public function createTrip(array $data): Trip
+    {
+        // Create and populate the Trip entity
+        $trip = new Trip();
 
 
-    // Create and populate the Trip entity
-    $trip = new Trip();
-    $trip->setDeparture_city($data['departure_city']);
-    $trip->setArrival_city($data['arrival_city']);
-    $trip->setDeparture_date(new \DateTime($data['departure_date']));
-    $trip->setAvailableSeats($data['available_seats']);
-    $trip->setPricePerPassenger($data['price_per_passenger']);
-    $trip->setDriver($data['id_driver']);
-    $trip->setVehicle($data['id_vehicle']);
+        $trip->setDeparture_city($data['departure_city']);
+        $trip->setArrival_city($data['arrival_city']);
+        $trip->setDeparture_date(new \DateTime($data['departure_date']));
+        $trip->setAvailableSeats($data['available_seats']);
+        $trip->setPricePerPassenger($data['price_per_passenger']);
+        $trip->setDriver($data['id_driver']);
+        $trip->setVehicle($data['id_vehicle']);
 
-    // Persist and flush the entity
-    $this->entityManager->persist($trip);
-    $this->entityManager->flush();
+        // Persist and flush the entity
+        $this->entityManager->persist($trip);
+        $this->entityManager->flush();
 
-    return $trip;
-}
+        return $trip;
+    }
 
     public function updateTrip(Trip $trip, array $data): Trip
     {

@@ -2,8 +2,10 @@
 
 namespace App\Controller;
 
+use App\Repository\BookingRepository;
 use App\Service\TripService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -104,5 +106,95 @@ public function saveTrip(Request $request, TripService $tripService, EntityManag
 
         return $this->redirectToRoute('app_trip_owner');
     }
+    #[Route('trips/confirm-bookings', name: 'confirm_bookings', methods: ['POST'])]
+    public function confirmBookings(Request $request, BookingRepository $bookingRepository, EntityManagerInterface $entityManager): Response
+    {
+        // Retrieve the trip ID from the request
+        $tripId = $request->request->get('trip_id');
+
+        // Fetch all bookings related to the trip
+        $bookings = $bookingRepository->findBy(['trip' => $tripId]);
+
+        // Update the status of each booking to "confirmed"
+        foreach ($bookings as $booking) {
+            $booking->setStatus('confirmed');
+        }
+
+        // Persist the changes to the database
+        $entityManager->flush();
+
+        // Redirect back to the DriverTripsManagement.twig template
+        return $this->redirectToRoute('app_trip_owner');
+    }
+    #[Route('/carpooling/trip/create', name: 'carpooling_trip_create', methods: ['GET'])]
+    public function createTrip(EntityManagerInterface $entityManager): Response
+    {
+        // Fetch cities (assuming cities are stored in the database or an enum)
+        $cities = array_map(fn($zone) => $zone->value, \App\Enum\Zone::cases());
+
+        return $this->render('front/carpooling/CarpoolingTripCreation.twig', [
+            'cities' => $cities,
+        ]);
+    }
+    #[Route('/driver/trip/save', name: 'app_driver_trip_create', methods: ['POST'])]
+    public function createTriponce(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        // Retrieve form data
+        $tripId = $request->request->get('tripId');
+        $departureCity = $request->request->get('departureCity');
+        $arrivalCity = $request->request->get('arrivalCity');
+        $departureDate = $request->request->get('departureDate');
+        $departureTime = $request->request->get('departureTime');
+        $availableSeats = (int) $request->request->get('availableSeats');
+        $pricePerPassenger = (float) $request->request->get('pricePerPassenger');
+        $notes = $request->request->get('notes');
+
+        // Check if this is an update or a new trip
+        $trip = $tripId ? $entityManager->getRepository(Trip::class)->find($tripId) : new Trip();
+
+        if (!$trip) {
+            $this->addFlash('error', 'Trip not found.');
+            return $this->redirectToRoute('app_trip_owner');
+        }
+
+        // Update trip data
+        $trip->setDepartureCity($departureCity);
+        $trip->setArrivalCity($arrivalCity);
+        $trip->setDepartureDate(new \DateTime($departureDate . ' ' . $departureTime));
+        $trip->setAvailableSeats($availableSeats);
+        $trip->setPricePerPassenger($pricePerPassenger);
+        $trip->setNotes($notes);
+
+        // Persist and flush
+        $entityManager->persist($trip);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Trip saved successfully.');
+        return $this->redirectToRoute('app_trip_owner');
+    }
+    #[Route('/trip/delete/{id}', name: 'trip_delete', methods: ['POST'])]
+    public function deleteTripById(int $id, TripService $tripService): Response
+    {
+        // Fetch the trip by ID
+        $trip = $tripService->getTrip($id);
+
+        if (!$trip) {
+            $this->addFlash('error', 'Trip not found.');
+            return $this->redirectToRoute('app_trip_owner');
+        }
+
+        // Delete the trip
+        $tripService->deleteTrip($trip);
+
+        $this->addFlash('success', 'Trip deleted successfully.');
+
+        // Redirect to the trip owner page
+        return $this->redirectToRoute('app_trip_owner');
+    }
+
+
+
+
+
 
 }

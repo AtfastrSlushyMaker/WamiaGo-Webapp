@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Trip - WamiaGo</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* WamiaGo Carpooling Theme Colors */
+        :root {
+            --carpooling-primary: #4c6ef5;
+            --carpooling-primary-hover: #3b5bdb;
+            --carpooling-light: rgba(76, 110, 245, 0.1);
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Carpooling Specific Styles */
+        .bg-carpooling {
+            background-color: var(--carpooling-primary);
+        }
+
+        .bg-carpooling-light {
+            background-color: var(--carpooling-light);
+        }
+
+        .text-carpooling {
+            color: var(--carpooling-primary);
+        }
+
+        .btn-carpooling {
+            background-color: var(--carpooling-primary);
+            border-color: var(--carpooling-primary);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .btn-carpooling:hover {
+            background-color: var(--carpooling-primary-hover);
+            border-color: var(--carpooling-primary-hover);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline-carpooling {
+            background-color: transparent;
+            border-color: var(--carpooling-primary);
+            color: var(--carpooling-primary);
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-carpooling:hover {
+            background-color: var(--carpooling-primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Form Styling */
+        .create-trip-card {
+            border-radius: 15px;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .create-trip-card:hover {
+            box-shadow: 0 15px 60px rgba(76, 110, 245, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            background-color: var(--carpooling-primary);
+            color: white;
+            padding: 25px;
+            border: none;
+        }
+
+        .card-header h3 {
+            margin-bottom: 0;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        .section-divider {
+            position: relative;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .section-divider:before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            background-color: rgba(0, 0, 0, 0.1);
+            top: 50%;
+            left: 0;
+        }
+
+        .section-divider span {
+            position: relative;
+            background-color: white;
+            padding: 0 15px;
+            color: var(--carpooling-primary);
+            font-weight: 600;
+        }
+
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #495057;
+        }
+
+        .form-control, .form-select {
+            border-radius: 10px;
+            padding: 12px 15px;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--carpooling-primary);
+            box-shadow: 0 0 0 0.25rem rgba(76, 110, 245, 0.25);
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-with-icon .form-control {
+            padding-left: 45px;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        .form-error {
+            display: none;
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+
+        .preview-section {
+            margin-top: 30px;
+            border: 1px solid #dee2e6;
+            border-radius: 15px;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .preview-header {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--carpooling-primary);
+        }
+
+        .preview-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .preview-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--carpooling-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: var(--carpooling-primary);
+        }
+
+        .preview-content {
+            flex-grow: 1;
+        }
+
+        .preview-label {
+            color: #6c757d;
+            font-size: 0.875rem;
+            margin-bottom: 3px;
+        }
+
+        .preview-value {
+            font-weight: 500;
+        }
+
+        .route-visual {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+        }
+
+        .city-point {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--carpooling-primary);
+            position: relative;
+        }
+
+        .route-line {
+            flex-grow: 1;
+            height: 3px;
+            background: linear-gradient(90deg, var(--carpooling-primary), #38b2ac);
+            margin: 0 10px;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--carpooling-primary), #3b5bdb);
+            padding: 60px 0;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .form-footer {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-tips {
+            border-left: 4px solid var(--carpooling-primary);
+            padding-left: 15px;
+            margin-top: 20px;
+        }
+
+        .form-tips h5 {
+            color: var(--carpooling-primary);
+            font-weight: 600;
+        }
+
+        .form-tips ul {
+            padding-left: 20px;
+        }
+
+        .form-tips li {
+            margin-bottom: 8px;
+        }
+
+        /* Price slider */
+        .price-slider-container {
+            margin-top: 10px;
+        }
+
+        .price-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #dee2e6;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .price-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--carpooling-primary);
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 0 0 1px var(--carpooling-primary);
+        }
+
+        .price-display {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--carpooling-primary);
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(76, 110, 245, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(76, 110, 245, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(76, 110, 245, 0);
+            }
+        }
+
+        /* Toast notification */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+
+        .toast {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            min-width: 280px;
+        }
+
+        .toast-header {
+            border-bottom: none;
+            padding: 12px 15px;
+            background-color: var(--carpooling-primary);
+            color: white;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        .toast-body {
+            padding: 15px;
+        }
+
+        /* Make it responsive */
+        @media (max-width: 768px) {
+            .card-body {
+                padding: 20px;
+            }
+
+            .hero-section {
+                padding: 40px 0;
+            }
+
+            .form-footer {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .form-footer .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-7">
+                <h1 class="display-4 fw-bold">Create a New Trip</h1>
+                <p class="lead">Share your journey and help others reach their destination while covering your costs</p>
+            </div>
+            <div class="col-lg-5 d-none d-lg-block text-end">
+                <img src="/api/placeholder/400/320" alt="Create Trip" class="img-fluid" style="max-height: 180px;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card create-trip-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-car-side me-2"></i> Trip Details</h3>
+                </div>
+                <div class="card-body">
+                    <form id="createTripForm" action="{{ path('app_driver_trip_create') }}" method="POST" novalidate>
+                        <input type="hidden" id="tripId" name="tripId" value="{{ trip.id_trip ?? '' }}">
+
+                        <div class="section-divider">
+                            <span>Route Information</span>
+                        </div>
+
+                        <div class="row g-4">
+                            <!-- Departure City -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="departureCity" class="form-label">Departure City <span class="text-danger">*</span></label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-map-marker-alt input-icon"></i>
+                                        <select id="departureCity" name="departureCity" class="form-select" required>
+                                            <option value="">Select departure city</option>
+                                            {% for city in cities %}
+                                                <option value="{{ city }}">{{ city }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-error" id="departureCityError">Please select a departure city</div>
+                                </div>
+                            </div>
+
+                            <!-- Arrival City -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="arrivalCity" class="form-label">Arrival City <span class="text-danger">*</span></label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-flag-checkered input-icon"></i>
+                                        <select id="arrivalCity" name="arrivalCity" class="form-select" required>
+                                            <option value="">Select arrival city</option>
+                                            {% for city in cities %}
+                                                <option value="{{ city }}">{{ city }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-error" id="arrivalCityError">Please select an arrival city</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Route Visualization -->
+                        <div class="route-visual mt-4">
+                            <div class="city-point"></div>
+                            <div class="route-line"></div>
+                            <div class="city-point"></div>
+                        </div>
+
+                        <div class="section-divider">
+                            <span>Schedule & Capacity</span>
+                        </div>
+
+                        <div class="row g-4">
+                            <!-- Departure Date -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="departureDate" class="form-label">Departure Date <span class="text-danger">*</span></label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-calendar-alt input-icon"></i>
+                                        <input type="date" id="departureDate" name="departureDate" class="form-control" required min="" value="">
+                                    </div>
+                                    <div class="form-error" id="departureDateError">Please select a valid future date</div>
+                                </div>
+                            </div>
+
+                            <!-- Departure Time -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="departureTime" class="form-label">Departure Time <span class="text-danger">*</span></label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-clock input-icon"></i>
+                                        <input type="time" id="departureTime" name="departureTime" class="form-control" required>
+                                    </div>
+                                    <div class="form-error" id="departureTimeError">Please select a departure time</div>
+                                </div>
+                            </div>
+
+                            <!-- Available Seats -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="availableSeats" class="form-label">Available Seats <span class="text-danger">*</span></label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-chair input-icon"></i>
+                                        <input type="number" id="availableSeats" name="availableSeats" class="form-control" min="1" max="8" required placeholder="1-8">
+                                    </div>
+                                    <div class="form-error" id="availableSeatsError">Please enter a number between 1 and 8</div>
+                                </div>
+                            </div>
+
+                            <!-- Price Per Passenger -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="pricePerPassenger" class="form-label">Price Per Passenger (TND) <span class="text-danger">*</span></label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-coins input-icon"></i>
+                                        <input type="number" id="pricePerPassenger" name="pricePerPassenger" class="form-control" min="1" max="100" step="0.001" required placeholder="0.000">
+                                    </div>
+                                    <div class="price-slider-container">
+                                        <input type="range" class="price-slider" id="priceSlider" min="1" max="100" step="0.5" value="10">
+                                        <div class="price-display" id="priceDisplay">10.000 TND</div>
+                                    </div>
+                                    <div class="form-error" id="pricePerPassengerError">Please enter a valid price (min 1 TND)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-divider">
+                            <span>Additional Information</span>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="form-group">
+                            <label for="notes" class="form-label">Trip Notes (Optional)</label>
+                            <textarea id="notes" name="notes" class="form-control" rows="4" placeholder="Share details about your trip, meeting point, luggage policy, etc..."></textarea>
+                        </div>
+
+                        <!-- Trip Preview -->
+                        <div class="preview-section" id="tripPreview">
+                            <h5 class="preview-header"><i class="fas fa-eye me-2"></i> Trip Preview</h5>
+                            <div class="preview-item">
+                                <div class="preview-icon">
+                                    <i class="fas fa-route"></i>
+                                </div>
+                                <div class="preview-content">
+                                    <div class="preview-label">Route</div>
+                                    <div class="preview-value" id="previewRoute">Select departure and arrival cities</div>
+                                </div>
+                            </div>
+                            <div class="preview-item">
+                                <div class="preview-icon">
+                                    <i class="fas fa-calendar-day"></i>
+                                </div>
+                                <div class="preview-content">
+                                    <div class="preview-label">Departure</div>
+                                    <div class="preview-value" id="previewDateTime">Select date and time</div>
+                                </div>
+                            </div>
+                            <div class="preview-item">
+                                <div class="preview-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="preview-content">
+                                    <div class="preview-label">Capacity</div>
+                                    <div class="preview-value" id="previewCapacity">Enter available seats</div>
+                                </div>
+                            </div>
+                            <div class="preview-item">
+                                <div class="preview-icon">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </div>
+                                <div class="preview-content">
+                                    <div class="preview-label">Price</div>
+                                    <div class="preview-value" id="previewPrice">Enter price per passenger</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Tips -->
+                        <div class="form-tips">
+                            <h5><i class="fas fa-lightbulb me-2"></i> Tips for a Successful Trip</h5>
+                            <ul>
+                                <li>Set a fair price to attract more passengers</li>
+                                <li>Provide clear meeting point details in the notes</li>
+                                <li>Be punctual and respect the scheduled departure time</li>
+                                <li>Inform passengers about any luggage restrictions</li>
+                            </ul>
+                        </div>
+
+                        <!-- Form Buttons -->
+                        <div class="form-footer">
+                            <a href="/driver/trips" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+                            </a>
+                                <button type="submit" class="btn btn-carpooling btn-lg">
+                                    <i class="fas fa-save me-2"></i> Create Trip
+                                </button>
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast-container">
+    <div class="toast align-items-center" role="alert" aria-live="assertive" aria-atomic="true" id="formToast">
+        <div class="toast-header">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <strong class="me-auto">WamiaGo</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="toastMessage">
+            Please complete all required fields.
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set minimum date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('departureDate').min = today;
+        document.getElementById('departureDate').value = today;
+
+        // Price slider functionality
+        const priceSlider = document.getElementById('priceSlider');
+        const priceInput = document.getElementById('pricePerPassenger');
+        const priceDisplay = document.getElementById('priceDisplay');
+
+        priceSlider.addEventListener('input', function() {
+            const value = parseFloat(this.value).toFixed(3);
+            priceInput.value = value;
+            priceDisplay.textContent = `${value} TND`;
+            updatePreview();
+        });
+
+        priceInput.addEventListener('input', function() {
+            const value = parseFloat(this.value);
+            if (!isNaN(value) && value >= 1 && value <= 100) {
+                priceSlider.value = value;
+                priceDisplay.textContent = `${value.toFixed(3)} TND`;
+            }
+            updatePreview();
+        });
+
+        // Preview update
+        const inputFields = [
+            'departureCity', 'arrivalCity', 'departureDate',
+            'departureTime', 'availableSeats', 'pricePerPassenger'
+        ];
+
+        inputFields.forEach(fieldId => {
+            document.getElementById(fieldId).addEventListener('change', updatePreview);
+        });
+
+        function updatePreview() {
+            const departureCity = document.getElementById('departureCity').value;
+            const arrivalCity = document.getElementById('arrivalCity').value;
+            const departureDate = document.getElementById('departureDate').value;
+            const departureTime = document.getElementById('departureTime').value;
+            const availableSeats = document.getElementById('availableSeats').value;
+            const pricePerPassenger = document.getElementById('pricePerPassenger').value;
+
+            // Update preview sections
+            document.getElementById('previewRoute').textContent =
+                departureCity && arrivalCity ?
+                    `${departureCity} → ${arrivalCity}` :
+                    'Select departure and arrival cities';
+
+            // Format date for preview
+            let dateTimeText = 'Select date and time';
+            if (departureDate && departureTime) {
+                const date = new Date(departureDate + 'T' + departureTime);
+                const options = {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                };
+                dateTimeText = date.toLocaleDateString('en-US', options);
+            }
+            document.getElementById('previewDateTime').textContent = dateTimeText;
+
+            document.getElementById('previewCapacity').textContent =
+                availableSeats ?
+                    `${availableSeats} ${parseInt(availableSeats) === 1 ? 'seat' : 'seats'} available` :
+                    'Enter available seats';
+
+            document.getElementById('previewPrice').textContent =
+                pricePerPassenger ?
+                    `${parseFloat(pricePerPassenger).toFixed(3)} TND per passenger` :
+                    'Enter price per passenger';
+        }
+
+        // Form validation
+        const form = document.getElementById('createTripForm');
+        const toast = new bootstrap.Toast(document.getElementById('formToast'));
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            let isValid = true;
+            let firstErrorField = null;
+
+            // Reset all errors
+            document.querySelectorAll('.form-error').forEach(el => {
+                el.style.display = 'none';
+            });
+
+            // Validate departure city
+            const departureCity = document.getElementById('departureCity');
+            if (!departureCity.value) {
+                document.getElementById('departureCityError').style.display = 'block';
+                isValid = false;
+                firstErrorField = firstErrorField || departureCity;
+            }
+
+            // Validate arrival city
+            const arrivalCity = document.getElementById('arrivalCity');
+            if (!arrivalCity.value) {
+                document.getElementById('arrivalCityError').style.display = 'block';
+                isValid = false;
+                firstErrorField = firstErrorField || arrivalCity;
+            }
+
+            // Check that departure and arrival cities are different
+            if (departureCity.value && arrivalCity.value && departureCity.value === arrivalCity.value) {
+                document.getElementById('arrivalCityError').textContent = 'Departure and arrival cities cannot be the same';
+                document.getElementById('arrivalCityError').style.display = 'block';
+                isValid = false;
+                firstErrorField = firstErrorField || arrivalCity;
+            }
+
+            // Validate departure date
+            const departureDate = document.getElementById('departureDate');
+            if (!departureDate.value || new Date(departureDate.value) < new Date(today)) {
+                document.getElementById('departureDateError').style.display = 'block';
+                isValid = false;
+                firstErrorField = firstErrorField || departureDate;
+            }
+
+            // Validate departure time
+            const departureTime = document.getElementById('departureTime');
+            if (!departureTime.value) {
+                document.getElementById('departureTimeError').style.display = 'block';
+                isValid = false;
+                firstErrorField = firstErrorField || departureTime;
+            }
+
+            // Validate that departure date and time are in the future
+            if (departureDate.value && departureTime.value) {
+                const selectedDateTime = new Date(departureDate.value + 'T' + departureTime.value);
+                const now = new Date();
+
+                if (selectedDateTime <= now) {
+                    document.getElementById('departureTimeError').textContent = 'The departure time must be in the future';
+                    document.getElementById('departureTimeError').style.display = 'block';
+                    isValid = false;
+                    firstErrorField = firstErrorField || departureTime;
+                }
+            }
+
+            // Validate available seats
+            const availableSeats = document.getElementById('availableSeats');
+            if (!availableSeats.value || isNaN(parseInt(availableSeats.value)) ||
+                parseInt(availableSeats.value) < 1 || parseInt(availableSeats.value) > 8) {
+                document.getElementById('availableSeatsError').style.display = 'block';
+                isValid = false;
+                firstErrorField = firstErrorField || availableSeats;
+            }
+
+            // Validate price per passenger
+            const pricePerPassenger = document.getElementById('pricePerPassenger');
+            if (!pricePerPassenger.value || isNaN(parseFloat(pricePerPassenger.value)) ||
+                parseFloat(pricePerPassenger.value) < 1) {
+                document.getElementById('pricePerPassengerError').style.display = 'block';
+                isValid = false;
+                firstErrorField = firstErrorField || pricePerPassenger;
+            }
+
+            if (!isValid) {
+                // Show toast notification
+                document.getElementById('toastMessage').textContent = 'Please complete all required fields correctly.';
+                toast.show();
+
+                // Scroll to first error field
+                if (firstErrorField) {
+                    firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstErrorField.focus();
+                }
+            } else {
+                // Form is valid, submit it
+                form.submit();
+            }
+        });
+
+        // Initialize preview
+        updatePreview();
+    });
+</script>
+</body>
+</html>

@@ -3,9 +3,15 @@
         <!-- Trip Status Badge -->
         <div class="trip-status">
             {% if trip.bookings|length > 0 %}
-                <span class="badge badge-booked">
-                    <i class="fas fa-users me-1"></i> Booked
-                </span>
+                {% if trip.bookings|length > 0 and trip.bookings|filter(booking => booking.status == 'confirmed')|length == trip.bookings|length %}
+                    <span class="badge badge-confirmed">
+                        <i class="fas fa-check-double me-1"></i> Confirmed
+                    </span>
+                {% else %}
+                    <span class="badge badge-booked">
+                        <i class="fas fa-users me-1"></i> Booked
+                    </span>
+                {% endif %}
             {% else %}
                 <span class="badge bg-success rounded-pill px-3 py-2">
                     <i class="fas fa-check-circle me-1"></i> Available
@@ -17,9 +23,9 @@
         <div class="card-header trip-card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0 fw-bold">
-                    <i class="fas fa-map-marker-alt text-danger me-2"></i>{{ trip.departureCity }}
-                    <i class="fas fa-arrow-right text-carpooling mx-2"></i>
-                    <i class="fas fa-map-marker-alt text-success me-2"></i>{{ trip.arrivalCity }}
+<i class="fas fa-map-marker-alt text-danger me-2"></i><span class="text-dark">{{ trip.departureCity }}</span>
+<i class="fas fa-arrow-right text-carpooling mx-2"></i>
+<i class="fas fa-map-marker-alt text-success me-2"></i><span class="text-dark">{{ trip.arrivalCity }}</span>
                 </h5>
             </div>
             <p class="text-muted mb-0 mt-2">
@@ -62,17 +68,6 @@
                 </div>
             </div>
 
-            {#{% if trip.notes %}
-                <div class="trip-detail-row">
-                    <div class="trip-detail-icon">
-                        <i class="fas fa-comment-alt"></i>
-                    </div>
-                    <div>
-                        <p class="mb-0"><strong>Notes:</strong>  {{ trip.notes }} </p>
-                    </div>
-                </div>
-            {% endif %}#}
-
             <!-- Passengers Preview -->
             {% if trip.bookings|length > 0 %}
                 <div class="mt-4">
@@ -98,8 +93,46 @@
         <div class="card-footer">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="status-container">
-                    <div class="status-dot {% if trip.bookings|length > 0 %}dot-booked{% else %}dot-available{% endif %}"></div>
-                    <span class="fw-medium">{{ trip.bookings|length > 0 ? 'Booked' : 'Available' }}</span>
+                    {% if trip.bookings|length > 0 %}
+                        <div class="d-flex align-items-center">
+                            <div class="status-dot {% if trip.bookings|length > 0 and trip.bookings|filter(booking => booking.status == 'confirmed')|length == trip.bookings|length %}dot-confirmed{% else %}dot-booked{% endif %}"></div>
+                            <span class="fw-medium me-2">
+                                {% if trip.bookings|length > 0 and trip.bookings|filter(booking => booking.status == 'confirmed')|length == trip.bookings|length %}
+                                    Confirmed
+                                {% else %}
+                                    Booked
+                                {% endif %}
+                            </span>
+                            <!-- Status Toggle Switch -->
+
+                            <form action="/trips/confirm-bookings" method="POST" class="d-inline">
+                                <input type="hidden" name="trip_id" value="{{ trip.id_trip }}">
+                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-check-circle me-1"></i> Confirm All
+                                </button>
+                            </form>
+                            <style>
+                                .btn-outline-success {
+                                    font-size: 0.85rem;
+                                    padding: 0.3rem 0.6rem;
+                                    border-radius: 20px;
+                                    transition: all 0.3s ease;
+                                }
+
+                                .btn-outline-success:hover {
+                                    background-color: #4CAF50;
+                                    color: white;
+                                    border-color: #4CAF50;
+                                }
+                            </style>
+
+                        </div>
+                    {% else %}
+                        <div class="d-flex align-items-center">
+                            <div class="status-dot dot-available"></div>
+                            <span class="fw-medium">Available</span>
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="trip-actions">
                     <button class="btn btn-sm-action edit edit-trip-btn"
@@ -110,12 +143,12 @@
                                 'departureDate': trip.departureDate,
                                 'availableSeats': trip.availableSeats,
                                 'pricePerPassenger': trip.price_per_passenger,
-
                             }|json_encode|e('html_attr') }}">
                         <i class="fas fa-edit"></i>
                     </button>
                     <button class="btn btn-sm-action delete delete-trip-btn"
-                            data-id="{{ trip.id_trip     }}"
+                            data-id="{{ trip.id_trip }}"
+                            data-url="{{ path('trip_delete', {id: trip.id_trip}) }}"
                             data-has-bookings="{{ trip.bookings|length > 0 ? 'true' : 'false' }}">
                         <i class="fas fa-trash-alt"></i>
                     </button>
@@ -124,3 +157,206 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* Status badges */
+    .badge-confirmed {
+        background-color: #4CAF50;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        box-shadow: 0 2px 5px rgba(76, 175, 80, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    /* Status dots */
+    .dot-confirmed {
+        background-color: #4CAF50;
+        box-shadow: 0 0 0 rgba(76, 175, 80, 0.4);
+        animation: pulse-green 2s infinite;
+    }
+
+    @keyframes pulse-green {
+        0% {
+            box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+        }
+    }
+
+    /* Toggle switch styling */
+    .form-switch .form-check-input {
+        width: 2.5em;
+        margin-left: -0.5em;
+        cursor: pointer;
+        height: 1.3em;
+        background-color: #ccc;
+        transition: background-color 0.25s ease-in-out, border-color 0.25s ease-in-out;
+    }
+
+    .form-switch .form-check-input:checked {
+        background-color: #4CAF50;
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 0.15rem rgba(76, 175, 80, 0.25);
+    }
+
+    .form-switch .form-check-input:focus {
+        box-shadow: 0 0 0 0.15rem rgba(76, 175, 80, 0.25);
+        border-color: #4CAF50;
+    }
+
+    /* Smooth status transition */
+    .status-dot, .badge-booked, .badge-confirmed {
+        transition: all 0.3s ease-in-out;
+    }
+
+</style>
+<script>
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        document.querySelectorAll('.delete-trip-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const url = this.getAttribute('data-url');
+                const hasBookings = this.getAttribute('data-has-bookings') === 'true';
+
+                if (hasBookings) {
+                    alert('Cannot delete a trip with bookings.');
+                    return;
+                }
+
+                if (confirm('Are you sure you want to delete this trip?')) {
+                    fetch(url, { method: 'POST' })
+                        .then(response => {
+                            if (response.ok) {
+                                window.location.reload();
+                            } else {
+                                alert('Failed to delete the trip.');
+                            }
+                        })
+                        .catch(() => alert('An error occurred.'));
+                }
+            });
+        });
+
+
+        // Handle status toggle switches
+        const statusToggles = document.querySelectorAll('.status-toggle');
+
+        statusToggles.forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                const tripId = this.dataset.tripId;
+                const newStatus = this.checked ? 'confirmed' : 'booked';
+
+                // Visual feedback - show spinner on toggle
+                const cardElement = this.closest('.trip-card');
+                const statusDot = cardElement.querySelector('.status-dot');
+                const statusText = statusDot.nextElementSibling;
+                const statusBadge = cardElement.querySelector('.trip-status .badge');
+
+                // Add transition class for smooth animation
+                statusDot.classList.add('status-updating');
+
+                // AJAX request to update trip status
+                fetch('/api/trips/' + tripId + '/status', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        status: newStatus
+                    })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to update trip status');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Update UI elements
+                        if (newStatus === 'confirmed') {
+                            // Update status dot
+                            statusDot.classList.remove('dot-booked');
+                            statusDot.classList.add('dot-confirmed');
+
+                            // Update status text
+                            statusText.textContent = 'Confirmed';
+
+                            // Update status badge
+                            statusBadge.classList.remove('badge-booked');
+                            statusBadge.classList.add('badge-confirmed');
+                            statusBadge.innerHTML = '<i class="fas fa-check-double me-1"></i> Confirmed';
+                        } else {
+                            // Update status dot
+                            statusDot.classList.remove('dot-confirmed');
+                            statusDot.classList.add('dot-booked');
+
+                            // Update status text
+                            statusText.textContent = 'Booked';
+
+                            // Update status badge
+                            statusBadge.classList.remove('badge-confirmed');
+                            statusBadge.classList.add('badge-booked');
+                            statusBadge.innerHTML = '<i class="fas fa-users me-1"></i> Booked';
+                        }
+
+                        // Show success notification
+                        showNotification('Trip status updated successfully', 'success');
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+
+                        // Revert toggle state
+                        this.checked = !this.checked;
+
+                        // Show error notification
+                        showNotification('Failed to update trip status. Please try again.', 'error');
+                    })
+                    .finally(() => {
+                        // Remove transition class
+                        statusDot.classList.remove('status-updating');
+                    });
+            });
+        });
+
+        // Notification function
+        function showNotification(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0 position-fixed bottom-0 end-0 m-3`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+
+            toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        `;
+
+            document.body.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+
+            // Remove toast after it's hidden
+            toast.addEventListener('hidden.bs.toast', function() {
+                document.body.removeChild(toast);
+            });
+        }
+    });
+</script>
