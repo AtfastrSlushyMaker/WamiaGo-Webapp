@@ -77,8 +77,96 @@
     margin-bottom: 1.5rem;
 }
 
-.pagination-container {
-    margin-top: 3rem;
+
+/* Pagination Styles */
+.pagination {
     display: flex;
-    justify-content: center;
+    padding-left: 0;
+    list-style: none;
+    border-radius: 0.25rem;
 }
+
+
+.edit-modal-container {
+    display: flex !important;
+    align-items: center !important; /* Changed from flex-start */
+    justify-content: center !important;
+    padding: 0 !important;
+    z-index: 1060 !important;
+    min-height: 100vh !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.edit-modal-popup {
+    position: relative !important;
+    margin: 1.75rem auto !important;
+    max-width: 600px !important;
+    width: 90% !important;
+    background-color: #fff !important;
+    border-radius: 12px !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2) !important;
+    animation: modalFadeIn 0.3s ease-out !important;
+}
+
+/* Nouvelle animation plus fluide */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Ajout de styles pour le backdrop */
+.swal2-backdrop-show {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Correction pour éviter le blocage de la page */
+body.swal2-shown {
+    padding-right: 0 !important;
+    overflow: auto !important;
+}
+
+/* Amélioration de la visibilité du contenu */
+.edit-modal-content {
+    padding: 2rem !important;
+    max-height: calc(100vh - 200px) !important;
+    overflow-y: auto !important;
+}
+
+/* Style des boutons d'action */
+.edit-modal-actions {
+    padding: 1rem 2rem !important;
+    border-top: 1px solid #e9ecef;
+    background-color: #f8f9fa !important;
+    border-bottom-left-radius: 12px !important;
+    border-bottom-right-radius: 12px !important;
+}
+
+/* Animation pour la suppression des cartes */
+@keyframes cardDelete {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+}
+
+/* Empêcher le scroll du body quand la modale est ouverte */
+.modal-open {
+    overflow: hidden;
+}
+
+/* Assurer que la modale reste au-dessus des autres éléments */
+.swal2-popup {
+    z-index: 1061 !important;
+}
+
+

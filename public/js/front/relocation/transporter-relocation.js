@@ -128,20 +128,38 @@ async function showRelocationDetails(relocationId) {
 async function showEditForm(relocationId) {
     try {
         const response = await fetch(`/transporter/relocations/${relocationId}/edit`);
-        const data = await response.json();
         
+        // Check if response is OK
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        // Check content type
+        const contentType = response.headers.get('content-type');
+        let data;
+        
+        if (contentType && contentType.includes('application/json')) {
+            data = await response.json();
+        } else {
+            throw new Error('Invalid response format. Expected JSON');
+        }
+
+        if (!data || !data.date) {
+            throw new Error('Invalid data received from server');
+        }
+
         const { value: formValues } = await Swal.fire({
             title: 'Edit Relocation',
             html: `
                 <form id="editRelocationForm" class="edit-form">
-                    <div class="form-group">
-                        <label for="edit_date">Relocation Date</label>
+                    <div class="form-group mb-3">
+                        <label for="edit_date" class="form-label">Relocation Date</label>
                         <input type="date" id="edit_date" class="form-control" 
                                value="${data.date}" required>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="edit_cost">Cost (€)</label>
+                    <div class="form-group mb-3">
+                        <label for="edit_cost" class="form-label">Cost (€)</label>
                         <input type="number" id="edit_cost" class="form-control" 
                                value="${data.cost}" required step="0.01" min="0">
                     </div>
@@ -166,19 +184,74 @@ async function showEditForm(relocationId) {
                 confirmButton: 'edit-modal-confirm',
                 cancelButton: 'edit-modal-cancel'
             },
-            preConfirm: () => ({
-                date: document.getElementById('edit_date').value,
-                cost: parseFloat(document.getElementById('edit_cost').value),
-                status: document.getElementById('edit_status').checked
-            })
+            didOpen: () => {
+                // Add validation listeners
+                const form = document.getElementById('editRelocationForm');
+                const dateInput = document.getElementById('edit_date');
+                const costInput = document.getElementById('edit_cost');
+
+                dateInput.addEventListener('input', validateDate);
+                costInput.addEventListener('input', validateCost);
+            },
+            preConfirm: () => {
+                const date = document.getElementById('edit_date').value;
+                const cost = document.getElementById('edit_cost').value;
+                const status = document.getElementById('edit_status').checked;
+
+                // Validate before submitting
+                if (!validateDate(date) || !validateCost(cost)) {
+                    return false;
+                }
+
+                return {
+                    date: date,
+                    cost: parseFloat(cost),
+                    status: status
+                };
+            }
         });
 
         if (formValues) {
             await updateRelocation(relocationId, formValues);
         }
     } catch (error) {
-        showErrorAlert('Error', 'Failed to load edit form');
+        console.error('Edit form error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error Loading Form',
+            text: error.message || 'Failed to load edit form. Please try again.',
+            confirmButtonColor: '#5A6BE5'
+        });
     }
+}
+
+// Add validation functions
+function validateDate(date) {
+    const dateInput = document.getElementById('edit_date');
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (!dateInput.value || dateInput.value < today) {
+        dateInput.classList.add('is-invalid');
+        return false;
+    }
+    
+    dateInput.classList.remove('is-invalid');
+    dateInput.classList.add('is-valid');
+    return true;
+}
+
+function validateCost(cost) {
+    const costInput = document.getElementById('edit_cost');
+    const costValue = parseFloat(costInput.value);
+    
+    if (isNaN(costValue) || costValue <= 0) {
+        costInput.classList.add('is-invalid');
+        return false;
+    }
+    
+    costInput.classList.remove('is-invalid');
+    costInput.classList.add('is-valid');
+    return true;
 }
 
 async function submitEditForm(form) {
@@ -233,6 +306,52 @@ async function submitEditForm(form) {
     }
 }
 
+// Add this function after showEditForm
+async function updateRelocation(relocationId, formData) {
+    try {
+        const response = await fetch(`/transporter/relocations/${relocationId}/update`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to update relocation');
+        }
+
+        // Show success message
+        await Swal.fire({
+            icon: 'success',
+            title: 'Updated!',
+            text: 'Relocation has been updated successfully',
+            timer: 2000,
+            showConfirmButton: false,
+            position: 'top',
+            customClass: {
+                popup: 'success-popup'
+            }
+        });
+
+        // Update the UI
+        updateRelocationCard(data.relocation);
+
+    } catch (error) {
+        console.error('Update error:', error);
+        await Swal.fire({
+            icon: 'error',
+            title: 'Update Failed',
+            text: error.message,
+            confirmButtonColor: '#5A6BE5'
+        });
+        throw error;
+    }
+}
 
 async function confirmDelete(relocationId, title) {
     const result = await Swal.fire({

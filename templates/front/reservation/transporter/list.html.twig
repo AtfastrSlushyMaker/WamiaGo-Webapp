@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="{{ asset('css/front/reservation/reservation-cards.css') }}">
     <link rel="stylesheet" href="{{ asset('css/front/reservation/modal-details.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.min.css" rel="stylesheet">
-    <style>
+  <style>
         /* Style pour les modales SweetAlert */
         .reservation-modal-container {
             z-index: 1500 !important;
@@ -146,20 +146,20 @@
 {% block content %}
 <div id="csrf-token" data-token="{{ csrf_token('reservation') }}"></div>
 
-<div class="transporter-reservations-container">
-    <!-- Header Section -->
-    <div class="reservations-header">
-        <h1><i class="fas fa-calendar-check me-2"></i> My Transport Reservations</h1>
-        
-        <div class="action-buttons">
-            <a href="{{ path('app_transporter_announcement_list') }}" class="btn btn-outline-primary">
-                <i class="fas fa-truck me-2"></i> My Announcements
-            </a>
-            <a href="{{ path('app_transporter_relocation_list') }}" class="btn btn-primary">
-                <i class="fas fa-truck-moving me-2"></i> My Relocations
-            </a>
-        </div>
+<div class="reservations-header text-center">
+    <h1><i class="fas fa-calendar-check"></i> My Transport Reservations</h1>
+    
+    <div class="action-buttons d-flex justify-content-center gap-3">
+        <a href="{{ path('app_transporter_announcement_list') }}" class="btn btn-outline-primary">
+            <i class="fas fa-truck me-2"></i> My Announcements
+        </a>
+        <a href="{{ path('app_transporter_relocation_list') }}" class="btn btn-primary">
+            <i class="fas fa-truck-moving me-2"></i> My Relocations
+        </a>
     </div>
+</div>
+
+
 
    
 
@@ -234,6 +234,7 @@
 
     {% endif %}
 </div>
+
 {% endblock %}
 
 {% block javascripts %}

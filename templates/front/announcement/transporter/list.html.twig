@@ -7,26 +7,34 @@
     <link rel="stylesheet" href="{{ asset('css/front/announcement/transporter-announcement.css') }}">
     <link rel="stylesheet" href="{{ asset('css/front/announcement/announcement-cards.css') }}">
     <link rel="stylesheet" href="{{ asset('css/front/announcement/modal-details.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.min.css" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
 <div class="transporter-announcements-container">
     <!-- Header Section -->
-    <div class="announcements-header">
+    <div class="announcements-header text-center"> 
         <h1><i class="fas fa-truck"></i> My Transport Announcements</h1>
         
-        <div class="action-buttons">
-            <a href="{{ path('app_transporter_announcement_new') }}" class="btn btn-add">
-                <i class="fas fa-plus-circle"></i> New Announcement
+        <div class="action-buttons d-flex justify-content-center gap-3"> 
+            <a href="{{ path('app_transporter_announcement_new') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-2"></i> New Announcement
             </a>
-            <button class="btn btn-reservations" disabled>
-                <i class="fas fa-calendar-check"></i> See Reservations
-            </button>
-            <button class="btn btn-relocations" disabled>
-                <i class="fas fa-truck-moving"></i> See Relocations
-            </button>
+            <a href="{{ path('app_transporter_reservation_list') }}" class="btn btn-info" id="btn-reservations">
+    <i class="fas fa-calendar-check me-2"></i> See Reservations
+</a>
+            <a href="{{ path('app_transporter_relocation_list') }}" class="btn btn-warning" id="btn-relocations">
+    <i class="fas fa-truck-moving me-2"></i> See Relocations
+</a>
+
         </div>
     </div>
+    
+    <!-- Contenu dynamique -->
+    <div id="dynamic-content" class="mt-4">
+        <!-- Le contenu sera chargé ici via AJAX -->
+    </div>
+</div>
 
     <!-- Announcements Grid -->
     {% if announcements is empty %}
@@ -88,9 +96,11 @@
         </div>
 
         <!-- Pagination -->
-        <div class="pagination-container">
-            {{ knp_pagination_render(announcements) }}
-        </div>
+        <div class="card-footer clearfix">
+                    <div class="float-right">
+                        {{ knp_pagination_render(announcements, '@KnpPaginator/Pagination/twitter_bootstrap_v4_pagination.html.twig') }}
+                    </div>
+                </div>
     {% endif %}
 
     <!-- Delete Modal -->
@@ -104,8 +114,9 @@
                 <div class="d-flex align-items-center">
                     <i class="fas fa-edit me-3 fs-4"></i>
                     <h5 class="modal-title mb-0">EDIT ANNOUNCEMENT</h5>
+                   
                 </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                
             </div>
             <div class="modal-body p-4" id="editModalBody">
                 <!-- Contenu chargé dynamiquement via AJAX -->
@@ -114,17 +125,18 @@
     </div>
 </div>
 
-<div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100"></div>
+
     
     <!-- Details Modal -->
     {% include 'front/announcement/transporter/_partials/details_modal.html.twig' %}
 
-    {% include 'front/announcement/transporter/_partials/_toast.html.twig' %}
+   
 </div>
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.all.min.js"></script>
     <script src="{{ asset('js/front/announcement/transporter-announcement.js') }}" defer></script>
     <script src="{{ asset('js/front/announcement/announcement-modals.js') }}" defer></script>
 {% endblock %}

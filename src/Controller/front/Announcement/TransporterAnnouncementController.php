@@ -146,7 +146,7 @@ public function list(Request $request, PaginatorInterface $paginator): Response
     $announcements = $paginator->paginate(
         $query,
         $request->query->getInt('page', 1),
-        6 // Items per page
+        8 // Items per page
     );
 
     return $this->render('front/announcement/transporter/list.html.twig', [

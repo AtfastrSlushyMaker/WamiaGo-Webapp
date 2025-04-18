@@ -319,7 +319,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Gestion du focus pour résoudre le problème ARIA
     modalEl.addEventListener('shown.bs.modal', function() {
-        // Trouver le premier élément focusable
+       
         const focusableElements = modalEl.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
         if (focusableElements.length > 0) {
             focusableElements[0].focus();

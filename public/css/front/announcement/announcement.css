@@ -300,16 +300,14 @@
     margin: 0 auto;
 }
 
-/* Pagination */
-.pagination-container {
-    display: flex;
-    justify-content: center;
-}
 
+/* Pagination Styles */
 .pagination {
     display: flex;
-    gap: 0.5rem;
-}
+    padding-left: 0;
+    list-style: none;
+    border-radius: 0.25rem;
+  }
 
 .page-item .page-link {
     padding: 0.5rem 1rem;
