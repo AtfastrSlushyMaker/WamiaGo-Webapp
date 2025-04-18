@@ -95,15 +95,17 @@
                 </div>
                 
                 <div class="action-buttons">
-                    <a href="#" class="action-button">
-                        <img src="{{ asset('images/front/announcements/reservation.png') }}" alt="Reservations">
-                        <span>See Reservations</span>
-                    </a>
+                    <a href="{{ path('app_client_reservation_list') }}" class="action-button">
+    <img src="{{ asset('images/front/announcements/reservation.png') }}" alt="Reservations">
+    <span>My Reservations</span>
+</a>
+
                     
-                    <a href="#" class="action-button">
-                        <img src="{{ asset('images/front/announcements/relocation.png') }}" alt="Relocations">
-                        <span>See Relocations</span>
-                    </a>
+                    <a href="{{ path('app_client_relocation_list') }}" class="action-button">
+    <img src="{{ asset('images/front/announcements/relocation.png') }}" alt="Relocations">
+    <span>My Relocations</span>
+</a>
+
                 </div>
             </div>
             
@@ -152,10 +154,7 @@
                                     <span>{{ announcement.date|date('d M Y, H:i') }}</span>
                                 </div>
                                 
-                                <div class="meta-item">
-                                    <i class="fas fa-user"></i>
-                                    <span>{{ announcement.driver.user.name ?? 'Unknown driver' }}</span>
-                                </div>
+                               
                             </div>
                         </div>
                         
