@@ -1,9 +1,10 @@
 # see https://symfony.com/doc/current/reference/configuration/framework.html
 framework:
     secret: '%env(APP_SECRET)%'
-    annotations: false
+    #csrf_protection: true
     http_method_override: false
     handle_all_throwables: true
+    default_locale: en
 
     # Enables session support. Note that the session will ONLY be started if you read or write from it.
     # Remove or comment this section to explicitly disable session support.
@@ -16,6 +17,10 @@ framework:
     #fragments: true
     php_errors:
         log: true
+
+    # Security headers
+    trusted_hosts: ~
+    trusted_proxies: ~
 
 when@test:
     framework:

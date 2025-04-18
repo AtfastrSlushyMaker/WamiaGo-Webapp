@@ -29,7 +29,6 @@ class UserController extends AbstractController
 
             
             $serializedUsers = $this->serializer->serialize($users, 'json', ['groups' => 'user:read']);
-            error_log('Serialized Users: ' . $serializedUsers);
 
             return new JsonResponse(
                 $serializedUsers,

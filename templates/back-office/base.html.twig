@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="{{ asset('images/logo/logo.png') }}" type="image/x-icon">
-    <link rel="shortcut icon" href="{{ asset('images/logo/logo.png') }}" type="image/x-icon">
+    <link rel="icon" href="{{ asset("images/logo/logo.png") }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ asset("images/logo/logo.png") }}" type="image/x-icon">
     <title>{% block title %}WamiaGo | Welcome{% endblock %}</title>
 
     <!-- External CSS -->
@@ -18,7 +18,7 @@
           integrity="sha256-4MX+61mt9NVvvuPjUWdUdyfZfxSB1/Rf9WtqRHgG5S0=" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/css/jsvectormap.min.css"
           integrity="sha256-+uGLJmmTKOqBr+2E6KDYs/NRsHxSkONXFHUL0fy2O/4=" crossorigin="anonymous">
-    <link rel="stylesheet" href="{{ asset('adminlte/css/adminlte.min.css') }}">
+    <link rel="stylesheet" href="{{ asset("adminlte/css/adminlte.min.css") }}">
 
     <style>
         /* ========== BASE STYLES ========== */
@@ -717,7 +717,7 @@
                             </p>
                         </li>
                         <li class="user-footer d-flex justify-content-between p-3">
-                            <a href="#" class="btn btn-light btn-sm">Profile</a>
+                            <a href="{{ path('app_profile') }}" class="btn btn-light btn-sm">Profile</a>
                             <a href="#" class="btn btn-danger btn-sm">Sign out</a>
                         </li>
                     </ul>
@@ -736,55 +736,55 @@
         <div class="sidebar-content">
             <div class="logo-container">
                 <a href="#" class="logo">
-                    <img src="{{ asset('images/logo/logo.png') }}" alt="WamiaGo Logo">
+                    <img src="{{ asset("images/logo/logo.png") }}" alt="WamiaGo Logo">
                     <span style="font-family:'Brittany Signature';font-size: 30px;">WamiaGo</span>
                 </a>
             </div>
             <ul class="nav-list">
-                <li class="nav-item {{ app.request.attributes.get('_route') == 'admin_dashboard' ? 'active' : '' }}">
-                    <a href="{{ path('admin_dashboard') }}" class="nav-link">
+                <li class="nav-item {{ app.request.attributes.get("_route") == "admin_dashboard" ? "active" : "" }}">
+                    <a href="{{ path("admin_dashboard") }}" class="nav-link">
                         <i class="bi bi-speedometer2 nav-icon"></i>
                         <span class="nav-text">Dashboard</span>
                     </a>
                 </li>
 
-                <li class="nav-item {{ app.request.attributes.get('_route') == 'admin_users' ? 'active' : '' }}">
-                    <a href="{{ path('admin_users') }}" class="nav-link">
+                <li class="nav-item {{ app.request.attributes.get("_route") == "admin_users" ? "active" : "" }}">
+                    <a href="{{ path("admin_users") }}" class="nav-link">
                         <i class="bi bi-people nav-icon"></i>
                         <span class="nav-text">Users</span>
                     </a>
                 </li>
 
-                <li class="nav-item {{ app.request.attributes.get('_route') == 'admin_ride_sharing' ? 'active' : '' }}">
-                    <a href="{{ path('admin_ride_sharing') }}" class="nav-link">
+                <li class="nav-item {{ app.request.attributes.get("_route") == "admin_ride_sharing" ? "active" : "" }}">
+                    <a href="{{ path("admin_ride_sharing") }}" class="nav-link">
                         <i class="bi bi-car-front nav-icon"></i>
                         <span class="nav-text">Ride Sharing</span>
                     </a>
                 </li>
 
-                <li class="nav-item {{ app.request.attributes.get('_route') == 'admin_taxi_bookings' ? 'active' : '' }}">
-                    <a href="{{ path('admin_taxi_bookings') }}" class="nav-link">
+                <li class="nav-item {{ app.request.attributes.get("_route") == "admin_taxi_bookings" ? "active" : "" }}">
+                    <a href="{{ path("admin_taxi_bookings") }}" class="nav-link">
                         <i class="bi bi-taxi-front nav-icon"></i>
                         <span class="nav-text">Taxi Bookings</span>
                     </a>
                 </li>
 
-                <li class="nav-item {{ app.request.attributes.get('_route') == 'admin_bicycle_rentals' ? 'active' : '' }}">
-                    <a href="{{ path('admin_bicycle_rentals') }}" class="nav-link">
+                <li class="nav-item {{ app.request.attributes.get("_route") == "admin_bicycle_rentals" ? "active" : "" }}">
+                    <a href="{{ path("admin_bicycle_rentals") }}" class="nav-link">
                         <i class="bi bi-bicycle nav-icon"></i>
                         <span class="nav-text">Bicycle Rentals</span>
                     </a>
                 </li>
 
-                <li class="nav-item {{ app.request.attributes.get('_route') == 'admin_relocations' ? 'active' : '' }}">
-                    <a href="{{ path('admin_relocations') }}" class="nav-link">
+                <li class="nav-item {{ app.request.attributes.get("_route") == "admin_relocations" ? "active" : "" }}">
+                    <a href="{{ path("admin_relocations") }}" class="nav-link">
                         <i class="bi bi-truck nav-icon"></i>
                         <span class="nav-text">Relocations</span>
                     </a>
                 </li>
 
-                <li class="nav-item {{ app.request.attributes.get('_route') == 'admin_settings' ? 'active' : '' }}">
-                    <a href="{{ path('admin_settings') }}" class="nav-link">
+                <li class="nav-item {{ app.request.attributes.get("_route") == "admin_settings" ? "active" : "" }}">
+                    <a href="{{ path("admin_settings") }}" class="nav-link">
                         <i class="bi bi-gear nav-icon"></i>
                         <span class="nav-text">Settings</span>
                     </a>
@@ -792,7 +792,7 @@
             </ul>
 
             <div class="logout-container">
-                <a href="{{ path('app_logout') }}" class="logout-btn">
+                <a href="{{ path("app_logout") }}" class="logout-btn">
                     <i class="bi bi-box-arrow-right"></i>
                     <span>Logout</span>
                 </a>
@@ -839,7 +839,7 @@
             crossorigin="anonymous"></script>
 
     <!-- AdminLTE JS -->
-    <script src="{{ asset('adminlte/js/adminlte.min.js') }}"></script>
+    <script src="{{ asset("adminlte/js/adminlte.min.js") }}"></script>
 
     <!-- Charts JS -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"
@@ -857,16 +857,16 @@
 
     <!-- Live Clock JS -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener("DOMContentLoaded", function() {
             function updateClock() {
                 const now = new Date();
-                const hours = now.getHours().toString().padStart(2, '0');
-                const minutes = now.getMinutes().toString().padStart(2, '0');
-                const seconds = now.getSeconds().toString().padStart(2, '0');
+                const hours = now.getHours().toString().padStart(2, "0");
+                const minutes = now.getMinutes().toString().padStart(2, "0");
+                const seconds = now.getSeconds().toString().padStart(2, "0");
                 const timeString = `${hours}:${minutes}:${seconds}`;
-                const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
-                const dateString = now.toLocaleDateString('en-US', options);
-                const clockElement = document.getElementById('live-clock');
+                const options = { weekday: "short", year: "numeric", month: "short", day: "numeric" };
+                const dateString = now.toLocaleDateString("en-US", options);
+                const clockElement = document.getElementById("live-clock");
 
                 if (clockElement) {
                     clockElement.innerHTML = `<span class="date me-2">${dateString}</span><span class="time">${timeString}</span>`;
@@ -880,49 +880,46 @@
 
     <!-- Sidebar Toggle JS -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebar = document.getElementById('sidebar');
-            const sidebarToggle = document.getElementById('sidebarCollapse');
+        document.addEventListener("DOMContentLoaded", function() {
+            const sidebar = document.getElementById("sidebar");
+            const sidebarToggle = document.getElementById("sidebarCollapse");
             const body = document.body;
 
-            sidebar.classList.add('active');
-            body.classList.add('sidebar-collapsed');
-
+            sidebar.classList.add("active");
+            body.classList.add("sidebar-collapsed");
 
             function toggleSidebar(e) {
                 e.preventDefault();
-                sidebar.classList.toggle('active');
-                body.classList.toggle('sidebar-collapsed');
+                sidebar.classList.toggle("active");
+                body.classList.toggle("sidebar-collapsed");
 
                 // On mobile, add overlay effect
                 if (window.innerWidth <= 991.98) {
-                    body.classList.toggle('sidebar-active');
+                    body.classList.toggle("sidebar-active");
                 }
             }
 
-
             if (sidebarToggle) {
-                sidebarToggle.addEventListener('click', toggleSidebar);
+                sidebarToggle.addEventListener("click", toggleSidebar);
             }
 
-
-            document.addEventListener('click', function(e) {
+            document.addEventListener("click", function(e) {
                 if (window.innerWidth <= 991.98 &&
-                    !sidebar.classList.contains('active') &&
+                    !sidebar.classList.contains("active") &&
                     !sidebar.contains(e.target) &&
                     e.target !== sidebarToggle &&
                     !sidebarToggle.contains(e.target) &&
-                    body.classList.contains('sidebar-active')
+                    body.classList.contains("sidebar-active")
                 ) {
-                    sidebar.classList.add('active');
-                    body.classList.remove('sidebar-active');
+                    sidebar.classList.add("active");
+                    body.classList.remove("sidebar-active");
                 }
             });
 
-            window.addEventListener('resize', function() {
+            window.addEventListener("resize", function() {
                 if (window.innerWidth <= 991.98) {
-                    sidebar.classList.add('active');
-                    body.classList.remove('sidebar-active');
+                    sidebar.classList.add("active");
+                    body.classList.remove("sidebar-active");
                 }
             });
         });
@@ -930,30 +927,30 @@
 
     <!-- Dark Mode Toggle JS -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const darkModeToggle = document.getElementById('darkModeToggle');
-            const darkModeIcon = document.getElementById('darkModeIcon');
-            const lightModeIcon = document.getElementById('lightModeIcon');
+        document.addEventListener("DOMContentLoaded", function() {
+            const darkModeToggle = document.getElementById("darkModeToggle");
+            const darkModeIcon = document.getElementById("darkModeIcon");
+            const lightModeIcon = document.getElementById("lightModeIcon");
             const body = document.body;
-            const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-            const savedTheme = localStorage.getItem('theme');
+            const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+            const savedTheme = localStorage.getItem("theme");
 
             function enableDarkMode() {
-                body.classList.add('dark-mode');
-                darkModeIcon.classList.add('d-none');
-                lightModeIcon.classList.remove('d-none');
-                localStorage.setItem('theme', 'dark');
+                body.classList.add("dark-mode");
+                darkModeIcon.classList.add("d-none");
+                lightModeIcon.classList.remove("d-none");
+                localStorage.setItem("theme", "dark");
             }
 
             function disableDarkMode() {
-                body.classList.remove('dark-mode');
-                darkModeIcon.classList.remove('d-none');
-                lightModeIcon.classList.add('d-none');
-                localStorage.setItem('theme', 'light');
+                body.classList.remove("dark-mode");
+                darkModeIcon.classList.remove("d-none");
+                lightModeIcon.classList.add("d-none");
+                localStorage.setItem("theme", "light");
             }
 
             // Set the initial theme
-            if (savedTheme === 'dark' || (!savedTheme && prefersDarkScheme.matches)) {
+            if (savedTheme === "dark" || (!savedTheme && prefersDarkScheme.matches)) {
                 enableDarkMode();
             } else {
                 disableDarkMode();
@@ -961,8 +958,8 @@
 
             // Toggle functionality
             if (darkModeToggle) {
-                darkModeToggle.addEventListener('click', function() {
-                    if (body.classList.contains('dark-mode')) {
+                darkModeToggle.addEventListener("click", function() {
+                    if (body.classList.contains("dark-mode")) {
                         disableDarkMode();
                     } else {
                         enableDarkMode();
@@ -971,8 +968,8 @@
             }
 
             // Listen for OS theme changes
-            prefersDarkScheme.addEventListener('change', function(e) {
-                if (!localStorage.getItem('theme')) {
+            prefersDarkScheme.addEventListener("change", function(e) {
+                if (!localStorage.getItem("theme")) {
                     if (e.matches) {
                         enableDarkMode();
                     } else {

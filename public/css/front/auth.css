@@ -1,0 +1,147 @@
+/* Form validation styles */
+.input-box {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.input-box input {
+    width: 100%;
+    padding: 10px 35px 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input-box input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+.input-box input.is-invalid {
+    border-color: #dc3545;
+}
+
+.input-box input.is-invalid:focus {
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.input-box .invalid-feedback {
+    display: none;
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.input-box input.is-invalid + i + .invalid-feedback {
+    display: block;
+}
+
+.alert {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
+}
+
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.alert i {
+    margin-right: 0.5rem;
+}
+
+.password-container {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6c757d;
+    transition: color 0.3s ease;
+}
+
+.password-toggle:hover {
+    color: #007bff;
+}
+
+.remember-forgot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 1rem 0;
+}
+
+.remember-forgot label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.remember-forgot input[type="checkbox"] {
+    margin: 0;
+}
+
+.btn {
+    position: relative;
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+}
+
+.btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+.spinner-border {
+    width: 1rem;
+    height: 1rem;
+    border: 0.2em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border .75s linear infinite;
+}
+
+@keyframes spinner-border {
+    to { transform: rotate(360deg); }
+}
+
+.d-none {
+    display: none !important;
+}
+
+/* Smooth transitions */
+.alert {
+    transition: all 0.3s ease;
+}
+
+.alert.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.alert.hide {
+    transform: translateY(-10px);
+    opacity: 0;
+} 

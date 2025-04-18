@@ -134,12 +134,12 @@
             <input type="hidden" id="userId" name="userId">
             <div class="row mb-3">
               <div class="col-md-6">
-                <label for="name" class="form-label">Full Name</label>
+                <label for="name" class="form-label">Full Name *</label>
                 <input type="text" class="form-control" id="name" name="name" required>
                 <div class="invalid-feedback" id="nameError"></div>
               </div>
               <div class="col-md-6">
-                <label for="email" class="form-label">Email</label>
+                <label for="email" class="form-label">Email *</label>
                 <input type="email" class="form-control" id="email" name="email" required>
                 <div class="invalid-feedback" id="emailError"></div>
               </div>
@@ -147,7 +147,7 @@
             <div class="row mb-3">
               <div class="col-md-6">
                 <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" name="password">
+                <input type="password" class="form-control" id="password" name="plainPassword">
                 <small class="form-text text-muted" id="passwordHelpText">
                   Leave blank to keep current password when editing.
                 </small>
@@ -155,54 +155,65 @@
               </div>
               <div class="col-md-6">
                 <label for="phone_number" class="form-label">Phone Number</label>
-                <input type="text" class="form-control" id="phone_number" name="phone_number" required>
+                <input type="text" class="form-control" id="phone_number" name="phone_number">
                 <div class="invalid-feedback" id="phoneError"></div>
               </div>
             </div>
             <div class="row mb-3">
               <div class="col-md-6">
-                <label for="role" class="form-label">Role</label>
+                <label for="role" class="form-label">Role *</label>
                 <select class="form-select" id="role" name="role" required>
                   <option value="">Select Role</option>
-                  <option value="admin">Admin</option>
-                  <option value="user">User</option>
-                  <option value="driver">Driver</option>
+                  <option value="ADMIN">Admin</option>
+                  <option value="USER">User</option>
+                  <option value="DRIVER">Driver</option>
                 </select>
                 <div class="invalid-feedback" id="roleError"></div>
               </div>
               <div class="col-md-6">
+                <label for="account_status" class="form-label">Account Status *</label>
+                <select class="form-select" id="account_status" name="account_status" required>
+                  <option value="">Select Status</option>
+                  <option value="ACTIVE">Active</option>
+                  <option value="INACTIVE">Inactive</option>
+                  <option value="SUSPENDED">Suspended</option>
+                </select>
+                <div class="invalid-feedback" id="statusError"></div>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="date_of_birth" class="form-label">Date of Birth</label>
+                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth">
+                <div class="invalid-feedback" id="dobError"></div>
+              </div>
+              <div class="col-md-6">
                 <label for="gender" class="form-label">Gender</label>
-                <select class="form-select" id="gender" name="gender" required>
+                <select class="form-select" id="gender" name="gender">
                   <option value="">Select Gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
+                  <option value="MALE">Male</option>
+                  <option value="FEMALE">Female</option>
                 </select>
                 <div class="invalid-feedback" id="genderError"></div>
               </div>
             </div>
             <div class="row mb-3">
               <div class="col-md-6">
-                <label for="account_status" class="form-label">Account Status</label>
-                <select class="form-select" id="account_status" name="account_status" required>
-                  <option value="">Select Status</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="suspended">Suspended</option>
+                <label for="location" class="form-label">Location</label>
+                <select class="form-select" id="location" name="location">
+                  <option value="">Select Location</option>
+                  {% for location in locations %}
+                    <option value="{{ location.id_location }}">{{ location.address }}</option>
+                  {% endfor %}
                 </select>
-                <div class="invalid-feedback" id="statusError"></div>
+                <div class="invalid-feedback" id="locationError"></div>
               </div>
               <div class="col-md-6">
-                <label for="date_of_birth" class="form-label">Date of Birth</label>
-                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth">
-                <div class="invalid-feedback" id="dobError"></div>
-              </div>
-            </div>
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <div class="form-check form-switch">
+                <div class="form-check mt-4">
                   <input class="form-check-input" type="checkbox" id="is_verified" name="is_verified">
-                  <label class="form-check-label" for="is_verified">Verified Account</label>
+                  <label class="form-check-label" for="is_verified">
+                    Email Verified
+                  </label>
                 </div>
               </div>
             </div>
@@ -234,6 +245,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 {% endblock %}
 
 {% block page_javascripts %}
@@ -275,6 +289,7 @@
         resetUserForm();
         document.getElementById('userModalLabel').textContent = 'Add New User';
         document.getElementById('passwordHelpText').classList.add('d-none');
+        document.getElementById('password').required = true;
         userModal.show();
       });
 
@@ -333,123 +348,72 @@
         });
       });
 
-
       function loadUsers() {
         usersTableBody.innerHTML = '<tr><td colspan="9" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
         
         // Also show spinner in card view
         cardsContainer.innerHTML = '<div class="col-12 d-flex justify-content-center align-items-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading users...</span></div></div>';
 
-        // Add some debug output to console to see the raw data
-        console.log('Fetching users...');
-
-        fetch('/users', {
+        fetch('{{ path('admin_users_list') }}', {
           headers: {
             'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            'X-Requested-With': 'XMLHttpRequest'
           }
         })
-          .then(response => {
-            if (!response.ok) {
-              return response.text().then(text => {
-                throw new Error(`HTTP ${response.status}: ${text}`);
-              });
-            }
-            return response.json();
-          })
-          .then(data => {
-            // Debug: Log the raw data to see what we're getting
-            console.log('Raw API response:', data);
+        .then(response => {
+          // Log the raw response for debugging
+          console.log('Response status:', response.status);
+          console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+          
+          return response.text().then(text => {
+            // Log the raw response text
+            console.log('Raw response text:', text);
             
-            let usersData = [];
-
-            if (Array.isArray(data)) {
-              usersData = data;
-            } else if (data && Array.isArray(data.users)) {
-              usersData = data.users;
-            } else if (data && Array.isArray(data.data)) {
-              usersData = data.data;
-            } else {
-              console.error('Unexpected data format:', data);
-              usersTableBody.innerHTML = '<tr><td colspan="9" class="text-center text-danger">Invalid data format received from server</td></tr>';
-              cardsContainer.innerHTML = '<div class="col-12 text-center py-5"><div class="alert alert-danger">Invalid data format received from server</div></div>';
-              return; // Exit the function
+            // Check if the response starts with any whitespace or BOM
+            if (text.trim().length !== text.length) {
+              console.warn('Response contains leading/trailing whitespace');
             }
             
-            // Debug: Log a sample user if available
-            if (usersData.length > 0) {
-              console.log('Sample user data:', usersData[0]);
+            // Check for common issues
+            if (text.startsWith('<?php')) {
+              throw new Error('PHP error output detected in response');
             }
             
-            users = usersData.map(user => {
-              // Extract gender value - handle DB enum format
-              let genderValue = '';
-              
-              if (user.gender) {
-                if (typeof user.gender === 'string') {
-                  // Direct string values from API
-                  genderValue = user.gender;
-                } else if (typeof user.gender === 'object') {
-                  // If it's returned as an object from Symfony's serializer
-                  if (user.gender.name) {
-                    genderValue = user.gender.name; // For Symfony enum serialization
-                  } else if (user.gender.value) {
-                    genderValue = user.gender.value;
-                  }
-                }
-                // Convert gender to standard format (uppercase for comparison)
-                genderValue = genderValue.toUpperCase();
+            if (text.includes('<!DOCTYPE html>')) {
+              throw new Error('HTML output detected in response');
+            }
+            
+            try {
+              // Try to parse the text as JSON
+              const data = JSON.parse(text);
+              if (!response.ok) {
+                throw new Error(data.message || `HTTP error! status: ${response.status}`);
               }
-              
-              // Debug the extracted gender
-              console.log(`User ${user.name} gender: ${genderValue}`);
-              
-              // Handle date of birth
-              let dateOfBirth = null;
-              if (user.date_of_birth) {
-                // Try to parse the date regardless of format
-                dateOfBirth = user.date_of_birth;
-                console.log(`User ${user.name} DOB raw: ${dateOfBirth}`);
-              }
-              
-              return {
-                id_user: user.id_user || user.idUser || 0,
-                name: user.name || 'Unknown',
-                email: user.email || '',
-                phone_number: user.phone_number || user.phoneNumber || '',
-                role: (user.role || 'user').toLowerCase(),
-                account_status: (user.account_status || user.accountStatus || 'active').toLowerCase(),
-                is_verified: Boolean(user.is_verified || user.isVerified),
-                profile_picture: user.profile_picture || user.profilePicture || null,
-                gender: genderValue, // Using our extracted and normalized gender value
-                date_of_birth: dateOfBirth
-              };
-            });
-
-            filteredUsers = [...users];
-            totalUsersSpan.textContent = users.length;
-            sortUsers();
-            renderTable();
-          })
-          .catch(error => {
-            console.error('Error fetching users:', error);
-            let errorMessage = 'An error occurred while fetching users.';
-
-            if (error.message.includes('Failed to fetch')) {
-              errorMessage = 'Could not connect to server. Please check your network connection.';
-            } else if (error.message.includes('401')) {
-              errorMessage = 'Authentication required. Please login again.';
-            } else if (error.message.includes('404')) {
-              errorMessage = 'Users endpoint not found. Please contact support.';
-            } else if (error.message.includes('500')) {
-              errorMessage = 'Server error. Please try again later.';
+              return data;
+            } catch (e) {
+              console.error('JSON parse error:', e);
+              console.error('First 100 characters of response:', text.substring(0, 100));
+              throw new Error('Invalid JSON response from server. Check console for details.');
             }
-
-            usersTableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">${errorMessage}</td></tr>`;
-            cardsContainer.innerHTML = `<div class="col-12 text-center py-5"><div class="alert alert-danger">${errorMessage}</div></div>`;
-            showToast(errorMessage, 'error');
           });
-      }      // View toggle functionality
+        })
+        .then(data => {
+          if (!data.success) {
+            throw new Error(data.message || 'Failed to load users');
+          }
+          
+          users = data.users;
+          applyFilters();
+        })
+        .catch(error => {
+          console.error('Error loading users:', error);
+          usersTableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">Error loading users: ${error.message}</td></tr>`;
+          cardsContainer.innerHTML = `<div class="col-12 text-center text-danger">Error loading users: ${error.message}</div>`;
+          showToast(error.message, 'error');
+        });
+      }
+
+      // View toggle functionality
       const cardViewBtn = document.getElementById('cardViewBtn');
       const tableViewBtn = document.getElementById('tableViewBtn');
       
@@ -984,7 +948,7 @@
 
         // Determine if we're creating or updating
         const isCreating = !userId;
-        const url = isCreating ? '/users' : `/users/${userId}`;
+        const url = isCreating ? '{{ path('admin_users_new') }}' : `{{ path('admin_users_list') }}/${userId}`;
         const method = isCreating ? 'POST' : 'PUT';
 
         // Send request
@@ -992,6 +956,7 @@
           method: method,
           headers: {
             'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
           },
           body: JSON.stringify(userData),
         })
@@ -1006,11 +971,11 @@
                 .then(data => {
                   // Update users array
                   if (isCreating) {
-                    users.push(data);
+                    users.push(data.user);
                   } else {
                     const index = users.findIndex(u => u.id_user == userId);
                     if (index !== -1) {
-                      users[index] = data;
+                      users[index] = { ...users[index], ...data.user };
                     }
                   }
 
@@ -1019,7 +984,7 @@
                   applyFilters();
 
                   // Show success message
-                  showToast(isCreating ? 'User created successfully!' : 'User updated successfully!', 'success');
+                  showToast(data.message, 'success');
                 })
                 .catch(error => {
                   console.error('Error saving user:', error);
@@ -1042,8 +1007,11 @@
       function deleteUser() {
         if (!userToDelete) return;
 
-        fetch(`/users/${userToDelete}`, {
+        fetch(`{{ path('admin_users_list') }}/${userToDelete}`, {
           method: 'DELETE',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
         })
                 .then(response => {
                   if (!response.ok) {
@@ -1063,7 +1031,7 @@
                   applyFilters();
 
                   // Show success message
-                  showToast('User deleted successfully!', 'success');
+                  showToast(data.message, 'success');
                 })
                 .catch(error => {
                   console.error('Error deleting user:', error);
@@ -1072,7 +1040,7 @@
                 });
       }
 
-      function showToast(message, type = 'info') {
+      function showToast(message, type = 'success') {
         // Create toast element
         const toastContainer = document.createElement('div');
         toastContainer.className = 'position-fixed bottom-0 end-0 p-3';

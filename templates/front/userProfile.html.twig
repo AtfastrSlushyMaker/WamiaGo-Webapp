@@ -1,0 +1,453 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}My Profile - WamiaGo{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Profile Header -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="profile-avatar me-4">
+                            {% if app.user.profilePicture %}
+                                <img src="{{ asset('uploads/profile_pictures/' ~ app.user.profilePicture) }}" alt="Profile Picture" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                            {% else %}
+                                <img src="{{ asset('images/default-avatar.png') }}" alt="Default Profile Picture" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                            {% endif %}
+                            <button type="button" class="btn btn-sm btn-primary position-absolute bottom-0 end-0" data-bs-toggle="modal" data-bs-target="#changeAvatarModal">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                        </div>
+                        <div class="profile-info">
+                            <h2 class="mb-1">{{ app.user.name }}</h2>
+                            <p class="text-muted mb-2">{{ app.user.email }}</p>
+                            <div class="d-flex gap-3">
+                                <div class="text-center">
+                                    <h5 class="mb-0">0</h5>
+                                    <small class="text-muted">Rides</small>
+                                </div>
+                                <div class="text-center">
+                                    <h5 class="mb-0">0</h5>
+                                    <small class="text-muted">Points</small>
+                                </div>
+                                <div class="text-center">
+                                    <h5 class="mb-0">0</h5>
+                                    <small class="text-muted">Reviews</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile Content -->
+        <div class="col-md-4">
+            <!-- Personal Information -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="card-title h5 mb-4">Personal Information</h3>
+                    <div class="mb-3">
+                        <i class="fas fa-phone text-primary me-2"></i>
+                        <span>{{ app.user.phoneNumber ?? 'Not set' }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <i class="fas fa-birthday-cake text-primary me-2"></i>
+                        <span>{{ app.user.dateOfBirth ? app.user.dateOfBirth|date('F j, Y') : 'Not set' }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                        <span>{{ app.user.location ?? 'Not set' }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <i class="fas fa-venus-mars text-primary me-2"></i>
+                        <span>{{ app.user.gender ? app.user.gender.value|capitalize : 'Not set' }}</span>
+                    </div>
+                    <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                        Edit Profile
+                    </button>
+                </div>
+            </div>
+                </div>
+                
+        <div class="col-md-8">
+            <!-- Recent Activity -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="card-title h5 mb-4">Recent Activity</h3>
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-history fa-3x mb-3"></i>
+                        <p class="mb-0">No recent activity</p>
+                    </div>
+                </div>
+                </div>
+                
+            <!-- Security Settings -->
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title h5 mb-4">Security Settings</h3>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h4 class="h6 mb-1">Change Password</h4>
+                            <p class="text-muted small mb-0">Update your account password</p>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                            Change
+                        </button>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="h6 mb-1">Two-Factor Authentication</h4>
+                            <p class="text-muted small mb-0">Add an extra layer of security</p>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary" disabled>
+                            Enable
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+        
+<!-- Change Avatar Modal -->
+<div class="modal fade" id="changeAvatarModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Change Profile Picture</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="avatarForm" action="{{ path('app_profile_change_avatar') }}" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="avatar" class="form-label">Select new profile picture</label>
+                        <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*" required>
+        </div>
+                    <div class="preview-container d-none">
+                        <img id="avatarPreview" src="#" alt="Preview" class="img-fluid rounded">
+            </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="avatarForm" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+        </div>
+        
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {{ form_start(profileForm, {
+                    'attr': {
+                        'id': 'profileForm',
+                        'action': path('app_profile_edit')
+                    }
+                }) }}
+                    {{ form_row(profileForm.name) }}
+                    {{ form_row(profileForm.phone_number) }}
+                    {{ form_row(profileForm.date_of_birth) }}
+                    {{ form_row(profileForm.location) }}
+                    {{ form_row(profileForm.gender) }}
+                {{ form_end(profileForm) }}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="profileForm" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+        </div>
+        
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Change Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {{ form_start(passwordForm, {
+                    'attr': {
+                        'id': 'passwordForm',
+                        'action': path('app_profile_change_password')
+                    }
+                }) }}
+                    {{ form_row(passwordForm.currentPassword) }}
+                    {{ form_row(passwordForm.newPassword) }}
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirm New Password</label>
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
+                        <div class="invalid-feedback" id="confirm_password_error"></div>
+                    </div>
+                {{ form_end(passwordForm) }}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="passwordForm" class="btn btn-primary">Change Password</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+/* Remove modal backdrop and fix modal styling */
+.modal-backdrop {
+    display: none !important;
+}
+
+.modal {
+    background: transparent !important;
+}
+
+.modal-dialog {
+    margin: 1.75rem auto;
+    max-width: 500px;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+
+/* Rest of your existing styles */
+.profile-avatar {
+    position: relative;
+    width: 100px;
+    height: 100px;
+}
+
+.profile-avatar img {
+    border: 3px solid #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.profile-avatar .btn {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.preview-container {
+    margin-top: 1rem;
+}
+
+.preview-container img {
+    max-height: 200px;
+    width: auto;
+    margin: 0 auto;
+    display: block;
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Bootstrap components
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Initialize date picker
+    const datePicker = document.querySelector('input[type="date"]');
+    if (datePicker) {
+        flatpickr(datePicker, {
+            dateFormat: "Y-m-d",
+            maxDate: "today",
+            minDate: "-120 years",
+            allowInput: true,
+            altInput: true,
+            altFormat: "F j, Y",
+            disableMobile: "true"
+        });
+    }
+
+    // Handle avatar preview
+    const avatarInput = document.getElementById('avatar');
+    if (avatarInput) {
+        avatarInput.addEventListener('change', function() {
+            const preview = document.getElementById('avatarPreview');
+            const container = document.querySelector('.preview-container');
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    container.classList.remove('d-none');
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+
+    // Form configuration
+    const forms = {
+        'avatarForm': {
+            isMultipart: true,
+            endpoint: '{{ path('app_profile_change_avatar') }}',
+            processData: (form) => new FormData(form)
+        },
+        'profileForm': {
+            isMultipart: false,
+            endpoint: '{{ path('app_profile_edit') }}',
+            processData: (form) => {
+                const formData = new FormData(form);
+                const jsonData = {};
+                formData.forEach((value, key) => {
+                    if (key === 'date_of_birth' && value) {
+                        const date = new Date(value);
+                        if (!isNaN(date.getTime())) {
+                            jsonData[key] = date.toISOString().split('T')[0];
+                        } else {
+                            jsonData[key] = value;
+                        }
+                    } else {
+                        jsonData[key] = value;
+                    }
+                });
+                return JSON.stringify(jsonData);
+            }
+        },
+        'passwordForm': {
+            isMultipart: false,
+            endpoint: '{{ path('app_profile_change_password') }}',
+            processData: (form) => {
+                const formData = new FormData(form);
+                const jsonData = {};
+                formData.forEach((value, key) => {
+                    if (key !== 'confirm_password') {  // Exclude confirm password from submission
+                        jsonData[key] = value;
+                    }
+                });
+                return JSON.stringify(jsonData);
+            }
+        }
+    };
+
+    // Handle form submissions
+    Object.entries(forms).forEach(([formId, config]) => {
+        const form = document.getElementById(formId);
+        if (form) {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Password confirmation validation for password form
+                if (formId === 'passwordForm') {
+                    const newPassword = document.getElementById('change_password_newPassword').value;
+                    const confirmPassword = document.getElementById('confirm_password').value;
+                    const confirmPasswordError = document.getElementById('confirm_password_error');
+                    
+                    if (newPassword !== confirmPassword) {
+                        confirmPasswordError.textContent = 'Passwords do not match';
+                        confirmPasswordError.style.display = 'block';
+                        return;
+                    } else {
+                        confirmPasswordError.style.display = 'none';
+                    }
+                }
+                
+                try {
+                    const requestBody = config.processData(this);
+                    const headers = {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    };
+
+                    if (!config.isMultipart) {
+                        headers['Content-Type'] = 'application/json';
+                    }
+
+                    // Use the configured endpoint instead of form.action
+                    const url = config.endpoint;
+                    console.log('Sending request to:', url);
+                    console.log('Request body:', requestBody);
+                    console.log('Headers:', headers);
+
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        body: requestBody,
+                        headers: headers
+                    });
+
+                    console.log('Response status:', response.status);
+                    console.log('Response headers:', Object.fromEntries([...response.headers]));
+
+                    const contentType = response.headers.get('content-type');
+                    console.log('Content-Type:', contentType);
+
+                    // Check if response is JSON
+                    if (!contentType || !contentType.includes('application/json')) {
+                        throw new Error(`Expected JSON response but got ${contentType}`);
+                    }
+
+                    const responseText = await response.text();
+                    console.log('Raw response:', responseText);
+
+                    // Only try to parse if we have content
+                    if (!responseText.trim()) {
+                        throw new Error('Empty response received from server');
+                    }
+
+                    let data;
+                    try {
+                        data = JSON.parse(responseText);
+                    } catch (error) {
+                        console.error('Error parsing response:', error);
+                        console.error('Response text:', responseText);
+                        throw new Error(`Invalid JSON response: ${error.message}`);
+                    }
+
+                    if (data.success) {
+                        // Show success message
+                        const modal = this.closest('.modal');
+                        if (modal) {
+                            const modalInstance = bootstrap.Modal.getInstance(modal);
+                            if (modalInstance) {
+                                modalInstance.hide();
+                            }
+                        }
+                        // Reload page to show changes
+                        window.location.reload();
+                    } else {
+                        // Show error message
+                        if (data.errors && data.errors.length > 0) {
+                            alert(data.errors.join('\n'));
+                        } else {
+                            alert(data.message || 'An error occurred. Please try again.');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    // Show a more specific error message
+                    if (error.message.includes('JSON')) {
+                        alert('Server returned an invalid response format. Please try again later.');
+                    } else {
+                        alert(error.message || 'An error occurred. Please try again.');
+                    }
+                }
+            });
+        }
+    });
+    });
+</script>
+{% endblock %}

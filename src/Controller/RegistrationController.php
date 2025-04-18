@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\RegistrationFormType;
 use App\Repository\UserRepository;
+use App\Repository\LocationRepository;
 use App\Enum\ROLE;
 use App\Enum\STATUS;
 use App\Enum\ACCOUNT_STATUS;
@@ -17,6 +18,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Form\FormInterface;
 
 class RegistrationController extends AbstractController
 {
@@ -48,8 +50,171 @@ class RegistrationController extends AbstractController
         );
     }
 
+    /**
+     * Validates a specific step of the registration form
+     */
+    private function validateStep(FormInterface $form, int $step): array
+    {
+        $errors = [];
+        $fieldErrors = [];
+
+        $stepFields = [
+            1 => ['email', 'firstName', 'lastName'],
+            2 => ['phone_number', 'dateOfBirth', 'location', 'gender'],
+            3 => ['plainPassword']
+        ];
+
+        if (!isset($stepFields[$step])) {
+            return ['success' => false, 'message' => 'Invalid step'];
+        }
+
+        $this->logger->info('Validating step {step} with fields: {fields}', [
+            'step' => $step,
+            'fields' => implode(', ', $stepFields[$step])
+        ]);
+
+        // For step 1, combine firstName and lastName into name
+        if ($step === 1) {
+            $firstName = $form->get('firstName')->getData();
+            $lastName = $form->get('lastName')->getData();
+            if ($firstName && $lastName) {
+                $user = $form->getData();
+                $user->setName($firstName . ' ' . $lastName);
+            }
+        }
+
+        foreach ($stepFields[$step] as $fieldName) {
+            if (!$form->has($fieldName)) {
+                $this->logger->warning('Field {field} not found in form', ['field' => $fieldName]);
+                continue;
+            }
+
+            $field = $form->get($fieldName);
+            $value = $field->getData();
+            
+            // Special handling for dateOfBirth field
+            if ($fieldName === 'dateOfBirth') {
+                $this->logger->info('Date of birth field details:', [
+                    'raw_value' => $value,
+                    'value_type' => is_object($value) ? get_class($value) : gettype($value),
+                    'view_data' => $field->getViewData(),
+                    'is_valid' => $field->isValid(),
+                    'errors' => $field->getErrors()->count()
+                ]);
+            }
+
+            $this->logger->info('Field {field} value: {value}', [
+                'field' => $fieldName,
+                'value' => is_object($value) ? get_class($value) : $value
+            ]);
+
+            if ($field->getErrors()->count() > 0) {
+                $fieldErrors[$fieldName] = [];
+                foreach ($field->getErrors() as $error) {
+                    $fieldErrors[$fieldName][] = $error->getMessage();
+                    $this->logger->warning('Field {field} error: {error}', [
+                        'field' => $fieldName,
+                        'error' => $error->getMessage()
+                    ]);
+                }
+            }
+        }
+
+        // For step 1, validate the combined name field
+        if ($step === 1) {
+            $user = $form->getData();
+            if (!$user->getName()) {
+                $fieldErrors['name'] = ['Name cannot be blank'];
+            }
+        }
+
+        return [
+            'success' => empty($fieldErrors),
+            'fieldErrors' => $fieldErrors
+        ];
+    }
+
+    #[Route('/validate-step/{step}', name: 'app_validate_step', methods: ['POST'])]
+    public function validateRegistrationStep(Request $request, int $step): JsonResponse
+    {
+        $user = new User();
+        $form = $this->createForm(RegistrationFormType::class, $user);
+        
+        try {
+            $form->handleRequest($request);
+            
+            if ($form->isSubmitted()) {
+                $this->logger->info('Form submitted for step {step}', ['step' => $step]);
+                
+                // Log form data
+                $formData = $request->request->all();
+                $this->logger->info('Form data: {data}', ['data' => json_encode($formData)]);
+                
+                // Set name and password before validation for step 1
+                if ($step === 1) {
+                    $firstName = $form->get('firstName')->getData();
+                    $lastName = $form->get('lastName')->getData();
+                    if ($firstName && $lastName) {
+                        $user->setName($firstName . ' ' . $lastName);
+                    }
+                }
+                
+                // Set password before validation for step 3
+                if ($step === 3) {
+                    $plainPassword = $form->get('plainPassword')->getData();
+                    if ($plainPassword) {
+                        $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
+                        $user->setPassword($hashedPassword);
+                    }
+                }
+                
+                // Re-submit the form with the updated user entity
+                $form = $this->createForm(RegistrationFormType::class, $user);
+                $form->handleRequest($request);
+                
+                $validation = $this->validateStep($form, $step);
+                
+                if (!$validation['success']) {
+                    $this->logger->warning('Validation failed for step {step}: {errors}', [
+                        'step' => $step,
+                        'errors' => json_encode($validation['fieldErrors'])
+                    ]);
+                    
+                    return $this->json([
+                        'success' => false,
+                        'message' => 'Validation failed',
+                        'fieldErrors' => $validation['fieldErrors']
+                    ], Response::HTTP_BAD_REQUEST);
+                }
+                
+                $this->logger->info('Step {step} validated successfully', ['step' => $step]);
+                return $this->json([
+                    'success' => true,
+                    'message' => 'Step validated successfully'
+                ]);
+            }
+            
+            $this->logger->warning('Form not submitted for step {step}', ['step' => $step]);
+            return $this->json([
+                'success' => false,
+                'message' => 'Form not submitted'
+            ], Response::HTTP_BAD_REQUEST);
+            
+        } catch (\Exception $e) {
+            $this->logger->error('Validation error: {message}', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return $this->json([
+                'success' => false,
+                'message' => 'An error occurred during validation: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
     #[Route('/register', name: 'app_register', methods: ['GET', 'POST'])]
-    public function register(Request $request, UserRepository $userRepository): Response
+    public function register(Request $request, UserRepository $userRepository, LocationRepository $locationRepository): Response
     {
         try {
             if ($this->getUser()) {
@@ -57,188 +222,168 @@ class RegistrationController extends AbstractController
             }
 
             $user = new User();
-            $form = $this->createForm(RegistrationFormType::class, $user);
+            $user->setRole(ROLE::CLIENT);
             
-            // Try to handle the request, but catch any exceptions
-            try {
-                $form->handleRequest($request);
-                
-                // Add logging to debug the signup process
-                $this->logger->info('Handling registration form submission.');
+            $form = $this->createForm(RegistrationFormType::class, $user);
+            $form->handleRequest($request);
 
-                if ($form->isSubmitted()) {
-                    $this->logger->info('Form submitted.');
+            if ($form->isSubmitted()) {
+                $this->logger->info('Registration form submitted with data: {data}', [
+                    'data' => json_encode($request->request->all())
+                ]);
 
-                    if ($form->isValid()) {
-                        $this->logger->info('Form is valid. Proceeding with user creation.');
-                    } else {
-                        $this->logger->error('Form is invalid. Errors:');
-                        foreach ($form->getErrors(true) as $error) {
-                            $this->logger->error($error->getMessage());
-                        }
-                    }
-                } else {
-                    $this->logger->info('Form not submitted yet.');
+                // Set name and password before validation
+                $firstName = $form->get('firstName')->getData();
+                $lastName = $form->get('lastName')->getData();
+                if ($firstName && $lastName) {
+                    $user->setName($firstName . ' ' . $lastName);
                 }
 
-                if ($form->isSubmitted() && $form->isValid()) {
-                    try {
-                        // Check if email already exists
-                        if ($userRepository->findOneBy(['email' => $user->getEmail()])) {
-                            $this->addFlash('error', 'Email is already registered.');
-                            
-                            if ($request->isXmlHttpRequest()) {
-                                return new JsonResponse([
-                                    'success' => false,
-                                    'message' => 'Email is already registered.'
-                                ], Response::HTTP_BAD_REQUEST);
-                            }
-                            
-                            return $this->redirectToRoute('app_register');
-                        }
+                $plainPassword = $form->get('plainPassword')->getData();
+                if ($plainPassword) {
+                    $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
+                    $user->setPassword($hashedPassword);
+                }
 
-                        // Combine first name and last name
-                        $firstName = $form->get('firstName')->getData();
-                        $lastName = $form->get('lastName')->getData();
-                        $user->setName($firstName . ' ' . $lastName);
+                // Re-submit the form with the updated user entity
+                $form = $this->createForm(RegistrationFormType::class, $user);
+                $form->handleRequest($request);
 
-                        // Handle gender field
-                        $genderValue = $form->get('gender')->getData();
-                        try {
-                            $gender = \App\Enum\GENDER::from($genderValue);
-                            $user->setGender($gender);
-                        } catch (\ValueError $e) {
-                            $this->logger->error('Invalid gender value: {value}', ['value' => $genderValue]);
-                            throw new \InvalidArgumentException('Invalid gender value');
-                        }
-
-                        // Hash the password
-                        $user->setPassword(
-                            $this->passwordHasher->hashPassword(
-                                $user,
-                                $form->get('plainPassword')->getData()
-                            )
-                        );
-
-                     
-                        $user->setRole(\App\Enum\ROLE::CLIENT);
-                        $user->setAccountStatus(\App\Enum\ACCOUNT_STATUS::ACTIVE);
-                    
-                    
-                        try {
-                     
-                            $this->logger->info('Current status value before assignment: {status}', ['status' => $user->getStatus()]);
-
-                        
-                            if (!($user->getStatus() instanceof \App\Enum\STATUS)) {
-                                $this->logger->warning('Invalid status detected. Resetting to STATUS::OFFLINE.');
-                                $user->setStatus(\App\Enum\STATUS::OFFLINE);
-                            }
-                        } catch (\TypeError $e) {
-                            $this->logger->error('Invalid status value during registration: {message}', ['message' => $e->getMessage()]);
-                            throw new \InvalidArgumentException('Invalid status value during registration.');
-                        }
-                        $user->setIsVerified(false);
-
-                        // Persist the user
-                        $this->entityManager->persist($user);
-                        $this->entityManager->flush();
-
-                        $this->addFlash('success', 'Registration successful! Please log in.');
-                        return $this->redirectToRoute('app_login');
-                    } catch (\Exception $e) {
-                        $this->logger->error('Error during registration: {message}', ['message' => $e->getMessage()]);
-                        $this->addFlash('error', 'An error occurred during registration. Please try again.');
+                if (!$form->isValid()) {
+                    $errors = [];
+                    foreach ($form->getErrors(true) as $error) {
+                        $errors[] = $error->getMessage();
                     }
-                } else if ($form->isSubmitted() && !$form->isValid()) {
-                    // Handle validation errors for Ajax
-                    if ($request->isXmlHttpRequest()) {
-                        $errors = [];
-                        foreach ($form->getErrors(true) as $error) {
-                            $errors[] = $error->getMessage();
-                        }
-                        
-                        // Get field-specific errors to display them properly
-                        $fieldErrors = [];
-                        foreach ($form->all() as $fieldName => $formField) {
-                            if ($formField->getErrors()->count() > 0) {
-                                $fieldErrors[$fieldName] = [];
-                                foreach ($formField->getErrors() as $error) {
-                                    $fieldErrors[$fieldName][] = $error->getMessage();
-                                }
+                    
+                    $fieldErrors = [];
+                    foreach ($form->all() as $child) {
+                        if (!$child->isValid()) {
+                            foreach ($child->getErrors() as $error) {
+                                $fieldErrors[$child->getName()] = $error->getMessage();
                             }
                         }
-                        
-                        return new JsonResponse([
+                    }
+                    
+                    $this->logger->warning('Form validation failed: {errors}', [
+                        'errors' => json_encode($errors),
+                        'fieldErrors' => json_encode($fieldErrors)
+                    ]);
+                    
+                    if ($request->isXmlHttpRequest()) {
+                        return $this->json([
                             'success' => false,
-                            'message' => 'Please correct the errors in the form.',
+                            'message' => 'Validation failed',
                             'errors' => $errors,
                             'fieldErrors' => $fieldErrors
                         ], Response::HTTP_BAD_REQUEST);
                     }
+                    
+                    $this->addFlash('error', implode(', ', $errors));
+                    return $this->render('front/loginSignup.html.twig', [
+                        'registrationForm' => $form->createView(),
+                    ]);
                 }
-                
-                return $this->render('front/loginSignup.html.twig', [
-                    'registrationForm' => $form->createView(),
-                ]);
-            } catch (\Exception $e) {
-                // Log the detailed error information
-                $this->logger->error('Registration form handling error: {message}', [
-                    'message' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine()
-                ]);
-                
-                // Global exception handling
-                $errorMessage = 'An error occurred. ' . ($this->getParameter('kernel.debug') ? $e->getMessage() : 'Please try again later.');
-                
-                if ($request->isXmlHttpRequest()) {
-                    return new JsonResponse([
-                        'success' => false,
-                        'message' => $errorMessage
-                    ], Response::HTTP_INTERNAL_SERVER_ERROR);
+
+                try {
+                    // Get the form data
+                    $user = $form->getData();
+                    
+                    // Check if email already exists
+                    $existingUser = $userRepository->findOneBy(['email' => $user->getEmail()]);
+                    if ($existingUser) {
+                        $this->logger->warning('Registration failed: Email already exists', [
+                            'email' => $user->getEmail()
+                        ]);
+                        
+                        if ($request->isXmlHttpRequest()) {
+                            return $this->json([
+                                'success' => false,
+                                'message' => 'Email already exists',
+                                'fieldErrors' => ['email' => 'This email is already registered']
+                            ], Response::HTTP_BAD_REQUEST);
+                        }
+                        
+                        $this->addFlash('error', 'This email is already registered');
+                        return $this->render('front/loginSignup.html.twig', [
+                            'registrationForm' => $form->createView(),
+                        ]);
+                    }
+
+                    // Check if phone number already exists
+                    $existingUser = $userRepository->findOneBy(['phone_number' => $user->getPhoneNumber()]);
+                    if ($existingUser) {
+                        if ($request->isXmlHttpRequest()) {
+                            return $this->json([
+                                'success' => false,
+                                'message' => 'Phone number already exists',
+                                'fieldErrors' => ['phone_number' => 'This phone number is already registered']
+                            ], Response::HTTP_BAD_REQUEST);
+                        }
+                        $this->addFlash('error', 'This phone number is already registered');
+                        return $this->render('front/loginSignup.html.twig', [
+                            'registrationForm' => $form->createView(),
+                        ]);
+                    }
+
+                    // Set default values
+                    $user->setAccountStatus(\App\Enum\ACCOUNT_STATUS::ACTIVE);
+                    $user->setStatus(\App\Enum\STATUS::OFFLINE);
+                    $user->setIsVerified(false);
+                    
+                    // Save the user
+                    $this->entityManager->persist($user);
+                    $this->entityManager->flush();
+                    
+                    $this->logger->info('User registered successfully: {email}', [
+                        'email' => $user->getEmail()
+                    ]);
+                    
+                    if ($request->isXmlHttpRequest()) {
+                        return $this->json([
+                            'success' => true,
+                            'message' => 'Registration successful!',
+                            'redirect' => $this->generateUrl('app_login')
+                        ]);
+                    }
+                    
+                    $this->addFlash('success', 'Registration successful! You can now login.');
+                    return $this->redirectToRoute('app_login');
+                } catch (\Exception $e) {
+                    $this->logger->error('Registration error: {message}', [
+                        'message' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    
+                    if ($request->isXmlHttpRequest()) {
+                        return $this->json([
+                            'success' => false,
+                            'message' => 'An error occurred during registration: ' . $e->getMessage()
+                        ], Response::HTTP_INTERNAL_SERVER_ERROR);
+                    }
+                    
+                    $this->addFlash('error', 'An error occurred during registration: ' . $e->getMessage());
                 }
-                
-                $this->addFlash('error', $errorMessage);
-                
-                // In case of a severe error that prevents normal form creation, create a new empty form
-                if (!isset($form) || !$form) {
-                    $user = new User();
-                    $form = $this->createForm(RegistrationFormType::class, $user);
-                }
-                
-                return $this->render('front/loginSignup.html.twig', [
-                    'registrationForm' => $form->createView(),
-                ]);
             }
+
+            return $this->render('front/loginSignup.html.twig', [
+                'registrationForm' => $form->createView(),
+            ]);
         } catch (\Exception $e) {
-            // Log the detailed error information
             $this->logger->error('Registration form handling error: {message}', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
+                'trace' => $e->getTraceAsString()
             ]);
             
-            // Global exception handling
             $errorMessage = 'An error occurred. ' . ($this->getParameter('kernel.debug') ? $e->getMessage() : 'Please try again later.');
             
             if ($request->isXmlHttpRequest()) {
-                return new JsonResponse([
+                return $this->json([
                     'success' => false,
                     'message' => $errorMessage
                 ], Response::HTTP_INTERNAL_SERVER_ERROR);
             }
             
             $this->addFlash('error', $errorMessage);
-            
-            // In case of a severe error that prevents normal form creation, create a new empty form
-            if (!isset($form) || !$form) {
-                $user = new User();
-                $form = $this->createForm(RegistrationFormType::class, $user);
-            }
-            
             return $this->render('front/loginSignup.html.twig', [
                 'registrationForm' => $form->createView(),
             ]);
@@ -249,7 +394,7 @@ class RegistrationController extends AbstractController
     public function apiRegister(Request $request, UserRepository $userRepository): JsonResponse
     {
         try {
-            // Check if the request is properly formatted as JSON
+            
             if ($request->getContentType() !== 'json') {
                 return $this->json(
                     ['success' => false, 'error' => 'Invalid content type. Expected JSON.'],
@@ -266,7 +411,6 @@ class RegistrationController extends AbstractController
                 );
             }
 
-            // Check required fields
             $requiredFields = ['firstName', 'lastName', 'email', 'password', 'phone_number', 'gender'];
             $missingFields = [];
             foreach ($requiredFields as $field) {
@@ -285,7 +429,7 @@ class RegistrationController extends AbstractController
                 );
             }
 
-            // Check if email already exists
+        
             if ($userRepository->findOneBy(['email' => $data['email']])) {
                 return $this->json(
                     ['success' => false, 'error' => 'Email is already registered'],
@@ -293,7 +437,7 @@ class RegistrationController extends AbstractController
                 );
             }
 
-            // Create new user
+   
             $user = new User();
             $user->setName($data['firstName'] . ' ' . $data['lastName']);
             $user->setEmail($data['email']);
@@ -302,7 +446,7 @@ class RegistrationController extends AbstractController
             );
             $user->setPhoneNumber($data['phone_number']);
             
-            // Handle gender enum
+       
             try {
                 $gender = \App\Enum\GENDER::from($data['gender']);
                 $user->setGender($gender);
@@ -316,7 +460,7 @@ class RegistrationController extends AbstractController
                 );
             }
             
-            // Set default values
+        
             try {
                 $user->setRole(\App\Enum\ROLE::CLIENT);
                 $user->setAccountStatus(\App\Enum\ACCOUNT_STATUS::ACTIVE);
@@ -327,7 +471,7 @@ class RegistrationController extends AbstractController
                 throw new \InvalidArgumentException('Invalid enum value: ' . $e->getMessage());
             }   
             
-            // Set optional fields if provided
+           
             if (isset($data['date_of_birth']) && !empty($data['date_of_birth'])) {
                 try {
                     $user->setDateOfBirth(new \DateTime($data['date_of_birth']));
@@ -346,7 +490,7 @@ class RegistrationController extends AbstractController
                 $user->setProfilePicture($data['profile_picture']);
             }
 
-            // Save user
+          
             try {
                 $this->entityManager->persist($user);
                 $this->entityManager->flush();
@@ -386,18 +530,18 @@ class RegistrationController extends AbstractController
         try {
             $output = [];
             
-            // Environment information
+         
             $output['environment'] = [
                 'php_version' => PHP_VERSION,
                 'symfony_environment' => $this->getParameter('kernel.environment'),
                 'debug_mode' => $this->getParameter('kernel.debug'),
             ];
             
-            // Create a test form to see if it works
+
             $user = new User();
             $form = $this->createForm(RegistrationFormType::class, $user);
             
-            // Form field information
+        
             $output['form_fields'] = [];
             foreach ($form as $field) {
                 $output['form_fields'][$field->getName()] = [
@@ -407,7 +551,6 @@ class RegistrationController extends AbstractController
                 ];
             }
             
-            // Check database connection 
             try {
                 $connection = $this->entityManager->getConnection();
                 $connection->connect();
@@ -422,7 +565,7 @@ class RegistrationController extends AbstractController
                 ];
             }
             
-            // Return debug info as JSON
+       
             return new JsonResponse($output);
         } catch (\Exception $e) {
             return new JsonResponse([

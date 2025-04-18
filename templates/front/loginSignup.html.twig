@@ -1,1486 +1,1065 @@
-{% block body %}
-<div class="login-container">
-    <input type="checkbox" id="form-toggle" {% if error is defined and error or show_login_panel is defined and
-        show_login_panel %}checked="checked" {% endif %}>
-    <div class="split-container">
-        <!-- Left Side - Yellow with logo -->
-        <div class="split-side left-side">
-            <div class="logo-container">
-                <a href="{{ path('app_front_home') }}">
-                    <img src="{{ asset('images/logo/logo.png') }}" alt="WamiaGo Logo" class="logo">
-                </a>
-            </div>
-            <div class="car-animation-container">
-                <div class="floating-platform">
-                    <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs"
-                        type="module"></script>
-                    <dotlottie-player src="https://lottie.host/99262306-ffaf-4895-b278-aeb39ea76131/KdSeoyzVbI.lottie"
-                        background="transparent" speed="1" style="width: 350px; height: 350px;" loop autoplay
-                        class="animated-car"></dotlottie-player>
-                </div>
-            </div>
-            <div class="toggle-text">
-                <p id="toggle-message">New here? Create an account</p>
-            </div>
-            <div class="action-btn-container">
-                <label for="form-toggle" class="login-btn">Sign Up</label>
-            </div>
-            <!-- Decorative elements -->
-            <div class="decorative-circle circle-1"></div>
-            <div class="decorative-circle circle-2"></div>
-            <div class="decorative-line line-1"></div>
-        </div>
+    {% block body %}
+    <div class="login-container">
+        <div class="container {% if show_signup_panel is defined and show_signup_panel %}active{% endif %}">
+            <!-- Login Form Box -->
+            <div class="form-box login">
+                <form id="login-ajax-form" method="post" action="{{ path('app_login') }}" novalidate>
+                    <h1>Welcome Back</h1>
+                    
+                    {% if error %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>{{ error.messageKey|trans(error.messageData, 'security') }}</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
 
-        <!-- Right Side - Blue with forms -->
-        <div class="split-side right-side">
-            <!-- Particle background -->
-            <div class="particles">
-                <div class="particle" style="top: 10%; left: 20%; animation-delay: 0s;"></div>
-                <div class="particle" style="top: 40%; left: 80%; animation-delay: 1s;"></div>
-                <div class="particle" style="top: 80%; left: 10%; animation-delay: 2s;"></div>
-                <div class="particle" style="top: 30%; left: 60%; animation-delay: 3s;"></div>
-                <div class="particle" style="top: 70%; left: 30%; animation-delay: 4s;"></div>
-                <div class="particle" style="top: 20%; left: 50%; animation-delay: 5s;"></div>
-                <div class="particle" style="top: 60%; left: 70%; animation-delay: 6s;"></div>
-                <div class="particle" style="top: 90%; left: 40%; animation-delay: 7s;"></div>
-                <div class="particle" style="top: 15%; left: 90%; animation-delay: 8s;"></div>
-                <div class="particle" style="top: 50%; left: 15%; animation-delay: 9s;"></div>
-                <div class="particle" style="top: 85%; left: 85%; animation-delay: 10s;"></div>
-                <div class="particle" style="top: 35%; left: 45%; animation-delay: 11s;"></div>
-                <div class="particle" style="top: 75%; left: 55%; animation-delay: 12s;"></div>
-                <div class="particle" style="top: 25%; left: 75%; animation-delay: 13s;"></div>
-                <div class="particle" style="top: 65%; left: 25%; animation-delay: 14s;"></div>
-            </div>
-
-            <!-- Login Form -->
-            <div class="login-form" id="login-form">
-                <form id="login-ajax-form" method="post" action="{{ path('app_login') }}">
-                    <h2 class="form-title">Welcome Back</h2>
-
-                    <div id="login-error-container" class="alert" style="display: none;"></div>
-
-                    <div class="input-group">
-                        <label for="email">Email</label>
-                        <input type="email" value="{{ app.session.get('_security.last_username') ?? '' }}"
-                            name="_username" id="email" class="form-input" required>
+                    <div id="login-error-container" class="alert alert-danger alert-dismissible fade show" style="display: none" role="alert">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span class="error-message"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
 
-                    <div class="input-group">
-                        <label for="password">Password</label>
-                        <div class="password-field">
-                            <input type="password" name="_password" id="password" class="form-input" required>
-                            <span class="password-toggle">
-                                <i class="fas fa-eye"></i>
-                            </span>
+                    <div id="login-success-container" class="alert alert-success alert-dismissible fade show" style="display: none" role="alert">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="success-message"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                    <div class="input-box">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" 
+                               value="{{ app.session.get('_security.last_username') ?? '' }}"
+                               name="email" 
+                               id="email" 
+                               required 
+                               autocomplete="email"
+                               class="form-control {% if error %}is-invalid{% endif %}"
+                               data-validation="required|email"
+                               data-validation-message="Please enter a valid email address" />
+                        <i class='bx bxs-envelope'></i>
+                        <div class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="input-box">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="password-container">
+                            <input type="password" 
+                                   name="password" 
+                                   id="password" 
+                                   required 
+                                   autocomplete="current-password"
+                                   class="form-control {% if error %}is-invalid{% endif %}"
+                                   data-validation="required|minLength:8"
+                                   data-validation-message="Password must be at least 8 characters long" />
+                            <i class='bx bxs-lock-alt password-toggle' onclick="togglePasswordVisibility(this)"></i>
+                            <div class="invalid-feedback"></div>
                         </div>
                     </div>
 
-                    <div class="forgot-password">
-                        <a href="#">Forgot your Password? <span class="highlight">Click Here</span></a>
+                    <div class="remember-forgot">
+                        <label>
+                            <input type="checkbox" name="_remember_me"> Remember me
+                        </label>
+                        <a href="{{ path('app_forgot_password_request') }}">Forgot Password?</a>
                     </div>
 
-                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}" />
 
-                    <div class="form-actions">
-                        <button type="submit" class="submit-btn">Log in</button>
+                    <button type="submit" class="btn">
+                        <span class="button-text">Login</span>
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    </button>
+                    
+                    <div class="social-media-section">
+                        <p>or login with</p>
+                        <div class="social-icons">
+                            <a href="#"><i class='bx bxl-google'></i></a>
+                            <a href="#"><i class='bx bxl-facebook'></i></a>
+                            <a href="#"><i class='bx bxl-github'></i></a>
+                            <a href="#"><i class='bx bxl-linkedin'></i></a>
+                        </div>
                     </div>
                 </form>
             </div>
 
-            <!-- Signup Form -->
-            <div class="signup-form" id="signup-form">
-                {{ form_start(registrationForm, {'attr': {'id': 'registration-form', 'action': path('app_register')}}) }}
-                <h2 class="form-title">Join Us</h2>
+            <!-- Registration Form Box -->
+            <div class="form-box register">
+                <div class="register-center-box">
+                    {{ form_start(registrationForm, {'attr': {'id': 'registration-form', 'action': path('app_register')}}) }}
+                        <h1>Join Us</h1>
 
-                <div id="signup-success-message" class="success-message" style="display: none;">
-                    <i class="fas fa-check-circle"></i>
-                    <span>Account created successfully! Redirecting...</span>
-                </div>
+                        <div id="signup-success-message" class="success-message" style="display: none">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Account created successfully! Redirecting...</span>
+                        </div>
 
-                <div id="signup-error-message" class="error-message" style="display: none;">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span>There was a problem with your registration. Please try again.</span>
-                </div>
+                        <div id="signup-error-message" class="error-message" style="display: none">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>There was a problem with your registration. Please try again.</span>
+                        </div>
 
-                <!-- Hidden CSRF token field -->
-                {{ form_row(registrationForm._token) }}
+                        {{ form_row(registrationForm._token) }}
 
-                <!-- Step indicators -->
-                <div class="steps-container">
-                    <div class="step-indicator active" data-step="1">1</div>
-                    <div class="step-line"></div>
-                    <div class="step-indicator" data-step="2">2</div>
-                    <div class="step-line"></div>
-                    <div class="step-indicator" data-step="3">3</div>
-                </div>
+                        <!-- Step indicators -->
+                        <div class="steps-container">
+                            <div class="step-indicator active" data-step="1">1</div>
+                            <div class="step-line"></div>
+                            <div class="step-indicator" data-step="2">2</div>
+                            <div class="step-line"></div>
+                            <div class="step-indicator" data-step="3">3</div>
+                        </div>
 
-                <!-- Step 1: Basic Information -->
-                <div class="step-content active" data-step="1">
-                    <div class="input-group">
-                        <label for="reg_email">Email</label>
-                        {{ form_widget(registrationForm.email, {'attr': {'class': 'form-input', 'id': 'reg_email',
-                        'placeholder': 'Enter your email'}}) }}
-                    </div>
-
-                    <div class="input-group">
-                        <label for="reg_first_name">First Name</label>
-                        {{ form_widget(registrationForm.firstName, {'attr': {'class': 'form-input', 'id':
-                        'reg_first_name', 'placeholder': 'Enter your first name'}}) }}
-                    </div>
-
-                    <div class="input-group">
-                        <label for="reg_last_name">Last Name</label>
-                        {{ form_widget(registrationForm.lastName, {'attr': {'class': 'form-input', 'id':
-                        'reg_last_name', 'placeholder': 'Enter your last name'}}) }}
-                    </div>
-
-                    <div class="step-buttons">
-                        <button type="button" class="next-btn">Next</button>
-                    </div>
-                </div>
-
-                <!-- Step 2: Personal Details -->
-                <div class="step-content" data-step="2">
-                    <div class="input-group">
-                        <label for="reg_phone">Phone Number</label>
-                        {{ form_widget(registrationForm.phone_number, {'attr': {'class': 'form-input', 'id':
-                        'reg_phone', 'placeholder': 'Enter your phone number'}}) }}
-                    </div>
-
-                    <div class="input-group">
-                        <label for="reg_date_of_birth">Date of Birth</label>
-                        {{ form_widget(registrationForm.dateOfBirth, {'attr': {'class': 'form-input date-input', 'id':
-                        'reg_date_of_birth'}}) }}
-                    </div>
-
-                    <div class="input-group">
-                        <label for="reg_location">Location</label>
-                        {{ form_widget(registrationForm.location, {'attr': {'class': 'form-input', 'id':
-                        'reg_location'}}) }}
-                    </div>
-
-                    <div class="input-group">
-                        <label for="reg_gender">Gender</label>
-                        <div class="custom-radio-buttons">
-                            {% for choice in registrationForm.gender %}
-                            <div class="custom-radio">
-                                <input type="radio" id="{{ choice.vars.id }}" name="{{ choice.vars.full_name }}"
-                                    value="{{ choice.vars.value }}" {% if choice.vars.checked %}checked="checked" {%
-                                    endif %} required>
-                                <label for="{{ choice.vars.id }}">
-                                    {% if choice.vars.label == 'Male' %}
-                                    <i class="fas fa-mars"></i>
-                                    {% else %}
-                                    <i class="fas fa-venus"></i>
-                                    {% endif %}
-                                    {{ choice.vars.label }}
-                                </label>
+                        <!-- Step 1: Basic Information -->
+                        <div class="step-content active" data-step="1">
+                            <div class="input-box {% if registrationForm.email.vars.errors|length > 0 %}has-error{% endif %}">
+                                <label for="reg_email" class="form-label">Email</label>
+                                {{ form_widget(registrationForm.email, {'attr': {'id': 'reg_email', 'novalidate': 'novalidate'}}) }}
+                                {{ form_errors(registrationForm.email, {'attr': {'class': 'form-error'}}) }}
+                                <i class='bx bxs-envelope'></i>
                             </div>
-                            {% endfor %}
+
+                            <div class="input-box {% if registrationForm.firstName.vars.errors|length > 0 %}has-error{% endif %}">
+                                <label for="reg_first_name" class="form-label">First Name</label>
+                                {{ form_widget(registrationForm.firstName, {'attr': {'id': 'reg_first_name', 'novalidate': 'novalidate'}}) }}
+                                {{ form_errors(registrationForm.firstName, {'attr': {'class': 'form-error'}}) }}
+                                <i class='bx bxs-user'></i>
+                            </div>
+
+                            <div class="input-box {% if registrationForm.lastName.vars.errors|length > 0 %}has-error{% endif %}">
+                                <label for="reg_last_name" class="form-label">Last Name</label>
+                                {{ form_widget(registrationForm.lastName, {'attr': {'id': 'reg_last_name', 'novalidate': 'novalidate'}}) }}
+                                {{ form_errors(registrationForm.lastName, {'attr': {'class': 'form-error'}}) }}
+                                <i class='bx bxs-user'></i>
+                            </div>
+
+                            <div class="step-buttons">
+                                
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Personal Details -->
+                        <div class="step-content" data-step="2">
+                            <div class="input-box {% if registrationForm.phone_number.vars.errors|length > 0 %}has-error{% endif %}">
+                                <label for="reg_phone" class="form-label">Phone Number</label>
+                                {{ form_widget(registrationForm.phone_number, {'attr': {'id': 'reg_phone', 'novalidate': 'novalidate'}}) }}
+                                {{ form_errors(registrationForm.phone_number, {'attr': {'class': 'form-error'}}) }}
+                                <i class='bx bxs-phone'></i>
+                            </div>
+
+                            <div class="input-box {% if registrationForm.dateOfBirth.vars.errors|length > 0 %}has-error{% endif %}">
+                                <label for="reg_date_of_birth" class="form-label">Date of Birth</label>
+                                {{ form_widget(registrationForm.dateOfBirth, {'attr': {'class': 'date-input', 'id': 'reg_date_of_birth', 'novalidate': 'novalidate'}}) }}
+                                {{ form_errors(registrationForm.dateOfBirth, {'attr': {'class': 'form-error'}}) }}
+                                <i class='bx bxs-calendar'></i>
+                            </div>
+
+                            <div class="input-box {% if registrationForm.location.vars.errors|length > 0 %}has-error{% endif %}">
+                                <label for="reg_location" class="form-label">Location</label>
+                                {{ form_widget(registrationForm.location, {'attr': {'id': 'reg_location', 'novalidate': 'novalidate'}}) }}
+                                {{ form_errors(registrationForm.location, {'attr': {'class': 'form-error'}}) }}
+                                <i class='bx bxs-map'></i>
+                            </div>
+
+                            <div class="input-group {% if registrationForm.gender.vars.errors|length > 0 %}has-error{% endif %}">
+                                <label>Gender</label>
+                                <div class="custom-radio-buttons">
+                                    {{ form_widget(registrationForm.gender, {
+                                        'expanded': true,
+                                        'multiple': false,
+                                        'choice_attr': {
+                                            'male': {'id': 'gender_male'},
+                                            'female': {'id': 'gender_female'}
+                                        },
+                                        'attr': {'class': 'gender-radio-group'},
+                                        'label_attr': {'class': 'gender-label'},
+                                        'choice_label': {
+                                            'male': '<i class="fas fa-mars gender-icon"></i>Male',
+                                            'female': '<i class="fas fa-venus gender-icon"></i>Female'
+                                        }
+                                    }) }}
+                                </div>
+                                {{ form_errors(registrationForm.gender, {'attr': {'class': 'form-error'}}) }}
+                            </div>
+
+                            <div class="step-buttons">
+                                
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Password and Terms -->
+                        <div class="step-content" data-step="3">
+                            <div class="input-box {% if registrationForm.plainPassword.vars.errors|length > 0 %}has-error{% endif %}">
+                                <label for="reg_password" class="form-label">Password</label>
+                                {{ form_widget(registrationForm.plainPassword, {'attr': {'id': 'reg_password', 'novalidate': 'novalidate'}}) }}
+                                {{ form_errors(registrationForm.plainPassword, {'attr': {'class': 'form-error'}}) }}
+                                <i class='bx bxs-lock-alt'></i>
+                            </div>
+
+                            <div class="input-box">
+                                <label for="reg_confirm_password" class="form-label">Confirm Password</label>
+                                <input type="password" id="reg_confirm_password" novalidate />
+                                <i class='bx bxs-lock-alt password-toggle' data-target="reg_confirm_password"></i>
+                                <span class="form-error" id="confirm-password-error" style="display: none;">Passwords do not match</span>
+                            </div>
+
+                            <div class="terms {% if registrationForm.vars.errors|length > 0 %}has-error{% endif %}">
+                                <input type="checkbox" id="terms" name="terms" required />
+                                <label for="terms">I agree to the <a href="#">Terms of Service</a> and
+                                    <a href="#">Privacy Policy</a></label>
+                                <div class="form-error" id="terms-error" style="display: none;">You must accept the terms and conditions</div>
+                            </div>
+
+                            <div class="step-buttons step-buttons-final">
+                            
+                            </div>
+                            <button type="submit" class="btn">CREATE ACCOUNT</button>
+                        </div>
+                    {{ form_end(registrationForm, { render_rest: false }) }}
+                    <div class="social-media-section">
+                        <p>or register with</p>
+                        <div class="social-icons">
+                            <a href="#"><i class='bx bxl-google'></i></a>
+                            <a href="#"><i class='bx bxl-facebook'></i></a>
+                            <a href="#"><i class='bx bxl-github'></i></a>
+                            <a href="#"><i class='bx bxl-linkedin'></i></a>
                         </div>
                     </div>
-
-                    <div class="step-buttons">
-                        <button type="button" class="prev-btn">Previous</button>
-                        <button type="button" class="next-btn">Next</button>
-                    </div>
                 </div>
-
-                <!-- Step 3: Password and Terms -->
-                <div class="step-content" data-step="3">
-                    <div class="input-group">
-                        <label for="reg_password">Password</label>
-                        {{ form_widget(registrationForm.plainPassword, {'attr': {'class': 'form-input', 'id':
-                        'reg_password', 'placeholder': 'Enter your password'}}) }}
-                    </div>
-
-                    <div class="input-group">
-                        <label for="reg_confirm_password">Confirm Password</label>
-                        <div class="password-field">
-                            <input type="password" id="reg_confirm_password" class="form-input"
-                                placeholder="Confirm your password" required>
-                            <span class="password-toggle" data-target="reg_confirm_password">
-                                <i class="fas fa-eye"></i>
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="terms">
-                        <input type="checkbox" id="terms" name="terms" required>
-                        <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy
-                                Policy</a></label>
-                    </div>
-
-                    <div class="step-buttons step-buttons-final">
-                        <button type="button" class="prev-btn">Previous</button>
-                    </div>
-                    <div class="submit-btn-container">
-                        <button type="submit" class="submit-btn">CREATE ACCOUNT</button>
-                    </div>
-                </div>
-
-                {{ form_end(registrationForm, {'render_rest': false}) }}
             </div>
 
-            <!-- Decorative elements -->
-            <div class="decorative-circle circle-3"></div>
-            <div class="decorative-circle circle-4"></div>
-            <div class="decorative-line line-2"></div>
+            <!-- Toggle Section with Animation and Logo -->
+            <div class="toggle-box">
+                <!-- Left toggle panel (visible when in login mode) -->
+                <div class="toggle-panel toggle-left">
+                    <div class="logo-container">
+                        <a href="{{ path('app_front_home') }}">
+                            <img src="{{ asset('images/logo/logo.png') }}" alt="WamiaGo Logo" class="logo" />
+                        </a>
+                    </div>
+                    
+                    <div class="car-animation-container">
+                        <div class="floating-platform">
+                            <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs"
+                                type="module"></script>
+                            <dotlottie-player src="https://lottie.host/99262306-ffaf-4895-b278-aeb39ea76131/KdSeoyzVbI.lottie"
+                                background="transparent" speed="1" style="width: 250px; height: 250px" loop autoplay
+                                class="animated-car"></dotlottie-player>
+                        </div>
+                    </div>
+                    
+                    <h1>Hello, Welcome!</h1>
+                    <p id="toggle-message">New here? Create an account</p>
+                    <button class="btn register-btn">Sign Up</button>
+
+                    <!-- Particles for decorative effect -->
+                    <div class="particles">
+                        <div class="particle small" style="top: 10%; left: 20%; animation-delay: 0s"></div>
+                        <div class="particle small" style="top: 40%; left: 85%; animation-delay: 1.5s"></div>
+                        <div class="particle small" style="top: 80%; left: 10%; animation-delay: 2.5s"></div>
+                        <div class="particle star" style="top: 25%; left: 75%; animation-delay: 13.5s"></div>
+                        <div class="particle ring" style="top: 45%; left: 65%; animation-delay: 15.2s"></div>
+                    </div>
+                </div>
+
+                <!-- Right toggle panel (visible when in register mode) -->
+                <div class="toggle-panel toggle-right">
+                    <div class="logo-container">
+                        <a href="{{ path('app_front_home') }}">
+                            <img src="{{ asset('images/logo/logo.png') }}" alt="WamiaGo Logo" class="logo" />
+                        </a>
+                    </div>
+                    
+                    <div class="car-animation-container">
+                        <div class="floating-platform">
+                            <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs"
+                                type="module"></script>
+                            <dotlottie-player src="https://lottie.host/99262306-ffaf-4895-b278-aeb39ea76131/KdSeoyzVbI.lottie"
+                                background="transparent" speed="1" style="width: 250px; height: 250px" loop autoplay
+                                class="animated-car"></dotlottie-player>
+                        </div>
+                    </div>
+                    
+                    <h1>Welcome Back!</h1>
+                    <p>Already have an account?</p>
+                    <button class="btn login-btn">Login</button>
+
+                    <!-- Particles for decorative effect -->
+                    <div class="particles">
+                        <div class="particle medium" style="top: 20%; left: 40%; animation-delay: 5.2s"></div>
+                        <div class="particle medium" style="top: 60%; left: 70%; animation-delay: 6.1s"></div>
+                        <div class="particle large" style="top: 85%; left: 85%; animation-delay: 10.6s"></div>
+                        <div class="particle star" style="top: 65%; left: 25%; animation-delay: 14.8s"></div>
+                        <div class="particle ring" style="top: 15%; left: 25%; animation-delay: 16.4s"></div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block stylesheets %}
-<style>
-    :root {
-        --yellow: #ffc107; /* Taxi color from your theme */
-        --blue: #0d6efd; /* Primary color from your theme */
-        --green: #66bb6a; /* Bicycle color from your theme */
-        --light-blue: #0dcaf0; /* News color from your theme */
-    }
-
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: 'Poppins', sans-serif;
-    }
-
-    html,
-    body {
-        height: 100%;
-        width: 100%;
-        overflow: hidden;
-    }
-
-    body {
-        background-color: #f5f5f5;
-    }
-
-    .login-container {
-        width: 100%;
-        height: 100vh;
-        overflow: hidden;
-        position: relative;
-    }
-
-    #form-toggle {
-        display: none;
-    }
-
-    .split-container {
-        display: flex;
-        width: 100%;
-        height: 100%;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .split-side {
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 50px;
-        transition: all 0.6s ease-in-out;
-    }
-
-    .left-side {
-        background-color: transparent;
-        width: 45%;
-        z-index: 2;
-        position: relative;
-    }
-
-    .right-side {
-        background-color: var(--blue);
-        background-image:
-            radial-gradient(circle at 10% 20%, rgba(13, 202, 240, 0.3) 0%, transparent 25%), /* Light blue tint */
-            radial-gradient(circle at 90% 80%, rgba(102, 187, 106, 0.2) 0%, transparent 25%); /* Green accent */
-        width: 55%;
-        z-index: 1;
-        padding-left: 8%;
-        position: relative;
-        box-shadow: var(--shadow-lg); /* Adding shadow from your theme */
-    }
-
-    /* Create the exact curved effect between panels - using a better approach */
-    .split-container::before {
-        content: '';
-        position: absolute;
-        height: 100%;
-        width: 100%;
-        top: 0;
-        left: 0;
-        background-color: var(--yellow);
-        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0,0 L45,0 C60,30 65,70 45,100 L0,100 Z' fill='%23FFFFFF'/%3E%3C/svg%3E");
-        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0,0 L45,0 C60,30 65,70 45,100 L0,100 Z' fill='%23FFFFFF'/%3E%3C/svg%3E");
-        -webkit-mask-size: 100% 100%;
-        mask-size: 100% 100%;
-        -webkit-mask-repeat: no-repeat;
-        mask-repeat: no-repeat;
-        z-index: 1;
-    }
-
-    /* Mobile Adjustments */
-    @media (max-width: 992px) {
-        .split-container {
-            flex-direction: column;
-        }
-
-        .left-side,
-        .right-side {
-            width: 100%;
-            height: auto;
-        }
-
-        .left-side {
-            padding: 40px 20px;
-            min-height: 40vh;
-        }
-
-        .right-side {
-            min-height: 60vh;
-            padding: 40px 20px;
-        }
-
-        .split-container::before {
-            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0,0 L100,0 L100,40 C70,50 30,45 0,45 Z' fill='%23FFFFFF'/%3E%3C/svg%3E");
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0,0 L100,0 L100,40 C70,50 30,45 0,45 Z' fill='%23FFFFFF'/%3E%3C/svg%3E");
-        }
-    }
-
-    @media (max-width: 576px) {
-        .left-side {
-            padding: 30px 20px;
-            min-height: 30vh;
-            clip-path: polygon(0 0, 100% 0, 100% 95%, 0 100%);
-        }
-    }
-
-
-    .car-animation-container {
-        width: 350px;
-        height: 250px;
-        margin: 20px 0 30px;
-        position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        perspective: 1000px;
-        z-index: 2;
-    }
-
-    .floating-platform {
-        position: relative;
-        transform-style: preserve-3d;
-        animation: float-platform 6s ease-in-out infinite;
-        filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.4));
-    }
-
-    @keyframes float-platform {
-        0% {
-            transform: translateY(0) rotateX(5deg);
-        }
-
-        50% {
-            transform: translateY(-20px) rotateX(-2deg);
-        }
-
-        100% {
-            transform: translateY(0) rotateX(5deg);
-        }
-    }
-
-    .animated-car {
-        transform-origin: center center;
-        animation: glow-animation 4s ease-in-out infinite alternate;
-    }
-
-    /* Create a reflective surface under the car */
-    .floating-platform::after {
-        content: '';
-        position: absolute;
-        bottom: -20px;
-        left: 50%;
-        transform: translateX(-50%) rotateX(90deg);
-        width: 220px;
-        height: 60px;
-        background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0) 70%);
-        border-radius: 50%;
-        filter: blur(10px);
-        z-index: -1;
-    }
-
-    @keyframes glow-animation {
-        0% {
-            filter: none;
-        }
-
-        100% {
-            filter: none;
-        }
-    }
-
-    /* Particle background for right side */
-    .particles {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        z-index: -1;
-    }
-
-    .particle {
-        position: absolute;
-        width: 5px;
-        height: 5px;
-        background-color: rgba(255, 255, 255, 0.15);
-        border-radius: 50%;
-        animation: float-particle 15s infinite linear;
-    }
-
-    @keyframes float-particle {
-        0% {
-            transform: translateY(0) translateX(0);
-            opacity: 0;
-        }
-
-        10% {
-            opacity: 1;
-        }
-
-        90% {
-            opacity: 1;
-        }
-
-        100% {
-            transform: translateY(-100vh) translateX(100px);
-            opacity: 0;
-        }
-    }
-
-    /* Enhanced decorative elements */
-    .decorative-circle {
-        position: absolute;
-        border-radius: 50%;
-        z-index: -1;
-        animation: rotate 20s linear infinite;
-        box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
-    }
-
-    .circle-1 {
-        width: 200px;
-        height: 200px;
-        top: 10%;
-        right: 5%;
-        border: 3px dashed rgba(0, 0, 0, 0.1);
-        animation: rotate 25s linear infinite, pulse-scale 8s ease-in-out infinite;
-    }
-
-    .circle-2 {
-        width: 300px;
-        height: 300px;
-        bottom: -150px;
-        left: -50px;
-        border: 2px dashed rgba(0, 0, 0, 0.1);
-        animation: rotate-reverse 30s linear infinite, pulse-scale 10s ease-in-out infinite;
-    }
-
-    .circle-3 {
-        width: 250px;
-        height: 250px;
-        top: -130px;
-        right: -100px;
-        border: 3px dashed rgba(255, 255, 255, 0.15);
-        animation: rotate 28s linear infinite, pulse-scale 9s ease-in-out infinite;
-    }
-
-    .circle-4 {
-        width: 180px;
-        height: 180px;
-        bottom: 5%;
-        left: 10%;
-        border: 2px dashed rgba(255, 255, 255, 0.15);
-        animation: rotate-reverse 22s linear infinite, pulse-scale 7s ease-in-out infinite;
-    }
-
-    @keyframes rotate-reverse {
-        from {
-            transform: rotate(0deg);
-        }
-
-        to {
-            transform: rotate(-360deg);
-        }
-    }
-
-    @keyframes pulse-scale {
-        0% {
-            transform: scale(1) rotate(0);
-        }
-
-        50% {
-            transform: scale(1.1) rotate(180deg);
-        }
-
-        100% {
-            transform: scale(1) rotate(360deg);
-        }
-    }
-
-    /* Enhanced logo and car animation */
-    .logo {
-        width: 240px;
-        height: auto;
-        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        animation: subtle- float 5s ease-in-out infinite;
-    }
-
-    .logo:hover {
-        transform: translateY(-8px) scale(1.05);
-        filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.9)) brightness(1.1);
-    }
-
-    @keyframes subtle-float {
-        0% {
-            transform: translateY(0);
-        }
-
-        50% {
-            transform: translateY(-10px);
-        }
-
-        100% {
-            transform: translateY(0);
-        }
-    }
-
-    .animated-car {
-        transform-origin: center center;
-        animation: float 6s ease-in-out infinite, glow-animation 4s ease-in-out infinite alternate;
-    }
-
-    @keyframes glow-animation {
-        0% {
-            filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.7));
-        }
-
-        100% {
-            filter: drop-shadow(0 15px 35px rgba(65, 105, 225, 0.9));
-        }
-    }
-
-    /* Enhanced buttons */
-    .login-btn {
-        display: inline-block;
-        background: linear-gradient(45deg, var(--blue), #4481fd);
-        color: white;
-        font-size: 1.1rem;
-        font-weight: 500;
-        padding: 14px 60px;
-        border-radius: 15px; /* Matching your --border-radius variable */
-        cursor: pointer;
-        box-shadow: var(--shadow-md); /* Using your theme's shadow variable */
-        transition: var(--transition); /* Using your theme's transition variable */
-        position: relative;
-        overflow: hidden;
-        border: 2px solid transparent;
-    }
-
-    .login-btn:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow-lg);
-        background: linear-gradient(45deg, #4481fd, var(--blue));
-        border-color: rgba(255, 255, 255, 0.3);
-    }
-
-    .login-btn::after {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -100%;
-        width: 70px;
-        height: 200%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-        transform: rotate(25deg);
-        transition: 0.8s;
-    }
-
-    .login-btn:hover::after {
-        left: 200%;
-        transition: 0.8s;
-    }
-
-    .submit-btn {
-        width: 100%;
-        height: 50px;
-        background: linear-gradient(45deg, var(--green), #4caf50); /* Using your bicycle-color-hover */
-        color: white;
-        border: none;
-        border-radius: var(--border-radius-sm); /* Using your theme's border radius */
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition); /* Using your theme's transition */
-        box-shadow: var(--shadow-md); /* Using your theme's shadow */
-        margin-bottom: 20px;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .submit-btn::after {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -100%;
-        width: 70px;
-        height: 200%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-        transform: rotate(25deg);
-        transition: 0.8s;
-    }
-
-    .submit-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-lg); /* Using your theme's shadow */
-        background: linear-gradient(45deg, #4caf50, var(--green));
-    }
-
-    .submit-btn:hover::after {
-        left: 200%;
-        transition: 0.8s;
-    }
-
-    /* Enhanced form elements */
-    .form-title {
-        color: white;
-        font-size: 2.6rem;
-        font-weight: 500;
-        margin-bottom: 30px;
-        text-align: center;
-        font-family: 'Dancing Script', cursive;
-        text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        animation: title-glow 3s ease-in-out infinite alternate;
-    }
-
-    @keyframes title-glow {
-        from {
-            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        to {
-            text-shadow: 0 5px 15px rgba(102, 187, 106, 0.5); /* Updated to your bicycle color */
-        }
-    }
-
-    .form-input {
-        width: 100%;
-        height: 45px;
-        background: transparent;
-        border: none;
-        border-bottom: 2px solid var(--light-blue);
-        color: white;
-        font-size: 1rem;
-        outline: none;
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        padding: 5px 0;
-    }
-
-    .form-input:focus {
-        border-color: var(--green);
-        border-bottom-width: 3px;
-        transform: translateY(-2px);
-    }
-
-    .form-input::placeholder {
-        color: rgba(255, 255, 255, 0.5);
-    }
-
-    /* Fix input styling for values */
-    select.form-input {
-        background-color: transparent;
-        -webkit-appearance: none;
-        appearance: none;
-        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-        background-repeat: no-repeat;
-        background-position: right 0px center;
-        background-size: 1em;
-        padding-right: 20px;
-    }
-
-    select.form-input option {
-        background-color: var(--blue);
-        color: white;
-    }
-
-    input.form-input:not([type="checkbox"]):not([type="radio"]) {
-        color: white;
-    }
-
-    input[type="date"].form-input {
-        color: white;
-    }
-
-    input[type="date"].form-input::-webkit-calendar-picker-indicator {
-        filter: invert(1);
-        cursor: pointer;
-    }
-
-    /* Fix autofill styling */
-    .form-input:-webkit-autofill,
-    .form-input:-webkit-autofill:hover,
-    .form-input:-webkit-autofill:focus {
-        -webkit-text-fill-color: white;
-        -webkit-box-shadow: 0 0 0px 1000px var(--blue) inset;
-        transition: background-color 5000s ease-in-out 0s;
-        caret-color: white;
-    }
-
-    .date-input {
-        position: relative;
-        cursor: pointer;
-    }
-
-    .custom-radio-buttons {
-        display: flex;
-        width: 100%;
-        gap: 10px;
-        margin-top: 8px;
-        margin-bottom: 15px;
-    }
-
-    .input-group label[for="reg_gender"] {
-        display: block;
-        margin-bottom: 8px;
-    }
-
-    .custom-radio {
-        flex: 1;
-    }
-
-    .custom-radio input[type="radio"] {
-        position: absolute;
-        opacity: 0;
-    }
-
-    .custom-radio label {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        padding: 12px 15px;
-        background-color: rgba(255, 255, 255, 0.07);
-        border: 2px solid var(--light-blue);
-        border-radius: 10px;
-        color: white;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-align: center;
-    }
-
-    .custom-radio label i {
-        margin-right: 8px;
-        font-size: 16px;
-        color: var(--light-blue);
-        transition: all 0.3s ease;
-    }
-
-    .custom-radio input[type="radio"]:checked+label {
-        background-color: rgba(77, 233, 123, 0.1);
-        border-color: var(--green);
-        color: var(--green);
-        box-shadow: 0 5px 15px rgba(77, 233, 123, 0.25);
-    }
-
-    .custom-radio input[type="radio"]:checked+label i {
-        color: var(--green);
-    }
-
-    .custom-radio label:hover {
-        background-color: rgba(255, 255, 255, 0.12);
-        transform: translateY(-2px);
-    }
-
-
-    @keyframes fadeIn {
-        0% {
-            opacity: 0;
-        }
-
-        100% {
-            opacity: 1;
-        }
-    }
-
-    .password-field {
-        position: relative;
-    }
-
-    .password-toggle {
-        position: absolute;
-        right: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--light-blue);
-        cursor: pointer;
-        transition: color 0.3s ease;
-    }
-
-    .password-toggle:hover {
-        color: var(--green);
-    }
-
-    .forgot-password {
-        text-align: right;
-        margin-bottom: 25px;
-    }
-
-    .forgot-password a {
-        color: white;
-        font-size: 0.8rem;
-        text-decoration: none;
-        transition: color 0.3s ease;
-    }
-
-    .highlight {
-        color: var(--green);
-        font-weight: 500;
-    }
-
-    .forgot-password a:hover {
-        color: rgba(255, 255, 255, 0.8);
-    }
-
-    .form-actions {
-        margin-top: 30px;
-    }
-
+    </div>{% endblock %} 
+
+    {% block stylesheets %}
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@600&display=swap" rel="stylesheet" />
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="{{ asset('css/front/loginSignup.css') }}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+    /* Enhanced Step Indicators with Modern Design */
     .steps-container {
         display: flex;
-        justify-content: center;
         align-items: center;
-        margin-bottom: 30px;
+        justify-content: center;
+        width: 90%;
+        max-width: 450px;
+        margin: 30px auto;
+        position: relative;
+        padding: 18px 15px;
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 40px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        transition: all 0.5s ease;
+        transform-origin: center;
+        animation: stepContainerPulse 1.5s ease-in-out;
+    }
+
+    @keyframes stepContainerPulse {
+        0% { transform: scale(0.95); opacity: 0.7; }
+        50% { transform: scale(1.03); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
     }
 
     .step-indicator {
-        width: 44px;
-        height: 44px;
+        width: 45px;
+        height: 45px;
         border-radius: 50%;
-        background-color: rgba(255, 255, 255, 0.1);
+        background: #fff;
+        border: 2px solid #e0e0e0;
         display: flex;
-        justify-content: center;
         align-items: center;
-        color: white;
+        justify-content: center;
         font-weight: 600;
+        font-size: 1.1rem;
+        color: #777;
         position: relative;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .step-indicator::after {
-        content: '';
-        position: absolute;
-        top: -4px;
-        left: -4px;
-        right: -4px;
-        bottom: -4px;
-        border-radius: 50%;
-        border: 2px solid transparent;
-        opacity: 0;
-        transition: all 0.3s ease;
-    }
-
-    .step-indicator.active {
-        background-color: var(--green);
-        transform: scale(1.2);
-        box-shadow: 0 0 20px rgba(102, 187, 106, 0.6); /* Using your theme's bicycle color */
-        z-index: 1;
-    }
-
-    .step-indicator.active::after {
-        border-color: rgba(255, 255, 255, 0.3);
-        opacity: 1;
-        animation: pulse-border 2s infinite;
-    }
-
-    @keyframes pulse-border {
-        0% {
-            transform: scale(1);
-            opacity: 1;
-        }
-
-        50% {
-            transform: scale(1.1);
-            opacity: 0.5;
-        }
-
-        100% {
-            transform: scale(1);
-            opacity: 1;
-        }
-    }
-
-    .step-indicator.completed {
-        background-color: var(--green);
-        box-shadow: 0 0 15px rgba(102, 187, 106, 0.4);
-    }
-
-    .step-line {
-        flex: 1;
-        height: 3px;
-        background-color: rgba(255, 255, 255, 0.1);
-        margin: 0 15px;
-        position: relative;
-        max-width: 60px;
-        border-radius: 3px;
-        transition: all 0.5s ease;
+        z-index: 2;
+        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+        flex-shrink: 0;
         overflow: hidden;
     }
 
-    .step-line.active {
-        background-color: var(--green);
-        box-shadow: 0 0 10px rgba(102, 187, 106, 0.4);
+    .step-indicator:hover {
+        transform: translateY(-5px) scale(1.1);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        border-color: #bbb;
+        color: #555;
     }
 
-    .step-line.active::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
-        animation: line-shine 2s infinite;
-    }
-
-    @keyframes line-shine {
-        0% {
-            transform: translateX(-100%);
-        }
-
-        100% {
-            transform: translateX(100%);
-        }
-    }
-
-    .step-content {
-        display: none;
-        opacity: 0;
-        transform: translateX(20px);
-        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .step-content.active {
-        display: block;
-        opacity: 1;
-        transform: translateX(0);
-        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .step-buttons {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 30px;
-    }
-
-    .step-buttons-final {
-        justify-content: flex-start;
-        margin-bottom: 15px;
-    }
-
-    .submit-btn-container {
-        display: flex;
-        justify-content: center;
-        width: 100%;
-        margin-top: 10px;
-    }
-
-    .prev-btn,
-    .next-btn {
-        padding: 12px 25px;
-        border-radius: 25px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: none;
-    }
-
-    .prev-btn {
-        background-color: transparent;
+    .step-indicator.active {
+        border-color: var(--primary-color);
+        background: var(--primary-color);
         color: white;
-        border: 2px solid var(--light-blue);
+        transform: scale(1.2);
+        box-shadow: 0 8px 25px rgba(var(--primary-color-rgb), 0.4);
+        animation: pulseActive 2s infinite;
     }
 
-    .prev-btn:hover {
-        background-color: rgba(255, 255, 255, 0.1);
+    @keyframes pulseActive {
+        0% { box-shadow: 0 0 0 0 rgba(var(--primary-color-rgb), 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(var(--primary-color-rgb), 0); }
+        100% { box-shadow: 0 0 0 0 rgba(var(--primary-color-rgb), 0); }
     }
 
-    .next-btn {
-        background-color: var(--light-blue);
-        color: white;
-        box-shadow: 0 5px 15px rgba(127, 180, 255, 0.3);
-    }
-
-    .next-btn:hover {
-        background-color: var(--green);
-        transform: translateY(-3px);
-        box-shadow: 0 8px 15px rgba(77, 233, 123, 0.3);
-    }
-
-    .error {
-        border-color: #ff3860 !important;
-    }
-
-    .validation-error {
-        color: #ff3860;
-        background-color: rgba(255, 56, 96, 0.1);
-        padding: 8px 12px;
-        border-radius: 8px;
-        margin-top: 10px;
-        font-size: 0.85rem;
-        animation: fadeIn 0.3s ease;
-        display: block;
-        border-left: 3px solid #ff3860;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .shake {
-        animation: shake 0.5s ease-in-out;
-    }
-
-    @keyframes shake {
-        0% {
-            transform: translateX(0);
-        }
-
-        20% {
-            transform: translateX(-10px);
-        }
-
-        40% {
-            transform: translateX(10px);
-        }
-
-        60% {
-            transform: translateX(-5px);
-        }
-
-        80% {
-            transform: translateX(5px);
-        }
-
-        100% {
-            transform: translateX(0);
-        }
-    }
-
-    @keyframes glow {
-        0% {
-            box-shadow: inset 0 0 50px rgba(255, 206, 75, 0.1);
-        }
-
-        50% {
-            box-shadow: inset 0 0 80px rgba(255, 206, 75, 0.3);
-        }
-
-        100% {
-            box-shadow: inset 0 0 50px rgba(255, 206, 75, 0.1);
-        }
-    }
-
-    @keyframes rotate {
-        from {
-            transform: rotate(0deg);
-        }
-
-        to {
-            transform: rotate(360deg);
-        }
-    }
-
-    @keyframes float {
-        0% {
-            transform: translateY(0);
-        }
-
-        50% {
-            transform: translateY(-15px);
-        }
-
-        100% {
-            transform: translateY(0);
-        }
-    }
-
-    /* Left side elements */
-    .logo-container {
-        text-align: center;
-        margin-bottom: 30px;
-        position: relative;
-        z-index: 2;
-    }
-
-    .car-animation-container {
-        width: 350px;
-        height: 350px;
-        margin: 10px 0 30px;
-        position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-radius: 10px;
-        overflow: visible;
+    .step-line {
+        flex-grow: 1;
+        height: 4px;
+        background: #e5e5e5;
         z-index: 1;
-    }
-
-    .toggle-text {
-        text-align: center;
-        margin-bottom: 15px;
         position: relative;
+        overflow: hidden;
+        margin: 0 -5px;
+        max-width: 70px;
+        border-radius: 4px;
     }
 
-    .toggle-text p {
-        color: var(--blue);
-        font-size: 1.1rem;
-        font-weight: 600;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Decorative line */
-    .decorative-line {
-        position: absolute;
-        z-index: -1;
-    }
-
-    .line-1 {
-        width: 150px;
-        height: 400px;
-        border-radius: 100px;
-        border: 1px dashed rgba(0, 0, 0, 0.15);
-        border-left: none;
-        top: 20%;
-        left: 15%;
-        transform: rotate(-20deg);
-        animation: line-pulse 8s ease-in-out infinite;
-    }
-
-    .line-2 {
-        width: 200px;
-        height: 500px;
-        border-radius: 100px;
-        border: 1px dashed rgba(255, 255, 255, 0.15);
-        border-right: none;
-        bottom: 10%;
-        right: 20%;
-        transform: rotate(30deg);
-        animation: line-pulse 10s ease-in-out infinite;
-    }
-
-    @keyframes line-pulse {
-        0% {
-            opacity: 0.3;
-        }
-
-        50% {
-            opacity: 0.7;
-        }
-
-        100% {
-            opacity: 0.3;
-        }
-    }
-
-    /* Basic elements we need to restore */
-    .login-form,
-    .signup-form {
-        max-width: 420px;
-        width: 90%;
-        padding: 0 20px;
-        transition: all 0.5s ease-in-out;
-        position: relative;
-        z-index: 2;
-    }
-
-    .login-form {
-        opacity: 0;
-        transform: translateY(-30px);
-        visibility: hidden;
-        position: absolute;
-        display: none;
-        transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .signup-form {
-        opacity: 1;
-        transform: translateY(0);
-        visibility: visible;
-        max-height: none;
-        overflow-y: visible;
-        display: block;
-        transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    #form-toggle:checked~.split-container .login-form {
-        opacity: 1;
-        transform: translateY(0);
-        visibility: visible;
-        position: relative;
-        display: block;
-        transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    #form-toggle:checked~.split-container .signup-form {
-        opacity: 0;
-        transform: translateY(30px);
-        visibility: hidden;
-        position: absolute;
-        display: none;
-        transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .input-group {
-        margin-bottom: 25px;
-        position: relative;
-    }
-
-    .input-group label {
-        display: block;
-        color: white;
-        font-size: 0.9rem;
-        margin-bottom: 8px;
-        font-weight: 500;
-        letter-spacing: 0.5px;
-    }
-
-    .input-group::after {
+    .step-line::after {
         content: '';
         position: absolute;
-        bottom: 0;
         left: 0;
-        width: 0;
-        height: 2px;
-        background: linear-gradient(90deg, var(--green), transparent);
-        transition: width 0.5s ease;
-    }
-
-    .input-group:hover::after {
-        width: 100%;
-    }
-
-    .hidden-fields {
-        display: none;
-    }
-
-    .terms {
-        display: flex;
-        align-items: flex-start;
-        margin-bottom: 20px;
-        color: white;
-        font-size: 0.85rem;
-    }
-
-    .terms input {
-        margin: 4px 10px 0 0;
-    }
-
-    .terms label a {
-        color: var(--green);
-        text-decoration: none;
-        transition: color 0.3s ease;
-    }
-
-    .terms label a:hover {
-        text-decoration: underline;
-        color: #2dc963;
-    }
-
-    .alert {
-        background-color: rgba(220, 53, 69, 0.8);
-        color: white;
-        padding: 10px 15px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        backdrop-filter: blur(5px);
-        box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
-    }
-
-    .success-message {
-        background-color: rgba(77, 233, 123, 0.2);
-        color: var(--green);
-        border: 1px solid var(--green);
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 25px;
-        display: flex;
-        align-items: center;
-        animation: fadeInDown 0.5s ease-out;
-    }
-
-    .success-message i {
-        font-size: 1.5rem;
-        margin-right: 10px;
-    }
-
-    .error-message {
-        background-color: rgba(220, 53, 69, 0.2);
-        color: #ff3860;
-        border: 1px solid #ff3860;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 25px;
-        display: flex;
-        align-items: center;
-        animation: fadeInDown 0.5s ease-out;
-    }
-
-    .error-message i {
-        font-size: 1.5rem;
-        margin-right: 10px;
-    }
-
-    @keyframes fadeInDown {
-        from {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .button-loading {
-        position: relative;
-        color: transparent !important;
-    }
-
-    .button-loading::after {
-        content: "";
-        position: absolute;
-        width: 20px;
-        height: 20px;
         top: 0;
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, var(--primary-color), #28a745);
+        transition: width 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .step-line.active::after {
+        width: 100%;
+        animation: lineProgress 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes lineProgress {
+        0% { width: 0; }
+        100% { width: 100%; }
+    }
+
+    /* Shake animation for invalid steps */
+    .step-indicator.shake {
+        animation: shakeStep 0.8s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    @keyframes shakeStep {
+        10%, 90% { transform: translateX(-2px) scale(1.2); }
+        20%, 80% { transform: translateX(3px) scale(1.2); }
+        30%, 50%, 70% { transform: translateX(-5px) scale(1.2); }
+        40%, 60% { transform: translateX(5px) scale(1.2); }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .steps-container {
+            width: 95%;
+            padding: 15px 10px;
+        }
+        
+        .step-indicator {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+        
+        .step-line {
+            max-width: 50px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .steps-container {
+            width: 100%;
+            padding: 12px 8px;
+        }
+        
+        .step-indicator {
+            width: 35px;
+            height: 35px;
+            font-size: 0.9rem;
+        }
+        
+        .step-line {
+            max-width: 40px;
+            height: 3px;
+        }
+        
+        .step-indicator .checkmark-icon {
+            font-size: 1rem;
+        }
+    }
+
+    /* Validation Error Styles */
+    .validation-error {
+        color: var(--error-color);
+        font-size: 0.85rem;
+        margin-top: 5px;
+        display: block;
+        transition: all 0.5s ease;
+        opacity: 1;
+        position: absolute;
         left: 0;
-        right: 0;
-        bottom: 0;
-        margin: auto;
-        border: 3px solid transparent;
-        border-top-color: #ffffff;
-        border-radius: 50%;
-        animation: button-loading-spinner 1s ease infinite;
+        bottom: -25px;
+        width: 100%;
+        text-align: left;
     }
 
-    @keyframes button-loading-spinner {
-        from {
-            transform: rotate(0turn);
-        }
-
-        to {
-            transform: rotate(1turn);
-        }
+    .validation-error.fade-out {
+        opacity: 0;
+        visibility: hidden;
     }
 
-    .is-invalid {
-        border-color: #ff3860 !important;
-        background-color: rgba(255, 56, 96, 0.05) !important;
+    /* Highlight inputs with errors */
+    .input-box .is-invalid, 
+    .input-group .is-invalid {
+        border-color: var(--error-color) !important;
+        box-shadow: 0 0 0 1px var(--error-color) !important;
     }
-</style>
-<link
-    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@600&display=swap"
-    rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-{% endblock %}
+    </style>
+    {% endblock %}
 
-{% block javascripts %}
-<script src="{{ asset('js/front/auth.js') }}"></script>
-{% endblock %}
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const nextButtons = document.querySelectorAll('.next-btn');
-        const prevButtons = document.querySelectorAll('.prev-btn');
-        const steps = document.querySelectorAll('.step-content');
-        const indicators = document.querySelectorAll('.step-indicator');
-        const toggleMessage = document.getElementById('toggle-message');
-        const toggleButton = document.querySelector('label[for="form-toggle"]');
-
-        let currentStep = 0;
-
-        function updateStep(step) {
-            steps.forEach((stepContent, index) => {
-                if (index === step) {
-                    stepContent.classList.add('active');
-                } else {
-                    stepContent.classList.remove('active');
-                }
+    {% block javascripts %}
+    <script src="{{ asset('js/front/loginSignup.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+            document.addEventListener('DOMContentLoaded', function() {
+            // Get all step indicators and step content areas
+            const stepIndicators = document.querySelectorAll('.step-indicator');
+            const stepContents = document.querySelectorAll('.step-content');
+            const stepLines = document.querySelectorAll('.step-line');
+            const completedSteps = new Set([1]);  // Track completed steps (start with step 1 as default)
+            const maxStepReached = 1; // Track the maximum step that has been reached
+        
+            // Enable clicking on step indicators to navigate, but only to completed steps
+            stepIndicators.forEach(indicator => {
+                indicator.addEventListener('click', function() {
+                    const clickedStep = parseInt(this.getAttribute('data-step'));
+                    const currentStep = getCurrentStep();
+                    
+                    // Only allow navigation to completed steps or the current step
+                    if (completedSteps.has(clickedStep) || clickedStep === 1) {
+                        navigateToStep(clickedStep);
+                    }
+                });
             });
-
-            indicators.forEach((indicator, index) => {
-                if (index === step) {
-                    indicator.classList.add('active');
-                } else {
-                    indicator.classList.remove('active');
+        
+            // Fix validation message timeout
+            function setupValidationMessageTimeout() {
+                // Set timeout to remove error messages after 5 seconds
+                const errorMessages = document.querySelectorAll('.validation-error');
+                errorMessages.forEach(message => {
+                    setTimeout(() => {
+                        message.classList.add('fade-out');
+                        setTimeout(() => {
+                            if (message.parentNode) {
+                                message.remove();
+                            }
+                        }, 500);
+                    }, 5000); // 5 seconds
+                });
+            }
+            
+            // Run initially
+            setupValidationMessageTimeout();
+            
+            // Add input event listeners to all required fields
+            const requiredInputs = document.querySelectorAll('input[required], select[required]');
+            requiredInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    const errorMessage = this.closest('.input-box')?.querySelector('.validation-error');
+                    if (errorMessage && this.value.trim() !== '') {
+                        errorMessage.classList.add('fade-out');
+                        setTimeout(() => {
+                            if (errorMessage.parentNode) {
+                                errorMessage.remove();
+                            }
+                        }, 500);
+                    }
+                });
+            });
+        
+            // Utility functions
+            function getCurrentStep() {
+                for (let i = 0; i < stepContents.length; i++) {
+                    if (stepContents[i].classList.contains('active')) {
+                        return parseInt(stepContents[i].getAttribute('data-step'));
+                    }
                 }
-
-                if (index < step) {
+                return 1; // Default to first step
+            }
+        
+            function navigateToStep(stepNumber) {
+                // Update step content visibility
+                stepContents.forEach(content => {
+                    if (parseInt(content.getAttribute('data-step')) === stepNumber) {
+                        content.classList.add('active');
+                    } else {
+                        content.classList.remove('active');
+                    }
+                });
+        
+            // Update step indicators
+            stepIndicators.forEach(indicator => {
+                const step = parseInt(indicator.getAttribute('data-step'));
+                
+                // Clear all active states first
+                indicator.classList.remove('active');
+                
+                // Mark as active if it's the current step
+                if (step === stepNumber) {
+                    indicator.classList.add('active');
+                }
+                
+                // First, ensure all indicators have their original number content
+                if (indicator.textContent === '') {
+                    indicator.textContent = step;
+                }
+                
+                // Mark as completed if it's a completed step AND not the current active step
+                if (completedSteps.has(step) && step < stepNumber) {
                     indicator.classList.add('completed');
+                    
+                    // For completed steps, clear content to let CSS show checkmark
+                    indicator.innerHTML = '';
+                    
+                    // Create the checkmark element with explicit styling and SVG for better visibility
+                    const checkmark = document.createElement('div');
+                    checkmark.style.fontSize = '1.8rem';
+                    checkmark.style.color = '#ffffff';
+                    checkmark.style.display = 'flex';
+                    checkmark.style.alignItems = 'center';
+                    checkmark.style.justifyContent = 'center';
+                    checkmark.style.width = '100%';
+                    checkmark.style.height = '100%';
+                    checkmark.style.position = 'absolute';
+                    checkmark.style.top = '0';
+                    checkmark.style.left = '0';
+                    
+                    // Use SVG instead of icon font for better reliability
+                    checkmark.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    `;
+                    indicator.appendChild(checkmark);
+                } else if (completedSteps.has(step) && step === stepNumber) {
+                    // Don't mark the current step as completed visually
+                    indicator.classList.remove('completed');
+                    
+                    // Restore the number for the current step
+                    if (!indicator.textContent || indicator.textContent === '') {
+                        indicator.textContent = step;
+                    }
                 } else {
+                    // Ensure non-completed steps show their number
+                    indicator.textContent = step;
                     indicator.classList.remove('completed');
                 }
             });
-        }
-
-        nextButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                if (currentStep < steps.length - 1) {
-                    currentStep++;
-                    updateStep(currentStep);
-                }
-            });
-        });
-
-        prevButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                if (currentStep > 0) {
-                    currentStep--;
-                    updateStep(currentStep);
-                }
-            });
-        });
-
-        // Update toggle button label dynamically
-        const formToggle = document.getElementById('form-toggle');
-        formToggle.addEventListener('change', function () {
-            if (formToggle.checked) {
-                toggleMessage.textContent = 'New here? Create an account';
-                toggleButton.textContent = 'Sign Up';
-            } else {
-                toggleMessage.textContent = 'Already have an account? Log in';
-                toggleButton.textContent = 'Log In';
+                
+                // Update step lines
+                updateStepLines();
             }
+            
+            // Update step lines based on current step
+            function updateStepLines() {
+                stepLines.forEach((line, index) => {
+                    const beforeStep = index + 1;
+                    const afterStep = index + 2;
+                    
+                    // Only mark line as active if the step before is truly completed
+                    if (completedSteps.has(beforeStep) && beforeStep < getCurrentStep()) {
+                        line.classList.add('active');
+                        // Animate the line fill
+                        const lineAfter = line.querySelector('::after') || line;
+                        if (lineAfter) {
+                            line.classList.add('active');
+                        }
+                    } else {
+                        line.classList.remove('active');
+                    }
+                });
+            }
+        
+            // Hook into existing next buttons to enforce validation
+            const nextButtons = document.querySelectorAll('.next-btn');
+            nextButtons.forEach(button => {
+                button.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const currentStep = getCurrentStep();
+                    const isStepValid = validateStep(currentStep);
+        
+                    if (isStepValid) {
+                        const nextStep = currentStep + 1;
+                        completedSteps.add(currentStep);
+                        navigateToStep(nextStep);
+                    } else {
+                        console.log("Validation failed. Cannot proceed to the next step.");
+                        // Add shake animation to indicate failure
+                        const stepIndicator = document.querySelector(`.step-indicator[data-step="${currentStep}"]`);
+                        stepIndicator.classList.add('shake');
+                        setTimeout(() => {
+                            stepIndicator.classList.remove('shake');
+                        }, 500);
+                    }
+                });
+            });
+        
+            // Function to validate a step before marking it as completed
+            function validateStep(stepNumber) {
+                const stepContent = document.querySelector(`.step-content[data-step="${stepNumber}"]`);
+                if (!stepContent) return false;
+        
+                // Reset previous error states
+                stepContent.querySelectorAll('.is-invalid').forEach(el => {
+                    el.classList.remove('is-invalid');
+                });
+                stepContent.querySelectorAll('.form-error').forEach(el => {
+                    el.style.display = 'none';
+                });
+        
+                let isValid = true;
+        
+                // Check for server errors only
+                const serverErrors = stepContent.querySelectorAll('.form-error');
+                serverErrors.forEach(error => {
+                    if (error.textContent.trim()) {
+                        error.style.display = 'block';
+                        const field = error.closest('.input-box, .input-group')?.querySelector('input, select, textarea');
+                        if (field) field.classList.add('is-invalid');
+                        isValid = false;
+                    }
+                });
+        
+                if (!isValid) {
+                    const firstInvalid = stepContent.querySelector('.is-invalid');
+                    if (firstInvalid) {
+                        setTimeout(() => {
+                            firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            firstInvalid.focus();
+                        }, 100);
+                    }
+                }
+        
+                return isValid;
+            }
+        
+            // Also handle previous button clicks correctly
+            const prevButtons = document.querySelectorAll('.prev-btn');
+            prevButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const currentStep = getCurrentStep();
+                    const prevStep = currentStep - 1;
+                    
+                    if (prevStep >= 1) {
+                        // Current step is no longer active
+                        stepIndicators.forEach(indicator => {
+                            const step = parseInt(indicator.getAttribute('data-step'));
+                            
+                            if (step === currentStep) {
+                                indicator.classList.remove('active');
+                            }
+                            
+                            if (step === prevStep) {
+                                indicator.classList.add('active');
+                                indicator.classList.remove('completed');
+                                indicator.textContent = step.toString(); // Restore number
+                            }
+                        });
+                        
+                        // Update step lines
+                        updateStepLines();
+                    }
+                });
+            });
+        
+            // Clean gender button initialization at the end of the page
+            
         });
+    </script>
+    <!-- Single clean implementation for gender buttons -->
+    <script>
+        // Wait for window to fully load to ensure all elements are ready
+        window.addEventListener('load', function() {
+            console.log("*** GENDER BUTTON SETUP - WINDOW LOAD ***");
+            setupGenderButtons();
+        });
+        
+        // Also try on DOMContentLoaded as a fallback
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("*** GENDER BUTTON SETUP - DOM CONTENT LOADED ***");
+            setupGenderButtons();
+        });
+        
+        function setupGenderButtons() {
+            console.log("Setting up gender buttons...");
+            const genderContainer = document.querySelector('.custom-radio-buttons');
+            if (!genderContainer) {
+                console.error("No gender container found!");
+                return;
+            }
+            
+            const inputs = genderContainer.querySelectorAll('input[type="radio"]');
+            console.log("Found", inputs.length, "gender radio inputs");
+            
+            // Apply direct styles to ensure they work
+            applyGenderButtonStyles();
+            
+            inputs.forEach(function(input) {
+                const id = input.id;
+                const label = document.querySelector(`label[for="${id}"]`);
+                
+                if (!label) {
+                    console.error("No label found for", id);
+                    return;
+                }
+                
+                console.log("Setting up", id, "with label:", label.textContent);
+                
+                // Force active state on already checked input
+                if (input.checked) {
+                    console.log("Input", id, "is checked, adding active class");
+                    label.classList.add('active');
+                    // Force style application
+                    if (id === "gender_male") {
+                        forceMaleStyles(label);
+                    } else if (id === "gender_female") {
+                        forceFemaleStyles(label);
+                    }
+                }
+                
+                // Direct styling on click - not relying just on CSS classes
+                label.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log("Label clicked:", id);
+                    
+                    // Remove styling from all labels
+                    inputs.forEach(inp => {
+                        const l = document.querySelector(`label[for="${inp.id}"]`);
+                        if (l) {
+                            l.classList.remove('active');
+                            resetStyles(l);
+                        }
+                    });
+                    
+                    // Apply active class
+                    label.classList.add('active');
+                    
+                    // Check the input
+                    input.checked = true;
+                    
+                    // Apply direct styling based on gender
+                    if (id === "gender_male") {
+                        forceMaleStyles(label);
+                    } else if (id === "gender_female") {
+                        forceFemaleStyles(label);
+                    }
+                    
+                    // Dispatch change event
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+            });
+        }
+        
+        function applyGenderButtonStyles() {
+            // Add these styles directly to ensure they work
+            const css = `
+                label[for="gender_male"].active {
+                    border-color: #2196F3 !important;
+                    background-color: rgba(33, 150, 243, 0.1) !important;
+                    color: #2196F3 !important;
+                    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2) !important;
+                }
+                label[for="gender_female"].active {
+                    border-color: #FF4081 !important;
+                    background-color: rgba(255, 64, 129, 0.1) !important;
+                    color: #FF4081 !important;
+                    box-shadow: 0 4px 12px rgba(255, 64, 129, 0.2) !important;
+                }
+            `;
+            
+            const style = document.createElement('style');
+            style.textContent = css;
+            document.head.appendChild(style);
+        }
+        
+        function forceMaleStyles(label) {
+            label.style.borderColor = '#2196F3';
+            label.style.backgroundColor = 'rgba(33, 150, 243, 0.1)';
+            label.style.color = '#2196F3';
+            label.style.boxShadow = '0 4px 12px rgba(33, 150, 243, 0.2)';
+        }
+        
+        function forceFemaleStyles(label) {
+            label.style.borderColor = '#FF4081';
+            label.style.backgroundColor = 'rgba(255, 64, 129, 0.1)';
+            label.style.color = '#FF4081';
+            label.style.boxShadow = '0 4px 12px rgba(255, 64, 129, 0.2)';
+        }
+        
+        function resetStyles(label) {
+            label.style.borderColor = '#e0e0e0';
+            label.style.backgroundColor = '#fff';
+            label.style.color = '#555';
+            label.style.boxShadow = 'none';
+        }
+    </script>
+  <style>
+.custom-radio-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin: 15px 0;
+    width: 100%;
+}
 
-        // Initialize the first step
-        updateStep(currentStep);
-    });
-</script>
+/* Hide the actual radio buttons */
+.custom-radio-buttons input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
 
+/* Default styling for the labels */
+.custom-radio-buttons label {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: #fff;
+    color: #555;
+    gap: 8px;
+}
+
+/* Gender Icons */
+.gender-icon {
+    font-size: 18px;
+    margin-right: 5px;
+}
+
+/* Hover effect */
+.custom-radio-buttons label:hover {
+    border-color: #ccc;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* Active styling for male button */
+.custom-radio-buttons input[value="male"]:checked + label,
+label[for="gender_male"].active {
+    border-color: #2196F3 !important;
+    background-color: rgba(33, 150, 243, 0.1) !important;
+    color: #2196F3 !important;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2) !important;
+}
+
+/* Active styling for female button */
+.custom-radio-buttons input[value="female"]:checked + label,
+label[for="gender_female"].active {
+    border-color: #FF4081 !important;
+    background-color: rgba(255, 64, 129, 0.1) !important;
+    color: #FF4081 !important;
+    box-shadow: 0 4px 12px rgba(255, 64, 129, 0.2) !important;
+}
+  </style>
+    {% endblock %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            flatpickr("#registration_form_dateOfBirth", {
+                dateFormat: "Y-m-d",
+                maxDate: "today",
+                minDate: "-120 years",
+                allowInput: true,
+                altInput: true,
+                altFormat: "F j, Y",
+                disableMobile: "true"
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('login-ajax-form');
+            const errorContainer = document.getElementById('login-error-container');
+            const successContainer = document.getElementById('login-success-container');
+            const errorMessage = errorContainer.querySelector('.error-message');
+            const successMessage = successContainer.querySelector('.success-message');
+
+            // Add client-side validation
+            function validateForm() {
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value.trim();
+                let isValid = true;
+
+                // Clear previous error states
+                document.getElementById('email').classList.remove('is-invalid');
+                document.getElementById('password').classList.remove('is-invalid');
+
+                // Validate email
+                if (!email) {
+                    document.getElementById('email').classList.add('is-invalid');
+                    document.getElementById('email').nextElementSibling.textContent = 'Email is required';
+                    isValid = false;
+                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    document.getElementById('email').classList.add('is-invalid');
+                    document.getElementById('email').nextElementSibling.textContent = 'Please enter a valid email address';
+                    isValid = false;
+                }
+
+                // Validate password
+                if (!password) {
+                    document.getElementById('password').classList.add('is-invalid');
+                    document.getElementById('password').nextElementSibling.textContent = 'Password is required';
+                    isValid = false;
+                } else if (password.length < 8) {
+                    document.getElementById('password').classList.add('is-invalid');
+                    document.getElementById('password').nextElementSibling.textContent = 'Password must be at least 8 characters long';
+                    isValid = false;
+                }
+
+                return isValid;
+            }
+
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Hide any existing messages
+                errorContainer.style.display = 'none';
+                successContainer.style.display = 'none';
+                
+                // Validate form
+                if (!validateForm()) {
+                    return;
+                }
+                
+                const formData = new FormData(loginForm);
+                
+                // Show loading state
+                const submitButton = loginForm.querySelector('button[type="submit"]');
+                const buttonText = submitButton.querySelector('.button-text');
+                const spinner = submitButton.querySelector('.spinner-border');
+                buttonText.style.display = 'none';
+                spinner.classList.remove('d-none');
+                
+                fetch(loginForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                        return;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.success) {
+                        successMessage.textContent = 'Login successful! Redirecting...';
+                        successContainer.style.display = 'block';
+                        setTimeout(() => {
+                            window.location.href = data.redirectUrl || '/';
+                        }, 1000);
+                    } else if (data) {
+                        errorMessage.textContent = data.message || 'An error occurred during login.';
+                        errorContainer.style.display = 'block';
+                        
+                        // Highlight invalid fields
+                        if (data.field === 'email') {
+                            document.getElementById('email').classList.add('is-invalid');
+                        } else if (data.field === 'password') {
+                            document.getElementById('password').classList.add('is-invalid');
+                        }
+                    }
+                })
+                .catch(error => {
+                    errorMessage.textContent = 'An error occurred. Please try again.';
+                    errorContainer.style.display = 'block';
+                    console.error('Error:', error);
+                })
+                .finally(() => {
+                    // Reset button state
+                    buttonText.style.display = 'block';
+                    spinner.classList.add('d-none');
+                });
+            });
+        });
+    </script>

@@ -1,0 +1,244 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Edit Profile - WamiaGo{% endblock %}
+
+{% block meta_description %}{{ meta_description }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .profile-edit-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        .profile-picture-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .profile-picture-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 1rem;
+            border: 4px solid #fff;
+            box-shadow: 0 0 0 4px #007bff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .profile-picture-preview:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 4px #007bff, 0 0 20px rgba(0, 123, 255, 0.5);
+        }
+
+        .upload-button {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: #f8f9fa;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-button:hover {
+            background: #e9ecef;
+            border-color: #007bff;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .form-error {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .upload-hint {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 0.5rem;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="profile-edit-container">
+        <h1>Edit Profile</h1>
+        
+        {{ form_start(form, {'attr': {'enctype': 'multipart/form-data'}}) }}
+            <div class="profile-picture-section">
+                <label for="profile_picture" class="profile-picture-preview">
+                    <img src="{{ user.profilePicture ? asset('uploads/profile_pictures/' ~ user.profilePicture) : asset('images/default-avatar.png') }}" 
+                         alt="Current Profile Picture" 
+                         id="profile-preview">
+                </label>
+                <div class="upload-button" onclick="document.getElementById('profile_picture').click()">
+                    <i class="fas fa-camera me-2"></i>Change Photo
+                </div>
+                <div class="upload-hint">
+                    Click to upload a new profile picture (max 2MB)
+                </div>
+                {{ form_widget(form.profilePicture, {'attr': {'class': 'file-input', 'id': 'profile_picture'}}) }}
+                {{ form_errors(form.profilePicture) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.name) }}
+                {{ form_widget(form.name, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.name) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.email) }}
+                {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.email) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.phone_number) }}
+                {{ form_widget(form.phone_number, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.phone_number) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.location) }}
+                {{ form_widget(form.location, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.location) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.date_of_birth) }}
+                {{ form_widget(form.date_of_birth, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.date_of_birth) }}
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn-primary">Save Changes</button>
+                <a href="{{ path('app_profile') }}" class="btn-secondary">Cancel</a>
+            </div>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            flatpickr("#profile_edit_date_of_birth", {
+                dateFormat: "Y-m-d",
+                maxDate: "today",
+                minDate: "-120 years",
+                allowInput: true,
+                altInput: true,
+                altFormat: "F j, Y",
+                disableMobile: "true"
+            });
+
+            // Profile picture preview
+            const profilePictureInput = document.getElementById('profile_picture');
+            const profilePreview = document.getElementById('profile-preview');
+
+            profilePictureInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Validate file size (2MB max)
+                    if (file.size > 2 * 1024 * 1024) {
+                        alert('File size must be less than 2MB');
+                        this.value = '';
+                        return;
+                    }
+
+                    // Validate file type
+                    const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                    if (!validTypes.includes(file.type)) {
+                        alert('Please upload a valid image file (JPEG, PNG, GIF)');
+                        this.value = '';
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        profilePreview.src = e.target.result;
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+    </script>
+{% endblock %} 

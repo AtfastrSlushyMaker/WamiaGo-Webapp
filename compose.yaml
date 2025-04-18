@@ -18,8 +18,8 @@ services:
     container_name: wamia_mysql
     restart: always
     environment:
-      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'  # Allows empty root password
-      MYSQL_ROOT_PASSWORD: ''            # Explicit empty password
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'  
+      MYSQL_ROOT_PASSWORD: ''            
     volumes:
       - mysql_data:/var/lib/mysql
     command: --default-authentication-plugin=mysql_native_password
@@ -31,10 +31,10 @@ services:
     container_name: wamia_phpmyadmin
     restart: always
     environment:
-      PMA_HOST: wamia_mysql   # Must match MySQL container_name
+      PMA_HOST: wamia_mysql   
       PMA_USER: root
-      PMA_PASSWORD: ''        # Empty password to match MySQL
-      PMA_ARBITRARY: 1        # Allows empty password login
+      PMA_PASSWORD: ''       
+      PMA_ARBITRARY: 1        
     ports:
       - "8081:80"
     depends_on:

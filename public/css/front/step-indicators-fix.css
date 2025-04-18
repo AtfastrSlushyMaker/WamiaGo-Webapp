@@ -1,0 +1,60 @@
+/* Step indicator fixes */
+.steps-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 25px 0;
+    position: relative;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 30px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(5px);
+    transition: all 0.5s ease;
+    width: 80%;
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.step-indicator {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    color: #999;
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.step-indicator.active {
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+    color: white;
+    transform: scale(1.2);
+}
+
+.step-indicator.completed {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.step-line {
+    flex-grow: 1;
+    height: 2px;
+    background: #ddd;
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+.step-line.active {
+    background: var(--primary-color);
+}

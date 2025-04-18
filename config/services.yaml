@@ -4,6 +4,9 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    profile_pictures_directory: '%kernel.project_dir%/public/uploads/profile_pictures'
+    app_secret: '%env(APP_SECRET)%'
+    app_email: '%env(APP_EMAIL)%'
 
 services:
     # default configuration for services in *this* file
@@ -26,3 +29,9 @@ services:
     # Add UserRepository as a global Twig variable
     App\Repository\UserRepository:
         public: true
+
+    # Configure ResetPasswordService
+    App\Service\ResetPasswordService:
+        arguments:
+            $appSecret: '%app_secret%'
+            $appEmail: '%app_email%'

@@ -22,11 +22,6 @@ security:
                 path: app_logout
                 target: /login
                 invalidate_session: true
-            form_login:
-                login_path: app_login
-                check_path: app_login
-                default_target_path: app_front_home
-            entry_point: form_login
                 
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }

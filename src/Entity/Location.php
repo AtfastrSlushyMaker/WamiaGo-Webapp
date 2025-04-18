@@ -253,4 +253,9 @@ class Location
     {
         return $this->id_location;
     }
+
+    public function __toString(): string
+    {
+        return $this->address ?? '';
+    }
 }

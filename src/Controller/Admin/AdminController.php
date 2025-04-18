@@ -6,9 +6,18 @@ use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Entity\Location;
+use Doctrine\ORM\EntityManagerInterface;
 
 class AdminController extends AbstractController
 {
+    private $entityManager;
+
+    public function __construct(EntityManagerInterface $entityManager)
+    {
+        $this->entityManager = $entityManager;
+    }
+
     #[Route('/admin', name: 'admin_dashboard')]
     public function dashboard(): Response
     {
@@ -28,8 +37,11 @@ class AdminController extends AbstractController
     public function users(UserService $userService): Response
     {
         $users = $userService->getAllUsers();
+        $locations = $this->entityManager->getRepository(Location::class)->findAll();
+        
         return $this->render('back-office/users.html.twig', [
-            'users' => $users
+            'users' => $users,
+            'locations' => $locations
         ]);
     }
 

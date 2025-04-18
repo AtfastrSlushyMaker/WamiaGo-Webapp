@@ -30,11 +30,21 @@ class LoginAuthenticator extends AbstractLoginFormAuthenticator
 
     public function authenticate(Request $request): Passport
     {
-        $email = $request->request->get('_username', '');
-        $password = $request->request->get('_password', '');
+        $email = $request->request->get('email', '');
+        $password = $request->request->get('password', '');
 
-        if (empty($email) || empty($password)) {
-            throw new CustomUserMessageAuthenticationException('Email and password cannot be empty.');
+        // Validate email format
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new CustomUserMessageAuthenticationException('Please enter a valid email address.');
+        }
+
+        // Check for empty fields
+        if (empty($email)) {
+            throw new CustomUserMessageAuthenticationException('Email cannot be empty.');
+        }
+
+        if (empty($password)) {
+            throw new CustomUserMessageAuthenticationException('Password cannot be empty.');
         }
 
         $request->getSession()->set(Security::LAST_USERNAME, $email);
@@ -51,26 +61,44 @@ class LoginAuthenticator extends AbstractLoginFormAuthenticator
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
         $user = $token->getUser();
+        $redirectUrl = $this->urlGenerator->generate('app_front_home');
 
         if ($user->hasRole('ROLE_ADMIN')) {
-            return new RedirectResponse($this->urlGenerator->generate('admin_dashboard'));
+            $redirectUrl = $this->urlGenerator->generate('admin_dashboard');
         } elseif ($user->hasRole('ROLE_DRIVER')) {
-            return new RedirectResponse($this->urlGenerator->generate('driver_dashboard'));
+            $redirectUrl = $this->urlGenerator->generate('driver_dashboard');
         }
 
-        return new RedirectResponse($this->urlGenerator->generate('app_front_home'));
+        if ($request->isXmlHttpRequest()) {
+            return new JsonResponse([
+                'success' => true,
+                'redirectUrl' => $redirectUrl
+            ]);
+        }
+
+        return new RedirectResponse($redirectUrl);
     }
     public function onAuthenticationFailure(Request $request, \Symfony\Component\Security\Core\Exception\AuthenticationException $exception): Response
     {
+        $errorMessage = 'Invalid credentials. Please check your email and password.';
+        
+        // Map specific security exceptions to user-friendly messages
+        if ($exception instanceof \Symfony\Component\Security\Core\Exception\BadCredentialsException) {
+            $errorMessage = 'The password you entered is incorrect.';
+        } elseif ($exception instanceof \Symfony\Component\Security\Core\Exception\UserNotFoundException) {
+            $errorMessage = 'No account found with this email address.';
+        } elseif ($exception instanceof \Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException) {
+            $errorMessage = $exception->getMessage();
+        }
+
         if ($request->isXmlHttpRequest()) {
             return new JsonResponse([
-                'error' => $exception->getMessageKey(),
-                'message' => $exception->getMessage(),
+                'success' => false,
+                'message' => $errorMessage
             ], Response::HTTP_UNAUTHORIZED);
         }
 
-        $this->addFlash('error', $exception->getMessageKey());
-
+        $request->getSession()->set(Security::AUTHENTICATION_ERROR, new \Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException($errorMessage));
         return new RedirectResponse($this->getLoginUrl($request));
     }
 

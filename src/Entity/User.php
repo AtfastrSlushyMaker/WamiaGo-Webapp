@@ -14,9 +14,12 @@ use App\Enum\ACCOUNT_STATUS;
 use App\Enum\STATUS;
 use App\Enum\ROLE;
 use App\Enum\GENDER;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'user')]
+#[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -26,20 +29,50 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[Groups(['user:read'])]
     #[ORM\Column(name: 'name', type: 'string', nullable: false)]
+    #[Assert\NotBlank(message: 'Name cannot be blank', groups: ['Default'])]
+    #[Assert\Length(
+        min: 2,
+        max: 100,
+        minMessage: 'Name must be at least {{ limit }} characters long',
+        maxMessage: 'Name cannot be longer than {{ limit }} characters',
+        groups: ['Default']
+    )]
     private ?string $name = null;
 
     #[Groups(['user:read'])]
-    #[ORM\Column(type: 'string', nullable: false)]
+    #[ORM\Column(type: 'string', nullable: false, unique: true)]
+    #[Assert\NotBlank(message: 'Email cannot be blank')]
+    #[Assert\Email(
+        message: 'The email {{ value }} is not a valid email address',
+        mode: 'strict'
+    )]
+    #[Assert\Length(
+        max: 180,
+        maxMessage: 'Email cannot be longer than {{ limit }} characters'
+    )]
     private ?string $email = null;
 
     #[ORM\Column(type: 'string', nullable: false)]
+    #[Assert\NotBlank(message: 'Password cannot be blank', groups: ['Default'])]
+    #[Assert\Length(
+        min: 8,
+        max: 1000,
+        minMessage: 'Password must be at least {{ limit }} characters long',
+        groups: ['Default']
+    )]
     private ?string $password = null;
 
     #[Groups(['user:read'])]
     #[ORM\Column(type: 'string', nullable: false)]
+    #[Assert\NotBlank(message: 'Phone number cannot be blank')]
+    #[Assert\Regex(
+        pattern: '/^[2459][0-9]{7}$/',
+        message: 'Please enter a valid Tunisian phone number'
+    )]
     private ?string $phone_number = null;
 
     #[ORM\Column(type: 'string', enumType: ROLE::class)]
+    #[Assert\NotNull(message: 'Role must be specified', groups: ['Default'])]
     private ROLE $role;
 
     #[ORM\ManyToOne(targetEntity: Location::class, inversedBy: 'users')]
@@ -47,10 +80,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?Location $location = null;
 
     #[ORM\Column(type: 'string', enumType: GENDER::class)]
+    #[Assert\NotNull(message: 'Gender must be specified')]
     private GENDER $gender;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private ?string $profile_picture = null;
+    #[Assert\Url(message: 'The profile picture must be a valid URL')]
+    private ?string $profilePicture = null;
 
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $is_verified = false;
@@ -60,6 +95,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[Groups(['user:read'])]
     #[ORM\Column(type: 'date', nullable: true)]
+    #[Assert\NotNull(message: 'Date of birth is required')]
+    #[Assert\LessThanOrEqual('today', message: 'Date of birth cannot be in the future')]
+    #[Assert\GreaterThan('-120 years', message: 'Please enter a valid date of birth')]
     private ?\DateTimeInterface $date_of_birth = null;
 
     #[ORM\Column(type: 'string', length: 20, enumType: \App\Enum\STATUS::class, options: ['default' => 'OFFLINE'])]
@@ -97,46 +135,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->reservations = new ArrayCollection();
     }
 
-    // UserInterface methods
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
     public function getUserIdentifier(): string
     {
         return (string) $this->email;
     }
 
-    /**
-     * @see UserInterface
-     */
     public function getRoles(): array
     {
-        $role = $this->role->value; // Convert ROLE enum to string
+        $role = $this->role->value;
 
-        // Debug
-        error_log('User role: ' . $role);
-
-        // Keep your existing code
-        if (!str_starts_with($role, 'ROLE_')) {
-            if ($role === 'CLIENT') {
-                return ['ROLE_USER'];
-            } elseif ($role === 'ADMIN') {
-                return ['ROLE_ADMIN'];
-            } else {
-                return ['ROLE_' . strtoupper($role)];
-            }
+        if ($role === 'CLIENT') {
+            return ['ROLE_USER'];
+        } elseif ($role === 'ADMIN') {
+            return ['ROLE_ADMIN'];
         }
 
-        return [$role];
+        return ['ROLE_USER'];
     }
-    /**
-     * @see UserInterface
-     */
+    
     public function eraseCredentials(): void
     {
-        // If you store any temporary, sensitive data on the user, clear it here
     }
 
     // Original getters and setters
@@ -195,7 +213,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    // Ensure the ROLE enum is converted to a string value in the getRole method
     public function getRole(): string
     {
         return $this->role->value;
@@ -234,14 +251,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->date_of_birth?->format('Y-m-d');
     }
 
-    public function getProfile_picture(): ?string
+    public function getProfilePicture(): ?string
     {
-        return $this->profile_picture;
+        return $this->profilePicture;
     }
 
-    public function setProfile_picture(?string $profile_picture): self
+    public function setProfilePicture(?string $profilePicture): static
     {
-        $this->profile_picture = $profile_picture;
+        $this->profilePicture = $profilePicture;
         return $this;
     }
 
@@ -281,7 +298,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->status;
     }
-
 
     public function setStatus(STATUS $status): self
     {
@@ -487,17 +503,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getProfilePicture(): ?string
-    {
-        return $this->profile_picture;
-    }
-
-    public function setProfilePicture(?string $profile_picture): static
-    {
-        $this->profile_picture = $profile_picture;
-        return $this;
-    }
-
     public function isVerified(): ?bool
     {
         return $this->is_verified;
@@ -519,7 +524,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->account_status = $account_status;
     }
 
-
     public function setDateOfBirth(?\DateTimeInterface $date_of_birth): static
     {
         $this->date_of_birth = $date_of_birth;
@@ -529,5 +533,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function hasRole(string $role): bool
     {
         return in_array($role, $this->getRoles(), true);
+    }
+
+    public function getProfilePicturePath(): ?string
+    {
+        if (!$this->profilePicture) {
+            return null;
+        }
+        return 'uploads/profile_pictures/' . $this->profilePicture;
     }
 }

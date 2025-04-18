@@ -26,3 +26,5 @@
 ###< symfony/asset-mapper ###
 .idea/workspace.xml
 /.idea
+.env
+.env
