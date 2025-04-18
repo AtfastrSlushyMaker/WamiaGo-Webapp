@@ -48,7 +48,7 @@ class BicycleStationType extends AbstractType
             ->add('location', EntityType::class, [
                 'class' => Location::class,
                 'choice_label' => 'address',
-                'required' => false,  // Make this field not required since we're handling it manually
+                'required' => false, 
                 'placeholder' => 'Select a location or click on the map',
                 'attr' => [
                     'class' => 'form-select'

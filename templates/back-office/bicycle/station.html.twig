@@ -401,6 +401,20 @@
 {% endblock %}
 
 {% block javascripts %}
+<script>
+    // Pass station data to the JavaScript file
+    window.stationData = {{ stations|map(s => {
+        id: s.idStation,
+        name: s.name,
+        lat: s.location ? s.location.latitude : null,
+        lng: s.location ? s.location.longitude : null,
+        status: s.status.value,
+        address: s.location ? s.location.address : 'No address',
+        availableBikes: s.availableBikes,
+        totalDocks: s.totalDocks,
+        chargingDocks: s.chargingDocks is defined ? s.chargingDocks : null
+    })|json_encode|raw }};
+</script>
 <script src="{{ asset('js/back/bicycle/station-modal.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
 <script src="{{ asset('js/back/bicycle/station-edit-modal.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>

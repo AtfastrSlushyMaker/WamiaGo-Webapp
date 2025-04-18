@@ -80,6 +80,11 @@
     margin-bottom: 10px;
 }
 
+.station-popup .btn-primary {
+    color: white !important;
+    /* Ensure text is white */
+}
+
 /* Stats grid in popups */
 .stats-grid {
     display: grid;
