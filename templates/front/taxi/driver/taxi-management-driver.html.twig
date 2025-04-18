@@ -105,7 +105,7 @@
                                             <p class="mb-3"><i class="fas fa-map-marker-alt text-success"></i> {{ ride.dropoffLocation }}</p>
                                             <p class="mb-3"><i class="fas fa-route"></i> {{ ride.distance }} km</p>
                                             <p class="mb-3"><i class="fas fa-clock"></i> {{ ride.duration }} min</p>
-                                            <p class="mb-3"><i class="fas fa-dollar-sign"></i> ${{ ride.price }}</p>
+                                            <p class="mb-3"><i class="fas fa-dollar-sign"></i> {{ ride.price }} DT</p>
                                         </div>
                                         <div class="d-flex justify-content-start mt-4">
                                             <button class="btn btn-sm btn-danger me-2 delete-ride-btn" data-ride-id="{{ ride.id }}">Delete</button>
@@ -232,8 +232,7 @@
                         <div class="modal-body">
                             <form id="setDurationForm">
                                 <div class="mb-3">
-                                    <label for="rideDuration" class="form-label">Duration (in minutes)</label>
-                                    <input type="number" class="form-control" id="rideDuration" name="rideDuration" min="1" required>
+                                    <label for="rideDuration" class="form-label">Duration (in minutes, must be between 1 and 90)</label>        <input type="number" class="form-control" id="rideDuration" name="rideDuration" min="1" required>
                                 </div>
                                 <input type="hidden" id="modalRequestId" name="requestId">
                             </form>
@@ -250,6 +249,7 @@
         {% block javascripts %}
             {{ parent() }}
             <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
             <script>
                 // Initialize map
                 const map = L.map('map').setView([36.8065, 10.1815], 12);
@@ -274,7 +274,21 @@
                         const requestId = modalRequestIdInput.value;
                         const rideDuration = rideDurationInput.value;
 
-                        if (!rideDuration || rideDuration <= 0 || rideDuration > 90) {
+                        if (!rideDuration) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Empty Duration',
+                                text: 'Please enter a duration.',
+                            });
+                            return;
+                        }
+
+                        if (rideDuration <= 0 || rideDuration > 90) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Invalid Duration',
+                                text: 'Please enter a duration between 1 and 90 minutes.',
+                            });
                             return;
                         }
 
@@ -297,10 +311,48 @@
 
                         setDurationModal.hide();
                     });
+
+                    // SweetAlert for delete confirmation
+                    document.querySelectorAll('.delete-ride-btn').forEach(button => {
+                        button.addEventListener('click', function () {
+                            const rideId = this.getAttribute('data-ride-id');
+                            Swal.fire({
+                                title: 'Are you sure?',
+                                text: "You won't be able to revert this!",
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonColor: '#3085d6',
+                                cancelButtonColor: '#d33',
+                                confirmButtonText: 'Yes, delete it!'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    fetch(`/driver/ride/delete/${rideId}`, {
+                                        method: 'DELETE',
+                                        headers: {
+                                            'X-CSRF-Token': '{{ csrf_token('delete_ride') }}'
+                                        }
+                                    })
+                                    .then(response => {
+                                        if (response.ok) {
+                                            Swal.fire(
+                                                'Deleted!',
+                                                'The ride has been deleted.',
+                                                'success'
+                                            ).then(() => location.reload());
+                                        } else {
+                                            Swal.fire(
+                                                'Error!',
+                                                'Failed to delete the ride.',
+                                                'error'
+                                            );
+                                        }
+                                    });
+                                }
+                            });
+                        });
+                    });
                 });
-            </script>       
-             <style>
-         
+            </script>        <style>        
 .modal-backdrop {
   opacity: 0.3 !important;
 }

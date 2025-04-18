@@ -41,7 +41,7 @@ class RequestController extends AbstractController
         $validationErrors = [];
         
         if ($request->isMethod('POST')) {
-            // Retrieve form data
+            
             $formData = [
                 'pickupLocation' => trim($request->request->get('pickupLocation', '')),
                 'pickupLat' => $request->request->get('pickupLat', ''),
@@ -51,7 +51,7 @@ class RequestController extends AbstractController
                 'arrivalLng' => $request->request->get('arrivalLng', ''),
             ];
             
-            // Basic form validation
+           
             if (empty($formData['pickupLocation'])) {
                 $validationErrors['pickupLocation'] = 'Pickup location is required';
             }
@@ -65,7 +65,7 @@ class RequestController extends AbstractController
                 $validationErrors['arrivalLocation'] = 'Arrival location is required';
             }
             
-            // Check if pickup and arrival are the same
+           
            else  if ( 
                 $formData['pickupLat'] === $formData['arrivalLat'] && 
                 $formData['pickupLng'] === $formData['arrivalLng']) {
@@ -75,8 +75,8 @@ class RequestController extends AbstractController
             // Proceed if basic validation passes
             if (empty($validationErrors)) {
                 try {
-                    // Get user
-                    $userId = 114; // Static user ID for demo
+                
+                    $userId = 114; 
                     $user = $this->entityManager->getRepository(User::class)->find($userId);
                     if (!$user) {
                         throw $this->createNotFoundException('User not found');
