@@ -11,133 +11,130 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
-    <div class="dashboard-layout">
-       <!-- Requests Panel -->
-<div class="dashboard-panel">
-    <div class="panel-header requests-header">
-        <i class="bi bi-car-front-fill me-2"></i>Ride Requests
-    </div>
-    <div class="panel-body">
-      <!-- Search Bar -->
-      <form id="search-form" class="mb-3" method="get" action="">
-    <select name="filter" id="search-combobox" class="form-control" style="width: 180px; display: inline-block; margin-right: 10px;">
-        <option value="">Filter by...</option>
-        <option value="user">User</option>
-        <option value="location">Location</option>
-        <option value="status">Status</option>
-        <option value="driver">Driver</option>
-        <option value="completed">Completed</option>
-        <option value="pending">Pending</option>
-        <option value="active">Active</option>
-    </select>
-    <input type="text" name="search" id="search-input" class="form-control" placeholder="Enter value..." style="width: 180px; display: inline-block; margin-right: 10px;">
-    <select name="status" class="form-control" style="width: 150px; display: inline-block; margin-right: 10px;">
-        <option value="">All Statuses</option>
-        <option value="pending">Pending</option>
-        <option value="accepted">Accepted</option>
-        <option value="completed">Completed</option>
-        <option value="canceled">Canceled</option>
-    </select>
-    <button type="submit" class="btn btn-primary" style="background-color: #2c87c2; border-color: #2ab967;">Search</button>
-   <button type="button" id="export-pdf-btn" class="btn btn-pdf" style="margin-left: 10px;" title="Export PDF">
-    <i class="bi bi-file-earmark-pdf" style="font-size: 1.2em;"></i>
-</button>
-<button type="button" id="export-excel-btn" class="btn btn-excel" style="margin-left: 5px;" title="Export Excel">
-    <i class="bi bi-file-earmark-excel" style="font-size: 1.2em;"></i>
-</button>
-</form>
-        <!-- End Search Bar -->
-        <div class="table-responsive">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>User</th>
-                        <th>Pickup Location</th>
-                        <th>Dropoff Location</th>
-                        <th>Status</th>
-                        <th>Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for request in availableRequests|default([]) %}
-                        <tr>
-                            <td>{{ request.id }}</td>
-                            <td>{{ request.userName }}</td>
-                            <td>{{ request.pickupLocation }}</td>
-                            <td>{{ request.dropoffLocation }}</td>
-                            <td>
-                                <span class="status-badge status-{{ request.status|lower }}">{{ request.status }}</span>
-                            </td>
-                            <td>{{ request.time }}</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-danger delete-request-btn" data-id="{{ request.id }}">Delete</button>
-                                    <button class="btn btn-info">View</button>
-                                </div>
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr>
-                            <td colspan="7" class="text-center">No requests available</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Pagination (Optional) -->
-        <ul class="pagination">
-            <li class="disabled"><a href="#">Previous</a></li>
-            <li class="active"><a href="#">1</a></li>
-            <li><a href="#">2</a></li>
-            <li><a href="#">3</a></li>
-            <li><a href="#">Next</a></li>
-        </ul>
-    </div>
-</div>
-
-      
-
-        <!-- Rides Panel -->
-        <div class="dashboard-panel">
-            <div class="panel-header rides-header">Active Rides</div>
+    <div class="dashboard-layout" style="display: flex; gap: 20px;">
+        <!-- Requests Panel -->
+        <div class="dashboard-panel" style="flex: 1;">
+            <div class="panel-header requests-header">
+                <i class="bi bi-car-front-fill me-2"></i>Ride Requests
+            </div>
             <div class="panel-body">
-        <form id="search-form" class="mb-3" method="get" action="">
-    <select name="filter" id="search-combobox" class="form-control" style="width: 180px; display: inline-block; margin-right: 10px;">
-        <option value="">Filter by...</option>
-        <option value="user">User</option>
-        <option value="location">Location</option>
-        <option value="status">Status</option>
-        <option value="driver">Driver</option>
-        <option value="completed">Completed</option>
-        <option value="pending">Pending</option>
-        <option value="active">Active</option>
-    </select>
-    <input type="text" name="search" id="search-input" class="form-control" placeholder="Enter value..." style="width: 180px; display: inline-block; margin-right: 10px;">
-    <select name="status" class="form-control" style="width: 150px; display: inline-block; margin-right: 10px;">
-        <option value="">All Statuses</option>
-        <option value="pending">Pending</option>
-        <option value="accepted">Accepted</option>
-        <option value="completed">Completed</option>
-        <option value="canceled">Canceled</option>
-    </select>
-    <button type="submit" class="btn btn-primary" style="background-color: #2ab967; border-color: #2ab967;">Search</button>
-  <button type="button" id="export-pdf-btn" class="btn btn-pdf" style="margin-left: 10px;" title="Export PDF">
-    <i class="bi bi-file-earmark-pdf" style="font-size: 1.2em;"></i>
-</button>
-<button type="button" id="export-excel-btn" class="btn btn-excel" style="margin-left: 5px;" title="Export Excel">
-    <i class="bi bi-file-earmark-excel" style="font-size: 1.2em;"></i>
-</button>
-</form>
+                <!-- Search Bar -->
+                <form id="search-form" class="mb-3" method="get" action="">
+                    <select name="filter" id="search-combobox" class="form-control" style="width: 180px; display: inline-block; margin-right: 10px;">
+                        <option value="">Filter by...</option>
+                        <option value="user">User</option>
+                        <option value="location">Location</option>
+                        <option value="status">Status</option>
+                        <option value="driver">Driver</option>
+                        <option value="completed">Completed</option>
+                        <option value="pending">Pending</option>
+                        <option value="active">Active</option>
+                    </select>
+                    <input type="text" name="search" id="search-input" class="form-control" placeholder="Enter value..." style="width: 180px; display: inline-block; margin-right: 10px;">
+                    <select name="status" class="form-control" style="width: 150px; display: inline-block; margin-right: 10px;">
+                        <option value="">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="accepted">Accepted</option>
+                        <option value="completed">Completed</option>
+                        <option value="canceled">Canceled</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary" style="background-color: #2c87c2; border-color: #2ab967;">Search</button>
+                    <button type="button" id="export-pdf-btn" class="btn btn-pdf" style="margin-left: 10px;" title="Export PDF">
+                        <i class="bi bi-file-earmark-pdf" style="font-size: 1.2em;"></i>
+                    </button>
+                    <button type="button" id="export-excel-btn" class="btn btn-excel" style="margin-left: 5px;" title="Export Excel">
+                        <i class="bi bi-file-earmark-excel" style="font-size: 1.2em;"></i>
+                    </button>
+                </form>
+                <!-- End Search Bar -->
                 <div class="table-responsive">
                     <table class="admin-table">
                         <thead>
                             <tr>
                                 <th>#</th>
+                                <th>User</th>
+                                <th>Pickup Location</th>
+                                <th>Dropoff Location</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in availableRequests|default([]) %}
+                                <tr data-pickup-lat="{{ request.pickupLat }}" 
+                                    data-pickup-lng="{{ request.pickupLng }}" 
+                                    data-dropoff-lat="{{ request.dropoffLat }}" 
+                                    data-dropoff-lng="{{ request.dropoffLng }}">
+                                    <td>{{ request.id }}</td>
+                                    <td>{{ request.userName }}</td>
+                                    <td>{{ request.pickupLocation }}</td>
+                                    <td>{{ request.dropoffLocation }}</td>
+                                    <td>
+                                        <span class="status-badge status-{{ request.status|lower }}">{{ request.status }}</span>
+                                    </td>
+                                    <td>{{ request.time }}</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-danger delete-request-btn" data-id="{{ request.id }}">Delete</button>
+                                            <button class="btn btn-info view-ride-btn" 
+                                                    data-pickup-lat="{{ request.pickupLat }}" 
+                                                    data-pickup-lng="{{ request.pickupLng }}" 
+                                                    data-dropoff-lat="{{ request.dropoffLat }}" 
+                                                    data-dropoff-lng="{{ request.dropoffLng }}">View</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center">No requests available</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rides Panel -->
+        <div class="dashboard-panel" style="flex: 1;">
+            <div class="panel-header rides-header">Active Rides</div>
+            <div class="panel-body">
+                <form id="search-form" class="mb-3" method="get" action="">
+                    <select name="filter" id="search-combobox" class="form-control" style="width: 180px; display: inline-block; margin-right: 10px;">
+                        <option value="">Filter by...</option>
+                        <option value="user">User</option>
+                        <option value="location">Location</option>
+                        <option value="status">Status</option>
+                        <option value="driver">Driver</option>
+                        <option value="completed">Completed</option>
+                        <option value="pending">Pending</option>
+                        <option value="active">Active</option>
+                    </select>
+                    <input type="text" name="search" id="search-input" class="form-control" placeholder="Enter value..." style="width: 180px; display: inline-block; margin-right: 10px;">
+                    <select name="status" class="form-control" style="width: 150px; display: inline-block; margin-right: 10px;">
+                        <option value="">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="accepted">Accepted</option>
+                        <option value="completed">Completed</option>
+                        <option value="canceled">Canceled</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary" style="background-color: #2ab967; border-color: #2ab967;">Search</button>
+                    <button type="button" id="export-pdf-btn-rides" class="btn btn-pdf" style="margin-left: 10px;" title="Export PDF">
+                        <i class="bi bi-file-earmark-pdf" style="font-size: 1.2em;"></i>
+                    </button>
+                    <button type="button" id="export-excel-btn-rides" class="btn btn-excel" style="margin-left: 5px;" title="Export Excel">
+                        <i class="bi bi-file-earmark-excel" style="font-size: 1.2em;"></i>
+                    </button>
+                </form>
+                <div class="table-responsive">
+                    <table class="admin-table rides-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
                                 <th>Driver</th>
-                                <th>Route</th>
+                                <th>Pickup Location</th>
+                                <th>Dropoff Location</th>
                                 <th>Distance</th>
                                 <th>Price</th>
                                 <th>Status</th>
@@ -145,37 +142,112 @@
                             </tr>
                         </thead>
                         <tbody>
-    {% for ride in availableRides %}
-    <tr data-id="{{ ride.id }}">
-        <td>{{ loop.index }}</td>
-        <td>{{ ride.userName }}</td>
-        <td>{{ ride.pickupLocation }} → {{ ride.dropoffLocation }}</td>
-        <td>{{ ride.distance }} km </td>
-        <td>{{ ride.price }}Dt</td>
-        <td><span class="status-badge status-{{ ride.status|lower }}">{{ ride.status }}</span></td>
-        <td>
-            <div class="action-buttons">
-             <button class="btn btn-danger delete-ride-btn" data-id="{{ ride.id }}">Delete</button>
-             <button class="btn btn-info">View</button>
-            </div>
-        </td>
-    </tr>
-    {% endfor %}
-</tbody>
+                            {% for ride in availableRides %}
+                                <tr data-id="{{ ride.id }}" 
+                                    data-pickup-lat="{{ ride.pickupLat }}" 
+                                    data-pickup-lng="{{ ride.pickupLng }}" 
+                                    data-dropoff-lat="{{ ride.dropoffLat }}" 
+                                    data-dropoff-lng="{{ ride.dropoffLng }}">
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ ride.userName }}</td>
+                                    <td>{{ ride.pickupLocation }}</td>
+                                    <td>{{ ride.dropoffLocation }}</td>
+                                    <td>{{ ride.distance }} km</td>
+                                    <td>{{ ride.price }}Dt</td>
+                                    <td><span class="status-badge status-{{ ride.status|lower }}">{{ ride.status }}</span></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-danger delete-ride-btn" data-id="{{ ride.id }}">Delete</button>
+                                            <button class="btn btn-info view-ride-btn" 
+                                                    data-pickup-lat="{{ ride.pickupLat }}" 
+                                                    data-pickup-lng="{{ ride.pickupLng }}" 
+                                                    data-dropoff-lat="{{ ride.dropoffLat }}" 
+                                                    data-dropoff-lng="{{ ride.dropoffLng }}">View</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center">No rides available</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
                     </table>
                 </div>
-                <ul class="pagination">
-                    <li class="disabled"><a href="#">Previous</a></li>
-                    <li class="active"><a href="#">1</a></li>
-                    <li><a href="#">2</a></li>
-                    <li><a href="#">3</a></li>
-                    <li><a href="#">Next</a></li>
-                </ul>
             </div>
         </div>
     </div>
 
-   <script>
+    <!-- Map Modal -->
+    <div class="modal fade" id="viewMapModal" tabindex="-1" aria-labelledby="viewMapModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="viewMapModalLabel">Ride Route</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" style="height: 400px;">
+            <div id="rideMap" style="width: 100%; height: 100%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let map;
+        let markers = [];
+
+        document.querySelectorAll('.view-ride-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const pickupLat = parseFloat(this.getAttribute('data-pickup-lat'));
+                const pickupLng = parseFloat(this.getAttribute('data-pickup-lng'));
+                const dropoffLat = parseFloat(this.getAttribute('data-dropoff-lat'));
+                const dropoffLng = parseFloat(this.getAttribute('data-dropoff-lng'));
+
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('viewMapModal'));
+                modal.show();
+
+                setTimeout(() => {
+                    // Initialize or reset map
+                    if (!map) {
+                        map = L.map('rideMap').setView([pickupLat, pickupLng], 13);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            maxZoom: 19,
+                            attribution: '© OpenStreetMap'
+                        }).addTo(map);
+                    } else {
+                        map.setView([pickupLat, pickupLng], 13);
+                        markers.forEach(m => map.removeLayer(m));
+                        markers = [];
+                    }
+
+                    // Add markers
+                    const pickupMarker = L.marker([pickupLat, pickupLng]).addTo(map).bindPopup('Pickup Location').openPopup();
+                    const dropoffMarker = L.marker([dropoffLat, dropoffLng]).addTo(map).bindPopup('Dropoff Location');
+                    markers.push(pickupMarker, dropoffMarker);
+
+                    // Fit bounds
+                    const group = new L.featureGroup([pickupMarker, dropoffMarker]);
+                    map.fitBounds(group.getBounds(), {padding: [50, 50]});
+                }, 400); // Wait for modal to render
+            });
+        });
+
+        // Optional: Reset map size when modal is shown
+        document.getElementById('viewMapModal').addEventListener('shown.bs.modal', function () {
+            if (map) {
+                setTimeout(() => {
+                    map.invalidateSize();
+                }, 100); // Delay to ensure modal is fully rendered
+            }
+        });
+    });
+    </script>
+    <script>
 document.addEventListener('DOMContentLoaded', function () {
     // Request delete
     document.querySelectorAll('.delete-request-btn').forEach(button => {
@@ -589,5 +661,86 @@ document.addEventListener('DOMContentLoaded', function () {
     color: #fff !important;
 }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Export PDF for Requests Table
+    document.getElementById('export-pdf-btn').addEventListener('click', function () {
+        const table = document.querySelector('.admin-table'); // Requests table
+        html2canvas(table).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new window.jspdf.jsPDF('l', 'pt', 'a4');
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const imgWidth = pageWidth - 40;
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            const currentDate = new Date().toLocaleString(); // Get current date and time
+
+            // Add logo
+            const logo = new Image();
+            logo.src = '/images/logo/logo.png'; // Replace with the actual path to your logo
+            logo.onload = function () {
+                pdf.addImage(logo, 'PNG', 20, 20, 50, 50); // Adjust logo position and size
+                pdf.text('Requests Table', 30, 90);
+                pdf.text(`Generated on: ${currentDate}`, 30, 110); // Add timestamp
+                pdf.addImage(imgData, 'PNG', 20, 130, imgWidth, imgHeight);
+                pdf.save('requests-table.pdf');
+            };
+        });
+    });
+
+    // Export PDF for Rides Table
+    document.getElementById('export-pdf-btn-rides')?.addEventListener('click', function () {
+        const table = document.querySelector('.rides-table'); // Make sure your rides table has class="rides-table"
+        html2canvas(table).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new window.jspdf.jsPDF('l', 'pt', 'a4');
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const imgWidth = pageWidth - 40;
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            const currentDate = new Date().toLocaleString(); // Get current date and time
+
+            // Add logo
+            const logo = new Image();
+            logo.src = '/images/logo/logo.png'; // Replace with the actual path to your logo
+            logo.onload = function () {
+                pdf.addImage(logo, 'PNG', 20, 20, 50, 50); // Adjust logo position and size
+                pdf.text('Rides Table', 30, 90);
+                pdf.text(`Generated on: ${currentDate}`, 30, 110); // Add timestamp
+                pdf.addImage(imgData, 'PNG', 20, 130, imgWidth, imgHeight);
+                pdf.save('rides-table.pdf');
+            };
+        });
+    });
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Export Excel for Requests Table
+    document.getElementById('export-excel-btn').addEventListener('click', function () {
+        const table = document.querySelector('.admin-table');
+        // Remove the last column from the table
+        const clonedTable = table.cloneNode(true);
+        clonedTable.querySelectorAll('tr').forEach(row => {
+            row.removeChild(row.lastElementChild);
+        });
+        let wb = XLSX.utils.table_to_book(clonedTable, {sheet:"Requests"});
+        XLSX.writeFile(wb, 'requests-table.xlsx');
+    });
+
+    // Export Excel for Rides Table
+    document.getElementById('export-excel-btn-rides')?.addEventListener('click', function () {
+        const table = document.querySelector('.rides-table');
+        // Remove the last column from the table
+        const clonedTable = table.cloneNode(true);
+        clonedTable.querySelectorAll('tr').forEach(row => {
+            row.removeChild(row.lastElementChild);
+        });
+        let wb = XLSX.utils.table_to_book(clonedTable, {sheet:"Rides"});
+        XLSX.writeFile(wb, 'rides-table.xlsx');
+    });
+});
+</script>
 
 {% endblock %}

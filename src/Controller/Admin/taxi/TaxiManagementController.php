@@ -43,6 +43,13 @@ class TaxiManagementController extends AbstractController
                 'status' => $ride->getStatus()->value, // Ride status
                 'distance' => $ride->getDistance(), // Ride distance
                 'userName' =>$ride->getRequest()->getUser()->getName(), // User name
+                'pickupLat' => $ride->getRequest()->getDepartureLocation() ? $ride->getRequest()->getDepartureLocation()->getLatitude() : null, // Pickup latitude
+                'pickupLng' => $ride->getRequest()->getDepartureLocation() ? $ride->getRequest()->getDepartureLocation()->getLongitude() : null, // Pickup longitude
+                'dropoffLat' => $ride->getRequest()->getArrivalLocation() ? $ride->getRequest()->getArrivalLocation()->getLatitude() : null, // Destination latitude
+
+
+                'dropoffLng' => $ride->getRequest()->getArrivalLocation() ? $ride->getRequest()->getArrivalLocation()->getLongitude() : null, // Destination longitude
+                'time' => $ride->getRequest()->getRequestDate() ? $ride->getRequest()->getRequestDate()->format('Y-m-d H:i:s') : 'Unknown', // Request time
             ];
         }, $availableRides);
 
@@ -51,6 +58,10 @@ class TaxiManagementController extends AbstractController
                 'id' => $request->getIdRequest(),
                 'pickupLocation' => $request->getDepartureLocation() ? $request->getDepartureLocation()->getAddress() : 'Unknown',
                 'dropoffLocation' => $request->getArrivalLocation() ? $request->getArrivalLocation()->getAddress() : 'Unknown',
+                'pickupLat' => $request->getDepartureLocation() ? $request->getDepartureLocation()->getLatitude() : null,
+                'pickupLng' => $request->getDepartureLocation() ? $request->getDepartureLocation()->getLongitude() : null,
+                'dropoffLat' => $request->getArrivalLocation() ? $request->getArrivalLocation()->getLatitude() : null,
+                'dropoffLng' => $request->getArrivalLocation() ? $request->getArrivalLocation()->getLongitude() : null,
                 'time' => $request->getRequestDate() ? $request->getRequestDate()->format('Y-m-d H:i:s') : 'Unknown',
                 'status' => $request->getStatus() instanceof REQUEST_STATUS ? $request->getStatus()->value : 'Unknown',
                 'userName' => $request->getUser() ? $request->getUser()->getName() : 'Unknown',
@@ -92,4 +103,6 @@ class TaxiManagementController extends AbstractController
             ], 400);
         }
     }
+
+    
 }

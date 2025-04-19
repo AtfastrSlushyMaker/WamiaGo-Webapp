@@ -126,7 +126,7 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // Initialize the map centered on Grand Tunis with restricted bounds and zoom levels
+   
     var map = L.map('map', {
         center: [36.8065, 10.1815], // Grand Tunis coordinates
         zoom: 12,
@@ -176,7 +176,7 @@
                     document.getElementById('pickupLat').value = lat;
                     document.getElementById('pickupLng').value = lon;
 
-                    // Add or update the pickup marker
+        
                     if (pickupMarker) {
                         map.removeLayer(pickupMarker);
                     }
@@ -187,7 +187,7 @@
                     document.getElementById('arrivalLat').value = lat;
                     document.getElementById('arrivalLng').value = lon;
 
-                    // Add or update the arrival marker
+                  
                     if (arrivalMarker) {
                         map.removeLayer(arrivalMarker);
                     }
