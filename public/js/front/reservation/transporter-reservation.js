@@ -1,275 +1,402 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize SweetAlert2
-    const Swal = window.Swal;
-    
-    // Handle details button click
-    document.addEventListener('click', async function(e) {
-        if (e.target.closest('.btn-details')) {
-            const reservationId = e.target.closest('.btn-details').dataset.id;
-            await showDetailsModal(reservationId);
-        }
-        
-        if (e.target.closest('.btn-accept')) {
-            const reservationId = e.target.closest('.btn-accept').dataset.id;
-            await handleAcceptReservation(reservationId);
-        }
-        
-        if (e.target.closest('.btn-refuse')) {
-            const reservationId = e.target.closest('.btn-refuse').dataset.id;
-            await handleRefuseReservation(reservationId);
-        }
+    // Initialize detail buttons
+    document.querySelectorAll('.btn-details').forEach(button => {
+        button.addEventListener('click', function() {
+            const reservationId = this.getAttribute('data-id');
+            showReservationDetails(reservationId);
+        });
+    });
+
+    // Initialize accept buttons
+    document.querySelectorAll('.btn-accept').forEach(button => {
+        button.addEventListener('click', function() {
+            const reservationId = this.getAttribute('data-id');
+            confirmReservationAction(reservationId, 'accept');
+        });
+    });
+
+    // Initialize refuse buttons
+    document.querySelectorAll('.btn-refuse').forEach(button => {
+        button.addEventListener('click', function() {
+            const reservationId = this.getAttribute('data-id');
+            confirmReservationAction(reservationId, 'refuse');
+        });
     });
 });
 
-// Configuration globale de SweetAlert
-Swal.mixin({
-    customClass: {
-        container: 'reservation-modal-container',
-        popup: 'reservation-modal-popup',
-        closeButton: 'swal-close-button',
-        confirmButton: 'swal-confirm-button',
-        cancelButton: 'swal-cancel-button'
-    },
-    buttonsStyling: false,
-    showCloseButton: true,
-    showCancelButton: true,
-    showConfirmButton: true,
-    allowOutsideClick: false,
-    allowEscapeKey: true,
-    allowEnterKey: true,
-    stopKeydownPropagation: false
-});
-
-async function showDetailsModal(reservationId) {
+/**
+ * Display reservation details in a modal
+ * @param {string} reservationId - The ID of the reservation
+ */
+async function showReservationDetails(reservationId) {
     try {
         const response = await fetch(`/transporter/reservations/${reservationId}/details`);
+        if (!response.ok) throw new Error('Failed to fetch reservation details');
         
-        if (!response.ok) {
-            throw new Error('Failed to fetch reservation details');
-        }
-
         const data = await response.json();
 
-        await Swal.fire({
-            title: `<strong>${data.title}</strong>`,
-            html: `
-                <div class="text-start">
-                    <p class="text-muted mb-3">${data.description}</p>
-                    <div class="d-flex justify-content-between mb-3">
-                        <span><i class="fas fa-calendar-alt me-2"></i>${data.date}</span>
-                        <span class="badge ${data.status.toLowerCase()}">${data.status}</span>
-                    </div>
-                    <hr>
-                    <div class="location-details mb-3">
-                        <p><i class="fas fa-map-marker-alt text-danger me-2"></i> ${data.startLocation}</p>
-                        <p><i class="fas fa-flag-checkered text-success me-2"></i> ${data.endLocation}</p>
-                    </div>
-                    <hr>
-                    <p><i class="fas fa-user me-2"></i> Client: ${data.client}</p>
+        const detailsHtml = `
+            <div class="detail-card">
+                <div class="reservation-header">
+                    <h3>${data.announcement?.title}</h3>
+                    <span class="badge bg-${getStatusBadgeColor(data.status)}">${data.status}</span>
                 </div>
-            `,
+                
+                <div class="reservation-section">
+                    <h4><i class="fas fa-info-circle"></i> Description</h4>
+                    <p>${data.description}</p>
+                </div>
+                
+                <div class="reservation-section">
+                    <h4><i class="fas fa-user"></i> Client Information</h4>
+                    <ul class="list-unstyled">
+                        <li><strong>Name:</strong> ${data.user.name}</li>
+                        <li><strong>Email:</strong> ${data.user.email}</li>
+                        <li><strong>Phone:</strong> ${data.user.phone}</li>
+                    </ul>
+                </div>
+                
+                <div class="reservation-section">
+                    <h4><i class="fas fa-route"></i> Trip Information</h4>
+                    <div class="location-info">
+                        <div class="start-location">
+                            <i class="fas fa-map-marker-alt text-danger"></i>
+                            <p><strong>From:</strong> ${data.startLocation.address}</p>
+                        </div>
+                        <div class="end-location">
+                            <i class="fas fa-flag-checkered text-success"></i>
+                            <p><strong>To:</strong> ${data.endLocation.address}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="reservation-section">
+                    <h4><i class="fas fa-calendar-alt"></i> Dates</h4>
+                    <ul class="list-unstyled">
+                        <li><strong>Reservation Date:</strong> ${formatDate(data.date)}</li>
+                        
+                    </ul>
+                </div>
+
+                ${data.status === 'ON_GOING' ? `
+                    <div class="action-buttons mt-3">
+                        <button class="btn btn-success me-2" onclick="handleReservationAction('${data.id}', 'accept')">
+                            <i class="fas fa-check"></i> Accept
+                        </button>
+                        <button class="btn btn-danger" onclick="handleReservationAction('${data.id}', 'refuse')">
+                            <i class="fas fa-times"></i> Refuse
+                        </button>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+
+        await Swal.fire({
+            title: 'Reservation Details',
+            html: detailsHtml,
+            width: '600px',
+            position: 'top',
             showCloseButton: true,
             showConfirmButton: false,
-            width: '600px',
-            background: '#fff',
-            backdrop: 'rgba(0,0,0,0.5)',
             customClass: {
-                container: 'reservation-modal-container',
-                popup: 'reservation-modal-popup',
-                closeButton: 'swal-close-button'
-            },
-            position: 'top',
-            grow: 'row',
-            willOpen: () => {
-                const popup = Swal.getPopup();
-                popup.style.top = '100px';
-                popup.style.left = '20%';
-                popup.style.transform = 'translateX(-50%)';
-            },
-            willClose: () => {
-                document.activeElement.blur();
+                container: 'reservation-details-modal',
+                popup: 'reservation-details-popup'
             }
         });
-
     } catch (error) {
-        await Swal.fire({
+        console.error('Error:', error);
+        Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: error.message,
-            timer: 3000,
+            text: 'Failed to load reservation details',
             position: 'top'
         });
     }
 }
 
-async function handleAcceptReservation(reservationId) {
-    try {
-        const { value: formValues } = await Swal.fire({
-            title: 'Accept Reservation',
-            html: `
-                <form id="acceptForm" class="text-start">
-                    <div class="mb-3">
-                        <label for="relocationDate" class="form-label">Relocation Date</label>
-                        <input type="date" id="relocationDate" class="form-control" required min="${new Date().toISOString().split('T')[0]}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="relocationCost" class="form-label">Cost (€)</label>
-                        <input type="number" id="relocationCost" class="form-control" step="0.01" min="0" required>
-                    </div>
-                </form>
-            `,
-            focusConfirm: false,
-            showCancelButton: true,
-            confirmButtonText: 'Confirm',
-            cancelButtonText: 'Cancel',
-            confirmButtonColor: '#4CAF50',
-            cancelButtonColor: '#F44336',
-            customClass: {
-                container: 'reservation-modal-container',
-                popup: 'reservation-modal-popup',
-                closeButton: 'swal-close-button'
-            },
-            position: 'top',
-            preConfirm: () => {
-                const date = document.getElementById('relocationDate').value;
-                const cost = document.getElementById('relocationCost').value;
-                
-                if (!date || !cost) {
-                    Swal.showValidationMessage('Please fill all fields');
-                    return false;
-                }
-                
-                return { date, cost };
-            }
-        });
+/**
+ * Display a confirmation dialog for accepting or refusing a reservation
+ * @param {string} reservationId - The ID of the reservation
+ * @param {string} action - Either 'accept' or 'refuse'
+ */
+async function confirmReservationAction(reservationId, action) {
+    const title = action === 'accept' ? 'Accept Reservation' : 'Refuse Reservation';
+    const confirmButtonText = action === 'accept' ? 'Yes, Accept it!' : 'Yes, Refuse it!';
+    const confirmationText = action === 'accept' 
+        ? 'Are you sure you want to accept this reservation?' 
+        : 'Are you sure you want to refuse this reservation?';
+    
+    // Show confirmation dialog with SweetAlert2
+    const result = await Swal.fire({
+        title: 'Are you sure?',
+        text: confirmationText,
+        icon: 'warning',
+        position: 'top', // Position the modal at the top
+        showCancelButton: true,
+        confirmButtonText: confirmButtonText,
+        cancelButtonText: 'Cancel',
+        customClass: {
+            container: 'reservation-modal-container',
+            popup: 'reservation-modal-popup'
+        }
+    });
+    
+    // If confirmed, proceed with the action
+    if (result.isConfirmed) {
+        handleReservationAction(reservationId, action);
+    }
+}
 
-        if (formValues) {
-            const csrfToken = document.getElementById('csrf-token').dataset.token;
-            
+/**
+ * Process the reservation action (accept/refuse)
+ * @param {string} reservationId - The ID of the reservation
+ * @param {string} action - Either 'accept' or 'refuse'
+ */
+async function handleReservationAction(reservationId, action) {
+    try {
+        if (action === 'accept') {
+            const { value: formValues } = await Swal.fire({
+                title: 'Accept Reservation',
+                html: `
+                    <form id="acceptForm">
+                        <div class="mb-3">
+                            <label for="date" class="form-label">Relocation Date</label>
+                            <input type="date" id="date" class="form-control" required 
+                                   min="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="cost" class="form-label">Cost (€)</label>
+                            <input type="number" id="cost" class="form-control" required 
+                                   min="0.01" step="0.01" value="50.00">
+                        </div>
+                    </form>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Confirm',
+                focusConfirm: false,
+                preConfirm: () => {
+                    const date = document.getElementById('date').value;
+                    const cost = document.getElementById('cost').value;
+                    
+                    if (!date || !cost) {
+                        Swal.showValidationMessage('Please fill all fields');
+                        return false;
+                    }
+                    
+                    return {
+                        date: date,
+                        cost: parseFloat(cost)
+                    };
+                }
+            });
+
+            if (!formValues) return;
+
+            console.log("Sending data:", formValues); // Debug log
+
             const response = await fetch(`/transporter/reservations/${reservationId}/accept`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken
+                    'Accept': 'application/json'
                 },
-                body: JSON.stringify({
-                    date: formValues.date,
-                    cost: formValues.cost,
-                    _token: csrfToken
-                })
+                body: JSON.stringify(formValues)
             });
 
             const data = await response.json();
-            
+            console.log("Response data:", data); // Debug log
+
             if (!response.ok) {
                 throw new Error(data.error || 'Failed to accept reservation');
             }
 
+            await Swal.fire({
+                title: 'Success!',
+                text: data.message,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+            // Mise à jour de l'UI
             updateReservationCard(reservationId, 'CONFIRMED');
             
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: data.message || 'Reservation accepted successfully',
-                timer: 3000,
-                position: 'top',
-                customClass: {
-                    popup: 'reservation-success-modal'
-                }
-            });
-        }
-    } catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message,
-            timer: 3000,
-            position: 'top'
-        });
-    }
-}
-
-async function handleRefuseReservation(reservationId) {
-    try {
-        const { isConfirmed } = await Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#F44336',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, refuse it!',
-            cancelButtonText: 'Cancel',
-            customClass: {
-                container: 'reservation-modal-container',
-                popup: 'reservation-modal-popup',
-                closeButton: 'swal-close-button'
-            },
-            position: 'top'
-        });
-
-        if (isConfirmed) {
-            const csrfToken = document.getElementById('csrf-token').dataset.token;
-            
+        } else if (action === 'refuse') {
             const response = await fetch(`/transporter/reservations/${reservationId}/refuse`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken
-                },
-                body: JSON.stringify({
-                    _token: csrfToken
-                })
+                    'Accept': 'application/json'
+                }
             });
 
             const data = await response.json();
-            
+
             if (!response.ok) {
                 throw new Error(data.error || 'Failed to refuse reservation');
             }
 
-            updateReservationCard(reservationId, 'CANCELLED');
-            
-            Swal.fire({
+            await Swal.fire({
+                title: 'Success!',
+                text: data.message,
                 icon: 'success',
-                title: 'Refused!',
-                text: data.message || 'Reservation has been refused.',
-                timer: 3000,
-                position: 'top',
-                customClass: {
-                    popup: 'reservation-success-modal'
-                }
+                timer: 2000,
+                showConfirmButton: false
             });
+
+            window.location.reload();
         }
     } catch (error) {
         Swal.fire({
-            icon: 'error',
             title: 'Error',
             text: error.message,
-            timer: 3000,
-            position: 'top'
+            icon: 'error'
+        });
+        console.error('Action failed:', error);
+    }
+}
+
+function updateReservationCard(reservationId, newStatus) {
+    const card = document.querySelector(`.reservation-card[data-id="${reservationId}"]`);
+    if (card) {
+        // Mise à jour du badge de statut
+        const badge = card.querySelector('.card-badge');
+        if (badge) {
+            badge.textContent = newStatus;
+            badge.className = `card-badge ${newStatus.toLowerCase()}`;
+        }
+        
+        // Désactivation des boutons
+        card.querySelectorAll('.btn-accept, .btn-refuse').forEach(btn => {
+            btn.disabled = true;
         });
     }
 }
 
-
-function updateReservationCard(reservationId, newStatus) {
-    const card = document.querySelector(`.reservation-card[data-id="${reservationId}"]`);
-    if (!card) return;
-    
-    // Update status classes
-    card.className = card.className.replace(/\b(pending|confirmed|cancelled)\b/g, '');
-    card.classList.add(newStatus.toLowerCase());
-    
-    // Update badge
-    const badge = card.querySelector('.card-badge');
-    if (badge) {
-        badge.className = `card-badge ${newStatus.toLowerCase()}`;
-        badge.textContent = newStatus;
+/**
+ * Display a toast notification
+ * @param {string} message - The message to display
+ * @param {string} type - The type of toast (success, error, etc.)
+ */
+function showToast(message, type = 'success') {
+    // Create the container if it doesn't exist
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        toastContainer.style.zIndex = '1100';
+        document.body.appendChild(toastContainer);
     }
+
+    const toast = document.createElement('div');
+    toast.className = `toast show align-items-center text-white bg-${type} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2"></i>
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+
+    toastContainer.appendChild(toast);
+
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        toast.remove();
+    }, 5000);
+}
+
+/**
+ * Format date in a user-friendly way
+ * @param {string} dateString - The date string to format
+ * @returns {string} - The formatted date
+ */
+function formatDate(dateString) {
+    return new Date(dateString).toLocaleString();
+}
+
+/**
+ * Get the appropriate color class for a status
+ * @param {string} status - The reservation status
+ * @returns {string} - The color class for the status
+ */
+function getStatusBadgeColor(status) {
+    const colors = {
+        'ON_GOING': 'warning',
+        'ACCEPTED': 'success',
+        'CANCELLED': 'danger',
+        'COMPLETED': 'info'
+    };
+    return colors[status] || 'secondary';
+}
+
+/**
+ * Display form errors
+ * @param {HTMLElement} form - The form element
+ * @param {Object} errors - The errors object
+ */
+function displayFormErrors(form, errors) {
+    // Reset previous errors
+    document.querySelectorAll('.is-invalid').forEach(el => {
+        el.classList.remove('is-invalid');
+    });
     
-    // Disable action buttons
-    card.querySelectorAll('.btn-accept, .btn-refuse').forEach(btn => {
-        btn.style.display = 'none';
+    document.querySelectorAll('.invalid-feedback').forEach(el => {
+        el.textContent = '';
+    });
+    
+    // Display new errors
+    Object.entries(errors).forEach(([field, message]) => {
+        // Handle dot notation for nested fields (e.g., 'parent.child')
+        const fieldPath = field.split('.');
+        const fieldName = fieldPath[fieldPath.length - 1];
+        
+        // Try different selectors to find the input
+        let input = form.querySelector(`[name="${field}"]`);
+        if (!input) {
+            input = form.querySelector(`[name$="[${fieldName}]"]`);
+        }
+        
+        if (input) {
+            input.classList.add('is-invalid');
+            const formGroup = input.closest('.form-group');
+            if (formGroup) {
+                const feedback = formGroup.querySelector('.invalid-feedback');
+                if (feedback) {
+                    feedback.textContent = Array.isArray(message) ? message.join(' ') : message;
+                }
+            }
+        } else {
+            // If field not found, show as a toast message
+            showToast(Array.isArray(message) ? message.join(' ') : message, 'error');
+        }
     });
 }
+
+// Global event handlers
+document.addEventListener('click', function(e) {
+    // Bootstrap modal close buttons
+    if (e.target.closest('[data-bs-dismiss="modal"]')) {
+        const modal = bootstrap.Modal.getInstance(e.target.closest('.modal'));
+        if (modal) modal.hide();
+    }
+    
+    // SweetAlert close buttons
+    if (e.target.closest('.swal2-close')) {
+        Swal.close();
+    }
+});
+
+// Reset hidden modals
+document.addEventListener('hidden.bs.modal', function() {
+    document.body.classList.remove('modal-open');
+    document.body.style.paddingRight = '';
+    document.body.style.overflow = '';
+});

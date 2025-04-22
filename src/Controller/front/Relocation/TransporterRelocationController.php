@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Enum\ReservationStatus; 
+use Knp\Component\Pager\PaginatorInterface;
 
 #[Route('/transporter/relocations')]
 class TransporterRelocationController extends AbstractController
@@ -26,20 +27,33 @@ class TransporterRelocationController extends AbstractController
     ) {}
 
     #[Route('/', name: 'app_transporter_relocation_list', methods: ['GET'])]
-    public function list(DriverRepository $driverRepo): Response
-    {
-        $driver = $driverRepo->find(self::HARDCODED_DRIVER_ID);
-        
-        if (!$driver) {
-            throw $this->createNotFoundException('Driver not found');
-        }
-
-        $relocations = $this->relocationRepo->findByDriver($driver);
-
-        return $this->render('front/relocation/transporter/list.html.twig', [
-            'relocations' => $relocations
-        ]);
+public function list(Request $request, PaginatorInterface $paginator, DriverRepository $driverRepo): Response
+{
+    $driver = $driverRepo->find(self::HARDCODED_DRIVER_ID);
+    
+    if (!$driver) {
+        throw $this->createNotFoundException('Driver not found');
     }
+
+    // Requête optimisée qui respecte strictement votre structure
+    $query = $this->relocationRepo->createQueryBuilder('r')
+        ->join('r.reservation', 'res')
+        ->join('res.announcement', 'a')
+        ->where('a.driver = :driver')
+        ->setParameter('driver', $driver)
+        ->orderBy('r.date', 'DESC')
+        ->getQuery();
+
+    $relocations = $paginator->paginate(
+        $query,
+        $request->query->getInt('page', 1),
+        6 // Items par page
+    );
+
+    return $this->render('front/relocation/transporter/list.html.twig', [
+        'relocations' => $relocations
+    ]);
+}
 
     #[Route('/create/{id}', name: 'app_relocation_create', methods: ['POST'])]
     public function create(Request $request, Reservation $reservation): JsonResponse

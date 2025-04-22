@@ -39,6 +39,11 @@ function initRelocationEvents() {
 
 async function showRelocationDetails(relocationId) {
     try {
+        // Store the position of the clicked button
+        const button = document.querySelector(`.btn-details[data-id="${relocationId}"]`);
+        const buttonRect = button.getBoundingClientRect();
+        
+        // Fetch relocation details
         const response = await fetch(`/transporter/relocations/${relocationId}/details`);
         if (!response.ok) {
             throw new Error('Network response was not ok');
@@ -46,7 +51,32 @@ async function showRelocationDetails(relocationId) {
         
         const data = await response.json();
 
-        // Utiliser SweetAlert2 au lieu de Bootstrap Modal
+        // Calculate modal position
+        const windowHeight = window.innerHeight;
+        const windowWidth = window.innerWidth;
+        
+        // Default position (centered)
+        let position = 'center';
+        
+        // If window is wide enough, position modal next to button
+        if (windowWidth > 768) {
+            // Calculate space available on right and left of button
+            const spaceRight = windowWidth - (buttonRect.right + 20);
+            const spaceLeft = buttonRect.left - 20;
+            
+            if (spaceRight > 600) {
+                // Enough space on right
+                position = { x: buttonRect.right + 10, y: buttonRect.top };
+            } else if (spaceLeft > 600) {
+                // Enough space on left
+                position = { x: buttonRect.left - 600 - 10, y: buttonRect.top };
+            } else {
+                // Not enough horizontal space, place below button
+                position = { x: 'center', y: buttonRect.bottom + 10 };
+            }
+        }
+
+        // Use SweetAlert2 with calculated position
         await Swal.fire({
             title: 'Relocation Details',
             html: `
@@ -54,14 +84,14 @@ async function showRelocationDetails(relocationId) {
                     <div class="detail-section">
                         <div class="detail-item">
                             <i class="fas fa-clipboard-list"></i>
-                            <div>
+                            <div class="detail-item-content">
                                 <h6 class="detail-label">Reservation</h6>
                                 <p class="detail-value">${data.reservationTitle}</p>
                             </div>
                         </div>
                         <div class="detail-item">
                             <i class="fas fa-user"></i>
-                            <div>
+                            <div class="detail-item-content">
                                 <h6 class="detail-label">Client</h6>
                                 <p class="detail-value">${data.clientName}</p>
                             </div>
@@ -71,14 +101,14 @@ async function showRelocationDetails(relocationId) {
                     <div class="detail-section">
                         <div class="detail-item">
                             <i class="fas fa-calendar-alt"></i>
-                            <div>
+                            <div class="detail-item-content">
                                 <h6 class="detail-label">Date</h6>
                                 <p class="detail-value">${data.date}</p>
                             </div>
                         </div>
                         <div class="detail-item">
                             <i class="fas fa-euro-sign"></i>
-                            <div>
+                            <div class="detail-item-content">
                                 <h6 class="detail-label">Cost</h6>
                                 <p class="detail-value">${data.cost} €</p>
                             </div>
@@ -88,14 +118,14 @@ async function showRelocationDetails(relocationId) {
                     <div class="detail-section">
                         <div class="detail-item">
                             <i class="fas fa-map-marker-alt"></i>
-                            <div>
+                            <div class="detail-item-content">
                                 <h6 class="detail-label">Start Location</h6>
                                 <p class="detail-value">${data.startLocation}</p>
                             </div>
                         </div>
                         <div class="detail-item">
                             <i class="fas fa-flag-checkered"></i>
-                            <div>
+                            <div class="detail-item-content">
                                 <h6 class="detail-label">End Location</h6>
                                 <p class="detail-value">${data.endLocation}</p>
                             </div>
@@ -106,19 +136,41 @@ async function showRelocationDetails(relocationId) {
             width: '600px',
             showCloseButton: true,
             showConfirmButton: false,
+            position: position,
+            backdrop: true,
             customClass: {
                 container: 'relocation-modal-container',
                 popup: 'relocation-modal-popup',
                 title: 'relocation-modal-title',
                 closeButton: 'relocation-modal-close',
                 content: 'relocation-modal-content'
+            },
+            // Ensure modal is fully visible
+            didOpen: (modal) => {
+                const modalRect = modal.getBoundingClientRect();
+                
+                // If modal extends below screen
+                if (modalRect.bottom > windowHeight) {
+                    window.scrollBy({
+                        top: modalRect.bottom - windowHeight + 20,
+                        behavior: 'smooth'
+                    });
+                }
+                
+                // If modal extends above screen
+                if (modalRect.top < 0) {
+                    window.scrollBy({
+                        top: modalRect.top - 20,
+                        behavior: 'smooth'
+                    });
+                }
             }
         });
     } catch (error) {
         console.error('Error:', error);
         Swal.fire({
             title: 'Error',
-            text: 'Failed to load relocation details',
+            text: 'Unable to load relocation details',
             icon: 'error',
             confirmButtonColor: '#5A6BE5'
         });
@@ -231,7 +283,7 @@ function validateDate(date) {
     const today = new Date().toISOString().split('T')[0];
     
     if (!dateInput.value || dateInput.value < today) {
-        dateInput.classList.add('is-invalid');
+        dateInput.classList.add('is-invalid');showRelocationDetails
         return false;
     }
     

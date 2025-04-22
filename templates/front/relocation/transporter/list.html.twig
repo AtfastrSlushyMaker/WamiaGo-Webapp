@@ -7,6 +7,7 @@
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('css/front/relocation/relocation-cards.css') }}">
     <link rel="stylesheet" href="{{ asset('css/front/relocation/modal-details.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 {% endblock %}
 
 {% block content %}
@@ -92,6 +93,10 @@
 
                 </div>
             {% endfor %}
+        </div>
+        <!-- Pagination -->
+        <div class="pagination-container">
+            {{ knp_pagination_render(relocations, '@KnpPaginator/Pagination/twitter_bootstrap_v4_pagination.html.twig') }}
         </div>
     {% endif %}
 

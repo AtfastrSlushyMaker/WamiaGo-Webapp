@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use Knp\Component\Pager\PaginatorInterface;
 
 #[Route('/transporter/reservations')]
 class TransporterReservationController extends AbstractController
@@ -30,7 +31,7 @@ class TransporterReservationController extends AbstractController
     ) {}
 
     #[Route('/', name: 'app_transporter_reservation_list', methods: ['GET'])]
-    public function list(): Response
+    public function list(Request $request, PaginatorInterface $paginator): Response
     {
         $driver = $this->driverRepository->find(self::HARDCODED_DRIVER_ID);
         
@@ -38,7 +39,23 @@ class TransporterReservationController extends AbstractController
             throw $this->createNotFoundException('Driver not found');
         }
 
-        $reservations = $this->reservationService->getReservationsByDriver($driver);
+        // Créez la requête directement dans le controller pour plus de clarté
+        $query = $this->em->createQueryBuilder()
+            ->select('r', 'a', 'u')
+            ->from(Reservation::class, 'r')
+            ->join('r.announcement', 'a')
+            ->join('a.driver', 'd')
+            ->leftJoin('r.user', 'u')
+            ->where('d.id_driver = :driverId')
+            ->setParameter('driverId', $driver->getIdDriver())
+            ->orderBy('r.date', 'DESC')
+            ->getQuery();
+
+        $reservations = $paginator->paginate(
+            $query,
+            $request->query->getInt('page', 1),
+            6
+        );
 
         return $this->render('front/reservation/transporter/list.html.twig', [
             'reservations' => $reservations
@@ -48,64 +65,87 @@ class TransporterReservationController extends AbstractController
     #[Route('/{id}/details', name: 'app_transporter_reservation_details', methods: ['GET'])]
     public function details(Reservation $reservation): JsonResponse
     {
-        return $this->json($this->reservationService->getReservationDetails($reservation));
+        try {
+            $details = $this->reservationService->getReservationDetails($reservation);
+            return $this->json($details);
+        } catch (\Exception $e) {
+            return $this->json([
+                'error' => 'Failed to load reservation details',
+                'message' => $e->getMessage()
+            ], 400);
+        }
     }
 
     #[Route('/{id}/accept', name: 'app_transporter_reservation_accept', methods: ['POST'])]
-    #[Route('/{id}/accept', name: 'app_transporter_reservation_accept', methods: ['POST'])]
-public function accept(Request $request, Reservation $reservation, RelocationService $relocationService): JsonResponse
-{
-    $data = json_decode($request->getContent(), true);
+    public function accept(Request $request, Reservation $reservation, RelocationService $relocationService): JsonResponse
+    {
+        try {
+            // Récupération des données brutes pour debug
+            $content = $request->getContent();
+            $data = json_decode($content, true);
+            
+            // Debug logging
+            error_log("Received data: " . print_r($data, true));
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \InvalidArgumentException('Invalid JSON format');
+            }
     
-    if (!$this->isCsrfTokenValid('reservation', $data['_token'] ?? '')) {
-        return $this->json(['error' => 'Invalid CSRF token'], 403);
+            // Validation des champs obligatoires
+            $requiredFields = ['date', 'cost'];
+            foreach ($requiredFields as $field) {
+                if (!isset($data[$field]) || empty($data[$field])) {
+                    throw new \InvalidArgumentException("Field '$field' is required");
+                }
+            }
+    
+            // Validation du coût
+            $cost = (float)$data['cost'];
+            if ($cost <= 0) {
+                throw new \InvalidArgumentException("Cost must be greater than 0");
+            }
+    
+            // Validation de la date
+            $date = new \DateTime($data['date']);
+            $today = new \DateTime('today');
+            if ($date < $today) {
+                throw new \InvalidArgumentException("Date cannot be in the past");
+            }
+    
+            // Création de la relocation
+            $relocation = $relocationService->createFromReservation(
+                $reservation,
+                $date,
+                $cost
+            );
+    
+            // Mise à jour du statut
+            $reservation->setStatus(ReservationStatus::CONFIRMED);
+            $this->em->flush();
+    
+            return $this->json([
+                'success' => true,
+                'message' => 'Reservation accepted successfully',
+                'relocationId' => $relocation->getIdRelocation(),
+                'newStatus' => $reservation->getStatus()->value
+            ]);
+    
+        } catch (\InvalidArgumentException $e) {
+            return $this->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 400);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Server error: ' . $e->getMessage()
+            ], 500);
+        }
     }
-
-    try {
-        // Validate input
-        if (empty($data['date']) || empty($data['cost'])) {
-            throw new \InvalidArgumentException('Date and cost are required');
-        }
-
-        if ((float)$data['cost'] <= 0) {
-            throw new \InvalidArgumentException('Cost must be greater than 0');
-        }
-
-        $relocationDate = new \DateTime($data['date']);
-        if ($relocationDate < new \DateTime('today')) {
-            throw new \InvalidArgumentException('Date cannot be in the past');
-        }
-
-        // Create relocation
-        $relocation = $relocationService->createFromReservation(
-            $reservation,
-            $relocationDate,
-            (float)$data['cost']
-        );
-
-        // Update reservation status
-        $this->em->flush(); // Persist changes to the database
-        $this->em->flush();
-
-        return $this->json([
-            'success' => true,
-            'message' => 'Reservation accepted and relocation created',
-            'newStatus' => $reservation->getStatus()->value
-        ]);
-    } catch (\Exception $e) {
-        return $this->json(['error' => $e->getMessage()], 400);
-    }
-}
 
 #[Route('/{id}/refuse', name: 'app_transporter_reservation_refuse', methods: ['POST'])]
-public function refuse(Request $request, Reservation $reservation): JsonResponse
+public function refuse(Reservation $reservation): JsonResponse
 {
-    $data = json_decode($request->getContent(), true);
-    
-    if (!$this->isCsrfTokenValid('reservation', $data['_token'] ?? '')) {
-        return $this->json(['error' => 'Invalid CSRF token'], 403);
-    }
-
     try {
         $reservation->setStatus(ReservationStatus::CANCELLED);
         $this->em->flush();
@@ -116,61 +156,64 @@ public function refuse(Request $request, Reservation $reservation): JsonResponse
             'newStatus' => $reservation->getStatus()->value
         ]);
     } catch (\Exception $e) {
-        return $this->json(['error' => $e->getMessage()], 400);
+        return $this->json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ], 400);
     }
 }
 
     #[Route('/{id}/create-relocation', name: 'app_transporter_relocation_create', methods: ['GET', 'POST'])]
-public function createRelocation(Request $request, Reservation $reservation): Response
-{
-    // Pour les requêtes AJAX (chargement du formulaire)
-    if ($request->isXmlHttpRequest() && $request->isMethod('GET')) {
-        try {
-            $form = $this->createForm(RelocationFormType::class);
-            
-            return $this->render('front/reservation/transporter/_partials/relocation_form.html.twig', [
-                'form' => $form->createView(),
-                'reservation' => $reservation
-            ]);
-        } catch (\Exception $e) {
-            return $this->json([
-                'error' => 'Failed to load form: ' . $e->getMessage()
-            ], 500);
+    public function createRelocation(Request $request, Reservation $reservation): Response
+    {
+        // Pour les requêtes AJAX (chargement du formulaire)
+        if ($request->isXmlHttpRequest() && $request->isMethod('GET')) {
+            try {
+                $form = $this->createForm(RelocationFormType::class);
+                
+                return $this->render('front/reservation/transporter/_partials/relocation_form.html.twig', [
+                    'form' => $form->createView(),
+                    'reservation' => $reservation
+                ]);
+            } catch (\Exception $e) {
+                return $this->json([
+                    'error' => 'Failed to load form: ' . $e->getMessage()
+                ], 500);
+            }
         }
-    }
-    // Pour la soumission du formulaire
-    $form = $this->createForm(RelocationFormType::class);
-    $form->handleRequest($request);
+        // Pour la soumission du formulaire
+        $form = $this->createForm(RelocationFormType::class);
+        $form->handleRequest($request);
 
-    if ($form->isSubmitted() && $form->isValid()) {
-        try {
-            $relocation = $this->relocationService->createFromReservation(
-                $reservation,
-                $form->get('date')->getData(),
-                $form->get('cost')->getData()
-            );
+        if ($form->isSubmitted() && $form->isValid()) {
+            try {
+                $relocation = $this->relocationService->createFromReservation(
+                    $reservation,
+                    $form->get('date')->getData(),
+                    $form->get('cost')->getData()
+                );
 
-            return $this->json([
-                'success' => true,
-                'message' => 'Relocation created successfully',
-                'reservationId' => $reservation->getIdReservation()
-            ]);
-        } catch (\Exception $e) {
-            return $this->json([
-                'error' => $e->getMessage()
-            ], 400);
+                return $this->json([
+                    'success' => true,
+                    'message' => 'Relocation created successfully',
+                    'reservationId' => $reservation->getIdReservation()
+                ]);
+            } catch (\Exception $e) {
+                return $this->json([
+                    'error' => $e->getMessage()
+                ], 400);
+            }
         }
-    }
 
-    // Si le formulaire n'est pas valide
-    $errors = [];
-    foreach ($form->getErrors(true) as $error) {
-        $errors[$error->getOrigin()->getName()] = $error->getMessage();
-    }
+        // Si le formulaire n'est pas valide
+        $errors = [];
+        foreach ($form->getErrors(true) as $error) {
+            $errors[$error->getOrigin()->getName()] = $error->getMessage();
+        }
 
-    return $this->json([
-        'error' => 'Invalid form data',
-        'errors' => $errors
-    ], 400);
-}
+        return $this->json([
+            'error' => 'Invalid form data',
+            'errors' => $errors
+        ], 400);
+    }
 }

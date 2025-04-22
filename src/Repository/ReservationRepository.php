@@ -44,17 +44,17 @@ class ReservationRepository extends ServiceEntityRepository
     }
 
     public function getQueryByDriver(Driver $driver): QueryBuilder
-    {
-        return $this->createQueryBuilder('r')
-            ->leftJoin('r.announcement', 'a')
-            ->leftJoin('r.user', 'u')
-            ->leftJoin('r.startLocation', 'sl')
-            ->leftJoin('r.endLocation', 'el')
-            ->addSelect('a', 'u', 'sl', 'el')
-            ->where('a.driver = :driver')
-            ->setParameter('driver', $driver)
-            ->orderBy('r.date', 'DESC');
-    }
+{
+    return $this->createQueryBuilder('r')
+        ->join('r.announcement', 'a') 
+        ->join('a.driver', 'd')
+        ->leftJoin('r.user', 'u')
+        ->leftJoin('r.startLocation', 'sl')
+        ->leftJoin('r.endLocation', 'el')
+        ->where('d.id = :driverId')
+        ->setParameter('driverId', $driver->getIdDriver())
+        ->orderBy('r.date', 'DESC');
+}
 
     public function findWithDetails(int $id): ?Reservation
     {
@@ -69,4 +69,6 @@ class ReservationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+
 }

@@ -8,6 +8,18 @@
     <link rel="stylesheet" href="{{ asset('css/front/reservation/modal-details.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.min.css" rel="stylesheet">
   <style>
+  .swal2-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 1060 !important;
+    padding: 10px !important;
+}
         /* Style pour les modales SweetAlert */
         .reservation-modal-container {
             z-index: 1500 !important;
@@ -231,7 +243,10 @@
                 </div>
             {% endfor %}
         </div>
-
+<!-- Pagination -->
+    <div class="pagination-container mt-4">
+        {{ knp_pagination_render(reservations, '@KnpPaginator/Pagination/twitter_bootstrap_v4_pagination.html.twig') }}
+    </div>
     {% endif %}
 </div>
 

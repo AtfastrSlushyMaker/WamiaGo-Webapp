@@ -1,15 +1,287 @@
+/* Reset et affichage de la modale */
+.modal-backdrop.show {
+    opacity: 0.5 !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.modal-backdrop,
+.modal {
+    display: none !important;
+}
+
+/* Conteneur principal SweetAlert */
+.swal2-container {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    padding-top: 50px !important;
+    z-index: 1060 !important;
+}
+
+.swal2-popup {
+    border-radius: 12px !important;
+    padding: 2rem !important;
+    width: 90% !important;
+    max-width: 600px !important;
+    max-height: calc(100vh - 100px) !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1) !important;
+    margin: 0 auto !important;
+    overflow-y: auto !important;
+}
+
+/* Animation d’apparition */
+@keyframes modalSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.swal2-show {
+    animation: modalSlideDown 0.3s ease-out !important;
+}
+
+/* Style des boutons SweetAlert */
+.swal2-confirm,
+.swal2-cancel {
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+}
+
+.swal2-confirm {
+    background-color: #5A6BE5 !important;
+}
+
+.swal2-cancel {
+    background-color: #6c757d !important;
+}
+
+/* Styles de la modal personnalisée */
+.relocation-modal-container {
+    z-index: 1060 !important;
+    padding: 20px 0 !important;
+}
+
+.relocation-modal-popup {
+    border-radius: 12px !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2) !important;
+    border-left: 4px solid #5A6BE5 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+.relocation-details-popup {
+    border-radius: 12px;
+    padding: 2rem;
+    max-width: 650px;
+    max-height: 85vh;
+    overflow-y: auto;
+    margin: 20px 0;
+}
+
+.relocation-details-popup::-webkit-scrollbar {
+    width: 6px;
+}
+
+.relocation-details-popup::-webkit-scrollbar-thumb {
+    background-color: rgba(90, 107, 229, 0.5);
+    border-radius: 3px;
+}
+
+.relocation-details-popup::-webkit-scrollbar-track {
+    background: rgba(90, 107, 229, 0.1);
+}
+
+.relocation-modal-title {
+    color: #2d3436 !important;
+    font-size: 1.5rem !important;
+    font-weight: 600 !important;
+    padding: 1.25rem 1.5rem !important;
+    background-color: #f8f9fa !important;
+    border-bottom: 1px solid #eaeaea !important;
+    margin: 0 !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1 !important;
+}
+
+.relocation-modal-html-container {
+    max-height: calc(100vh - 200px) !important;
+    overflow-y: auto !important;
+}
+
+.relocation-modal-close {
+    color: #5A6BE5 !important;
+    font-size: 1.5rem !important;
+    position: absolute !important;
+    top: 1rem !important;
+    right: 1rem !important;
+    z-index: 2 !important;
+}
+
+/* Détails affichés dans la modal */
+.detail-section {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+    border-left: 3px solid #5A6BE5;
+    transition: all 0.3s ease;
+}
+
+.detail-section:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+.detail-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.detail-item:last-child {
+    margin-bottom: 0;
+}
+
+.detail-item i {
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
+    margin-top: 3px;
+    color: #5A6BE5;
+}
+
+.detail-item i.start-icon {
+    color: #e63946;
+}
+
+.detail-item i.end-icon {
+    color: #2a9d8f;
+}
+
+.detail-item-content {
+    flex: 1;
+}
+
+.detail-label {
+    color: #5A6BE5;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+.detail-value {
+    color: #495057;
+    margin-bottom: 0;
+    font-size: 1rem;
+    word-break: break-word;
+}
+
+/* Header de la modal */
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.detail-header h4 {
+    margin: 0;
+    color: #2d3748;
+    font-size: 1.5rem;
+}
+
+.detail-header .badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.detail-header .badge.active {
+    background-color: #e3f7e8;
+    color: #28a745;
+}
+
+.detail-header .badge.inactive {
+    background-color: #f8f9fa;
+    color: #6c757d;
+}
+
+/* Positionnement et animation en haut de l’écran */
+.top-positioned-modal {
+    top: 20px !important;
+    margin-top: 0 !important;
+    margin-bottom: auto !important;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.swal2-show.top-positioned-modal {
+    animation: slideDown 0.3s ease-out;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .swal2-popup {
+        width: 95% !important;
+        max-width: none !important;
+    }
+
+    .relocation-modal-html-container {
+        max-height: 60vh !important;
+    }
+}
+
+/* Élément pour éviter conflits d'affichage */
+.announcements-grid,
+.card-actions {
+    position: relative;
+    z-index: 1;
+}
+
+
+.relocation-modal-title {
+    color: #2d3436 !important;
+    font-size: 1.25rem !important;
+    font-weight: 600 !important;
+    padding: 1rem 1.5rem !important;
+    background-color: #f8f9fa !important;
+    border-bottom: 1px solid #eaeaea !important;
+    margin: 0 !important;
+}
 /* Reset des styles de modal problématiques */
 .modal-backdrop.show {
     opacity: 0.5 !important;
     background-color: rgba(0, 0, 0, 0.5) !important;
 }
 
-/* Styles pour la modale SweetAlert2 */
 .swal2-container {
     display: flex !important;
-    align-items: center !important;
+    align-items: flex-start !important; /* Change from center to flex-start */
     justify-content: center !important;
-    padding: 0 !important;
+    padding-top: 50px !important; /* Add top padding */
+    z-index: 1060 !important;
 }
 
 .swal2-popup {
@@ -18,6 +290,31 @@
     width: 90% !important;
     max-width: 600px !important;
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1) !important;
+    margin: 0 auto !important;
+    max-height: calc(100vh - 100px) !important;
+    overflow-y: auto !important;
+}
+
+/* Animation pour apparition du haut */
+@keyframes modalSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.swal2-show {
+    animation: modalSlideDown 0.3s ease-out !important;
+}
+
+/* Supprimer les styles conflictuels */
+.modal-backdrop, 
+.modal {
+    display: none !important;
 }
 
 /* Styles pour le contenu de la modale */
@@ -99,10 +396,6 @@
     }
 }
 
-.swal2-show {
-    animation: modalFadeIn 0.3s ease-out !important;
-}
-
 /* Style des boutons */
 .swal2-confirm {
     background-color: #5A6BE5 !important;
@@ -129,3 +422,403 @@
     z-index: 1;
 }
 
+/* Styles spécifiques pour la modale de détails */
+.relocation-details-popup {
+    border-radius: 12px;
+    padding: 2rem;
+    max-width: 650px;
+}
+
+.relocation-details-close {
+    font-size: 1.5rem;
+    color: #6c757d;
+}
+
+.detail-container {
+    padding: 0.5rem;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.detail-header h4 {
+    margin: 0;
+    color: #2d3748;
+    font-size: 1.5rem;
+}
+
+.detail-header .badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.detail-header .badge.active {
+    background-color: #e3f7e8;
+    color: #28a745;
+}
+
+.detail-header .badge.inactive {
+    background-color: #f8f9fa;
+    color: #6c757d;
+}
+
+.detail-section {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.detail-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.detail-item:last-child {
+    margin-bottom: 0;
+}
+
+.detail-item i {
+    font-size: 1.1rem;
+    margin-top: 0.2rem;
+    color: #5A6BE5;
+}
+
+.detail-item i.start-icon {
+    color: #e63946;
+}
+
+.detail-item i.end-icon {
+    color: #2a9d8f;
+}
+
+.detail-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-value {
+    font-size: 1rem;
+    color: #2d3748;
+    font-weight: 500;
+}
+
+/* Positionnement en haut */
+.top-positioned-modal {
+    top: 20px !important;
+    margin-top: 0 !important;
+    margin-bottom: auto !important;
+}
+
+/* Animation */
+.swal2-show.top-positioned-modal {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Ajustements pour le contenu */
+.relocation-details-popup {
+    max-height: 85vh;
+    overflow-y: auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+/* Scrollbar personnalisée */
+.relocation-details-popup::-webkit-scrollbar {
+    width: 6px;
+}
+
+.relocation-details-popup::-webkit-scrollbar-thumb {
+    background-color: rgba(90, 107, 229, 0.5);
+    border-radius: 3px;
+}
+
+.relocation-details-popup::-webkit-scrollbar-track {
+    background: rgba(90, 107, 229, 0.1);
+}
+
+/* Styles pour garantir l'affichage complet de la modal */
+.relocation-modal-container {
+    z-index: 1060 !important;
+    padding: 20px 0 !important; /* Ajoute de l'espace en haut et en bas */
+}
+
+
+
+.relocation-modal-title {
+    color: #2d3436 !important;
+    font-size: 1.5rem !important;
+    font-weight: 600 !important;
+    padding: 1.25rem 1.5rem !important;
+    background-color: #f8f9fa !important;
+    border-bottom: 1px solid #eaeaea !important;
+    margin: 0 !important;
+    position: sticky !important;
+    top: 0 !important; /* Garde le titre visible en cas de défilement */
+    z-index: 1 !important;
+}
+
+.relocation-modal-html-container {
+    max-height: calc(100vh - 200px) !important;
+    overflow-y: auto !important;
+}
+
+.relocation-modal-content {
+    padding: 1.5rem !important;
+}
+
+.relocation-modal-close {
+    color: #5A6BE5 !important;
+    font-size: 1.5rem !important;
+    position: absolute !important;
+    top: 1rem !important;
+    right: 1rem !important;
+    z-index: 2 !important; /* S'assure que le bouton de fermeture est toujours cliquable */
+}
+
+/* Amélioration des détails à l'intérieur de la modale */
+
+
+.detail-section {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+    border-left: 3px solid #5A6BE5;
+    transition: all 0.3s ease;
+}
+
+.detail-section:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+.detail-section:last-child {
+    margin-bottom: 0;
+}
+
+.detail-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.detail-item:last-child {
+    margin-bottom: 0;
+}
+
+.detail-item i {
+    color: #5A6BE5;
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
+    margin-top: 3px;
+}
+
+.detail-item-content {
+    flex: 1;
+}
+
+.detail-label {
+    color: #5A6BE5;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+}
+
+.detail-value {
+    color: #495057;
+    margin-bottom: 0;
+    font-size: 1rem;
+    word-break: break-word; /* Empêche les textes longs de dépasser */
+}
+
+/* Assure la visibilité de la modal sur mobile */
+@media (max-width: 768px) {
+    .swal2-popup {
+        width: 95% !important;
+        max-width: none !important;
+    }
+    
+    .relocation-modal-html-container {
+        max-height: 60vh !important;
+    }
+}
+
+/* Styles pour la modal de détails près du bouton */
+.relocation-modal-container {
+    z-index: 1060 !important;
+}
+
+.relocation-modal-popup {
+    border-radius: 12px !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2) !important;
+    border-left: 4px solid #5A6BE5 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    max-height: 85vh !important;
+}
+
+.relocation-modal-title {
+    color: #2d3436 !important;
+    font-size: 1.25rem !important;
+    font-weight: 600 !important;
+    padding: 1rem 1.5rem !important;
+    background-color: #f8f9fa !important;
+    border-bottom: 1px solid #eaeaea !important;
+    margin: 0 !important;
+}
+
+.relocation-modal-content {
+    padding: 1.5rem !important;
+    overflow-y: auto !important;
+    max-height: 70vh !important;
+}
+
+.relocation-modal-close {
+    color: #5A6BE5 !important;
+    font-size: 1.25rem !important;
+    top: 0.75rem !important;
+    right: 0.75rem !important;
+}
+
+/* Flèche pointant vers le bouton (optionnel) */
+.swal2-popup::before {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+}
+
+/* La direction de la flèche dépend de la position de la modal par rapport au bouton */
+/* Ces classes seront ajoutées dynamiquement par JS au besoin */
+.arrow-left::before {
+    right: 100%;
+    top: 30px;
+    border-width: 10px 10px 10px 0;
+    border-color: transparent #fff transparent transparent;
+}
+
+.arrow-right::before {
+    left: 100%;
+    top: 30px;
+    border-width: 10px 0 10px 10px;
+    border-color: transparent transparent transparent #fff;
+}
+
+.arrow-top::before {
+    bottom: 100%;
+    left: 30px;
+    border-width: 0 10px 10px 10px;
+    border-color: transparent transparent #fff transparent;
+}
+
+.arrow-bottom::before {
+    top: 100%;
+    left: 30px;
+    border-width: 10px 10px 0 10px;
+    border-color: #fff transparent transparent transparent;
+}
+
+/* Styles pour le contenu des détails */
+.detail-card {
+    padding: 0.5rem;
+}
+
+.detail-section {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+    border-left: 3px solid #5A6BE5;
+    transition: all 0.3s ease;
+}
+
+.detail-section:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+.detail-section:last-child {
+    margin-bottom: 0;
+}
+
+.detail-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.detail-item:last-child {
+    margin-bottom: 0;
+}
+
+.detail-item i {
+    color: #5A6BE5;
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
+    margin-top: 3px;
+}
+
+.detail-item-content {
+    flex: 1;
+}
+
+.detail-label {
+    color: #5A6BE5;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+}
+
+.detail-value {
+    color: #495057;
+    margin-bottom: 0;
+    font-size: 1rem;
+    word-break: break-word;
+}
+
+/* Adaptations pour mobile */
+@media (max-width: 768px) {
+    .swal2-popup {
+        width: 95% !important;
+        margin: 0 auto !important;
+    }
+    
+    /* Sur mobile, on désactive les flèches */
+    .swal2-popup::before {
+        display: none;
+    }
+}

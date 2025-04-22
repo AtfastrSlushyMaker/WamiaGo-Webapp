@@ -105,45 +105,55 @@ startTop = modalDialog.offsetTop;
  * Initialise les fonctionnalités des modals d'annonce
  */
 function initializeAnnouncementModals() {
-    // Initialiser la modale avec Bootstrap
     const detailsModalEl = document.getElementById('detailsModal');
     if (!detailsModalEl) return;
-    
-    const detailsModal = new bootstrap.Modal(detailsModalEl);
-    
-    // Gestion du clic sur le bouton Details
-    document.addEventListener('click', function(e) {
+
+    const detailsModal = new bootstrap.Modal(detailsModalEl, {
+        backdrop: true,
+        keyboard: true
+    });
+
+    // Réinitialise les styles après fermeture
+    detailsModalEl.addEventListener('hidden.bs.modal', function () {
+        document.body.style.overflow = 'auto';
+        document.body.style.paddingRight = '0';
+    });
+
+    // Clic sur bouton "Détails"
+    document.addEventListener('click', function (e) {
         if (e.target.closest('.btn-details')) {
             currentButton = e.target.closest('.btn-details');
             const card = currentButton.closest('.announcement-card');
-            currentAnnouncementId = card.dataset.id;
-            
-            // Afficher les détails de l'annonce
+            currentAnnouncementId = card?.dataset?.id;
+
+            if (!currentAnnouncementId) return;
+
+            // Charger et afficher les détails
             showAnnouncementDetails(currentAnnouncementId, detailsModal);
-            
-            // Positionner la modale près du bouton cliqué (sur desktop)
+
+            // Positionner la modale près du bouton sur desktop
             if (window.innerWidth > 992) {
                 setTimeout(() => positionModalNearButton(currentButton), 100);
             }
         }
     });
 
-    // Gestion du bouton Edit
-    document.getElementById('editAnnouncementBtn')?.addEventListener('click', function() {
+    // Clic sur bouton "Modifier"
+    document.getElementById('editAnnouncementBtn')?.addEventListener('click', function () {
         if (currentAnnouncementId) {
-            window.location.href = `/transporter/announcements/${currentAnnouncementId}/edit`;
+            openEditModal(currentAnnouncementId);
         }
     });
 
-    // Initialiser la fonctionnalité de déplacement après l'affichage du modal
-    detailsModalEl.addEventListener('shown.bs.modal', function() {
-        // Initialiser la fonctionnalité de déplacement seulement la première fois
+    // Activer le drag & drop une seule fois
+    detailsModalEl.addEventListener('shown.bs.modal', function () {
         if (!draggableModal) {
             initializeDraggableModal();
             draggableModal = true;
         }
     });
 }
+
 
 /**
  * Positionne le modal près du bouton cliqué
@@ -328,30 +338,52 @@ function closeModalAndRefreshList() {
 
 // Initialisation de la modale de suppression
 function initializeDeleteModal() {
-    const deleteModal = new bootstrap.Modal('#deleteModal');
+    const deleteModalEl = document.getElementById('deleteModal');
+    if (!deleteModalEl) return;
+
+    // Positionnement forcé
+    const dialog = deleteModalEl.querySelector('.modal-dialog');
+    dialog.style.top = '100px';
+    dialog.style.left = '50%';
+    dialog.style.transform = 'translateX(-50%)';
+
+    const deleteModal = new bootstrap.Modal(deleteModalEl, {
+        backdrop: true,
+        keyboard: true
+    });
+
     let currentAnnouncementId = null;
 
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (e.target.closest('.btn-delete')) {
             const button = e.target.closest('.btn-delete');
             currentAnnouncementId = button.dataset.id;
             const announcementTitle = button.dataset.title;
-            
-            // Mettre à jour le contenu de la modale
-            document.getElementById('announcementTitleToDelete').textContent = announcementTitle;
-            
-            // Mettre à jour le formulaire
+
+            // Mettre à jour le titre dans la modale
+            const titleEl = document.getElementById('announcementTitleToDelete');
+            if (titleEl) {
+                titleEl.textContent = announcementTitle;
+            }
+
+            // Mettre à jour l'action du formulaire
             const form = document.getElementById('deleteAnnouncementForm');
-            form.action = `/transporter/announcements/${currentAnnouncementId}/delete`;
-            
-            // Ajouter le token CSRF
-            document.getElementById('deleteCsrfToken').value = button.dataset.csrf || '';
-            
+            if (form) {
+                form.action = `/transporter/announcements/${currentAnnouncementId}/delete`;
+            }
+
+            // Mettre à jour le token CSRF
+            const csrfInput = document.getElementById('deleteCsrfToken');
+            if (csrfInput) {
+                csrfInput.value = button.dataset.csrf || '';
+            }
+
             // Afficher la modale
             deleteModal.show();
         }
     });
 }
+
 
 // Initialisation des boutons d'édition
 function initializeEditButtons() {
@@ -372,27 +404,36 @@ async function openEditModal(announcementId) {
             return;
         }
 
-        const editModal = new bootstrap.Modal(editModalEl);
+        // Forcer le positionnement avant ouverture
+        const dialog = editModalEl.querySelector('.modal-dialog');
+        dialog.style.top = '50px';
+        dialog.style.left = '50%';
+        dialog.style.transform = 'translateX(-50%)';
+
+        const editModal = new bootstrap.Modal(editModalEl, {
+            backdrop: true,
+            keyboard: true
+        });
+
+        // Afficher le loader dans le corps de la modale
         const modalBody = editModalEl.querySelector('#editModalBody');
-        
-        // Afficher le loader
         modalBody.innerHTML = `
             <div class="text-center py-5">
                 <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
                     <span class="visually-hidden">Loading...</span>
                 </div>
-                <p class="mt-3 text-muted">Loading edit form...</p>
+                <p class="mt-3 text-muted">Chargement du formulaire...</p>
             </div>
         `;
 
         editModal.show();
 
-        // Charger le formulaire
+        // Charger dynamiquement le contenu
         const response = await fetch(`/transporter/announcements/${announcementId}/edit`, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         });
 
-        if (!response.ok) throw new Error('Failed to load edit form');
+        if (!response.ok) throw new Error('Impossible de charger le formulaire');
 
         const html = await response.text();
         modalBody.innerHTML = html;
@@ -402,17 +443,20 @@ async function openEditModal(announcementId) {
 
     } catch (error) {
         console.error('Edit modal error:', error);
+
         const modalBody = document.querySelector('#editModalBody');
         if (modalBody) {
             modalBody.innerHTML = `
                 <div class="alert alert-danger">
                     <i class="fas fa-exclamation-triangle me-2"></i>
-                    Error loading edit form: ${error.message}
+                    Erreur lors du chargement du formulaire : ${error.message}
                 </div>
             `;
         }
     }
 }
+
+
 
 function initEditModalDrag() {
     const modal = document.querySelector('#editModal .modal-dialog');

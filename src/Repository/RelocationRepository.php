@@ -140,16 +140,16 @@ class RelocationRepository extends ServiceEntityRepository
     }
 
     public function findByDriver(Driver $driver): array
-    {
-        return $this->createQueryBuilder('r')
-            ->join('r.reservation', 'res')
-            ->join('res.announcement', 'a')
-            ->where('a.driver = :driver')
-            ->setParameter('driver', $driver)
-            ->orderBy('r.date', 'DESC')
-            ->getQuery()
-            ->getResult();
-    }
+{
+    return $this->createQueryBuilder('r')
+        ->join('r.reservation', 'res')
+        ->join('res.announcement', 'a')
+        ->where('a.driver = :driver')
+        ->setParameter('driver', $driver)
+        ->orderBy('r.date', 'DESC')
+        ->getQuery()
+        ->getResult();
+}
 
     public function findByClient(User $client): array
 {
@@ -162,6 +162,16 @@ class RelocationRepository extends ServiceEntityRepository
         ->getResult();
 }
 
+public function getQueryByDriver(Driver $driver): QueryBuilder
+    {
+        return $this->createQueryBuilder('r')
+            ->join('r.reservation', 'res')
+            ->join('res.announcement', 'a')
+            ->join('a.driver', 'd')
+            ->where('d.id_driver = :driverId')
+            ->setParameter('driverId', $driver->getIdDriver())
+            ->orderBy('r.date', 'DESC');
+    }
 
     //    /**
     //     * @return Relocation[] Returns an array of Relocation objects

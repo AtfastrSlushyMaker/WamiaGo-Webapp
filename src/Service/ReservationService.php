@@ -8,14 +8,12 @@ use App\Enum\ReservationStatus;
 use App\Entity\User;
 use App\Repository\ReservationRepository;
 use App\Entity\Relocation;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\QueryBuilder;
 
 class ReservationService
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private ReservationRepository $reservationRepository
+        private ReservationRepository $reservationRepository,
+        private \Doctrine\ORM\EntityManagerInterface $em
     ) {}
 
     public function getReservationsByDriver(Driver $driver): array
@@ -23,28 +21,34 @@ class ReservationService
         return $this->reservationRepository->findByDriver($driver);
     }
 
-    public function getReservationsQueryByDriver(Driver $driver): QueryBuilder
-    {
-        return $this->reservationRepository->getQueryByDriver($driver);
-    }
-
     public function getReservationDetails(Reservation $reservation): array
     {
         return [
             'id' => $reservation->getIdReservation(),
-            'description' => $reservation->getDescription(),
-            'date' => $reservation->getDate()->format('Y-m-d H:i'),
-            'status' => $reservation->getStatus()->value,
-            'startLocation' => $reservation->getStartLocation()->getAddress(),
-            'endLocation' => $reservation->getEndLocation()->getAddress(),
-            'client' => [
-                'name' => $reservation->getUser()->getName(),
-                'email' => $reservation->getUser()->getEmail()
-            ],
             'announcement' => [
                 'title' => $reservation->getAnnouncement()->getTitle(),
+                'content' => $reservation->getAnnouncement()->getContent(),
                 'zone' => $reservation->getAnnouncement()->getZone()->value
-            ]
+            ],
+            'status' => $reservation->getStatus()->value,
+            'description' => $reservation->getDescription(),
+            'date' => $reservation->getDate()->format('Y-m-d H:i'),
+            'user' => [
+                'name' => $reservation->getUser()->getName() ,
+                'email' => $reservation->getUser()->getEmail(),
+                'phone' => $reservation->getUser()->getPhoneNumber() ?? 'Not provided'
+            ],
+            'startLocation' => [
+                'address' => $reservation->getStartLocation()->getAddress(),
+                'latitude' => $reservation->getStartLocation()->getLatitude(),
+                'longitude' => $reservation->getStartLocation()->getLongitude()
+            ],
+            'endLocation' => [
+                'address' => $reservation->getEndLocation()->getAddress(),
+                'latitude' => $reservation->getEndLocation()->getLatitude(),
+                'longitude' => $reservation->getEndLocation()->getLongitude()
+            ],
+            'createdAt' => $reservation->getDate()->format('Y-m-d H:i')
         ];
     }
 
@@ -62,8 +66,8 @@ class ReservationService
 
         $reservation->setStatus(ReservationStatus::CONFIRMED);
 
-        $this->entityManager->persist($relocation);
-        $this->entityManager->flush();
+        $this->em->persist($relocation);
+        $this->em->flush();
 
         return $relocation;
     }
@@ -75,7 +79,7 @@ class ReservationService
         }
 
         $reservation->setStatus(ReservationStatus::CANCELLED);
-        $this->entityManager->flush();
+        $this->em->flush();
     }
 
     public function getReservationsByUser(User $user): array
