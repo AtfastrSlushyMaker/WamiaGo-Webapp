@@ -69,7 +69,6 @@ class BicycleStationService
     }
     public function getAvailableBikes(): array
     {
-        // Return stations that have at least one bike available
         return $this->stationRepository->createQueryBuilder('s')
             ->where('s.available_bikes > 0')
             ->andWhere('s.status = :active')
@@ -78,9 +77,6 @@ class BicycleStationService
             ->getResult();
     }
 
-    /**
-     * Refresh the available bikes count for all stations
-     */
     public function refreshAvailableBikesCounts(): void
     {
         $this->stationRepository->updateAvailableBikesCounts();
@@ -121,9 +117,6 @@ class BicycleStationService
         return $capacity;
     }
 
-    /**
-     * Get total charging docks across all stations
-     */
     public function getTotalChargingDocks(): int
     {
         $stations = $this->getAllStations();
@@ -136,9 +129,6 @@ class BicycleStationService
         return $chargingDocks;
     }
 
-    /**
-     * Get stations with their rental activity
-     */
     public function getStationsWithRentalActivity(int $limit = 5): array
     {
         $conn = $this->entityManager->getConnection();
@@ -166,5 +156,12 @@ class BicycleStationService
         $result = $stmt->executeQuery()->fetchAllAssociative();
 
         return $result;
+    }
+
+    public function getAllStationsQuery()
+    {
+        return $this->stationRepository->createQueryBuilder('s')
+            ->orderBy('s.name', 'ASC')
+            ->getQuery();
     }
 }

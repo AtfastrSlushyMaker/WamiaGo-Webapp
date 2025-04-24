@@ -20,6 +20,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use ValueError; // Import ValueError for catching enum errors
+use Knp\Component\Pager\PaginatorInterface;
 
 //#[IsGranted('ROLE_ADMIN')]
 #[Route('/admin/bicycle/station')]
@@ -31,6 +32,7 @@ class StationAdminController extends AbstractController
     private $rentalService;
     private $locationService;
     private $logger;
+    private $paginator;
 
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -38,7 +40,8 @@ class StationAdminController extends AbstractController
         BicycleStationService $stationService,
         BicycleRentalService $rentalService,
         LocationService $locationService,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        PaginatorInterface $paginator
     ) {
         $this->entityManager = $entityManager;
         $this->bicycleService = $bicycleService;
@@ -46,35 +49,10 @@ class StationAdminController extends AbstractController
         $this->rentalService = $rentalService;
         $this->locationService = $locationService;
         $this->logger = $logger;
+        $this->paginator = $paginator;
     }
 
-    #[Route('s', name: 'admin_bicycle_stations')]
-    public function index(): Response
-    {
-        // Get all stations with their details
-        $stations = $this->stationService->getAllStations();
-
-        // Get station counts by status
-        $stationCounts = $this->stationService->getStationCountsByStatus();
-
-        // Get total capacity and charging docks
-        $totalCapacity = $this->stationService->getTotalBicycleCapacity();
-        $totalChargingDocks = $this->stationService->getTotalChargingDocks();
-
-        // Get stations with rental activity
-        $stationActivity = $this->stationService->getStationsWithRentalActivity(5);
-
-        return $this->render('back-office/bicycle-rentals.html.twig', [
-            'bicycles' => $this->bicycleService->getAllBicycles(),
-            'stations' => $stations,
-            'bicycle_rentals' => $this->entityManager->getRepository(BicycleRental::class)->findAll(),
-            'stationCounts' => $stationCounts,
-            'totalCapacity' => $totalCapacity,
-            'totalChargingDocks' => $totalChargingDocks,
-            'stationActivity' => $stationActivity,
-            'tab' => 'stations'
-        ]);
-    }
+    
 
     #[Route('/station/new', name: 'admin_bicycle_station_new', methods: ['POST'])]
     public function newStation(Request $request, ValidatorInterface $validator): JsonResponse

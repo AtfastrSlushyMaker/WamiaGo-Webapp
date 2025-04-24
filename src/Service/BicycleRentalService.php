@@ -140,28 +140,22 @@ class BicycleRentalService
     {
         $bicycle = $rental->getBicycle();
         
-        // Calculate final cost based on duration
+
         $startTime = $rental->getStartTime();
         $endTime = new \DateTime();
         $duration = $endTime->diff($startTime);
         $hours = $duration->h + ($duration->days * 24);
         $finalCost = $hours > 0 ? $hours * 3.5 : 3.5;
         
-        // Update rental
         $rental->setEndStation($endStation);
         $rental->setEndTime($endTime);
         $rental->setDistanceKm($distanceKm);
         $rental->setBatteryUsed($batteryUsed);
         $rental->setCost($finalCost);
         
-        // Update bicycle - use the bicycleService to safely reassign
-        // This ensures proper status and station metrics are updated
+
         $this->bicycleService->reassignBicycleToStation($bicycle, $endStation, BICYCLE_STATUS::AVAILABLE);
         
-        // Since reassignBicycleToStation handles updating station metrics, we don't need 
-        // to manually update endStation's available bikes or docks
-        
-        // Persist changes
         $this->entityManager->flush();
     }
 
@@ -207,5 +201,19 @@ class BicycleRentalService
         return $this->rentalRepository->findAll();
     }
 
-
+    /**
+     * Get all rentals as a query for pagination
+     */
+    public function getAllRentalsQuery()
+    {
+        return $this->entityManager->createQueryBuilder()
+            ->select('r')
+            ->from('App\Entity\BicycleRental', 'r')
+            ->leftJoin('r.bicycle', 'b')
+            ->leftJoin('r.user', 'u')
+            ->leftJoin('r.start_station', 'ss')
+            ->leftJoin('r.end_station', 'es')
+            ->orderBy('r.id_user_rental', 'DESC')
+            ->getQuery();
+    }
 }

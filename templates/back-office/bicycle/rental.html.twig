@@ -1,7 +1,3 @@
-
-
-
-
 {% block stylesheets %}
 <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
 <style>
@@ -432,6 +428,77 @@
 
     .bg-danger-soft {
         background-color: rgba(220, 53, 69, 0.15);
+    }
+    
+    /* Enhanced Pagination Styling */
+    .pagination-wrapper {
+        padding: 1.5rem;
+        border-top: 1px solid #e9ecef;
+        background: #f8f9fa;
+        border-radius: 0 0 1rem 1rem;
+    }
+    
+    .pagination-modern {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .pagination-modern .page-item .page-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: 0;
+        margin: 0 0.25rem;
+        font-weight: 500;
+        border: none;
+        border-radius: 0.75rem;
+        background-color: white;
+        color: #495057;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        transition: all 0.2s ease;
+    }
+    
+    .pagination-modern .page-item.active .page-link {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        color: white;
+        box-shadow: 0 0.25rem 0.75rem rgba(13, 110, 253, 0.25);
+        transform: translateY(-2px);
+    }
+    
+    .pagination-modern .page-item .page-link:hover:not(.active) {
+        background-color: #e9ecef;
+        transform: translateY(-2px);
+    }
+    
+    .pagination-info {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-bottom: 0.75rem;
+        text-align: center;
+    }
+    
+    .pagination-per-page {
+        margin-top: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .pagination-per-page select {
+        width: auto;
+        margin: 0 0.5rem;
+        padding: 0.25rem 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid #ced4da;
+    }
+    
+    .pagination-per-page label {
+        color: #6c757d;
+        margin-bottom: 0;
+        margin-right: 0.5rem;
     }
     
     /* Responsive adjustments */
@@ -866,9 +933,31 @@
         </div>
         
         <!-- Pagination -->
-        {% if rentals is defined and rentals.isPaginationObject is defined %}
-            <div class="d-flex justify-content-center p-3">
-                {{ knp_pagination_render(rentals) }}
+        {% if rentals|length > 0 %}
+            <div class="pagination-wrapper">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="pagination-info">
+                        {% if rentals.getTotalItemCount is defined %}
+                            Showing {{ rentals.items|length }} of {{ rentals.getTotalItemCount }} rentals
+                        {% else %}
+                            Showing {{ rentals|length }} rentals
+                        {% endif %}
+                    </div>
+                    <div class="pagination-modern">
+                        {% if rentals.isPaginationObject is defined or rentals.getTotalItemCount is defined %}
+                            {{ knp_pagination_render(rentals, 'back-office/bicycle/rental-pagination.html.twig') }}
+                        {% endif %}
+                    </div>
+                    <div class="pagination-per-page">
+                        <label for="perPageSelect">Items per page:</label>
+                        <select id="perPageSelect" name="perPage" class="form-select form-select-sm">
+                            <option value="10" {{ app.request.query.get('perPage') == '10' or app.request.query.get('perPage') == null ? 'selected' : '' }}>10</option>
+                            <option value="25" {{ app.request.query.get('perPage') == '25' ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ app.request.query.get('perPage') == '50' ? 'selected' : '' }}>50</option>
+                            <option value="100" {{ app.request.query.get('perPage') == '100' ? 'selected' : '' }}>100</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         {% endif %}
     </div>
@@ -1032,6 +1121,90 @@ document.addEventListener('DOMContentLoaded', function() {
             }, index * 100);
         });
     }, 500);
+    
+    // Per page selection
+    const perPageSelect = document.getElementById('perPageSelect');
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', function() {
+            // Get current URL and parameters
+            const url = new URL(window.location.href);
+            const params = new URLSearchParams(url.search);
+            
+            // Update perPage parameter
+            params.set('perPage', this.value);
+            
+            // Reset page to 1 when changing items per page
+            params.set('page', '1');
+            
+            // Redirect to the new URL with updated parameters
+            window.location.href = `${url.pathname}?${params.toString()}`;
+        });
+    }
+    
+    // Active filters highlighting
+    const highlightActiveFilters = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Highlight status filter
+        const statusFilter = urlParams.get('status');
+        if (statusFilter) {
+            const statusSelect = document.querySelector('select[name="status"]');
+            if (statusSelect) {
+                statusSelect.classList.add('border-primary');
+            }
+        }
+        
+        // Highlight station filter
+        const stationFilter = urlParams.get('stationId');
+        if (stationFilter) {
+            const stationSelect = document.querySelector('select[name="stationId"]');
+            if (stationSelect) {
+                stationSelect.classList.add('border-primary');
+            }
+        }
+        
+        // Highlight date filters
+        const dateFrom = urlParams.get('dateFrom');
+        if (dateFrom) {
+            const dateFromInput = document.querySelector('input[name="dateFrom"]');
+            if (dateFromInput) {
+                dateFromInput.classList.add('border-primary');
+            }
+        }
+        
+        const dateTo = urlParams.get('dateTo');
+        if (dateTo) {
+            const dateToInput = document.querySelector('input[name="dateTo"]');
+            if (dateToInput) {
+                dateToInput.classList.add('border-primary');
+            }
+        }
+    };
+    
+    // Call the function to highlight active filters
+    highlightActiveFilters();
+    
+    // Active timer updater for in-progress rentals
+    const updateActiveTimers = () => {
+        document.querySelectorAll('.duration-badge.running').forEach(timer => {
+            const startTimeStr = timer.getAttribute('data-start-time');
+            if (startTimeStr) {
+                const startTime = new Date(startTimeStr);
+                const now = new Date();
+                const diffSeconds = Math.floor((now - startTime) / 1000);
+                const hours = Math.floor(diffSeconds / 3600);
+                const minutes = Math.floor((diffSeconds % 3600) / 60);
+                
+                timer.innerHTML = `<i class="fas fa-stopwatch me-1"></i> ${hours}h ${minutes}m`;
+            }
+        });
+    };
+    
+    // Update active timers every minute
+    if (document.querySelector('.duration-badge.running')) {
+        updateActiveTimers();
+        setInterval(updateActiveTimers, 60000);
+    }
 });
 </script>
 {% endblock %}

@@ -7,345 +7,842 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.32.0/tabler-icons.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.41.1/dist/apexcharts.min.css">
 <link rel="stylesheet" href="{{ asset('css/back/bicycle/station-detail.css') }}?v={{ 'now'|date('YmdHi') }}">
+<style>
+    /* Enhanced styles for station dashboard */
+    .station-header {
+        position: relative;
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        background: linear-gradient(to right, #3a416f, #141727);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    
+    .station-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 30%;
+        height: 100%;
+        background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB2aWV3Qm94PSIwIDAgODAwIDgwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBvcGFjaXR5PSIwLjEiPjxjaXJjbGUgY3g9IjQwMCIgY3k9IjQwMCIgcj0iMjAwIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIvPjxjaXJjbGUgY3g9IjQwMCIgY3k9IjQwMCIgcj0iMTI1IiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIvPjxjaXJjbGUgY3g9IjQwMCIgY3k9IjQwMCIgcj0iNzUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9nPjwvc3ZnPg==') no-repeat center right;
+        opacity: 0.2;
+        z-index: 0;
+    }
+    
+    .station-header * {
+        position: relative;
+        z-index: 1;
+    }
+
+    .station-avatar {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 1.75rem;
+    }
+    
+    .breadcrumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 30px;
+        padding: 0.5rem 1rem;
+        display: inline-flex;
+    }
+    
+    .breadcrumb-item a {
+        color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .breadcrumb-item.active {
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        color: rgba(255, 255, 255, 0.5);
+    }
+    
+    /* Advanced map styling */
+    .station-map {
+        height: 400px;
+        border-radius: 0.75rem;
+        box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.12);
+        z-index: 1;
+        transition: all 0.3s ease;
+    }
+    
+    .station-map:hover {
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.18);
+    }
+    
+    .map-controls {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        z-index: 999;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .map-controls .btn {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+        background-color: white;
+        color: #3a416f;
+        border: none;
+        transition: all 0.2s ease;
+    }
+    
+    .map-controls .btn:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+    }
+    
+    /* Custom station marker */
+    .custom-station-marker {
+        display: contents;
+    }
+    
+    .station-marker {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: white;
+        color: #3a416f;
+        font-size: 1.5rem;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        border: 3px solid #3a416f;
+        transition: transform 0.3s ease;
+        position: relative;
+    }
+    
+    .station-marker:hover {
+        transform: scale(1.1);
+    }
+    
+    .station-marker::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background-color: rgba(58, 65, 111, 0.15);
+        animation: marker-pulse 1.5s infinite;
+        z-index: -1;
+    }
+    
+    .station-marker.active {
+        border-color: #198754;
+        color: #198754;
+    }
+    
+    .station-marker.inactive {
+        border-color: #6c757d;
+        color: #6c757d;
+    }
+    
+    .station-marker.maintenance {
+        border-color: #ffc107;
+        color: #ffc107;
+    }
+    
+    @keyframes marker-pulse {
+        0% {
+            transform: scale(1);
+            opacity: 0.8;
+        }
+        70% {
+            transform: scale(2);
+            opacity: 0;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 0;
+        }
+    }
+    
+    /* Station popup styling */
+    .station-popup {
+        min-width: 250px;
+        padding: 5px;
+    }
+    
+    .leaflet-popup-content-wrapper {
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .leaflet-popup-content {
+        margin: 12px 15px;
+        line-height: 1.5;
+    }
+    
+    .leaflet-container {
+        font-family: inherit;
+    }
+    
+    /* Map view control buttons */
+    .map-view-controls {
+        position: absolute;
+        bottom: 15px;
+        left: 15px;
+        z-index: 999;
+        background-color: white;
+        border-radius: 30px;
+        padding: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+        display: flex;
+    }
+    
+    .map-view-controls .btn {
+        border-radius: 20px;
+        font-size: 0.8125rem;
+        padding: 0.375rem 0.75rem;
+        background-color: transparent;
+        color: #495057;
+        border: none;
+        font-weight: 500;
+    }
+    
+    .map-view-controls .btn.active {
+        background-color: #3a416f;
+        color: white;
+    }
+    
+    /* Nearby stations map */
+    .nearby-station-marker .station-marker {
+        width: 40px;
+        height: 40px;
+        font-size: 1.25rem;
+    }
+    
+    /* Enhanced metric cards */
+    .metric-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .metric-icon {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 1.75rem;
+    }
+    
+    .pulse-animation {
+        position: relative;
+    }
+    
+    .pulse-animation::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        border-radius: 12px;
+        animation: pulse 2s infinite;
+        z-index: 0;
+    }
+    
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.1);
+            opacity: 0.5;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+    
+    /* Status badges */
+    .status-badge {
+        padding: 0.5rem 0.75rem;
+        border-radius: 30px;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .status-badge i {
+        margin-right: 0.25rem;
+    }
+    
+    .status-available {
+        background-color: rgba(25, 135, 84, 0.1);
+        color: #198754;
+    }
+    
+    .status-maintenance {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+    }
+    
+    .status-inactive {
+        background-color: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+    }
+    
+    .status-in-use {
+        background-color: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+    }
+    
+    .status-charging {
+        background-color: rgba(102, 16, 242, 0.1);
+        color: #6610f2;
+    }
+    
+    /* Tab navigation */
+    .nav-tabs .nav-link {
+        padding: 0.75rem 1rem;
+        border: none;
+        border-bottom: 2px solid transparent;
+        font-weight: 500;
+        color: #6c757d;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        color: #495057;
+        border-color: transparent;
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #3a416f;
+        background-color: transparent;
+        border-bottom-color: #3a416f;
+    }
+    
+    /* Station info */
+    .station-info-list .info-item {
+        margin-bottom: 1.25rem;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .info-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+    }
+    
+    .info-value {
+        font-size: 1rem;
+    }
+    
+    /* Chart styling */
+    .chart-container {
+        position: relative;
+        height: 200px;
+    }
+    
+    /* Timeline styling */
+    .maintenance-timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-bottom: 2rem;
+    }
+    
+    .timeline-item:last-child {
+        padding-bottom: 0;
+    }
+    
+    .timeline-item:not(:last-child)::before {
+        content: '';
+        position: absolute;
+        left: -1.4375rem;
+        top: 1.5rem;
+        bottom: 0;
+        border-left: 2px dashed #dee2e6;
+    }
+    
+    .timeline-item-marker {
+        position: absolute;
+        left: -2rem;
+        top: 0;
+    }
+    
+    .timeline-item-marker-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        font-size: 0.875rem;
+    }
+    
+    .timeline-item-content {
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+        padding: 1rem;
+    }
+    
+    /* Table improvements */
+    .table > :not(:first-child) {
+        border-top: none;
+    }
+    
+    .table th {
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.05rem;
+    }
+    
+    /* Bicycle type selector */
+    .bicycle-type-selector {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .bicycle-type-option {
+        flex: 1;
+    }
+    
+    .bicycle-type-input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .bicycle-type-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1.25rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .bicycle-type-input:checked + .bicycle-type-label {
+        border-color: #3a416f;
+        background-color: rgba(58, 65, 111, 0.05);
+    }
+    
+    .bicycle-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        background-color: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+        border-radius: 50%;
+        margin-bottom: 1rem;
+    }
+    
+    .bicycle-icon.premium {
+        background-color: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+    }
+    
+    .bicycle-info {
+        text-align: center;
+    }
+    
+    .bicycle-name {
+        font-weight: 500;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+    
+    .bicycle-desc {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+    
+    /* Battery indicator */
+    .battery-indicator {
+        width: 60px;
+        height: 10px;
+        background-color: #e9ecef;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+    
+    .battery-level {
+        height: 100%;
+        border-radius: 5px;
+    }
+    
+    /* No data placeholder */
+    .no-data-placeholder {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+    
+    .placeholder-icon {
+        width: 64px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: #adb5bd;
+        background-color: #f8f9fa;
+        border-radius: 50%;
+        margin: 0 auto;
+    }
+    
+    /* Action buttons on header */
+    .action-buttons .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+    }
+    
+    /* Real-time indicators */
+    .realtime-indicator {
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .realtime-indicator .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #198754;
+        margin-right: 0.5rem;
+        position: relative;
+    }
+    
+    .realtime-indicator .dot::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        border-radius: 50%;
+        background-color: #198754;
+        animation: pulse-dot 1.5s infinite;
+    }
+    
+    @keyframes pulse-dot {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(2.5);
+            opacity: 0;
+        }
+    }
+    
+    /* Usage statistics chart */
+    .analytics-chart {
+        height: 200px;
+        margin-top: 1rem;
+    }
+    
+    /* QR code placeholder */
+    .station-qr-placeholder {
+        width: 220px;
+        height: 220px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 5rem;
+        color: #3a416f;
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+        margin: 0 auto 1.5rem;
+    }
+    
+    /* Use grid for better layout */
+    .station-metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4">
+<div class="container-fluid">
     <!-- Station Dashboard Header -->
-    <div class="station-header my-4">
-        <div class="row g-0">
-            <div class="col-12">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-2">
+    <div class="station-header text-white">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <nav aria-label="breadcrumb" class="mb-2">
+                    <ol class="breadcrumb mb-0">
                         <li class="breadcrumb-item"><a href="{{ path('admin_dashboard') }}"><i class="ti ti-home"></i> Dashboard</a></li>
                         <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_rentals', {'tab': 'stations'}) }}"><i class="ti ti-map-pin"></i> Stations</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">ST-{{ '%04d'|format(station.idStation) }}</li>
+                        <li class="breadcrumb-item active">{{ station.name }}</li>
                     </ol>
                 </nav>
 
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
-                    <div class="d-flex align-items-center mb-3 mb-md-0">
-                        <div class="station-avatar me-3 
-                            {% if station.status.value == 'active' %}bg-success-subtle{% 
-                            elseif station.status.value == 'maintenance' %}bg-warning-subtle{% 
-                            else %}bg-secondary-subtle{% endif %}">
-                            <i class="ti ti-map-pin-filled 
-                                {% if station.status.value == 'active' %}text-success{% 
-                                elseif station.status.value == 'maintenance' %}text-warning{% 
-                                else %}text-secondary{% endif %}"></i>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="station-avatar me-3 
+                        {% if station.status.value == 'active' %}bg-success-subtle{% 
+                        elseif station.status.value == 'maintenance' %}bg-warning-subtle{% 
+                        else %}bg-secondary-subtle{% endif %}">
+                        <i class="ti ti-map-pin-filled 
+                            {% if station.status.value == 'active' %}text-success{% 
+                            elseif station.status.value == 'maintenance' %}text-warning{% 
+                            else %}text-secondary{% endif %}"></i>
+                    </div>
+                    <div>
+                        <h1 class="h2 mb-0 fw-bold d-flex align-items-center">
+                            {{ station.name }}
+                            <span class="ms-2 status-badge bg-opacity-50
+                                {% if station.status.value == 'active' %}bg-success text-white{% 
+                                elseif station.status.value == 'maintenance' %}bg-warning text-dark{% 
+                                else %}bg-secondary text-white{% endif %}">
+                                <i class="ti ti-{% if station.status.value == 'active' %}check{% 
+                                    elseif station.status.value == 'maintenance' %}tools{% 
+                                    else %}circle-x{% endif %}"></i>
+                                {{ station.status.value|capitalize }}
+                            </span>
+                        </h1>
+                        <div class="d-flex align-items-center mt-1">
+                            <div class="me-3">
+                                <i class="ti ti-id me-1 opacity-75"></i> 
+                                <span class="fw-medium">ST-{{ '%04d'|format(station.idStation) }}</span>
+                            </div>
+                            <div class="realtime-indicator">
+                                <span class="dot"></span> Live Updates
+                            </div>
+                            {% if station.location %}
+                            <a href="https://www.google.com/maps?q={{ station.location.latitude }},{{ station.location.longitude }}" 
+                               target="_blank" class="ms-3 text-white text-decoration-none" data-bs-toggle="tooltip" title="View on Google Maps">
+                                <i class="ti ti-external-link me-1"></i> Directions
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex flex-wrap">
+                    <div class="d-flex align-items-center me-4">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle bg-white bg-opacity-25 p-2 me-2">
+                            <i class="ti ti-bike text-white"></i>
                         </div>
                         <div>
-                            <h1 class="h3 mb-0 fw-bold d-flex align-items-center">
-                                {{ station.name }}
-                                <span class="ms-2 status-badge 
-                                    {% if station.status.value == 'active' %}status-available{% 
-                                    elseif station.status.value == 'maintenance' %}status-maintenance{% 
-                                    else %}status-inactive{% endif %}">
-                                    <i class="ti ti-{% if station.status.value == 'active' %}check{% 
-                                        elseif station.status.value == 'maintenance' %}tools{% 
-                                        else %}circle-x{% endif %}"></i>
-                                    {{ station.status.value|capitalize }}
-                                </span>
-                            </h1>
-                            <p class="text-muted mb-0 d-flex align-items-center">
-                                <span class="me-3"><i class="ti ti-id me-1"></i> ST-{{ '%04d'|format(station.idStation) }}</span>
-                                <span><i class="ti ti-clock me-1"></i> Updated {{ 'now'|date('M d, Y H:i') }}</span>
-                                {% if station.location %}
-                                <a href="https://www.google.com/maps?q={{ station.location.latitude }},{{ station.location.longitude }}" 
-                                   target="_blank" class="ms-3 text-primary" data-bs-toggle="tooltip" title="View on Google Maps">
-                                    <i class="ti ti-external-link"></i>
+                            <div class="small opacity-75">Bicycles</div>
+                            <div class="fw-bold">{{ station.availableBikes }}/{{ station.totalDocks }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center me-4">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle bg-white bg-opacity-25 p-2 me-2">
+                            <i class="ti ti-parking text-white"></i>
+                        </div>
+                        <div>
+                            <div class="small opacity-75">Docks</div>
+                            <div class="fw-bold">{{ station.availableDocks }}/{{ station.totalDocks }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle bg-white bg-opacity-25 p-2 me-2">
+                            <i class="ti ti-bolt text-white"></i>
+                        </div>
+                        <div>
+                            <div class="small opacity-75">Charging</div>
+                            <div class="fw-bold">{{ station.chargingBikes }}/{{ station.totalDocks }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 mt-4 mt-lg-0 text-lg-end">
+                <div class="btn-group shadow-sm">
+                    <button id="refreshStationBtn" class="btn btn-light text-primary">
+                        <i class="ti ti-refresh me-1"></i> Refresh
+                    </button>
+                    <a href="{{ path('admin_bicycle_rentals', {'tab': 'stations'}) }}" class="btn btn-light">
+                        <i class="ti ti-list me-1"></i> All Stations
+                    </a>
+                    <button type="button" class="btn btn-primary station-edit-btn" data-station-id="{{ station.idStation }}">
+                        <i class="ti ti-edit me-1"></i> Edit
+                    </button>
+                    <div class="btn-group">
+                        <button class="btn btn-light dropdown-toggle" type="button" id="stationActions" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="ti ti-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                            {% if station.status.value != 'maintenance' %}
+                            <li>
+                                <a class="dropdown-item" href="{{ path('admin_bicycle_station_maintenance', {'id': station.idStation}) }}">
+                                    <i class="ti ti-tools text-warning me-2"></i> Set Maintenance
                                 </a>
-                                {% endif %}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="action-buttons">
-                        <div class="btn-group shadow-sm">
-                            <button class="btn btn-light" id="refreshStationBtn" data-bs-toggle="tooltip" title="Refresh Data">
-                                <i class="ti ti-refresh"></i>
-                            </button>
-                            <a href="{{ path('admin_bicycle_rentals', {'tab': 'stations'}) }}" class="btn btn-light">
-                                <i class="ti ti-list"></i> All Stations
-                            </a>
-                            <button type="button" class="btn btn-primary station-edit-btn" data-station-id="{{ station.idStation }}">
-                                <i class="ti ti-edit"></i> Edit Station
-                            </button>
-                            
-                            <!-- Standard Bootstrap dropdown replacement -->
-                            <div class="dropdown">
-                                <button class="btn btn-light dropdown-toggle" type="button" id="stationActions" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="ti ti-dots-vertical"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                                    {% if station.status.value != 'maintenance' %}
-                                    <li>
-                                        <a class="dropdown-item" href="{{ path('admin_bicycle_station_maintenance', {'id': station.idStation}) }}">
-                                            <i class="ti ti-tools text-warning me-2"></i> Set Maintenance
-                                        </a>
-                                    </li>
-                                    {% else %}
-                                    <li>
-                                        <a class="dropdown-item" href="{{ path('admin_bicycle_station_activate', {'id': station.idStation}) }}">
-                                            <i class="ti ti-check text-success me-2"></i> Activate Station
-                                        </a>
-                                    </li>
-                                    {% endif %}
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#printQRModal">
-                                            <i class="ti ti-qrcode me-2"></i> Generate QR Code
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#exportDataModal">
-                                            <i class="ti ti-file-export me-2"></i> Export Station Data
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#deleteStationModal">
-                                            <i class="ti ti-trash me-2"></i> Delete Station
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
+                            </li>
+                            {% else %}
+                            <li>
+                                <a class="dropdown-item" href="{{ path('admin_bicycle_station_activate', {'id': station.idStation}) }}">
+                                    <i class="ti ti-check text-success me-2"></i> Activate Station
+                                </a>
+                            </li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#printQRModal">
+                                    <i class="ti ti-qrcode me-2"></i> Generate QR Code
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#exportDataModal">
+                                    <i class="ti ti-file-export me-2"></i> Export Station Data
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#deleteStationModal">
+                                    <i class="ti ti-trash me-2"></i> Delete Station
+                                </a>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-<div class="modal fade" id="exportDataModal" tabindex="-1" aria-labelledby="exportDataModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exportDataModalLabel">
-                    <i class="ti ti-file-export me-2 text-primary"></i> Export Station Data
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-4">
-                    <h6>Select data to export:</h6>
-                    <div class="list-group">
-                        <label class="list-group-item d-flex gap-2">
-                            <input class="form-check-input flex-shrink-0" type="checkbox" value="station_info" checked>
-                            <span>
-                                Station Information
-                                <small class="d-block text-muted">Basic station details and status</small>
+
+    <!-- Key Metrics Cards -->
+    <div class="station-metrics mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="metric-content">
+                        <div class="small text-muted mb-1">Available Bicycles</div>
+                        <div class="d-flex align-items-center">
+                            <h3 class="mb-0 me-2">{{ station.availableBikes }}</h3>
+                            <span class="badge {% if station.availableBikes > 0 %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %} rounded-pill">
+                                <i class="ti ti-{% if station.availableBikes > 0 %}trending-up{% else %}trending-down{% endif %} me-1"></i>
+                                {{ (station.availableBikes / station.totalDocks * 100)|round }}%
                             </span>
-                        </label>
-                        <label class="list-group-item d-flex gap-2">
-                            <input class="form-check-input flex-shrink-0" type="checkbox" value="bicycle_data" checked>
-                            <span>
-                                Bicycle Data 
-                                <small class="d-block text-muted">Current bicycles assigned to this station</small>
-                            </span>
-                        </label>
-                        <label class="list-group-item d-flex gap-2">
-                            <input class="form-check-input flex-shrink-0" type="checkbox" value="rental_history" checked>
-                            <span>
-                                Rental History
-                                <small class="d-block text-muted">Past rental activities from this station</small>
-                            </span>
-                        </label>
-                        <label class="list-group-item d-flex gap-2">
-                            <input class="form-check-input flex-shrink-0" type="checkbox" value="maintenance_log">
-                            <span>
-                                Maintenance Log
-                                <small class="d-block text-muted">Station maintenance records</small>
-                            </span>
-                        </label>
+                        </div>
+                    </div>
+                    <div class="metric-icon bg-primary-subtle text-primary pulse-animation">
+                        <i class="ti ti-bike"></i>
                     </div>
                 </div>
-                
-                <div class="mb-4">
-                    <h6>Export format:</h6>
-                    <div class="btn-group w-100" role="group">
-                        <input type="radio" class="btn-check" name="exportFormat" id="exportCsv" value="csv" checked autocomplete="off">
-                        <label class="btn btn-outline-primary" for="exportCsv">
-                            <i class="ti ti-file-spreadsheet me-1"></i> CSV
-                        </label>
-                        
-                        <input type="radio" class="btn-check" name="exportFormat" id="exportExcel" value="excel" autocomplete="off">
-                        <label class="btn btn-outline-primary" for="exportExcel">
-                            <i class="ti ti-file-spreadsheet me-1"></i> Excel
-                        </label>
-                        
-                        <input type="radio" class="btn-check" name="exportFormat" id="exportJson" value="json" autocomplete="off">
-                        <label class="btn btn-outline-primary" for="exportJson">
-                            <i class="ti ti-code me-1"></i> JSON
-                        </label>
-                    </div>
-                </div>
-                
-                <div class="mb-3">
-                    <h6>Date range:</h6>
-                    <div class="row g-2">
-                        <div class="col">
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text">From</span>
-                                <input type="date" class="form-control" id="dateFrom" 
-                                       value="{{ 'now'|date_modify('-30 days')|date('Y-m-d') }}">
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text">To</span>
-                                <input type="date" class="form-control" id="dateTo" 
-                                       value="{{ 'now'|date('Y-m-d') }}">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary">
-                    <i class="ti ti-download me-1"></i> Export Data
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-    <!-- Live Station Status & Key Metrics -->
-    <div class="row g-4 mb-4">
-        <!-- Animated status cards with enhanced visuals -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card metric-card border-0 h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="metric-content">
-                            <div class="metric-label">Available Bicycles</div>
-                            <div class="metric-value d-flex align-items-center">
-                                <span class="h2 mb-0 me-2">{{ station.availableBikes }}</span>
-                                <div class="change-indicator">
-                                    {% if station.availableBikes > 0 %}
-                                        <span class="change-positive"><i class="ti ti-trending-up"></i></span>
-                                    {% else %}
-                                        <span class="change-negative"><i class="ti ti-trending-down"></i></span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="metric-info">
-                                {% if station.totalDocks > 0 %}
-                                    <div class="progress" style="height: 6px; width: 100px;">
-                                        <div class="progress-bar bg-primary" 
-                                             style="width: {{ (station.availableBikes / station.totalDocks * 100)|round }}%" 
-                                             role="progressbar"></div>
-                                    </div>
-                                    <span class="small text-muted mt-1">{{ (station.availableBikes / station.totalDocks * 100)|number_format(1) }}% of capacity</span>
-                                {% else %}
-                                    <span class="small text-muted">No docks configured</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="metric-icon bg-primary-subtle text-primary pulse-animation">
-                            <i class="ti ti-bike"></i>
-                        </div>
-                    </div>
+                <div class="progress mt-3" style="height: 6px">
+                    <div class="progress-bar bg-primary" 
+                         style="width: {{ (station.availableBikes / station.totalDocks * 100)|round }}%" 
+                         role="progressbar"></div>
                 </div>
             </div>
         </div>
 
-        <div class="col-xl-3 col-md-6">
-            <div class="card metric-card border-0 h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="metric-content">
-                            <div class="metric-label">Available Docks</div>
-                            <div class="metric-value d-flex align-items-center">
-                                <span class="h2 mb-0 me-2">{{ station.availableDocks }}</span>
-                                <div class="change-indicator">
-                                    {% set dockChangeClass = station.availableDocks < (station.totalDocks * 0.2) ? 'change-negative' : 'change-neutral' %}
-                                    <span class="{{ dockChangeClass }}">
-                                        <i class="ti ti-{% if dockChangeClass == 'change-negative' %}alert-triangle{% else %}circle-check{% endif %}"></i>
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="metric-info">
-                                {% if station.totalDocks > 0 %}
-                                    <div class="progress" style="height: 6px; width: 100px;">
-                                        <div class="progress-bar bg-success" 
-                                             style="width: {{ (station.availableDocks / station.totalDocks * 100)|round }}%" 
-                                             role="progressbar"></div>
-                                    </div>
-                                    <span class="small text-muted mt-1">{{ (station.availableDocks / station.totalDocks * 100)|number_format(1) }}% available</span>
-                                {% else %}
-                                    <span class="small text-muted">No docks configured</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="metric-icon bg-success-subtle text-success">
-                            <i class="ti ti-parking"></i>
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="metric-content">
+                        <div class="small text-muted mb-1">Available Docks</div>
+                        <div class="d-flex align-items-center">
+                            <h3 class="mb-0 me-2">{{ station.availableDocks }}</h3>
+                            {% set dockPercentage = (station.availableDocks / station.totalDocks * 100)|round %}
+                            <span class="badge {% if dockPercentage > 20 %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning{% endif %} rounded-pill">
+                                <i class="ti ti-{% if dockPercentage > 20 %}check{% else %}alert-triangle{% endif %} me-1"></i>
+                                {{ dockPercentage }}%
+                            </span>
                         </div>
                     </div>
+                    <div class="metric-icon bg-success-subtle text-success">
+                        <i class="ti ti-parking"></i>
+                    </div>
+                </div>
+                <div class="progress mt-3" style="height: 6px">
+                    <div class="progress-bar bg-success" 
+                         style="width: {{ (station.availableDocks / station.totalDocks * 100)|round }}%" 
+                         role="progressbar"></div>
                 </div>
             </div>
         </div>
 
-        <div class="col-xl-3 col-md-6">
-            <div class="card metric-card border-0 h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="metric-content">
-                            <div class="metric-label">Charging Bikes</div>
-                            <div class="metric-value d-flex align-items-center">
-                                <span class="h2 mb-0 me-2">{{ station.chargingBikes }}</span>
-                                <div class="change-indicator">
-                                    <span class="change-neutral"><i class="ti ti-bolt"></i></span>
-                                </div>
-                            </div>
-                            <div class="metric-info">
-                                {% if station.totalDocks > 0 %}
-                                    <div class="progress" style="height: 6px; width: 100px;">
-                                        <div class="progress-bar bg-warning" 
-                                             style="width: {{ (station.chargingBikes / station.totalDocks * 100)|round }}%" 
-                                             role="progressbar"></div>
-                                    </div>
-                                    <span class="small text-muted mt-1">{{ (station.chargingBikes / station.totalDocks * 100)|number_format(1) }}% charging</span>
-                                {% else %}
-                                    <span class="small text-muted">No docks configured</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="metric-icon bg-warning-subtle text-warning">
-                            <i class="ti ti-bolt-off"></i>
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="metric-content">
+                        <div class="small text-muted mb-1">Charging Bicycles</div>
+                        <div class="d-flex align-items-center">
+                            <h3 class="mb-0 me-2">{{ station.chargingBikes }}</h3>
+                            <span class="badge bg-info-subtle text-info rounded-pill">
+                                <i class="ti ti-bolt me-1"></i>
+                                {{ (station.chargingBikes / station.totalDocks * 100)|round }}%
+                            </span>
                         </div>
                     </div>
+                    <div class="metric-icon bg-warning-subtle text-warning">
+                        <i class="ti ti-battery-charging"></i>
+                    </div>
+                </div>
+                <div class="progress mt-3" style="height: 6px">
+                    <div class="progress-bar bg-warning" 
+                         style="width: {{ (station.chargingBikes / station.totalDocks * 100)|round }}%" 
+                         role="progressbar"></div>
                 </div>
             </div>
         </div>
 
-        <div class="col-xl-3 col-md-6">
-            <div class="card metric-card border-0 h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="metric-content">
-                            <div class="metric-label">Total Rentals</div>
-                            <div class="metric-value d-flex align-items-center">
-                                <span class="h2 mb-0 me-2">{{ statistics.totalRentals }}</span>
-                                <div class="change-indicator">
-                                    <span class="change-neutral"><i class="ti ti-chart-bar"></i></span>
-                                </div>
-                            </div>
-                            <div class="metric-info">
-                                <span class="badge bg-info-subtle text-info">
-                                    <i class="ti ti-calendar"></i> All time
-                                </span>
-                                <span class="small text-muted ms-2">
-                                    {% if statistics.weeklyRentals is defined %}
-                                        {{ statistics.weeklyRentals }} this week
-                                    {% endif %}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="metric-icon bg-info-subtle text-info">
-                            <i class="ti ti-receipt"></i>
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="metric-content">
+                        <div class="small text-muted mb-1">Total Rentals</div>
+                        <div class="d-flex align-items-center">
+                            <h3 class="mb-0 me-2">{{ statistics.totalRentals }}</h3>
+                            {% if statistics.weeklyRentals is defined %}
+                            <span class="badge bg-info-subtle text-info rounded-pill">
+                                <i class="ti ti-calendar me-1"></i>
+                                {{ statistics.weeklyRentals }} this week
+                            </span>
+                            {% endif %}
                         </div>
                     </div>
+                    <div class="metric-icon bg-info-subtle text-info">
+                        <i class="ti ti-receipt"></i>
+                    </div>
+                </div>
+                <div class="progress mt-3" style="height: 6px">
+                    <div class="progress-bar bg-info" style="width: 65%" role="progressbar"></div>
                 </div>
             </div>
         </div>
@@ -355,56 +852,100 @@
     <div class="row g-4 mb-4">
         <!-- Enhanced Interactive Map -->
         <div class="col-lg-8">
-            <div class="card border-0 h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                     <h5 class="card-title mb-0">
-                        <i class="ti ti-map-2 me-2"></i> Station Location
+                        <i class="ti ti-map-2 text-primary me-2"></i> Station Location
                     </h5>
-                    <div class="map-controls">
-                        <div class="btn-group">
-                            <button type="button" class="btn btn-sm btn-light active" id="mapNormalView">
-                                <i class="ti ti-map"></i>
+                    <div class="d-flex align-items-center">
+                        {% if station.location %}
+                            <span class="badge bg-success-subtle text-success me-3">
+                                <i class="ti ti-map-pin me-1"></i> Coordinates set
+                            </span>
+                        {% endif %}
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-secondary active" id="mapNormalView">
+                                <i class="ti ti-map"></i> Map
                             </button>
-                            <button type="button" class="btn btn-sm btn-light" id="mapSatelliteView">
-                                <i class="ti ti-photo"></i>
+                            <button type="button" class="btn btn-outline-secondary" id="mapSatelliteView">
+                                <i class="ti ti-photo"></i> Satellite
                             </button>
                         </div>
                     </div>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body p-0 position-relative">
                     {% if station.location %}
                         <div id="stationMap" 
-     class="station-map"
-     data-lat="{{ station.location.latitude|default(0) }}"
-     data-lng="{{ station.location.longitude|default(0) }}"
-     data-name="{{ station.name }}"
-     data-available-bikes="{{ station.availableBikes }}"
-     data-available-docks="{{ station.availableDocks }}"
-     data-charging-bikes="{{ station.chargingBikes|default(0) }}"
-     data-status="{{ station.status.value|capitalize }}">
-</div>
+                             class="station-map"
+                             data-lat="{{ station.location.latitude|default(0) }}"
+                             data-lng="{{ station.location.longitude|default(0) }}"
+                             data-name="{{ station.name }}"
+                             data-available-bikes="{{ station.availableBikes }}"
+                             data-available-docks="{{ station.availableDocks }}"
+                             data-charging-bikes="{{ station.chargingBikes|default(0) }}"
+                             data-status="{{ station.status.value|capitalize }}">
+                        </div>
+                        <div id="mapControls" class="map-controls">
+                            <button type="button" class="btn btn-light shadow-sm" id="zoomInMap">
+                                <i class="ti ti-zoom-in"></i>
+                            </button>
+                            <button type="button" class="btn btn-light shadow-sm" id="zoomOutMap">
+                                <i class="ti ti-zoom-out"></i>
+                            </button>
+                            <button type="button" class="btn btn-light shadow-sm" id="resetMapView">
+                                <i class="ti ti-focus"></i>
+                            </button>
+                        </div>
                     {% else %}
-                        <div class="no-data-placeholder d-flex flex-column align-items-center justify-content-center p-5">
-                            <div class="placeholder-icon mb-3">
+                        <div class="no-data-placeholder">
+                            <div class="placeholder-icon bg-light">
                                 <i class="ti ti-map-off"></i>
                             </div>
-                            <h5>No Location Data</h5>
+                            <h5 class="mt-3">No Location Data</h5>
                             <p class="text-muted mb-3">This station doesn't have location coordinates set.</p>
-                            <a href="{{ path('admin_bicycle_station_edit', {'id': station.idStation}) }}" class="btn btn-sm btn-primary">
+                            <a href="{{ path('admin_bicycle_station_edit', {'id': station.idStation}) }}" class="btn btn-primary">
                                 <i class="ti ti-plus me-1"></i> Add Location
                             </a>
                         </div>
                     {% endif %}
                 </div>
+                {% if station.location %}
+                <div class="card-footer bg-white py-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <i class="ti ti-map-pin text-danger me-2"></i>
+                                <div>
+                                    <div class="fw-medium">{{ station.location.address }}</div>
+                                    <div class="small text-muted">
+                                        {{ station.location.latitude|number_format(6) }}, {{ station.location.longitude|number_format(6) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-md-end mt-2 mt-md-0">
+                            <div class="btn-group btn-group-sm">
+                                <a href="https://www.google.com/maps?q={{ station.location.latitude }},{{ station.location.longitude }}" 
+                                   target="_blank" class="btn btn-outline-primary">
+                                    <i class="ti ti-external-link me-1"></i> Google Maps
+                                </a>
+                                <button class="btn btn-outline-secondary station-edit-btn" data-station-id="{{ station.idStation }}">
+                                    <i class="ti ti-edit me-1"></i> Edit Location
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
 
         <!-- Enhanced Station Information & Analytics -->
         <div class="col-lg-4">
-            <div class="card border-0 h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                     <h5 class="card-title mb-0">
-                        <i class="ti ti-info-circle me-2"></i> Station Information
+                        <i class="ti ti-info-circle text-primary me-2"></i> Station Information
                     </h5>
                     <div class="dropdown">
                         <button class="btn btn-sm btn-icon btn-light" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -426,42 +967,57 @@
                 </div>
                 <div class="card-body">
                     <div class="station-info-list">
-                        <div class="info-item">
-                            <div class="info-label"><i class="ti ti-id text-muted me-2"></i> ID</div>
-                            <div class="info-value fw-medium">ST-{{ '%04d'|format(station.idStation) }}</div>
-                        </div>
-                        
-                        <div class="info-item">
-                            <div class="info-label"><i class="ti ti-signature text-muted me-2"></i> Name</div>
-                            <div class="info-value fw-medium">{{ station.name }}</div>
-                        </div>
-                        
-                        <div class="info-item">
-                            <div class="info-label"><i class="ti ti-map-pin text-muted me-2"></i> Address</div>
-                            <div class="info-value">
-                                {% if station.location %}
-                                    <span>{{ station.location.address }}</span>
-                                {% else %}
-                                    <span class="text-muted">No address set</span>
-                                {% endif %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <div class="info-label"><i class="ti ti-signature text-primary me-2"></i> Name</div>
+                                    <div class="info-value fw-medium">{{ station.name }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <div class="info-label"><i class="ti ti-id text-primary me-2"></i> Station ID</div>
+                                    <div class="info-value">ST-{{ '%04d'|format(station.idStation) }}</div>
+                                </div>
                             </div>
                         </div>
                         
                         <div class="info-item">
-                            <div class="info-label"><i class="ti ti-stack-2 text-muted me-2"></i> Total Docks</div>
-                            <div class="info-value fw-medium">{{ station.totalDocks }}</div>
+                            <div class="info-label"><i class="ti ti-map-pin text-primary me-2"></i> Address</div>
+                            <div class="info-value">
+                                {% if station.location %}
+                                    <span>{{ station.location.address }}</span>
+                                {% else %}
+                                    <span class="text-muted fst-italic">No address set</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-2">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <div class="info-label"><i class="ti ti-stack-2 text-primary me-2"></i> Capacity</div>
+                                    <div class="info-value">
+                                        <span class="fw-medium">{{ station.totalDocks }}</span> total docks
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <div class="info-label"><i class="ti ti-battery-charging text-primary me-2"></i> Charging</div>
+                                    <div class="info-value">
+                                        <span class="fw-medium">{{ station.chargingBikes }}</span> charging docks
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="info-item">
-                            <div class="info-label"><i class="ti ti-battery-2 text-muted me-2"></i> Charging Capacity</div>
-                            <div class="info-value fw-medium">{{ station.chargingBikes }} bikes</div>
-                        </div>
-                        
-                        <div class="info-item">
-                            <div class="info-label"><i class="ti ti-chart-pie text-muted me-2"></i> Occupancy Rate</div>
+                            <div class="info-label"><i class="ti ti-chart-pie text-primary me-2"></i> Occupancy Rate</div>
                             <div class="info-value">
                                 <div class="d-flex align-items-center">
-                                    <div class="progress flex-grow-1 me-2" style="height: 6px;" aria-label="Occupancy rate">
+                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
                                         <div class="progress-bar 
                                             {% if statistics.occupancyRate > 70 %}bg-success{% 
                                             elseif statistics.occupancyRate > 30 %}bg-info{% 
@@ -476,7 +1032,7 @@
                         </div>
                         
                         <div class="info-item">
-                            <div class="info-label"><i class="ti ti-activity text-muted me-2"></i> Status</div>
+                            <div class="info-label"><i class="ti ti-activity text-primary me-2"></i> Status</div>
                             <div class="info-value">
                                 <span class="status-badge 
                                     {% if station.status.value == 'active' %}status-available{% 
@@ -494,35 +1050,21 @@
                     <hr class="my-4">
                     
                     <div class="station-analytics">
-                        <h6 class="mb-3 text-muted">Station Analytics</h6>
+                        <h6 class="mb-3 d-flex align-items-center">
+                            <i class="ti ti-chart-bar text-primary me-2"></i> Usage Analytics
+                            <span class="badge bg-info-subtle text-info ms-auto">Last 7 days</span>
+                        </h6>
                         
-                        <div class="analytics-item mb-3">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Peak Usage Hours</span>
-                                <span class="fw-medium">4pm - 6pm</span>
-                            </div>
-                            <div class="mini-chart">
-                                <div class="chart-bar" style="height: 10px;"></div>
-                                <div class="chart-bar" style="height: 15px;"></div>
-                                <div class="chart-bar" style="height: 20px;"></div>
-                                <div class="chart-bar" style="height: 30px;"></div>
-                                <div class="chart-bar" style="height: 45px;"></div>
-                                <div class="chart-bar" style="height: 35px;"></div>
-                                <div class="chart-bar" style="height: 25px;"></div>
-                                <div class="chart-bar" style="height: 15px;"></div>
-                            </div>
-                        </div>
+                        <div id="usageChart" class="analytics-chart"></div>
                         
-                        <div class="analytics-item">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Average Usage Time</span>
-                                <span class="fw-medium">24 min</span>
+                        <div class="row mt-4">
+                            <div class="col-6">
+                                <div class="small text-muted mb-1">Peak Hours</div>
+                                <div class="fw-medium">4pm - 6pm</div>
                             </div>
-                            <div class="d-flex align-items-center">
-                                <div class="progress flex-grow-1 me-2" style="height: 6px;">
-                                    <div class="progress-bar bg-primary" style="width: 65%" role="progressbar"></div>
-                                </div>
-                                <span class="small text-muted">24 min</span>
+                            <div class="col-6">
+                                <div class="small text-muted mb-1">Avg. Usage Time</div>
+                                <div class="fw-medium">24 minutes</div>
                             </div>
                         </div>
                     </div>
@@ -532,27 +1074,21 @@
     </div>
 
     <!-- Bicycles Management Tab Section -->
-    <div class="card border-0 mb-4">
-        <div class="card-header bg-transparent">
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
             <ul class="nav nav-tabs card-header-tabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="bicycles-tab" data-bs-toggle="tab" data-bs-target="#bicycles" type="button" role="tab" aria-controls="bicycles" aria-selected="true">
-                        <i class="ti ti-bike me-2"></i>
+                        <i class="ti ti-bike text-primary me-2"></i>
                         Bicycles
                         <span class="badge bg-primary-subtle text-primary rounded-pill ms-1">{{ bicycles|length }}</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="rentals-tab" data-bs-toggle="tab" data-bs-target="#rentals" type="button" role="tab" aria-controls="rentals" aria-selected="false">
-                        <i class="ti ti-history me-2"></i>
+                        <i class="ti ti-history text-primary me-2"></i>
                         Rental Activity
                         <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1">{{ rentals|length }}</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="maintenance-tab" data-bs-toggle="tab" data-bs-target="#maintenance" type="button" role="tab" aria-controls="maintenance" aria-selected="false">
-                        <i class="ti ti-tools me-2"></i>
-                        Maintenance Log
                     </button>
                 </li>
             </ul>
@@ -563,15 +1099,15 @@
             <div class="tab-pane fade show active" id="bicycles" role="tabpanel" aria-labelledby="bicycles-tab">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div class="d-flex align-items-center">
-                            <div class="input-group input-group-merge me-2" style="width: 250px;">
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <div class="input-group input-group-merge">
                                 <span class="input-group-text border-end-0 bg-transparent">
                                     <i class="ti ti-search text-muted"></i>
                                 </span>
                                 <input type="text" id="bicycleSearch" class="form-control border-start-0" placeholder="Search bicycles...">
                             </div>
                             
-                            <div class="dropdown me-2">
+                            <div class="dropdown">
                                 <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="ti ti-filter me-1"></i> Filter
                                 </button>
@@ -596,14 +1132,14 @@
                     {% if bicycles|length > 0 %}
                         <div class="table-responsive">
                             <table class="table table-hover align-middle bicycle-table" id="bicyclesTable">
-                                <thead>
+                                <thead class="table-light">
                                     <tr>
-                                        <th scope="col">ID</th>
-                                        <th scope="col">Type</th>
-                                        <th scope="col">Battery</th>
-                                        <th scope="col">Range</th>
-                                        <th scope="col">Status</th>
-                                        <th scope="col" class="text-center">Actions</th>
+                                        <th scope="col">BICYCLE ID</th>
+                                        <th scope="col">TYPE</th>
+                                        <th scope="col">BATTERY</th>
+                                        <th scope="col">RANGE</th>
+                                        <th scope="col">STATUS</th>
+                                        <th scope="col" class="text-center">ACTIONS</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -614,7 +1150,7 @@
                                         </td>
                                         <td>
                                             <div class="d-flex align-items-center">
-                                                <div class="bicycle-type-icon me-2 {% if bicycle.batteryLevel > 90 %}bg-primary-subtle text-primary{% else %}bg-secondary-subtle text-secondary{% endif %}">
+                                                <div class="bicycle-type-icon me-2 {% if bicycle.batteryLevel > 90 %}bg-primary-subtle text-primary{% else %}bg-secondary-subtle text-secondary{% endif %} rounded-circle p-2">
                                                     <i class="ti ti-bike"></i>
                                                 </div>
                                                 <span>{% if bicycle.batteryLevel > 90 %}Premium E-Bike{% else %}Standard E-Bike{% endif %}</span>
@@ -711,14 +1247,14 @@
                             </table>
                         </div>
                     {% else %}
-                        <div class="no-data-placeholder d-flex flex-column align-items-center justify-content-center p-5">
-                            <div class="placeholder-icon mb-3">
+                        <div class="no-data-placeholder">
+                            <div class="placeholder-icon bg-light">
                                 <i class="ti ti-bike-off"></i>
                             </div>
-                            <h5>No Bicycles at this Station</h5>
+                            <h5 class="mt-3">No Bicycles at this Station</h5>
                             <p class="text-muted mb-3">There are currently no bicycles assigned to this station.</p>
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBicycleModal">
-                                <i class="ti ti-plus me-2"></i> Add Bicycle
+                                <i class="ti ti-plus me-1"></i> Add Bicycle
                             </button>
                         </div>
                     {% endif %}
@@ -729,15 +1265,15 @@
             <div class="tab-pane fade" id="rentals" role="tabpanel" aria-labelledby="rentals-tab">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div class="d-flex align-items-center">
-                            <div class="input-group input-group-merge me-2" style="width: 250px;">
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <div class="input-group input-group-merge">
                                 <span class="input-group-text border-end-0 bg-transparent">
                                     <i class="ti ti-search text-muted"></i>
                                 </span>
                                 <input type="text" id="rentalSearch" class="form-control border-start-0" placeholder="Search rentals...">
                             </div>
                             
-                            <div class="dropdown me-2">
+                            <div class="dropdown">
                                 <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="ti ti-calendar me-1"></i> Time Period
                                 </button>
@@ -755,20 +1291,19 @@
                         </button>
                     </div>
                     
-                    
                     {% if rentals|length > 0 %}
                         <div class="table-responsive">
                             <table class="table table-hover align-middle" id="rentalsTable">
-                                <thead>
+                                <thead class="table-light">
                                     <tr>
-                                        <th scope="col">ID</th>
-                                        <th scope="col">User</th>
-                                        <th scope="col">Bicycle</th>
-                                        <th scope="col">Start Time</th>
-                                        <th scope="col">End Time</th>
-                                        <th scope="col">Duration</th>
-                                        <th scope="col">Status</th>
-                                        <th scope="col" class="text-center">Details</th>
+                                        <th scope="col">RENTAL ID</th>
+                                        <th scope="col">USER</th>
+                                        <th scope="col">BICYCLE</th>
+                                        <th scope="col">START TIME</th>
+                                        <th scope="col">END TIME</th>
+                                        <th scope="col">DURATION</th>
+                                        <th scope="col">STATUS</th>
+                                        <th scope="col" class="text-center">ACTIONS</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -796,7 +1331,9 @@
                                                     <span class="fw-medium">{{ rental.endTime|date('M d, Y') }}</span>
                                                     <small class="text-muted">{{ rental.endTime|date('H:i') }}</small>
                                                 {% else %}
-                                                    <span class="text-muted">In progress</span>
+                                                    <span class="text-primary">
+                                                        <i class="ti ti-player-play me-1"></i> In progress
+                                                    </span>
                                                 {% endif %}
                                             </div>
                                         </td>
@@ -810,20 +1347,20 @@
                                                 {% set duration = date('now').diff(date(rental.startTime)) %}
                                                 {% set hours = duration.h + (duration.days * 24) %}
                                                 {% set minutes = duration.i %}
-                                                <span class="text-primary">{{ hours }}h {{ minutes }}m <i class="ti ti-player-play ms-1"></i></span>
+                                                <span class="fw-medium text-primary">{{ hours }}h {{ minutes }}m</span>
                                             {% endif %}
                                         </td>
                                         <td>
-                                            <span class="status-badge {% if rental.endTime %}status-completed{% else %}status-active{% endif %}">
+                                            <span class="status-badge {% if rental.endTime %}status-available{% else %}status-in-use{% endif %}">
                                                 <i class="ti ti-{% if rental.endTime %}check{% else %}clock{% endif %}"></i>
                                                 {{ rental.endTime ? 'Completed' : 'Active' }}
                                             </span>
                                         </td>
                                         <td class="text-center">
-                                            <button type="button" class="btn btn-sm btn-icon btn-outline-secondary"
+                                            <a href="{{ path('admin_bicycle_rental_show', {'id': rental.idUserRental}) }}" class="btn btn-sm btn-icon btn-outline-primary"
                                                     data-bs-toggle="tooltip" title="View Details">
                                                 <i class="ti ti-eye"></i>
-                                            </button>
+                                            </a>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -832,309 +1369,279 @@
                         </div>
                         
                         {% if rentals|length > 10 %}
-                        <div class="text-center mt-3">
+                        <div class="text-center mt-4">
                             <a href="#" class="btn btn-outline-primary">
                                 <i class="ti ti-list me-1"></i> View All {{ rentals|length }} Records
                             </a>
                         </div>
                         {% endif %}
                     {% else %}
-                        <div class="no-data-placeholder d-flex flex-column align-items-center justify-content-center p-5">
-                            <div class="placeholder-icon mb-3">
+                        <div class="no-data-placeholder">
+                            <div class="placeholder-icon bg-light">
                                 <i class="ti ti-clipboard"></i>
                             </div>
-                            <h5>No Rental Activity</h5>
+                            <h5 class="mt-3">No Rental Activity</h5>
                             <p class="text-muted mb-3">There have been no rentals from this station yet.</p>
                         </div>
                     {% endif %}
                 </div>
             </div>
             
-            <!-- Maintenance Tab -->
-            <div class="tab-pane fade" id="maintenance" role="tabpanel" aria-labelledby="maintenance-tab">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h6 class="card-title mb-0">Station Maintenance Log</h6>
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#logMaintenanceModal">
-                            <i class="ti ti-plus me-1"></i> Log Activity
-                        </button>
-                    </div>
+            
                     
-                    <div class="maintenance-timeline">
-                        <div class="timeline-item">
-                            <div class="timeline-item-marker">
-                                <div class="timeline-item-marker-indicator bg-primary">
-                                    <i class="ti ti-check text-white"></i>
-                                </div>
-                            </div>
-                            <div class="timeline-item-content">
-                                <div class="d-flex justify-content-between align-items-start mb-1">
-                                    <div>
-                                        <span class="fw-bold">Routine Inspection</span>
-                                        <span class="badge bg-success-subtle text-success ms-2">Completed</span>
-                                    </div>
-                                    <div class="text-muted small">April 2, 2025</div>
-                                </div>
-                                <p class="mb-2 text-muted">Regular maintenance check of all docks and charging systems. All systems operational.</p>
-                                <div class="small">
-                                    <span class="fw-medium">Technician:</span> 
-                                    <span>Thomas Reynolds</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="timeline-item">
-                            <div class="timeline-item-marker">
-                                <div class="timeline-item-marker-indicator bg-warning">
-                                    <i class="ti ti-tools text-white"></i>
-                                </div>
-                            </div>
-                            <div class="timeline-item-content">
-                                <div class="d-flex justify-content-between align-items-start mb-1">
-                                    <div>
-                                        <span class="fw-bold">Charging System Repair</span>
-                                        <span class="badge bg-warning-subtle text-warning ms-2">Maintenance</span>
-                                    </div>
-                                    <div class="text-muted small">March 15, 2025</div>
-                                </div>
-                                <p class="mb-2 text-muted">Replaced faulty charging connectors on docks #3 and #4. Tested with bicycles and confirmed working.</p>
-                                <div class="small">
-                                    <span class="fw-medium">Technician:</span> 
-                                    <span>Sarah Johnson</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="timeline-item">
-                            <div class="timeline-item-marker">
-                                <div class="timeline-item-marker-indicator bg-info">
-                                    <i class="ti ti-refresh text-white"></i>
-                                </div>
-                            </div>
-                            <div class="timeline-item-content">
-                                <div class="d-flex justify-content-between align-items-start mb-1">
-                                    <div>
-                                        <span class="fw-bold">Software Update</span>
-                                        <span class="badge bg-info-subtle text-info ms-2">Upgrade</span>
-                                    </div>
-                                    <div class="text-muted small">February 28, 2025</div>
-                                </div>
-                                <p class="mb-2 text-muted">Updated station kiosk software to version 2.4.1. Enhanced security and improved user interface.</p>
-                                <div class="small">
-                                    <span class="fw-medium">Technician:</span> 
-                                    <span>Alex Mercer</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="timeline-item">
-                            <div class="timeline-item-marker">
-                                <div class="timeline-item-marker-indicator bg-danger">
-                                    <i class="ti ti-alert-triangle text-white"></i>
-                                </div>
-                            </div>
-                            <div class="timeline-item-content">
-                                <div class="d-flex justify-content-between align-items-start mb-1">
-                                    <div>
-                                        <span class="fw-bold">Emergency Repair</span>
-                                        <span class="badge bg-danger-subtle text-danger ms-2">Urgent</span>
-                                    </div>
-                                    <div class="text-muted small">January 12, 2025</div>
-                                </div>
-                                <p class="mb-2 text-muted">Power outage caused system failure. Reset circuit breakers and restored operations. All docks tested and verified.</p>
-                                <div class="small">
-                                    <span class="fw-medium">Technician:</span> 
-                                    <span>Marcus Wilson</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </div>
     </div>
-</div>
+    
 
+<!-- Modals -->
 <!-- Add Bicycle Modal -->
 <div class="modal fade" id="addBicycleModal" tabindex="-1" aria-labelledby="addBicycleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addBicycleModalLabel">
-                    <i class="ti ti-bike me-2 text-primary"></i> Add Bicycle to Station
+                    <i class="ti ti-plus text-primary me-2"></i> Add Bicycle to {{ station.name }}
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ path('admin_bicycle_add') }}" method="post" id="addBicycleForm">
-                <div class="modal-body">
-                    <input type="hidden" name="stationId" value="{{ station.idStation }}">
-                    
-                    <div class="mb-4">
-                        <div class="bicycle-type-selector d-flex">
-                            <div class="bicycle-type-option flex-grow-1 me-2" data-value="standard">
-                                <input type="radio" name="bicycleType" id="typeStandard" value="standard" class="bicycle-type-input" checked>
-                                <label for="typeStandard" class="bicycle-type-label">
-                                    <div class="bicycle-icon">
-                                        <i class="ti ti-bike"></i>
-                                    </div>
-                                    <div class="bicycle-info">
-                                        <span class="bicycle-name">Standard E-Bike</span>
-                                        <span class="bicycle-desc">Regular city e-bike</span>
-                                    </div>
-                                </label>
+            <div class="modal-body">
+                <div class="bicycle-type-selector mb-4">
+                    <div class="bicycle-type-option">
+                        <input type="radio" name="bicycleType" id="standardBike" class="bicycle-type-input" checked>
+                        <label for="standardBike" class="bicycle-type-label">
+                            <div class="bicycle-icon">
+                                <i class="ti ti-bike"></i>
                             </div>
-                            
-                            <div class="bicycle-type-option flex-grow-1" data-value="premium">
-                                <input type="radio" name="bicycleType" id="typePremium" value="premium" class="bicycle-type-input">
-                                <label for="typePremium" class="bicycle-type-label">
-                                    <div class="bicycle-icon premium">
-                                        <i class="ti ti-bike"></i>
-                                    </div>
-                                    <div class="bicycle-info">
-                                        <span class="bicycle-name">Premium E-Bike</span>
-                                        <span class="bicycle-desc">Enhanced range & comfort</span>
-                                    </div>
-                                </label>
+                            <div class="bicycle-info">
+                                <span class="bicycle-name">Standard E-Bike</span>
+                                <span class="bicycle-desc">Max Range: 40km</span>
                             </div>
-                        </div>
+                        </label>
+                    </div>
+                    <div class="bicycle-type-option">
+                        <input type="radio" name="bicycleType" id="premiumBike" class="bicycle-type-input">
+                        <label for="premiumBike" class="bicycle-type-label">
+                            <div class="bicycle-icon premium">
+                                <i class="ti ti-bike"></i>
+                            </div>
+                            <div class="bicycle-info">
+                                <span class="bicycle-name">Premium E-Bike</span>
+                                <span class="bicycle-desc">Max Range: 60km</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <form id="addBicycleForm">
+                    <div class="mb-3">
+                        <label for="bikeId" class="form-label">Bicycle ID</label>
+                        <input type="text" class="form-control" id="bikeId" placeholder="BIKE-XXXX or leave blank for auto-generation">
                     </div>
                     
-                    <div class="row g-3 mb-3">
+                    <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="batteryLevel" class="form-label">Battery Level</label>
+                            <label for="batteryLevel" class="form-label">Battery Level (%)</label>
                             <div class="input-group">
-                                <input type="number" class="form-control" id="batteryLevel" name="batteryLevel" 
-                                       min="0" max="100" value="85" required>
-                                <span class="input-group-text"><i class="ti ti-battery"></i></span>
+                                <input type="number" class="form-control" id="batteryLevel" min="0" max="100" value="100">
+                                <span class="input-group-text">%</span>
                             </div>
-                            <div class="form-text">Initial battery percentage</div>
                         </div>
-                        
                         <div class="col-md-6">
                             <label for="rangeKm" class="form-label">Range (km)</label>
                             <div class="input-group">
-                                <input type="number" class="form-control" id="rangeKm" name="rangeKm" 
-                                       min="0" value="50" required>
+                                <input type="number" class="form-control" id="rangeKm" min="0" max="100" value="40">
                                 <span class="input-group-text">km</span>
                             </div>
-                            <div class="form-text">Maximum travel distance</div>
                         </div>
                     </div>
                     
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="setToCharging" name="setToCharging">
-                        <label class="form-check-label" for="setToCharging">Set bike to charging state</label>
+                    <div class="mb-3">
+                        <label for="bikeStatus" class="form-label">Initial Status</label>
+                        <select class="form-select" id="bikeStatus">
+                            <option value="available">Available</option>
+                            <option value="charging">Charging</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
                     </div>
                     
-                    <div class="alert alert-info d-flex align-items-center small">
-                        <i class="ti ti-info-circle me-2"></i>
-                        <div>
-                            Premium E-Bikes have enhanced battery capacity and range.
-                        </div>
+                    <div class="mb-3">
+                        <label for="bikeNotes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="bikeNotes" rows="3" placeholder="Any additional information about this bicycle..."></textarea>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="ti ti-plus me-1"></i> Add Bicycle
-                    </button>
-                </div>
-            </form>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">
+                    <i class="ti ti-plus me-1"></i> Add Bicycle
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Log Maintenance Modal -->
 <div class="modal fade" id="logMaintenanceModal" tabindex="-1" aria-labelledby="logMaintenanceModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="logMaintenanceModalLabel">
-                    <i class="ti ti-tool me-2 text-primary"></i> Log Maintenance Activity
+                    <i class="ti ti-tools text-primary me-2"></i> Log Maintenance Activity
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="#" method="post">
-                <div class="modal-body">
+            <div class="modal-body">
+                <form id="maintenanceForm">
                     <div class="mb-3">
-                        <label for="maintenanceType" class="form-label">Activity Type</label>
-                        <select class="form-select" id="maintenanceType" name="maintenanceType" required>
-                            <option value="" selected disabled>Select type...</option>
+                        <label for="activityType" class="form-label">Activity Type</label>
+                        <select class="form-select" id="activityType">
                             <option value="routine">Routine Inspection</option>
                             <option value="repair">Repair</option>
-                            <option value="upgrade">System Upgrade</option>
-                            <option value="emergency">Emergency Fix</option>
+                            <option value="update">Software/Firmware Update</option>
+                            <option value="cleaning">Cleaning</option>
+                            <option value="other">Other</option>
                         </select>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="maintenanceDescription" class="form-label">Description</label>
-                        <textarea class="form-control" id="maintenanceDescription" name="description" rows="3" required
-                                  placeholder="Describe the maintenance activity performed..."></textarea>
+                        <label for="activityDate" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="activityDate" value="{{ 'now'|date('Y-m-d') }}">
                     </div>
                     
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label for="technicianName" class="form-label">Technician Name</label>
-                            <input type="text" class="form-control" id="technicianName" name="technicianName" required>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <label for="maintenanceDate" class="form-label">Date</label>
-                            <input type="date" class="form-control" id="maintenanceDate" name="date" 
-                                   value="{{ 'now'|date('Y-m-d') }}" required>
-                        </div>
+                    <div class="mb-3">
+                        <label for="activityStatus" class="form-label">Status</label>
+                        <select class="form-select" id="activityStatus">
+                            <option value="completed">Completed</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="scheduled">Scheduled</option>
+                        </select>
                     </div>
                     
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" id="notifyManagement" name="notifyManagement">
-                        <label class="form-check-label" for="notifyManagement">
-                            Notify management
-                        </label>
+                    <div class="mb-3">
+                        <label for="technician" class="form-label">Technician</label>
+                        <input type="text" class="form-control" id="technician" placeholder="Name of technician...">
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="ti ti-device-floppy me-1"></i> Save Record
-                    </button>
-                </div>
-            </form>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" rows="3" placeholder="Detailed description of maintenance activity..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">
+                    <i class="ti ti-device-floppy me-1"></i> Save Record
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- QR Code Modal -->
+<!-- Print QR Code Modal -->
 <div class="modal fade" id="printQRModal" tabindex="-1" aria-labelledby="printQRModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="printQRModalLabel">
-                    <i class="ti ti-qrcode me-2 text-primary"></i> Station QR Code
+                    <i class="ti ti-qrcode text-primary me-2"></i> Station QR Code
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body text-center">
-                <div class="qr-code-container mb-3">
-                    <div class="station-qr-placeholder">
-                        <i class="ti ti-qrcode"></i>
-                    </div>
+            <div class="modal-body text-center py-4">
+                <div class="station-qr-placeholder mb-3">
+                    <i class="ti ti-qrcode"></i>
                 </div>
-                
-                <h6>{{ station.name }}</h6>
-                <p class="text-muted">ST-{{ '%04d'|format(station.idStation) }}</p>
-                
-                <div class="alert alert-info d-flex" role="alert">
-                    <i class="ti ti-info-circle me-2 flex-shrink-0"></i>
+                <h5 class="fw-bold mb-1">{{ station.name }}</h5>
+                <p class="text-muted mb-3">Station ID: ST-{{ '%04d'|format(station.idStation) }}</p>
+                <div class="alert alert-info d-flex align-items-center" role="alert">
+                    <i class="ti ti-info-circle me-2"></i>
                     <div>
-                        This QR code can be printed and displayed at the station for quick access to rental information.
+                        This QR code lets users quickly unlock bicycles at this station using the mobile app.
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary">
-                    <i class="ti ti-printer me-1"></i> Print QR Code
+                    <i class="ti ti-printer me-1"></i> Print
+                </button>
+                <button type="button" class="btn btn-outline-primary">
+                    <i class="ti ti-download me-1"></i> Download
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Data Modal -->
+<div class="modal fade" id="exportDataModal" tabindex="-1" aria-labelledby="exportDataModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportDataModalLabel">
+                    <i class="ti ti-file-export text-primary me-2"></i> Export Station Data
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="exportDataForm">
+                    <div class="mb-3">
+                        <label class="form-label">What data would you like to export?</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="exportRentalData" checked>
+                            <label class="form-check-label" for="exportRentalData">
+                                Rental History
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="exportBicycleData" checked>
+                            <label class="form-check-label" for="exportBicycleData">
+                                Bicycle Inventory
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="exportMaintenanceData">
+                            <label class="form-check-label" for="exportMaintenanceData">
+                                Maintenance History
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="exportAnalyticsData">
+                            <label class="form-check-label" for="exportAnalyticsData">
+                                Usage Analytics
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="dateRange" class="form-label">Date Range</label>
+                        <select class="form-select" id="dateRange">
+                            <option value="all_time">All Time</option>
+                            <option value="last_30_days" selected>Last 30 Days</option>
+                            <option value="last_90_days">Last 90 Days</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="exportFormat" class="form-label">Export Format</label>
+                        <select class="form-select" id="exportFormat">
+                            <option value="csv">CSV</option>
+                            <option value="excel">Excel</option>
+                            <option value="pdf">PDF</option>
+                            <option value="json">JSON</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">
+                    <i class="ti ti-download me-1"></i> Export Data
                 </button>
             </div>
         </div>
@@ -1142,65 +1649,441 @@
 </div>
 
 <!-- Delete Station Modal -->
-<div class="modal fade" id="deleteStationModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="deleteStationModal" tabindex="-1" aria-labelledby="deleteStationModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirm Station Deletion</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteStationModalLabel">
+                    <i class="ti ti-alert-triangle me-2"></i> Delete Station
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ path('admin_bicycle_station_delete', {'id': station.idStation}) }}" method="POST" id="deleteStationForm">
-                <div class="modal-body">
-                    <div class="text-center mb-4">
-                        <div class="modal-icon text-danger mb-3">
-                            <i class="ti ti-alert-triangle"></i>
-                        </div>
-                        <h4>Are you sure?</h4>
-                        <p class="text-muted">
-                            You are about to delete station <strong>{{ station.name }}</strong>. This action cannot be undone.
-                        </p>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <div class="avatar bg-danger-subtle text-danger mx-auto mb-3" style="width: 64px; height: 64px; font-size: 32px;">
+                        <i class="ti ti-trash"></i>
                     </div>
-                    
-                    <div class="alert alert-warning">
-                        <div class="d-flex">
-                            <i class="ti ti-alert-circle me-2"></i>
-                            <div>
-                                <strong>Warning:</strong> This will remove all associated data including bicycle assignments and rental records.
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="confirmDelete" required>
-                        <label class="form-check-label" for="confirmDelete">
-                            I understand that this action is permanent
-                        </label>
-                    </div>
-                    
-                    <input type="hidden" name="_token" value="{{ csrf_token('delete_station') }}">
+                    <h5 class="fw-bold">Are you sure you want to delete this station?</h5>
+                    <p class="text-muted">
+                        You're about to delete <strong>{{ station.name }}</strong> (ST-{{ '%04d'|format(station.idStation) }}). This action cannot be undone.
+                    </p>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger" id="deleteStationBtn" disabled>
-                        <i class="ti ti-trash me-1"></i> Delete Station
-                    </button>
+                
+                <div class="alert alert-warning d-flex" role="alert">
+                    <i class="ti ti-alert-triangle me-2 flex-shrink-0 align-self-center"></i>
+                    <div>
+                        <strong>Warning:</strong> Deleting this station will also remove all associated rental history and analytics data.
+                    </div>
                 </div>
-            </form>
+                
+                <div class="mb-3">
+                    <label for="deleteConfirmation" class="form-label">Please type <strong>DELETE</strong> to confirm</label>
+                    <input type="text" class="form-control" id="deleteConfirmation" placeholder="Type DELETE to confirm">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" disabled>
+                    <i class="ti ti-trash me-1"></i> Delete Station
+                </button>
+            </div>
         </div>
     </div>
 </div>
 {% endblock %}
 {% block javascripts %}
-    {{ parent() }}
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script src="{{ asset('js/back/bicycle/station-detail.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
-    <script>
-        // Simple dropdown fix that won't conflict with Bootstrap's built-in functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            // Make table-responsive overflow visible to allow dropdowns
-            document.querySelectorAll('.table-responsive').forEach(table => {
-                table.style.overflow = 'visible';
+{{ parent() }}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts@3.41.1/dist/apexcharts.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+        
+        // Initialize usage chart with improved styling
+        const usageOptions = {
+            series: [{
+                name: 'Rentals',
+                data: [15, 12, 18, 25, 22, 30, 28]
+            }],
+            chart: {
+                height: 200,
+                type: 'area',
+                toolbar: {
+                    show: false
+                },
+                sparkline: {
+                    enabled: false
+                },
+                fontFamily: 'inherit',
+                animations: {
+                    enabled: true,
+                    easing: 'easeinout',
+                    speed: 800
+                }
+            },
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: 'smooth',
+                width: 3
+            },
+            colors: ['#3a416f'],
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    shadeIntensity: 1,
+                    opacityFrom: 0.7,
+                    opacityTo: 0.3,
+                    stops: [0, 90, 100]
+                }
+            },
+            xaxis: {
+                categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                labels: {
+                    style: {
+                        fontSize: '12px',
+                        fontFamily: 'inherit',
+                        fontWeight: 400,
+                        cssClass: 'text-muted'
+                    }
+                },
+                axisBorder: {
+                    show: false
+                },
+                axisTicks: {
+                    show: false
+                }
+            },
+            yaxis: {
+                labels: {
+                    style: {
+                        fontSize: '12px',
+                        fontFamily: 'inherit',
+                        fontWeight: 400,
+                        cssClass: 'text-muted'
+                    }
+                }
+            },
+            grid: {
+                borderColor: '#e9ecef',
+                strokeDashArray: 4,
+                xaxis: {
+                    lines: {
+                        show: true
+                    }
+                },
+                yaxis: {
+                    lines: {
+                        show: false
+                    }
+                },
+                padding: {
+                    top: 0,
+                    right: 10,
+                    bottom: 0,
+                    left: 10
+                }
+            },
+            tooltip: {
+                theme: 'dark',
+                x: {
+                    show: false
+                }
+            },
+            markers: {
+                size: 5,
+                strokeWidth: 0,
+                hover: {
+                    size: 7
+                }
+            }
+        };
+        
+        if (document.getElementById('usageChart')) {
+            const usageChart = new ApexCharts(document.getElementById('usageChart'), usageOptions);
+            usageChart.render();
+        }
+        
+        // Initialize map if latitude and longitude are available
+        const mapElement = document.getElementById('stationMap');
+        if (mapElement) {
+            const lat = parseFloat(mapElement.dataset.lat);
+            const lng = parseFloat(mapElement.dataset.lng);
+            
+            if (lat && lng) {
+                // Enhanced map with improved styles
+                const stationMap = L.map('stationMap', {
+                    zoomControl: false,
+                    attributionControl: false
+                }).setView([lat, lng], 16);
+                
+                // Add default tile layer with enhanced styling
+                const defaultTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                    subdomains: 'abcd',
+                    maxZoom: 19
+                }).addTo(stationMap);
+                
+                // Add satellite tile layer (not shown by default)
+                const satelliteTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+                    maxZoom: 19
+                });
+
+                // Add Dark mode tile layer
+                const darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                    subdomains: 'abcd',
+                    maxZoom: 19
+                });
+                
+                // Add map view controls
+                const mapViewControls = L.control({position: 'bottomleft'});
+                mapViewControls.onAdd = function(map) {
+                    const div = L.DomUtil.create('div', 'map-view-controls');
+                    div.innerHTML = `
+                        <button type="button" class="btn active" id="mapNormalView">Map</button>
+                        <button type="button" class="btn" id="mapSatelliteView">Satellite</button>
+                        <button type="button" class="btn" id="mapDarkView">Dark</button>
+                    `;
+                    return div;
+                };
+                mapViewControls.addTo(stationMap);
+                
+                // Add attribution control in a better position
+                L.control.attribution({
+                    position: 'bottomright',
+                    prefix: '&copy; WamiaGo'
+                }).addTo(stationMap);
+                
+                // Custom station marker with animation effects
+                const stationIcon = L.divIcon({
+                    className: 'custom-station-marker',
+                    html: `<div class="station-marker ${mapElement.dataset.status.toLowerCase() === 'active' ? 'active' : 
+                           mapElement.dataset.status.toLowerCase() === 'maintenance' ? 'maintenance' : 'inactive'}">
+                              <i class="ti ti-map-pin"></i>
+                           </div>`,
+                    iconSize: [50, 50],
+                    iconAnchor: [25, 50],
+                    popupAnchor: [0, -40]
+                });
+                
+                // Add marker with enhanced popup
+                const marker = L.marker([lat, lng], {icon: stationIcon}).addTo(stationMap);
+                
+                // Add a more visually appealing popup
+                marker.bindPopup(`
+                    <div class="station-popup">
+                        <h5 class="fw-bold mb-2">${mapElement.dataset.name}</h5>
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="badge ${mapElement.dataset.status.toLowerCase() === 'active' ? 'bg-success' : 
+                                  mapElement.dataset.status.toLowerCase() === 'maintenance' ? 'bg-warning text-dark' : 'bg-secondary'} me-2">
+                                ${mapElement.dataset.status}
+                            </span>
+                            <small class="text-muted">ID: ST-${mapElement.dataset.id || '0000'}</small>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 align-items-center">
+                            <span class="text-muted">Available bikes:</span>
+                            <span class="badge bg-primary-subtle text-primary rounded-pill">${mapElement.dataset.availableBikes}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 align-items-center">
+                            <span class="text-muted">Available docks:</span>
+                            <span class="badge bg-success-subtle text-success rounded-pill">${mapElement.dataset.availableDocks}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Charging:</span>
+                            <span class="badge bg-warning-subtle text-warning rounded-pill">${mapElement.dataset.chargingBikes}</span>
+                        </div>
+                        <hr class="my-3">
+                        <a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" class="btn btn-sm btn-outline-primary w-100">
+                            <i class="ti ti-map me-1"></i> Directions
+                        </a>
+                    </div>
+                `, { 
+                    maxWidth: 300,
+                    className: 'custom-popup',
+                    closeButton: true,
+                    autoClose: false 
+                });
+                
+                // Create radius circle around the station
+                const radiusCircle = L.circle([lat, lng], {
+                    color: '#3a416f',
+                    fillColor: '#3a416f',
+                    fillOpacity: 0.1,
+                    radius: 200,
+                    weight: 1
+                }).addTo(stationMap);
+                
+                // Map control buttons with enhanced functionality
+                document.getElementById('zoomInMap').addEventListener('click', function() {
+                    stationMap.zoomIn();
+                });
+                
+                document.getElementById('zoomOutMap').addEventListener('click', function() {
+                    stationMap.zoomOut();
+                });
+                
+                document.getElementById('resetMapView').addEventListener('click', function() {
+                    stationMap.setView([lat, lng], 16);
+                });
+                
+                // Event delegation for map view controls
+                document.addEventListener('click', function(e) {
+                    if (e.target && e.target.id === 'mapNormalView') {
+                        document.querySelectorAll('.map-view-controls .btn').forEach(btn => btn.classList.remove('active'));
+                        e.target.classList.add('active');
+                        stationMap.removeLayer(satelliteTileLayer);
+                        stationMap.removeLayer(darkTileLayer);
+                        defaultTileLayer.addTo(stationMap);
+                    }
+                    else if (e.target && e.target.id === 'mapSatelliteView') {
+                        document.querySelectorAll('.map-view-controls .btn').forEach(btn => btn.classList.remove('active'));
+                        e.target.classList.add('active');
+                        stationMap.removeLayer(defaultTileLayer);
+                        stationMap.removeLayer(darkTileLayer);
+                        satelliteTileLayer.addTo(stationMap);
+                    }
+                    else if (e.target && e.target.id === 'mapDarkView') {
+                        document.querySelectorAll('.map-view-controls .btn').forEach(btn => btn.classList.remove('active'));
+                        e.target.classList.add('active');
+                        stationMap.removeLayer(defaultTileLayer);
+                        stationMap.removeLayer(satelliteTileLayer);
+                        darkTileLayer.addTo(stationMap);
+                    }
+                });
+                
+                // Open popup by default to highlight the station
+                setTimeout(() => {
+                    marker.openPopup();
+                }, 1000);
+            }
+        }
+        
+        // Initialize nearby stations map
+        if (document.getElementById('nearbyStationsMap')) {
+            const nearbyMap = L.map('nearbyStationsMap', {
+                zoomControl: false
+            }).setView([48.8566, 2.3522], 13);
+            
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
+            }).addTo(nearbyMap);
+            
+            // Add sample stations with improved markers
+            const stations = [
+                { lat: 48.8566, lng: 2.3522, name: "Central Station", bikes: 12, docks: 8, status: "active" },
+                { lat: 48.8606, lng: 2.3376, name: "University Station", bikes: 5, docks: 15, status: "active" },
+                { lat: 48.8499, lng: 2.3595, name: "Waterfront Station", bikes: 8, docks: 12, status: "maintenance" }
+            ];
+            
+            stations.forEach(station => {
+                const icon = L.divIcon({
+                    className: 'nearby-station-marker',
+                    html: `<div class="station-marker ${station.status}">
+                              <i class="ti ti-map-pin"></i>
+                           </div>`,
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 40],
+                    popupAnchor: [0, -30]
+                });
+                
+                L.marker([station.lat, station.lng], {icon: icon}).addTo(nearbyMap)
+                    .bindPopup(`
+                        <div class="station-popup">
+                            <h6 class="fw-bold mb-2">${station.name}</h6>
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="badge ${station.status === 'active' ? 'bg-success' : 'bg-warning text-dark'} me-2">
+                                    ${station.status.charAt(0).toUpperCase() + station.status.slice(1)}
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1 align-items-center">
+                                <span class="text-muted">Available bikes:</span>
+                                <span class="badge bg-primary-subtle text-primary rounded-pill">${station.bikes}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted">Available docks:</span>
+                                <span class="badge bg-success-subtle text-success rounded-pill">${station.docks}</span>
+                            </div>
+                            <hr class="my-2">
+                            <button class="btn btn-sm btn-outline-primary w-100">
+                                <i class="ti ti-arrow-right me-1"></i> View Station
+                            </button>
+                        </div>
+                    `, { maxWidth: 250 });
+            });
+            
+            // Add zoom controls in custom position
+            L.control.zoom({
+                position: 'topright'
+            }).addTo(nearbyMap);
+        }
+        
+        // Delete station confirmation check
+        const deleteConfirmInput = document.getElementById('deleteConfirmation');
+        const deleteButton = document.querySelector('#deleteStationModal .btn-danger');
+        
+        if (deleteConfirmInput && deleteButton) {
+            deleteConfirmInput.addEventListener('input', function() {
+                deleteButton.disabled = this.value !== 'DELETE';
+            });
+        }
+        
+        // Add functionality to refresh buttons
+        document.getElementById('refreshStationBtn')?.addEventListener('click', function() {
+            this.querySelector('i').classList.add('ti-spin');
+            setTimeout(() => {
+                this.querySelector('i').classList.remove('ti-spin');
+                // Show a temporary toast message
+                const toast = document.createElement('div');
+                toast.className = 'position-fixed top-0 end-0 p-3';
+                toast.style.zIndex = '1050';
+                toast.innerHTML = `
+                    <div class="toast show align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                <i class="ti ti-refresh me-2"></i> Station data refreshed!
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+            }, 1000);
+        });
+        
+        document.getElementById('refreshBicycles')?.addEventListener('click', function() {
+            this.querySelector('i').classList.add('ti-spin');
+            setTimeout(() => {
+                this.querySelector('i').classList.remove('ti-spin');
+            }, 1000);
+        });
+        
+        // Search functionality for tables
+        document.getElementById('bicycleSearch')?.addEventListener('input', function() {
+            const searchText = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('#bicyclesTable tbody tr');
+            
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchText) ? '' : 'none';
             });
         });
-    </script>
+        
+        document.getElementById('rentalSearch')?.addEventListener('input', function() {
+            const searchText = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('#rentalsTable tbody tr');
+            
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchText) ? '' : 'none';
+            });
+        });
+    });
+</script>
 {% endblock %}

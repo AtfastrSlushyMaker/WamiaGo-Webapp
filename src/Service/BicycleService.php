@@ -61,8 +61,21 @@ class BicycleService
 
         return $bicycle;
     }
-    public function getAllBicycles(): array
 
+    /**
+     * Get all bicycles as a query for pagination
+     */
+    public function getAllBicyclesQuery()
+    {
+        return $this->bicycleRepository->createQueryBuilder('b')
+            ->orderBy('b.idBike', 'DESC')
+            ->getQuery();
+    }
+    
+    /**
+     * Get all bicycles
+     */
+    public function getAllBicycles(): array
     {
         return $this->bicycleRepository->findAll();
     }
@@ -82,14 +95,11 @@ class BicycleService
 
     public function changeBicycleStatus(Bicycle $bicycle, BICYCLE_STATUS $status): void
     {
-        // Store previous status for logging
         $previousStatus = $bicycle->getStatus();
         
-        // Update status with proper enum value
         $bicycle->setStatus($status);
         $bicycle->setLastUpdated(new \DateTime());
         
-        // If changing to AVAILABLE status, ensure bicycle has a station
         if ($status === BICYCLE_STATUS::AVAILABLE && $bicycle->getBicycleStation() === null) {
             throw new \Exception('Cannot set bicycle to AVAILABLE without a station');
         }
@@ -105,14 +115,11 @@ class BicycleService
             throw new \Exception('Bicycle not found');
         }
 
-        // Store previous status for logging
         $previousStatus = $bicycle->getStatus();
         
-        // Update status with proper enum value
         $bicycle->setStatus($status);
         $bicycle->setLastUpdated(new \DateTime());
         
-        // If changing to AVAILABLE status, ensure bicycle has a station
         if ($status === BICYCLE_STATUS::AVAILABLE && $bicycle->getBicycleStation() === null) {
             throw new \Exception('Cannot set bicycle to AVAILABLE without a station');
         }
@@ -143,64 +150,52 @@ class BicycleService
         return $this->entityManager->find(BicycleStation::class, $id);
     }
 
-    /**
-     * Safely move a bicycle to a new station, handling status transitions appropriately
-     * 
-     * @param Bicycle $bicycle The bicycle to reassign
-     * @param BicycleStation|null $station The destination station (or null to remove from any station)
-     * @param BICYCLE_STATUS|null $newStatus Optional new status to set (if null, will automatically determine appropriate status)
-     * @return Bicycle
-     */
+
     public function reassignBicycleToStation(Bicycle $bicycle, ?BicycleStation $station, ?BICYCLE_STATUS $newStatus = null): Bicycle
     {
         $oldStation = $bicycle->getBicycleStation();
         $currentStatus = $bicycle->getStatus();
         
-        // Determine the appropriate status based on the situation if not explicitly provided
         if ($newStatus === null) {
             if ($station === null) {
-                // If removing from a station without specifying status, default to MAINTENANCE
-                // This prevents bicycles without stations from being marked AVAILABLE
+
                 $newStatus = BICYCLE_STATUS::MAINTENANCE;
             } else if ($currentStatus === BICYCLE_STATUS::MAINTENANCE || $currentStatus === BICYCLE_STATUS::CHARGING) {
-                // Keep maintenance or charging status when moving to a new station
+
                 $newStatus = $currentStatus;
             } else {
-                // Default to AVAILABLE when adding to a station
                 $newStatus = BICYCLE_STATUS::AVAILABLE;
             }
         }
         
-        // Validate the status makes sense for the new station assignment
+
         if ($station === null && $newStatus === BICYCLE_STATUS::AVAILABLE) {
             throw new \Exception('Cannot set a bicycle to AVAILABLE without assigning it to a station');
         }
         
-        // Update old station metrics if applicable
+
         if ($oldStation !== null) {
-            // Decrement the old station's bike count if the bike was available there
+
             if ($currentStatus === BICYCLE_STATUS::AVAILABLE) {
                 $oldStation->setAvailableBikes($oldStation->getAvailableBikes() - 1);
                 $oldStation->setAvailableDocks($oldStation->getAvailableDocks() + 1);
             }
         }
         
-        // Update new station metrics if applicable
+
         if ($station !== null && $newStatus === BICYCLE_STATUS::AVAILABLE) {
-            // Increment the new station's bike count if the bike will be available there
             $station->setAvailableBikes($station->getAvailableBikes() + 1);
             $station->setAvailableDocks($station->getAvailableDocks() - 1);
         }
         
-        // Update the bicycle
+
         $bicycle->setBicycleStation($station);
         
         try {
-            // Status might throw an exception if invalid
+
             $bicycle->setStatus($newStatus);
         } catch (\LogicException $e) {
-            // If we get a logic exception about AVAILABLE status without station,
-            // switch to MAINTENANCE status as a safe default
+
             $bicycle->setStatus(BICYCLE_STATUS::MAINTENANCE);
         }
         

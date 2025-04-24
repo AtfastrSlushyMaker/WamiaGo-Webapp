@@ -145,11 +145,11 @@ class BicycleRentalAdminController extends AbstractController
         try {
             // Get query parameters for filtering
             $status = $request->query->get('status');
-            $stationId = $request->query->get('station');
+            $stationId = $request->query->get('stationId');
             $dateFrom = $request->query->get('dateFrom');
             $dateTo = $request->query->get('dateTo');
             $page = $request->query->getInt('page', 1);
-            $perPage = $request->query->getInt('perPage', 10);
+            $perPage = $request->query->getInt('perPage', 10); // Default 10 items per page
             
             // Create query builder for rentals
             $queryBuilder = $this->entityManager->createQueryBuilder()
@@ -195,20 +195,26 @@ class BicycleRentalAdminController extends AbstractController
                             ->setParameter('toDate', $toDate->format('Y-m-d 23:59:59'));
             }
 
-            // Get paginated results - this is the key fix for pagination
+            // Apply pagination with custom options
+            $paginationOptions = [
+                'defaultSortFieldName' => 'r.id_user_rental',
+                'defaultSortDirection' => 'DESC',
+            ];
+
             $rentals = $this->paginator->paginate(
-                $queryBuilder->getQuery(),
+                $queryBuilder,
                 $page,
                 $perPage,
-                [
-                    'defaultSortFieldName' => 'r.id_user_rental',
-                    'defaultSortDirection' => 'DESC',
-                ]
+                $paginationOptions
             );
             
-            // Calculate statistics for the dashboard
+            // Add a flag to identify this as a pagination object in the template
+            $rentals->isPaginationObject = true;
+            
+            // Get all rentals for statistics
             $allRentals = $this->rentalService->getAllRentals();
             
+            // Calculate statistics
             $completedCount = 0;
             $activeCount = 0;
             $reservedCount = 0;
@@ -223,10 +229,9 @@ class BicycleRentalAdminController extends AbstractController
                 }
             }
             
-            // Get all bicycles to populate status cards
+            // Get bicycle statistics
             $bicycles = $this->bicycleService->getAllBicycles();
             
-            // Calculate counts for the status cards
             $availableCount = 0;
             $inUseCount = 0;
             $maintenanceCount = 0;
@@ -248,7 +253,6 @@ class BicycleRentalAdminController extends AbstractController
             // Create all necessary forms
             $forms = $this->createCommonForms();
             
-            // Pass all needed template variables
             return $this->render('back-office/bicycle/rental.html.twig', array_merge([
                 'rentals' => $rentals,
                 'bicycles' => $bicycles,
@@ -267,14 +271,14 @@ class BicycleRentalAdminController extends AbstractController
                     'status' => $status,
                     'stationId' => $stationId,
                     'dateFrom' => $dateFrom,
-                    'dateTo' => $dateTo
+                    'dateTo' => $dateTo,
+                    'perPage' => $perPage
                 ],
                 'availableCount' => $availableCount,
                 'inUseCount' => $inUseCount,
                 'maintenanceCount' => $maintenanceCount,
                 'chargingCount' => $chargingCount,
                 'active_tab' => 'rentals',
-                'pagination' => $rentals,  // Explicitly adding the pagination variable for the view
                 'users' => $this->entityManager->getRepository(User::class)->findAll(),
                 'rentalService' => $this->rentalService,
                 'locationService' => $this->locationService,
@@ -288,6 +292,7 @@ class BicycleRentalAdminController extends AbstractController
             
             return $this->render('back-office/bicycle/rental.html.twig', array_merge([
                 'rentals' => [],
+                'bicycles' => [],
                 'stations' => $this->stationService->getAllStations(),
                 'error' => $e->getMessage(),
                 'active_tab' => 'rentals'

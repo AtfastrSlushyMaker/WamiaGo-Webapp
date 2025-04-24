@@ -268,376 +268,165 @@
     </div>
 
     <!-- Bicycles Table/Grid View - Visually Enhanced -->
-    <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
-        <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
-            <div class="d-flex align-items-center">
-                <h5 class="mb-0"><i class="ti ti-bike me-2"></i>Fleet Overview</h5>
-                <div class="ms-3 d-flex align-items-center">
-                    <div class="search-icon me-2">
-                        <i class="ti ti-search text-muted"></i>
-                    </div>
-                    <input type="search" class="form-control form-control-sm shadow-none border-0 bg-light" 
-                           id="bicycleSearch" placeholder="Search bicycles..." style="width: 180px;">
-                </div>
-            </div>
-            <div class="d-flex align-items-center">
-                <span class="me-3 text-muted small">View as:</span>
-                <div class="btn-group" role="group">
-                    <a href="{{ path('admin_bicycle_rentals', {'tab': 'bicycles', 'view': 'grid'}) }}" class="btn btn-sm {% if app.request.query.get('view') == 'grid' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-                        <i class="ti ti-layout-grid me-1"></i>Grid
-                    </a>
-                    <a href="{{ path('admin_bicycle_rentals', {'tab': 'bicycles', 'view': 'list'}) }}" class="btn btn-sm {% if app.request.query.get('view') != 'grid' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-                        <i class="ti ti-list me-1"></i>List
-                    </a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="card-body p-0"> <!-- Removed padding for table/grid views -->
-            {% if bicycles is empty %}
-                <div class="empty-state text-center py-5">
-                    <div class="empty-state-icon mb-4">
-                        <i class="ti ti-bike-off"></i>
-                    </div>
-                    <h4 class="mb-2">No bicycles found</h4>
-                    <p class="text-muted mb-4">No bicycles match your current filter criteria.</p>
-                    <a href="{{ path('admin_bicycle_rentals', {'tab': 'bicycles'}) }}" class="btn btn-primary px-4">
-                        <i class="ti ti-refresh me-2"></i>Reset Filters
-                    </a>
-                </div>
-            {% else %}
-                {% if app.request.query.get('view') == 'grid' %}
-                    <div class="row g-0">
-                        {% for bicycle in bicycles %}
-                            <div class="col-md-6 col-lg-4 col-xl-3 p-3 bicycle-card-wrapper">
-                                <div class="card h-100 bicycle-card position-relative rounded-4 shadow-hover border-0">
-                                    <!-- Status Badge with Enhanced Styling -->
-                                    <div class="position-absolute top-0 end-0 m-3">
-                                        <div class="status-pill 
-                                            {% if bicycle.status.value == 'available' %}status-available{% elseif bicycle.status.value == 'in_use' %}status-in-use{% elseif bicycle.status.value == 'maintenance' %}status-maintenance{% elseif bicycle.status.value == 'charging' %}status-charging{% elseif bicycle.status.value == 'reserved' %}status-reserved{% endif %}">
-                                            <i class="status-icon ti ti-{% if bicycle.status.value == 'available' %}circle-check{% elseif bicycle.status.value == 'in_use' %}bike{% elseif bicycle.status.value == 'maintenance' %}tool{% elseif bicycle.status.value == 'charging' %}bolt{% elseif bicycle.status.value == 'reserved' %}clock{% else %}x{% endif %}"></i>
-                                            <span>{{ bicycle.status.value|capitalize|replace({'_': ' '}) }}</span>
-                                        </div>
+    {% if bicycles|length > 0 %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle bicycle-table" id="bicyclesTable">
+                <thead>
+                    <tr>
+                        <th scope="col" class="text-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="selectAllBicycles">
+                            </div>
+                        </th>
+                        <th scope="col">ID</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Battery</th>
+                        <th scope="col">Range</th>
+                        <th scope="col">Station</th>
+                        <th scope="col">Last Updated</th>
+                        <th scope="col" class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bicycle in bicycles %}
+                        <tr data-bicycle-id="{{ bicycle.idBike }}">
+                            <td class="text-center">
+                                <div class="form-check">
+                                    <input class="form-check-input bicycle-checkbox" type="checkbox" value="{{ bicycle.idBike }}">
+                                </div>
+                            </td>
+                            <td>
+                                <span class="fw-medium">BIKE-{{ '%04d'|format(bicycle.idBike) }}</span>
+                            </td>
+                            <td>
+                                {% if bicycle.status.value == 'available' %}
+                                    <span class="badge bg-success-subtle text-success">Available</span>
+                                {% elseif bicycle.status.value == 'in_use' %}
+                                    <span class="badge bg-primary-subtle text-primary">In Use</span>
+                                {% elseif bicycle.status.value == 'maintenance' %}
+                                    <span class="badge bg-warning-subtle text-warning">Maintenance</span>
+                                {% elseif bicycle.status.value == 'reserved' %}
+                                    <span class="badge bg-info-subtle text-info">Reserved</span>
+                                {% elseif bicycle.status.value == 'charging' %}
+                                    <span class="badge bg-secondary-subtle text-secondary">Charging</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary">{{ bicycle.status.value }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="battery-indicator me-2 {{ bicycle.batteryLevel >= 90 ? 'high' : (bicycle.batteryLevel >= 50 ? 'medium' : (bicycle.batteryLevel >= 25 ? 'low' : 'critical')) }}">
+                                        <i class="ti ti-battery-{{ bicycle.batteryLevel >= 90 ? '4' : (bicycle.batteryLevel >= 50 ? '3' : (bicycle.batteryLevel >= 25 ? '2' : '1')) }}"></i>
                                     </div>
-                                    
-                                    <div class="card-body text-center py-4">
-                                        <div class="bicycle-avatar mb-3 mx-auto
-                                            {% if bicycle.batteryLevel > 90 %}bg-success{% elseif bicycle.batteryLevel > 50 %}bg-primary{% elseif bicycle.batteryLevel > 25 %}bg-warning{% else %}bg-danger{% endif %} 
-                                            bg-opacity-10">
-                                            <i class="ti ti-bike fa-3x {% if bicycle.batteryLevel > 90 %}text-success{% elseif bicycle.batteryLevel > 50 %}text-primary{% elseif bicycle.batteryLevel > 25 %}text-warning{% else %}text-danger{% endif %}"></i>
+                                    <span class="fw-medium">{{ bicycle.batteryLevel }}%</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="ti ti-route text-muted me-1"></i>
+                                    <span>{{ bicycle.rangeKm }} km</span>
+                                </div>
+                            </td>
+                            <td>
+                                {% if bicycle.bicycleStation %}
+                                    <a href="{{ path('admin_bicycle_station_detail', {'id': bicycle.bicycleStation.idStation}) }}">
+                                        <div class="d-flex align-items-center">
+                                            <i class="ti ti-map-pin text-muted me-2"></i>
+                                            <span>{{ bicycle.bicycleStation.name }}</span>
                                         </div>
-                                        
-                                        <div class="bicycle-info">
-                                            <h5 class="fw-bold mb-1">BIKE-{{ '%04d'|format(bicycle.idBike) }}</h5>
-                                            <div class="bicycle-type mb-3">
-                                                <span class="badge 
-                                                    {% if bicycle.batteryLevel > 90 %}bg-success{% else %}bg-primary{% endif %} 
-                                                    bg-opacity-10 
-                                                    {% if bicycle.batteryLevel > 90 %}text-success{% else %}text-primary{% endif %}
-                                                    px-3 py-2">
-                                                    <i class="ti ti-{{ bicycle.batteryLevel > 90 ? 'star' : 'bike' }} me-1"></i>
-                                                    {{ bicycle.batteryLevel > 90 ? 'Premium E-Bike' : 'Standard E-Bike' }}
-                                                </span>
-                                            </div>
-                                            
-                                            <div class="battery-indicator-wrapper mb-4">
-                                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                                    <span class="text-muted small"><i class="ti ti-battery-automotive me-1"></i>Battery Level</span>
-                                                    <span class="battery-value 
-                                                        {% if bicycle.batteryLevel > 90 %}text-success{% elseif bicycle.batteryLevel > 50 %}text-primary{% elseif bicycle.batteryLevel > 25 %}text-warning{% else %}text-danger{% endif %}">
-                                                        {{ bicycle.batteryLevel|number_format(1) }}%
-                                                    </span>
-                                                </div>
-                                                <div class="battery-visual">
-                                                    <div class="battery-level 
-                                                        {% if bicycle.batteryLevel > 90 %}bg-success{% elseif bicycle.batteryLevel > 50 %}bg-primary{% elseif bicycle.batteryLevel > 25 %}bg-warning{% else %}bg-danger{% endif %}" 
-                                                        style="width: {{ bicycle.batteryLevel }}%;">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="bicycle-details">
-                                                <div class="bicycle-detail-item">
-                                                    <div class="detail-icon">
-                                                        <i class="ti ti-route"></i>
-                                                    </div>
-                                                    <div class="detail-content">
-                                                        <span class="detail-label">Range</span>
-                                                        <span class="detail-value">{{ bicycle.rangeKm|number_format(1) }} km</span>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div class="bicycle-detail-item">
-                                                    <div class="detail-icon">
-                                                        <i class="ti ti-map-pin"></i>
-                                                    </div>
-                                                    <div class="detail-content">
-                                                        <span class="detail-label">Station</span>
-                                                        <span class="detail-value">{{ bicycle.bicycleStation ? bicycle.bicycleStation.name : 'None' }}</span>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div class="bicycle-detail-item">
-                                                    <div class="detail-icon">
-                                                        <i class="ti ti-clock"></i>
-                                                    </div>
-                                                    <div class="detail-content">
-                                                        <span class="detail-label">Last Updated</span>
-                                                        <span class="detail-value">{{ bicycle.lastUpdated|date('Y-m-d H:i') }}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="card-footer bg-light py-3">
-                                        <div class="bicycle-actions">
-                                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editBicycleModal" data-bicycle-id="{{ bicycle.idBike }}">
-                                                <i class="ti ti-edit me-1"></i> Edit
-                                            </button>
-                                            <div class="dropdown d-inline-block">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="ti ti-settings me-1"></i> Actions
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                                                    <li><h6 class="dropdown-header">Change Status</h6></li>
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted fst-italic">No station assigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="ti ti-calendar-time text-muted me-1"></i>
+                                    <span>{{ bicycle.lastUpdated|date('M d, Y H:i') }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-icon btn-outline-secondary dropdown-toggle hide-arrow" type="button" data-bs-toggle="dropdown">
+                                            <i class="ti ti-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a class="dropdown-item view-bicycle" href="#" data-bicycle-id="{{ bicycle.idBike }}">
+                                                <i class="ti ti-eye me-2"></i> View Details
+                                            </a></li>
+                                            <li><a class="dropdown-item edit-bicycle" href="#" data-bicycle-id="{{ bicycle.idBike }}">
+                                                <i class="ti ti-edit me-2"></i> Edit Bicycle
+                                            </a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#stationAssignModal" data-bicycle-id="{{ bicycle.idBike }}">
+                                                <i class="ti ti-map-pin me-2"></i> Change Station
+                                            </a></li>
+                                            <li class="dropdown-submenu">
+                                                <a class="dropdown-item dropdown-toggle" href="#">
+                                                    <i class="ti ti-status-change me-2"></i> Change Status
+                                                </a>
+                                                <ul class="dropdown-menu">
                                                     {% if bicycle.status.value != 'available' %}
-                                                        <li><a class="dropdown-item status-change" href="#" data-bicycle-id="{{ bicycle.idBike }}" data-status="available">
-                                                            <i class="ti ti-circle-check text-success me-2"></i>Mark Available
-                                                        </a></li>
+                                                    <li><a class="dropdown-item" href="{{ path('admin_bicycle_change_status', {'id': bicycle.idBike, 'status': 'available'}) }}">
+                                                        <i class="ti ti-check text-success me-2"></i>Mark Available
+                                                    </a></li>
                                                     {% endif %}
-                                                    
                                                     {% if bicycle.status.value != 'maintenance' %}
-                                                        <li><a class="dropdown-item status-change" href="#" data-bicycle-id="{{ bicycle.idBike }}" data-status="maintenance">
-                                                            <i class="ti ti-tool text-warning me-2"></i>Send to Maintenance
-                                                        </a></li>
+                                                    <li><a class="dropdown-item" href="{{ path('admin_bicycle_change_status', {'id': bicycle.idBike, 'status': 'maintenance'}) }}">
+                                                        <i class="ti ti-tool text-warning me-2"></i>Send to Maintenance
+                                                    </a></li>
                                                     {% endif %}
-                                                    
                                                     {% if bicycle.status.value != 'charging' %}
-                                                        <li><a class="dropdown-item status-change" href="#" data-bicycle-id="{{ bicycle.idBike }}" data-status="charging">
-                                                            <i class="ti ti-bolt text-info me-2"></i>Send to Charging
-                                                        </a></li>
+                                                    <li><a class="dropdown-item" href="{{ path('admin_bicycle_change_status', {'id': bicycle.idBike, 'status': 'charging'}) }}">
+                                                        <i class="ti ti-bolt text-info me-2"></i>Send to Charging
+                                                    </a></li>
                                                     {% endif %}
-                                                    
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li><a class="dropdown-item" href="{{ path('admin_bicycle_rentals', {'tab': 'bicycles', 'history': bicycle.idBike}) }}">
-                                                        <i class="ti ti-history me-2 text-primary"></i>View History
-                                                    </a></li>
-                                                    <li><a class="dropdown-item delete-bicycle text-danger" href="#" data-bicycle-id="{{ bicycle.idBike }}">
-                                                        <i class="ti ti-trash me-2"></i>Delete
-                                                    </a></li>
                                                 </ul>
-                                            </div>
-                                        </div>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <button class="dropdown-item text-danger delete-bicycle" type="button" data-bicycle-id="{{ bicycle.idBike }}">
+                                                    <i class="ti ti-trash me-2"></i> Delete Bicycle
+                                                </button>
+                                            </li>
+                                        </ul>
                                     </div>
                                 </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <!-- Enhanced List View with Animations -->
-                    <div class="table-responsive bicycle-table-wrapper">
-                        <table class="table table-hover align-middle bicycle-table" id="bicyclesTable">
-                            <thead>
-                                <tr>
-                                    <th scope="col"><i class="ti ti-hash me-1"></i>ID</th>
-                                    <th scope="col"><i class="ti ti-tag me-1"></i>Type</th>
-                                    <th scope="col"><i class="ti ti-map-pin me-1"></i>Station</th>
-                                    <th scope="col"><i class="ti ti-battery-automotive me-1"></i>Battery</th>
-                                    <th scope="col"><i class="ti ti-route me-1"></i>Range</th>
-                                    <th scope="col"><i class="ti ti-clock me-1"></i>Last Updated</th>
-                                    <th scope="col"><i class="ti ti-activity-heartbeat me-1"></i>Status</th>
-                                    <th scope="col" class="text-end"><i class="ti ti-settings me-1"></i>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for bicycle in bicycles %}
-                                    <tr class="bicycle-row fade-in-row" style="animation-delay: {{ loop.index * 0.05 }}s">
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="bicycle-mini-icon me-2
-                                                    {% if bicycle.status.value == 'available' %}bg-success{% elseif bicycle.status.value == 'in_use' %}bg-primary{% elseif bicycle.status.value == 'maintenance' %}bg-warning{% elseif bicycle.status.value == 'charging' %}bg-info{% else %}bg-secondary{% endif %} 
-                                                    bg-opacity-10">
-                                                    <i class="ti ti-bike 
-                                                    {% if bicycle.status.value == 'available' %}text-success{% elseif bicycle.status.value == 'in_use' %}text-primary{% elseif bicycle.status.value == 'maintenance' %}text-warning{% elseif bicycle.status.value == 'charging' %}text-info{% else %}text-secondary{% endif %}"></i>
-                                                </div>
-                                                <span class="fw-semibold">BIKE-{{ '%04d'|format(bicycle.idBike) }}</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="badge 
-                                                {% if bicycle.batteryLevel > 90 %}bg-success{% else %}bg-primary{% endif %} 
-                                                bg-opacity-10 
-                                                {% if bicycle.batteryLevel > 90 %}text-success{% else %}text-primary{% endif %}
-                                                px-2 py-1">
-                                                <i class="ti ti-{{ bicycle.batteryLevel > 90 ? 'star' : 'bike' }} me-1"></i>
-                                                {{ bicycle.batteryLevel > 90 ? 'Premium' : 'Standard' }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            {% if bicycle.bicycleStation %}
-                                                <div class="d-flex align-items-center">
-                                                    <i class="ti ti-map-pin me-1 text-primary"></i> 
-                                                    {{ bicycle.bicycleStation.name }}
-                                                </div>
-                                            {% else %}
-                                                <span class="badge bg-secondary bg-opacity-10 text-secondary px-2">No Station</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="battery-indicator me-2">
-                                                    <div class="battery-level-small 
-                                                        {% if bicycle.batteryLevel > 90 %}bg-success{% elseif bicycle.batteryLevel > 50 %}bg-primary{% elseif bicycle.batteryLevel > 25 %}bg-warning{% else %}bg-danger{% endif %}" 
-                                                        style="width: {{ bicycle.batteryLevel }}%;">
-                                                    </div>
-                                                </div>
-                                                <span class="{% if bicycle.batteryLevel > 90 %}text-success{% elseif bicycle.batteryLevel > 50 %}text-primary{% elseif bicycle.batteryLevel > 25 %}text-warning{% else %}text-danger{% endif %} fw-medium">
-                                                    {{ bicycle.batteryLevel|number_format(1) }}%
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <i class="ti ti-route me-1 text-primary"></i>
-                                                {{ bicycle.rangeKm|number_format(1) }} km
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <i class="ti ti-calendar-time me-1 text-secondary"></i>
-                                                {{ bicycle.lastUpdated|date('Y-m-d H:i') }}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="status-pill-small
-                                                {% if bicycle.status.value == 'available' %}status-available{% elseif bicycle.status.value == 'in_use' %}status-in-use{% elseif bicycle.status.value == 'maintenance' %}status-maintenance{% elseif bicycle.status.value == 'charging' %}status-charging{% elseif bicycle.status.value == 'reserved' %}status-reserved{% endif %}">
-                                                <i class="ti ti-{% if bicycle.status.value == 'available' %}circle-check{% elseif bicycle.status.value == 'in_use' %}bike{% elseif bicycle.status.value == 'maintenance' %}tool{% elseif bicycle.status.value == 'charging' %}bolt{% elseif bicycle.status.value == 'reserved' %}clock{% else %}x{% endif %}"></i>
-                                                {{ bicycle.status.value|capitalize|replace({'_': ' '}) }}
-                                            </span>
-                                        </td>
-                                        <td class="text-end">
-                                            <div class="action-buttons">
-                                                <button class="btn btn-sm btn-icon btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#editBicycleModal" data-bicycle-id="{{ bicycle.idBike }}" title="Edit">
-                                                    <i class="ti ti-edit"></i>
-                                                </button>
-                                                <div class="dropdown d-inline-block">
-                                                    <button class="btn btn-sm btn-icon btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="More actions">
-                                                        <i class="ti ti-dots-vertical"></i>
-                                                    </button>
-                                                    <ul class="dropdown-menu dropdown-menu-end">
-                                                        <li>
-                                                            <a class="dropdown-item" href="{{ path('admin_bicycle_rentals', {'tab': 'bicycles', 'history': bicycle.idBike}) }}">
-                                                                <i class="ti ti-history me-2 text-info"></i> View History
-                                                            </a>
-                                                        </li>
-                                                        <li class="dropdown-submenu">
-                                                            <a class="dropdown-item" href="#">
-                                                                <i class="ti ti-exchange me-2 text-warning"></i> Change Status <i class="ti ti-chevron-right float-end"></i>
-                                                            </a>
-                                                            <ul class="dropdown-menu shadow-sm">
-                                                                {% if bicycle.status.value != 'available' %}
-                                                                    <li><a class="dropdown-item status-change" href="#" data-bicycle-id="{{ bicycle.idBike }}" data-status="available">
-                                                                        <i class="ti ti-circle-check text-success me-2"></i>Mark as Available
-                                                                    </a></li>
-                                                                {% endif %}
-                                                                
-                                                                {% if bicycle.status.value != 'maintenance' %}
-                                                                    <li><a class="dropdown-item status-change" href="#" data-bicycle-id="{{ bicycle.idBike }}" data-status="maintenance">
-                                                                        <i class="ti ti-tool text-warning me-2"></i>Send to Maintenance
-                                                                    </a></li>
-                                                                {% endif %}
-                                                                
-                                                                {% if bicycle.status.value != 'charging' %}
-                                                                    <li><a class="dropdown-item status-change" href="#" data-bicycle-id="{{ bicycle.idBike }}" data-status="charging">
-                                                                        <i class="ti ti-bolt text-info me-2"></i>Send to Charging
-                                                                    </a></li>
-                                                                {% endif %}
-                                                            </ul>
-                                                        </li>
-                                                        <li><hr class="dropdown-divider"></li>
-                                                        <li>
-                                                            <button class="dropdown-item text-danger delete-bicycle" type="button" data-bicycle-id="{{ bicycle.idBike }}">
-                                                                <i class="ti ti-trash me-2"></i> Delete Bicycle
-                                                            </button>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% endif %}
-                
-                <!-- Enhanced Pagination -->
-                {% if bicycles|length > 10 and pagination is defined %}
-                    <div class="pagination-wrapper py-3 bg-light border-top">
-                        <nav aria-label="Bicycle pagination">
-                            <ul class="pagination pagination-modern justify-content-center mb-0">
-                                {% if pagination.currentPageNumber > 1 %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="{{ path('admin_bicycle_rentals', {'tab': 'bicycles', 'page': pagination.currentPageNumber - 1}) }}" aria-label="Previous">
-                                            <i class="ti ti-chevron-left"></i>
-                                        </a>
-                                    </li>
-                                {% else %}
-                                    <li class="page-item disabled">
-                                        <span class="page-link"><i class="ti ti-chevron-left"></i></span>
-                                    </li>
-                                {% endif %}
-                                
-                                {% set startPage = max(1, pagination.currentPageNumber - 2) %}
-                                {% set endPage = min(pagination.pageCount, startPage + 4) %}
-                                
-                                {% if startPage > 1 %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="{{ path('admin_bicycle_rentals', {'tab': 'bicycles', 'page': 1}) }}">1</a>
-                                    </li>
-                                    {% if startPage > 2 %}
-                                        <li class="page-item disabled">
-                                            <span class="page-link">...</span>
-                                        </li>
-                                    {% endif %}
-                                {% endif %}
-                                
-                                {% for page in startPage..endPage %}
-                                    <li class="page-item {{ page == pagination.currentPageNumber ? 'active' : '' }}">
-                                        <a class="page-link" href="{{ path('admin_bicycle_rentals', {'tab': 'bicycles', 'page': page}) }}">{{ page }}</a>
-                                    </li>
-                                {% endfor %}
-                                
-                                {% if endPage < pagination.pageCount %}
-                                    {% if endPage < pagination.pageCount - 1 %}
-                                        <li class="page-item disabled">
-                                            <span class="page-link">...</span>
-                                        </li>
-                                    {% endif %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="{{ path('admin_bicycle_rentals', {'tab': 'bicycles', 'page': pagination.pageCount}) }}">{{ pagination.pageCount }}</a>
-                                    </li>
-                                {% endif %}
-                                
-                                {% if pagination.currentPageNumber < pagination.pageCount %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="{{ path('admin_bicycle_rentals', {'tab': 'bicycles', 'page': pagination.currentPageNumber + 1}) }}" aria-label="Next">
-                                            <i class="ti ti-chevron-right"></i>
-                                        </a>
-                                    </li>
-                                {% else %}
-                                    <li class="page-item disabled">
-                                        <span class="page-link"><i class="ti ti-chevron-right"></i></span>
-                                    </li>
-                                {% endif %}
-                            </ul>
-                        </nav>
-                    </div>
-                {% endif %}
-            {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-    </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="ti ti-info-circle me-2"></i> No bicycles found.
+        </div>
+    {% endif %}
+    
+    <!-- Pagination for bicycles -->
+    {% if bicycles is defined and bicycles.getTotalItemCount is defined and bicycles.getTotalItemCount > 0 %}
+        <div class="pagination-wrapper py-3 bg-light border-top">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="pagination-info">
+                    Showing {{ bicycles.items|length }} of {{ bicycles.getTotalItemCount }} bicycles
+                </div>
+                <div class="pagination-modern">
+                    {{ knp_pagination_render(bicycles, 'back-office/bicycle/bicycle-pagination.html.twig') }}
+                </div>
+                <div class="pagination-per-page">
+                    <label for="perPageSelectBicycles">Items per page:</label>
+                    <select id="perPageSelectBicycles" name="perPage" class="form-select form-select-sm">
+                        <option value="10" {{ app.request.query.get('perPage') == '10' or app.request.query.get('perPage') == null ? 'selected' : '' }}>10</option>
+                        <option value="25" {{ app.request.query.get('perPage') == '25' ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ app.request.query.get('perPage') == '50' ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ app.request.query.get('perPage') == '100' ? 'selected' : '' }}>100</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 </div>
 
 <!-- Add Bicycle Modal -->

@@ -138,7 +138,6 @@ class BicycleAdminController extends AbstractController
             }
         }
     
-        // If form is not submitted or invalid, display the form again
         return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => "bicycles"]);
     }
     

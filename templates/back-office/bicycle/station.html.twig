@@ -6,6 +6,131 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.32.0/tabler-icons.min.css">
     <link rel="stylesheet" href="{{ asset('css/back/bicycle/station-edit-modal.css') }}">
     <link rel="stylesheet" href="{{ asset('css/back/bicycle/station-edit-modal.css') }}">
+    <style>
+        /* Enhanced pagination styles */
+        .pagination {
+            display: flex;
+            padding-left: 0;
+            list-style: none;
+            border-radius: 0.375rem;
+            margin-bottom: 0;
+            background-color: transparent;
+        }
+        
+        .pagination-modern {
+            gap: 0.25rem;
+        }
+        
+        .page-item:first-child .page-link {
+            border-top-left-radius: 0.375rem;
+            border-bottom-left-radius: 0.375rem;
+        }
+        
+        .page-item:last-child .page-link {
+            border-top-right-radius: 0.375rem;
+            border-bottom-right-radius: 0.375rem;
+        }
+        
+        .page-item.active .page-link {
+            z-index: 3;
+            color: #fff;
+            background-color: #4361ee;
+            border-color: #4361ee;
+            box-shadow: 0 0.125rem 0.25rem rgba(67, 97, 238, 0.2);
+        }
+        
+        .page-item.disabled .page-link {
+            color: #a1a5b7;
+            pointer-events: none;
+            background-color: transparent;
+            border-color: #dee2e6;
+        }
+        
+        .page-link {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 0.75rem;
+            min-width: 2.25rem;
+            font-weight: 500;
+            line-height: 1.25;
+            color: #4361ee;
+            background-color: #fff;
+            border: 1px solid #eaedf2;
+            transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        
+        .page-link:hover {
+            z-index: 2;
+            color: #2637b9;
+            text-decoration: none;
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+        }
+        
+        .page-link:focus {
+            z-index: 3;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+        }
+        
+        .pagination-info {
+            font-size: 0.875rem;
+            color: #6c757d;
+            padding: 0.5rem 0;
+        }
+        
+        .form-select-sm {
+            border-radius: 0.375rem;
+            border-color: #eaedf2;
+            font-size: 0.875rem;
+            background-color: #fff;
+        }
+        
+        .form-select-sm:focus {
+            border-color: #a7b8f3;
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+        }
+        
+        .pagination-wrapper {
+            display: flex;
+            align-items: center;
+        }
+        
+        /* Clean white background for pagination area */
+        .d-flex.justify-content-between.align-items-center.p-3.border-top {
+            background-color: #fff !important;
+        }
+        
+        .pagination-modern .page-item .page-link {
+            background-color: #fff !important;
+        }
+
+        .pagination-modern .page-item.active .page-link {
+            background-color: #4361ee !important;
+            color: #fff !important;
+        }
+        
+        .pagination-modern .page-item.disabled .page-link {
+            background-color: #f8f9fa !important;
+            color: #a1a5b7;
+        }
+        
+        /* Remove any shadows or overlays */
+        .pagination::before, 
+        .pagination::after,
+        .pagination-wrapper::before,
+        .pagination-wrapper::after {
+            display: none !important;
+        }
+        
+        /* Make sure the pagination container is clean */
+        .pagination-wrapper {
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
+    </style>
 {% endblock %}
 {% block header %}
 <div class="header-section mb-4">
@@ -348,6 +473,46 @@
                                     </tbody>
                                 </table>
                             </div>
+                            
+                            <!-- Pagination with Page Size Selector -->
+                            <div class="d-flex justify-content-between align-items-center p-3 border-top">
+                                <div class="pagination-info">
+                                    <span class="text-muted">Showing</span> <span class="fw-medium">{{ stations.items|length }}</span> <span class="text-muted">of</span> <span class="fw-medium">{{ stations.getTotalItemCount }}</span> <span class="text-muted">stations</span>
+                                </div>
+                                
+                                <div class="pagination-wrapper">
+                                    {{ knp_pagination_render(stations, 'back-office/bicycle/pagination.html.twig') }}
+                                </div>
+                                
+                                <div class="items-per-page">
+                                    <form id="perPageForm" method="get" action="{{ path('admin_bicycle_rentals') }}" class="mb-0">
+                                        <div class="d-flex align-items-center">
+                                            <label for="perPageSelect" class="me-2 text-muted small mb-0">Show:</label>
+                                            <select id="perPageSelect" name="perPage" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                                                <option value="10" {% if app.request.query.get('perPage') == '10' or app.request.query.get('perPage') is null %}selected{% endif %}>10</option>
+                                                <option value="25" {% if app.request.query.get('perPage') == '25' %}selected{% endif %}>25</option>
+                                                <option value="50" {% if app.request.query.get('perPage') == '50' %}selected{% endif %}>50</option>
+                                                <option value="100" {% if app.request.query.get('perPage') == '100' %}selected{% endif %}>100</option>
+                                            </select>
+                                        </div>
+                                        
+                                        {# Preserve existing query parameters #}
+                                        {% for key, value in app.request.query.all %}
+                                            {% if key != 'perPage' %}
+                                                <input type="hidden" name="{{ key }}" value="{{ value }}">
+                                            {% endif %}
+                                        {% endfor %}
+                                        
+                                        {# Always start at page 1 when changing items per page #}
+                                        <input type="hidden" name="page" value="1">
+                                        
+                                        {# Preserve tab parameter if it exists #}
+                                        {% if app.request.query.get('tab') %}
+                                            <input type="hidden" name="tab" value="{{ app.request.query.get('tab') }}">
+                                        {% endif %}
+                                    </form>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -414,6 +579,32 @@
         totalDocks: s.totalDocks,
         chargingDocks: s.chargingDocks is defined ? s.chargingDocks : null
     })|json_encode|raw }};
+
+    // Ensure DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("DOM fully loaded");
+        
+        // Items per page handler
+        const perPageSelect = document.getElementById('perPageSelect');
+        console.log("perPageSelect element:", perPageSelect);
+        
+        if (perPageSelect) {
+            // Add change event listener
+            perPageSelect.onchange = function() {
+                console.log("perPage changed to:", this.value);
+                
+                // Get current URL and update parameters
+                const url = new URL(window.location.href);
+                url.searchParams.set('perPage', this.value);
+                url.searchParams.set('page', '1'); // Reset to first page
+                
+                console.log("Redirecting to:", url.toString());
+                window.location.href = url.toString();
+            };
+            
+            console.log("Change event handler attached to perPageSelect");
+        }
+    });
 </script>
 <script src="{{ asset('js/back/bicycle/station-modal.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
 <script src="{{ asset('js/back/bicycle/station-edit-modal.js') }}?v={{ 'now'|date('YmdHi') }}"></script>

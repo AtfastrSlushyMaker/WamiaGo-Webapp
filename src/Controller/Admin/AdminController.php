@@ -13,6 +13,7 @@ use App\Form\BicycleStationType;
 use Symfony\Component\Form\FormFactoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Knp\Component\Pager\PaginatorInterface;
 
 class AdminController extends AbstractController
 {
@@ -21,19 +22,22 @@ class AdminController extends AbstractController
     private $bicycleService;
     private $formFactory;
     private $entityManager;
+    private $paginator;
 
     public function __construct(
         BicycleRentalService $bicycleRentalService,
         BicycleStationService $bicycleStationService,
         BicycleService $bicycleService,
         FormFactoryInterface $formFactory,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        PaginatorInterface $paginator
     ) {
         $this->bicycleRentalService = $bicycleRentalService;
         $this->bicycleStationService = $bicycleStationService;
         $this->bicycleService = $bicycleService;
         $this->formFactory = $formFactory;
         $this->entityManager = $entityManager;
+        $this->paginator = $paginator;
     }
 
     #[Route('/admin', name: 'admin_dashboard')]
@@ -73,8 +77,31 @@ class AdminController extends AbstractController
     public function bicycleRentals(Request $request): Response
     {
         $tab = $request->query->get('tab', 'rentals');
-        $bicycles = $this->bicycleService->getAllBicycles();
-        $stations = $this->bicycleStationService->getAllStations();
+        
+        // Get bicycles query and paginate it
+        $bicyclesQuery = $this->bicycleService->getAllBicyclesQuery();
+        $bicycles = $this->paginator->paginate(
+            $bicyclesQuery,
+            $request->query->getInt('page', 1),
+            $request->query->getInt('perPage', 10)
+        );
+        
+        // Get stations query and paginate it
+        $stationsQuery = $this->bicycleStationService->getAllStationsQuery();
+        $stations = $this->paginator->paginate(
+            $stationsQuery,
+            $request->query->getInt('page', 1),
+            $request->query->getInt('perPage', 10)
+        );
+        
+        // Get rentals query and paginate it
+        $rentalsQuery = $this->bicycleRentalService->getAllRentalsQuery();
+        $rentals = $this->paginator->paginate(
+            $rentalsQuery,
+            $request->query->getInt('page', 1),
+            $request->query->getInt('perPage', 10)
+        );
+        
         $users = $this->entityManager->getRepository(\App\Entity\User::class)->findAll();
 
         // Create Add/Edit Bicycle Forms
@@ -143,7 +170,7 @@ class AdminController extends AbstractController
             ])
             ->getForm();
 
-        // Rentals with filters and pagination
+        // Create the query builder for rentals with filters and pagination
         $status = $request->query->get('status');
         $stationId = $request->query->get('station');
         $dateFrom = $request->query->get('dateFrom');
@@ -158,6 +185,8 @@ class AdminController extends AbstractController
             ->leftJoin('r.start_station', 'ss')
             ->leftJoin('r.end_station', 'es')
             ->orderBy('r.id_user_rental', 'DESC');
+        
+        // Apply filters if provided
         if ($status) {
             switch($status) {
                 case 'active':
@@ -173,22 +202,30 @@ class AdminController extends AbstractController
                     break;
             }
         }
+        
         if ($stationId) {
             $queryBuilder->andWhere('ss.id_station = :stationId')
                         ->setParameter('stationId', $stationId);
         }
+        
         if ($dateFrom) {
             $fromDate = new \DateTime($dateFrom);
             $queryBuilder->andWhere('r.start_time >= :fromDate')
                         ->setParameter('fromDate', $fromDate->format('Y-m-d 00:00:00'));
         }
+        
         if ($dateTo) {
             $toDate = new \DateTime($dateTo);
             $queryBuilder->andWhere('r.start_time <= :toDate')
                         ->setParameter('toDate', $toDate->format('Y-m-d 23:59:59'));
         }
-        $query = $queryBuilder->getQuery();
-        $rentals = $query->getResult();
+        
+        // Paginate the rentals
+        $rentals = $this->paginator->paginate(
+            $queryBuilder->getQuery(),
+            $request->query->getInt('page', 1),
+            $request->query->getInt('perPage', 10)
+        );
 
         // Stats
         $completedCount = 0;
@@ -203,11 +240,14 @@ class AdminController extends AbstractController
                 $reservedCount++;
             }
         }
+        
+        // Get bicycle count by status
+        $allBicycles = $this->bicycleService->getAllBicycles(); // Get all for stats calculation
         $availableCount = 0;
         $inUseCount = 0;
         $maintenanceCount = 0;
         $chargingCount = 0;
-        foreach ($bicycles as $bicycle) {
+        foreach ($allBicycles as $bicycle) {
             $status = $bicycle->getStatus()->value;
             if ($status === 'available') {
                 $availableCount++;
@@ -238,12 +278,12 @@ class AdminController extends AbstractController
             'stationAssignForm' => $stationAssignForm->createView(),
             'maintenanceForm' => $maintenanceForm->createView(),
             'stats' => [
-                'totalRentals' => count($rentals),
+                'totalRentals' => $rentals->getTotalItemCount(),
                 'completedCount' => $completedCount,
                 'activeCount' => $activeCount,
                 'reservedCount' => $reservedCount,
-                'completionRate' => count($rentals) > 0 ? round(($completedCount / count($rentals)) * 100) : 0,
-                'totalRevenue' => array_sum(array_map(function($r) { return $r->getCost() ?: 0; }, $rentals))
+                'completionRate' => $rentals->getTotalItemCount() > 0 ? ($completedCount > 0 ? round(($completedCount / $rentals->getTotalItemCount()) * 100) : 0) : 0,
+                'totalRevenue' => array_sum(array_map(function($r) { return $r->getCost() ?: 0; }, $rentals->getItems()))
             ],
             'availableCount' => $availableCount,
             'inUseCount' => $inUseCount,
@@ -259,7 +299,7 @@ class AdminController extends AbstractController
                 'dateFrom' => $dateFrom,
                 'dateTo' => $dateTo
             ],
-            'active_tab' => 'rentals',
+            'active_tab' => $tab,
             'bicycleService' => $this->bicycleService,
             'stationService' => $this->bicycleStationService,
             'rentalService' => $this->bicycleRentalService,
