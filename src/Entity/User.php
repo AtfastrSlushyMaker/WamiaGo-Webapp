@@ -235,9 +235,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     #[Groups(['user:read'])]
-    public function getGender(): GENDER
+    public function getGender(): string
     {
-        return $this->gender;
+        return $this->gender->value;
     }
 
     public function setGender(GENDER $gender): void
@@ -273,9 +273,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getAccount_status(): ACCOUNT_STATUS
+    public function getAccount_status(): string
     {
-        return $this->account_status;
+        return $this->account_status->value;
     }
 
     public function setAccount_status(ACCOUNT_STATUS $account_status): void
@@ -294,9 +294,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getStatus(): STATUS
+    public function getStatus(): string
     {
-        return $this->status;
+        return $this->status->value;
     }
 
     public function setStatus(STATUS $status): self
@@ -514,9 +514,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getAccountStatus(): ACCOUNT_STATUS
+    public function getAccountStatus(): string
     {
-        return $this->account_status;
+        return $this->account_status->value;
     }
 
     public function setAccountStatus(ACCOUNT_STATUS $account_status): void

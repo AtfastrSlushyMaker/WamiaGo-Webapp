@@ -27,7 +27,6 @@ class ProfileController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        // Calculate profile completion percentage
         $profileCompletion = $this->calculateProfileCompletionPercentage($user);
         
         return $this->render('front/profile.html.twig', [
