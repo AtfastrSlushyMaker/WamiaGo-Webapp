@@ -266,6 +266,7 @@
             let recognizer = null;
             let startTime = null;
             let timerInterval = null;
+            let accumulatedText = ''; // Store accumulated text
 
             const recordButton = document.getElementById('recordButton');
             const timer = document.getElementById('timer');
@@ -289,7 +290,7 @@
                         config.authToken,
                         config.region
                     );
-                    speechConfig.speechRecognitionLanguage = config.language;
+                    speechConfig.speechRecognitionLanguage = config.language || 'fr-FR';
                     
                     return speechConfig;
                 } catch (error) {
@@ -301,14 +302,27 @@
             async function startRecording() {
                 try {
                     if (!isRecording) {
+                        // Clear previous content only when starting a new recording session
+                        contentField.value = '';
+                        accumulatedText = '';
+
                         // Initialize speech service
                         const speechConfig = await initializeSpeechService();
                         const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
                         recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
 
+                        // Handle intermediate results - accumulate text
                         recognizer.recognizing = (s, e) => {
                             if (e.result.text) {
-                                contentField.value = e.result.text;
+                                contentField.value = accumulatedText + ' ' + e.result.text;
+                            }
+                        };
+
+                        // Handle final results - update accumulated text
+                        recognizer.recognized = (s, e) => {
+                            if (e.result.text) {
+                                accumulatedText = (accumulatedText + ' ' + e.result.text).trim();
+                                contentField.value = accumulatedText;
                             }
                         };
 
@@ -349,7 +363,13 @@
                 recordButton.classList.remove('recording');
                 statusIndicator.classList.remove('active');
                 recordButton.innerHTML = '<i class="fas fa-microphone"></i>';
-                statusText.textContent = 'Click to start recording';
+                statusText.textContent = 'Click to start new recording';
+
+                // Add visual feedback for accumulated text
+                contentField.classList.add('text-accumulated');
+                setTimeout(() => {
+                    contentField.classList.remove('text-accumulated');
+                }, 500);
             }
 
             function updateTimer() {
@@ -363,8 +383,11 @@
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'alert alert-danger alert-dismissible fade show mt-2';
                 errorDiv.innerHTML = `
-                    <strong>Error:</strong> ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <div><strong>Error:</strong> ${message}</div>
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                 `;
                 recordButton.parentElement.appendChild(errorDiv);
                 
@@ -388,4 +411,15 @@
             });
         });
     </script>
+
+    <style>
+        @keyframes textAccumulated {
+            0% { background-color: rgba(90, 107, 229, 0.1); }
+            100% { background-color: transparent; }
+        }
+
+        .text-accumulated {
+            animation: textAccumulated 0.5s ease-out;
+        }
+    </style>
 {% endblock %}
