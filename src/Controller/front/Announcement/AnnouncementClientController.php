@@ -200,4 +200,54 @@ public function getLocations(): JsonResponse
     
     return $this->json($data);
 }
+
+#[Route('/search', name: 'app_front_announcements_search', methods: ['GET'])]
+public function search(Request $request, PaginatorInterface $paginator): Response
+{
+    $user = $this->getTempUser();
+    
+    // Récupération et validation des paramètres
+    $keyword = trim($request->query->get('keyword', ''));
+    $zone = $request->query->get('zone');
+    $date = $request->query->get('date');
+
+    // Validation de la date
+    $dateObj = null;
+    if ($date) {
+        try {
+            $dateObj = new \DateTime($date);
+        } catch (\Exception $e) {
+            $dateObj = null;
+        }
+    }
+
+    // Construction de la requête
+    $query = $this->announcementService->getFilteredQueryBuilder($keyword, $zone, $dateObj);
+    
+    // Pagination
+    $announcements = $paginator->paginate(
+        $query,
+        $request->query->getInt('page', 1),
+        12
+    );
+
+    // Réponse AJAX
+    if ($request->isXmlHttpRequest()) {
+        $html = $this->renderView('front/announcement/_announcement_list.html.twig', [
+            'announcements' => $announcements
+        ]);
+        return new JsonResponse(['html' => $html]);
+    }
+
+    return $this->render('front/announcement/index.html.twig', [
+        'announcements' => $announcements,
+        'zones' => Zone::cases(),
+        'user' => $user,
+        'filters' => [
+            'keyword' => $keyword,
+            'zone' => $zone,
+            'date' => $date
+        ]
+    ]);
+}
 }

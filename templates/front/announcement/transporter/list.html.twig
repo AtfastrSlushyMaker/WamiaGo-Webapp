@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="{{ asset('css/front/announcement/announcement-cards.css') }}">
     <link rel="stylesheet" href="{{ asset('css/front/announcement/modal-details.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.min.css" rel="stylesheet">
-    
 {% endblock %}
 
 {% block content %}
@@ -140,15 +139,4 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.all.min.js"></script>
     <script src="{{ asset('js/front/announcement/transporter-announcement.js') }}" defer></script>
     <script src="{{ asset('js/front/announcement/announcement-modals.js') }}" defer></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Gestion correcte de la fermeture des modales
-            document.querySelectorAll('.modal').forEach(modal => {
-                modal.addEventListener('hidden.bs.modal', function() {
-                    document.body.style.overflow = 'auto';
-                    document.body.style.paddingRight = '0';
-                });
-            });
-        });
-    </script>
 {% endblock %}

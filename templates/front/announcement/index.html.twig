@@ -10,6 +10,7 @@
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('css/front/announcement/reservation.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.min.css" rel="stylesheet">
+     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 {% endblock %}
 
 {% block hero %}
@@ -109,75 +110,58 @@
             
             {# Filters Section #}
             <div class="filters-section">
-                <div class="search-filter">
-                    <input type="text" placeholder="Search announcements..." class="search-input">
-                    <button class="search-button">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-                
-                
-            </div>
-        </div>
-
-        {# Announcements List #}
-        <div class="announcement-list">
-            {% if announcements is empty %}
-                <div class="empty-state">
-                    <img src="{{ asset('images/front/announcements/empty-announcement.png') }}" alt="No announcements">
-                    <h3>No announcements available</h3>
-                    <p>There are currently no active announcements. Please check back later.</p>
-                </div>
-            {% else %}
-                {% for announcement in announcements %}
-                    <div class="announcement-card">
-                        <div class="card-header">
-                            <h3 class="announcement-title">{{ announcement.title }}</h3>
-                            <span class="status-badge {% if announcement.status %}active{% else %}inactive{% endif %}">
-                                {% if announcement.status %}Active{% else %}Inactive{% endif %}
-                            </span>
-                        </div>
-                        
-                        <div class="card-content">
-                            <p class="announcement-text">{{ announcement.content|length > 150 ? announcement.content|slice(0, 150) ~ '...' : announcement.content }}</p>
-                            
-                            <div class="announcement-meta">
-                                <div class="meta-item">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <span>{{ announcement.zone.value }}</span>
-                                </div>
-                                
-                                <div class="meta-item">
-                                    <i class="fas fa-calendar-alt"></i>
-                                    <span>{{ announcement.date|date('d M Y, H:i') }}</span>
-                                </div>
-                                
-                                <div class="meta-item">
-                                    <i class="fas fa-user"></i>
-                                    <span>{{ announcement.driver.user.name ?? 'Unknown driver' }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="card-actions">
-                            <a href="{{ path('app_front_announcement_modal', {'id': announcement.id_announcement}) }}" 
-                            class="details-button"
-                            data-announcement-id="{{ announcement.id_announcement }}">
-                                <i class="fas fa-eye"></i> Details
-                            </a>
-                            
-                            <a href="#" 
-                class="reserve-button"
-                data-announcement-id="{{ announcement.id_announcement }}"
-                onclick="event.preventDefault();">
-                    <i class="fas fa-calendar-check"></i> Reserve
-                                            </a>
-                                        </div>
-                                    </div>
+                <div class="advanced-search-container">
+                    <!-- Search field -->
+                    <div class="search-filter">
+                        <input type="text" 
+                               id="keywordSearch" 
+                               placeholder="Search announcements..." 
+                               class="search-input"
+                               value="{{ filters.keyword ?? '' }}">
+                        <button class="search-button" id="searchButton">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Advanced filters -->
+                    <div class="advanced-filters">
+                        <!-- Zone filter -->
+                        <div class="filter-group">
+                            <label for="zoneFilter"><i class="fas fa-map-marker-alt"></i> Zone</label>
+                            <select id="zoneFilter" class="form-select">
+                                <option value="">All Zones</option>
+                                {% for zone in zones %}
+                                    <option value="{{ zone.value }}" 
+                                            {{ filters.zone is defined and filters.zone == zone.value ? 'selected' }}>
+                                        {{ zone.value }}
+                                    </option>
                                 {% endfor %}
-                            {% endif %}
+                            </select>
                         </div>
-<!-- Pagination -->
+                        
+                        <!-- Date filter -->
+                        <div class="filter-group">
+                            <label for="dateFilter"><i class="fas fa-calendar-alt"></i> Date</label>
+                            <input type="date" 
+                                   id="dateFilter" 
+                                   class="form-control date-picker"
+                                   value="{{ filters.date ?? '' }}">
+                        </div>
+                        
+                        <!-- Reset button -->
+                        <button class="btn btn-outline-secondary" id="clearFilters">
+                            <i class="fas fa-times"></i> Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Announcements List -->
+            <div class="announcement-list" id="announcementsList">
+                {% include 'front/announcement/_announcement_list.html.twig' with {'announcements': announcements} %}
+            </div>
+
+            <!-- Pagination -->
     <div class="pagination-container mt-4">
         {{ knp_pagination_render(announcements, '@KnpPaginator/Pagination/twitter_bootstrap_v4_pagination.html.twig') }}
     </div>
@@ -308,6 +292,9 @@
 {{ parent() }}
      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.all.min.js"></script>
     <script src="{{ asset('js/front/announcement/reservation.js') }}"></script>
+    <script src="{{ asset('js/front/announcement/announcement_search.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+ 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize modal avec des options spécifiques

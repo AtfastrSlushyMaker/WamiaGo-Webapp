@@ -8,6 +8,7 @@ use App\Enum\Zone;
 use App\Repository\AnnouncementRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\ORM\Query;
 
 class AnnouncementService
 {
@@ -70,7 +71,7 @@ class AnnouncementService
 
     public function getAnnouncementsByZone(Zone $zone): array
     {
-        return $this->announcementRepository->findByZone($zone);
+        return $this->announcementRepository->findByZone($zone->value);
     }
 
     public function getAnnouncementsByDriver(Driver $driver): array
@@ -167,7 +168,7 @@ public function countFilteredAnnouncements(?string $search): int
 
 public function getAnnouncementsQueryByDriver(Driver $driver): QueryBuilder
 {
-    return $this->announcementRepository->getQueryByDriver($driver);
+    return $this->announcementRepository->getQueryByDriver($this->entityManager->getRepository(Driver::class)->find($driver->getIdDriver()));
 }
 
 public function getAnnouncementDetails(int $id): ?Announcement
@@ -179,9 +180,74 @@ public function getFeaturedAnnouncements(int $limit = 3): array
 {
     return $this->announcementRepository->createQueryBuilder('a')
         ->where('a.status = true')
-        ->orderBy('a.date', 'DESC') // Prend les annonces les plus récentes
+        ->orderBy('a.date', 'DESC') 
         ->setMaxResults($limit)
         ->getQuery()
         ->getResult();
+}
+
+public function getFilteredQuery(array $filters): Query
+{
+    $qb = $this->entityManager->createQueryBuilder()
+        ->select('a', 'd')
+        ->from(Announcement::class, 'a')
+        ->join('a.driver', 'd')
+        ->where('a.status = :status')
+        ->setParameter('status', true);
+
+    if (!empty($filters['keyword'])) {
+        $qb->andWhere('a.title LIKE :keyword OR a.content LIKE :keyword')
+           ->setParameter('keyword', '%'.$filters['keyword'].'%');
+    }
+
+    if (!empty($filters['zone'])) {
+        $qb->andWhere('a.zone = :zone')
+           ->setParameter('zone', Zone::tryFrom($filters['zone']));
+    }
+
+    if (!empty($filters['date'])) {
+        $qb->andWhere('DATE(a.date) = :date')
+           ->setParameter('date', $filters['date']);
+    }
+
+    return $qb->orderBy('a.date', 'DESC')
+              ->getQuery();
+}
+
+public function getFilteredQueryBuilder(?string $keyword = null, ?string $zone = null, ?\DateTime $date = null): QueryBuilder
+{
+    $qb = $this->entityManager->createQueryBuilder()
+        ->select('a', 'd')
+        ->from(Announcement::class, 'a')
+        ->join('a.driver', 'd')
+        ->where('a.status = :status')
+        ->setParameter('status', true);
+
+    // Filtre par mot-clé
+    if (!empty($keyword)) {
+        $qb->andWhere('(a.title LIKE :keyword OR a.content LIKE :keyword)')
+           ->setParameter('keyword', '%'.$keyword.'%');
+    }
+
+    // Filtre par zone
+    if (!empty($zone)) {
+        $qb->andWhere('a.zone = :zone')
+           ->setParameter('zone', $zone);
+    }
+
+    // Filtre par date
+    if ($date instanceof \DateTime) {
+        $startDate = clone $date;
+        $startDate->setTime(0, 0, 0);
+        
+        $endDate = clone $startDate;
+        $endDate->modify('+1 day');
+        
+        $qb->andWhere('a.date >= :startDate AND a.date < :endDate')
+           ->setParameter('startDate', $startDate)
+           ->setParameter('endDate', $endDate);
+    }
+
+    return $qb->orderBy('a.date', 'DESC');
 }
 }

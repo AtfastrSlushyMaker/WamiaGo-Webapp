@@ -3,11 +3,10 @@
 namespace App\Repository;
 
 use App\Entity\Announcement;
-use App\Entity\Driver;
-use App\Enum\Zone;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\QueryBuilder;
+use App\Entity\Driver;
 
 /**
  * @extends ServiceEntityRepository<Announcement>
@@ -48,7 +47,7 @@ class AnnouncementRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function findByZone(Zone $zone): array
+    public function findByZone(string $zone): array
     {
         return $this->createQueryBuilder('a')
             ->andWhere('a.zone = :zone')
@@ -129,28 +128,29 @@ public function findWithDetails(int $id): ?Announcement
         ->getOneOrNullResult();
 }
 
-    //    /**
-    //     * @return Announcement[] Returns an array of Announcement objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('a.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function createFilteredQuery(?string $keyword = null, ?string $zone = null, ?string $date = null): QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('a')
+            ->leftJoin('a.driver', 'd')
+            ->addSelect('d');
 
-    //    public function findOneBySomeField($value): ?Announcement
-    //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        if ($keyword) {
+            $qb->andWhere('LOWER(a.title) LIKE LOWER(:keyword) OR LOWER(a.content) LIKE LOWER(:keyword)')
+               ->setParameter('keyword', '%' . $keyword . '%');
+        }
+
+        if ($zone) {
+            $qb->andWhere('a.zone = :zone')
+               ->setParameter('zone', $zone);
+        }
+
+        if ($date) {
+            $qb->andWhere('DATE(a.date) = :date')
+               ->setParameter('date', new \DateTime($date));
+        }
+
+        $qb->orderBy('a.date', 'DESC');
+
+        return $qb;
+    }
 }
