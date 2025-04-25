@@ -1181,3 +1181,34 @@ body.dark-mode .accordion-body {
         padding: 1.25rem;
     }
 }
+
+/* Pagination Styles */
+.pagination {
+    display: flex;
+    padding-left: 0;
+    list-style: none;
+    border-radius: 0.25rem;
+}
+
+.page-item .page-link {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    color: #5A6BE5;
+    border: 1px solid #ddd;
+}
+
+.page-item.active .page-link {
+    background-color: #5A6BE5;
+    border-color: #5A6BE5;
+    color: white;
+}
+
+.page-item.disabled .page-link {
+    color: #bdc3c7;
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}

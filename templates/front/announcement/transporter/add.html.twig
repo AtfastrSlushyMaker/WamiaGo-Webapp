@@ -5,6 +5,95 @@
 {% block page_stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/front/announcement/transporter-create-announcement.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        .voice-recorder {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+
+        .recording-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .record-btn {
+            background: #ff4b4b;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .record-btn.recording {
+            animation: pulse 1.5s infinite;
+            background: #ff0000;
+        }
+
+        .record-btn i {
+            color: white;
+            font-size: 20px;
+        }
+
+        .timer {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 1.2rem;
+            color: #333;
+            min-width: 85px;
+        }
+
+        .recording-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #666;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+
+        .status-indicator.active {
+            background: #ff4b4b;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        .alert {
+            position: relative;
+            margin-top: 1rem;
+        }
+
+        .alert-dismissible .btn-close {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 1.25rem;
+        }
+    </style>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap">
 {% endblock %}
 
 {% block content %}
@@ -81,6 +170,20 @@
                     <div class="invalid-feedback">{{ form_errors(form.content)|striptags }}</div>
                 </div>
 
+                <!-- Voice Recorder -->
+                <div class="voice-recorder">
+                    <div class="recording-controls">
+                        <button type="button" id="recordButton" class="record-btn">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <div class="timer" id="timer">00:00</div>
+                        <div class="recording-status">
+                            <div class="status-indicator" id="statusIndicator"></div>
+                            <span id="statusText">Click to start recording</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Zone and Status Fields -->
                 <div class="form-row">
                     <div class="form-group col-md-6 floating-label">
@@ -152,4 +255,137 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vanilla-tilt@1.7.0/dist/vanilla-tilt.min.js"></script>
     <script src="{{ asset('js/front/announcement/transporter-announcement.js') }}"></script>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let isRecording = false;
+            let recognizer = null;
+            let startTime = null;
+            let timerInterval = null;
+
+            const recordButton = document.getElementById('recordButton');
+            const timer = document.getElementById('timer');
+            const statusIndicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            const contentField = document.querySelector('#{{ form.content.vars.id }}');
+
+            async function initializeSpeechService() {
+                try {
+                    const response = await fetch('/api/speech/config');
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch speech configuration');
+                    }
+                    
+                    const config = await response.json();
+                    if (!config.authToken || !config.region) {
+                        throw new Error('Invalid speech configuration');
+                    }
+
+                    const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(
+                        config.authToken,
+                        config.region
+                    );
+                    speechConfig.speechRecognitionLanguage = config.language;
+                    
+                    return speechConfig;
+                } catch (error) {
+                    console.error('Speech config error:', error);
+                    throw new Error('Failed to initialize speech service: ' + error.message);
+                }
+            }
+
+            async function startRecording() {
+                try {
+                    if (!isRecording) {
+                        // Initialize speech service
+                        const speechConfig = await initializeSpeechService();
+                        const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+                        recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+
+                        recognizer.recognizing = (s, e) => {
+                            if (e.result.text) {
+                                contentField.value = e.result.text;
+                            }
+                        };
+
+                        await recognizer.startContinuousRecognitionAsync();
+                        
+                        isRecording = true;
+                        startTime = Date.now();
+                        timerInterval = setInterval(updateTimer, 1000);
+                        
+                        recordButton.classList.add('recording');
+                        statusIndicator.classList.add('active');
+                        recordButton.innerHTML = '<i class="fas fa-stop"></i>';
+                        statusText.textContent = 'Recording...';
+                    }
+                } catch (error) {
+                    console.error('Speech recognition error:', error);
+                    showError(error.message || 'Failed to start recording. Please try again.');
+                    await stopRecording();
+                }
+            }
+
+            async function stopRecording() {
+                if (recognizer && isRecording) {
+                    try {
+                        await recognizer.stopContinuousRecognitionAsync();
+                        recognizer.close();
+                    } catch (error) {
+                        console.error('Error stopping recognition:', error);
+                    } finally {
+                        recognizer = null;
+                    }
+                }
+                
+                isRecording = false;
+                clearInterval(timerInterval);
+                timer.textContent = '00:00';
+                
+                recordButton.classList.remove('recording');
+                statusIndicator.classList.remove('active');
+                recordButton.innerHTML = '<i class="fas fa-microphone"></i>';
+                statusText.textContent = 'Click to start recording';
+            }
+
+            function updateTimer() {
+                const elapsed = Date.now() - startTime;
+                const minutes = Math.floor(elapsed / 60000);
+                const seconds = Math.floor((elapsed % 60000) / 1000);
+                timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            function showError(message) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'alert alert-danger alert-dismissible fade show mt-2';
+                errorDiv.innerHTML = `
+                    <strong>Error:</strong> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                recordButton.parentElement.appendChild(errorDiv);
+                
+                setTimeout(() => {
+                    errorDiv.remove();
+                }, 5000);
+            }
+
+            recordButton.addEventListener('click', async () => {
+                try {
+                    if (!isRecording) {
+                        await startRecording();
+                    } else {
+                        await stopRecording();
+                    }
+                } catch (error) {
+                    console.error('Recording operation failed:', error);
+                    showError('An unexpected error occurred. Please try again.');
+                    await stopRecording();
+                }
+            });
+        });
+    </script>
 {% endblock %}

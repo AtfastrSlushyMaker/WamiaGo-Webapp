@@ -96,16 +96,14 @@
                 
                 <div class="action-buttons">
                     <a href="{{ path('app_client_reservation_list') }}" class="action-button">
-    <img src="{{ asset('images/front/announcements/reservation.png') }}" alt="Reservations">
-    <span>My Reservations</span>
-</a>
-
+                        <img src="{{ asset('images/front/announcements/reservation.png') }}" alt="Reservations">
+                        <span>See Reservations</span>
+                    </a>
                     
                     <a href="{{ path('app_client_relocation_list') }}" class="action-button">
-    <img src="{{ asset('images/front/announcements/relocation.png') }}" alt="Relocations">
-    <span>My Relocations</span>
-</a>
-
+                        <img src="{{ asset('images/front/announcements/relocation.png') }}" alt="Relocations">
+                        <span>See Relocations</span>
+                    </a>
                 </div>
             </div>
             
@@ -154,7 +152,10 @@
                                     <span>{{ announcement.date|date('d M Y, H:i') }}</span>
                                 </div>
                                 
-                               
+                                <div class="meta-item">
+                                    <i class="fas fa-user"></i>
+                                    <span>{{ announcement.driver.user.name ?? 'Unknown driver' }}</span>
+                                </div>
                             </div>
                         </div>
                         
@@ -166,17 +167,20 @@
                             </a>
                             
                             <a href="#" 
-   class="reserve-button"
-   data-announcement-id="{{ announcement.id_announcement }}"
-   onclick="event.preventDefault();">
-    <i class="fas fa-calendar-check"></i> Reserve
-                            </a>
+                class="reserve-button"
+                data-announcement-id="{{ announcement.id_announcement }}"
+                onclick="event.preventDefault();">
+                    <i class="fas fa-calendar-check"></i> Reserve
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
                         </div>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        </div>
-
+<!-- Pagination -->
+    <div class="pagination-container mt-4">
+        {{ knp_pagination_render(announcements, '@KnpPaginator/Pagination/twitter_bootstrap_v4_pagination.html.twig') }}
+    </div>
     {# Wave Separator #}
         <div class="wave-separator">
             <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
@@ -189,7 +193,7 @@
             </svg>
         </div>
         
-        {# Pagination #}
+    
         
     </div>
 

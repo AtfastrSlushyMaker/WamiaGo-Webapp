@@ -49,23 +49,11 @@
 {% block content %}
 <div id="csrf-token" data-token="{{ csrf_token('reservation') }}"></div>
 
-<div class="reservations-header text-center">
-    <h1><i class="fas fa-calendar-check"></i> My Reservations</h1>
-    
-    <div class="action-buttons d-flex justify-content-center gap-3">
-    <a href="{{ path('app_front_announcements') }}" class="btn btn-outline-primary">
-        <i class="fas fa-truck me-2"></i> See Announcements
-    </a>
-    <a href="{{ path('app_client_relocation_list') }}" class="btn btn-primary">
-        <i class="fas fa-truck-moving me-2"></i> My Relocations
-    </a>
-</div>
-
-</div>
-                    
- 
-
-                </div>
+<div class="client-reservations-container">
+    <!-- Header Section -->
+    <div class="reservations-header">
+        <h1><i class="fas fa-calendar-check me-2"></i> My Reservations</h1>
+    </div>
 
     <!-- Reservations Grid -->
     {% if reservations is empty %}

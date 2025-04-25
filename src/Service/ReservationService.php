@@ -100,4 +100,6 @@ class ReservationService
             'endLocation' => $reservation->getEndLocation()->getAddress()
         ];
     }
+
+    
 }

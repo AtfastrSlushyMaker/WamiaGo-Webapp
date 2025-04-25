@@ -618,3 +618,40 @@ body.swal2-shown {
     background-color: rgba(0, 0, 0, 0.5) !important;
     backdrop-filter: blur(3px) !important;
 }
+
+/* Pagination Styles */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.pagination {
+    display: flex;
+    padding-left: 0;
+    list-style: none;
+    border-radius: 0.25rem;
+}
+
+.page-item .page-link {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    color: #5A6BE5;
+    border: 1px solid #ddd;
+    transition: all 0.3s ease;
+}
+
+.page-item.active .page-link {
+    background-color: #5A6BE5;
+    border-color: #5A6BE5;
+    color: white;
+}
+
+.page-item .page-link:hover {
+    background-color: #f0f2f5;
+}
+
+.page-item.disabled .page-link {
+    color: #bdc3c7;
+    pointer-events: none;
+}

@@ -174,4 +174,14 @@ public function getAnnouncementDetails(int $id): ?Announcement
 {
     return $this->announcementRepository->findWithDetails($id);
 }
+
+public function getFeaturedAnnouncements(int $limit = 3): array
+{
+    return $this->announcementRepository->createQueryBuilder('a')
+        ->where('a.status = true')
+        ->orderBy('a.date', 'DESC') // Prend les annonces les plus récentes
+        ->setMaxResults($limit)
+        ->getQuery()
+        ->getResult();
+}
 }
