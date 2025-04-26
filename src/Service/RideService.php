@@ -13,6 +13,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use PgSql\Lob;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Psr\Log\LoggerInterface;
+use Doctrine\ORM\Query;
 
 class RideService
 {

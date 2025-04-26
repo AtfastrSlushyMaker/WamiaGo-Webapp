@@ -9,6 +9,7 @@ use App\Enum\REQUEST_STATUS;
 use App\Repository\RequestRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Doctrine\ORM\Query;
 
 class RequestService
 {
@@ -172,4 +173,41 @@ public function acceptRequest(int $requestId): Request
 
     return $request;
 }
+
+
+public function searchRequests(?string $search = null, ?string $status = null, ?string $sortBy = null, ?string $sortOrder = 'ASC'): array
+{
+    $qb = $this->entityManager->createQueryBuilder();
+    $qb->select('r')
+       ->from(Request::class, 'r')
+       ->leftJoin('r.user', 'u')
+       ->leftJoin('r.departureLocation', 'dl')
+       ->leftJoin('r.arrivalLocation', 'al');
+
+    // Apply search filter if provided
+    if ($search) {
+        $qb->andWhere(
+            $qb->expr()->orX(
+                $qb->expr()->like('r.id_request', ':search'),
+                $qb->expr()->like('u.name', ':search'),
+                $qb->expr()->like('dl.address', ':search'),
+                $qb->expr()->like('al.address', ':search'),
+                $qb->expr()->like('r.status', ':search')
+            )
+        )->setParameter('search', '%' . $search . '%');
+    }
+
+    // Apply status filter if provided separately
+    if ($status) {
+        $qb->andWhere('r.status = :status')
+           ->setParameter('status', $status);
+    }
+
+   
+
+    return $qb->getQuery()->getResult();
+}
+
+
+
 }
