@@ -24,11 +24,7 @@
             <div class="panel-body">
                 <!-- Search Bar -->
              <form id="search-form" class="mb-3" method="get" action="{{ path('admin_taxi_management') }}">
-    <select name="sort" id="sort-combobox" class="form-control" style="width: 180px; display: inline-block; margin-right: 10px;">
-        <option value="">Sort by Date</option>
-        <option value="date_asc" {% if app.request.query.get('sort') == 'date_asc' %}selected{% endif %}>Oldest First</option>
-        <option value="date_desc" {% if app.request.query.get('sort') == 'date_desc' %}selected{% endif %}>Newest First</option>
-    </select>
+  
     
     <input type="text" 
            name="search" 
@@ -58,14 +54,13 @@
 document.addEventListener('DOMContentLoaded', function () {
     const searchForm = document.getElementById('search-form');
     const searchInput = document.getElementById('search-input');
-    const filterSelect = document.getElementById('search-combobox');
     const statusSelect = document.querySelector('select[name="status"]');
-    const sortSelect = document.getElementById('sort-combobox');
     
     let searchTimeout;
 
     // Function to perform search
-    function performSearch() {
+    function performSearch(e) {
+        e.preventDefault(); // Prevent form submission
         const formData = new URLSearchParams(new FormData(searchForm));
         
         fetch('{{ path('admin_taxi_management') }}?' + formData.toString(), {
@@ -101,30 +96,25 @@ document.addEventListener('DOMContentLoaded', function () {
                     container.innerHTML = newPaginationContainers[index].innerHTML;
                 }
             });
-
-            // Reinitialize any event listeners
-            initializeEventListeners();
         })
         .catch(error => console.error('Error:', error));
     }
 
-    // Add event listeners for real-time search and sort
-    searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(performSearch, 500); // Debounce search
-    });
+    // Add event listeners for real-time search
+    if (searchForm) {
+        searchForm.addEventListener('submit', performSearch);
+    }
 
-    filterSelect.addEventListener('change', performSearch);
-    statusSelect.addEventListener('change', performSearch);
-    sortSelect.addEventListener('change', performSearch);
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => searchForm.dispatchEvent(new Event('submit')), 500);
+        });
+    }
 
-    // Sort functionality
-    sortSelect.addEventListener('change', function () {
-        const selectedSort = sortSelect.value;
-        const url = new URL(window.location.href);
-        url.searchParams.set('sort', selectedSort);
-        window.location.href = url.toString();
-    });
+    if (statusSelect) {
+        statusSelect.addEventListener('change', () => searchForm.dispatchEvent(new Event('submit')));
+    }
 });
 </script>
 <!-- End Search Bar -->
@@ -208,16 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <div class="panel-header rides-header">Active Rides</div>
             <div class="panel-body">
                 <form id="search-form" class="mb-3" method="get" action="">
-                    <select name="filter" id="search-combobox" class="form-control" style="width: 180px; display: inline-block; margin-right: 10px;">
-                        <option value="">Filter by...</option>
-                        <option value="user">User</option>
-                        <option value="location">Location</option>
-                        <option value="status">Status</option>
-                        <option value="driver">Driver</option>
-                        <option value="completed">Completed</option>
-                        <option value="pending">Pending</option>
-                        <option value="active">Active</option>
-                    </select>
+                
                     <input type="text" name="search" id="search-input" class="form-control" placeholder="Enter value..." style="width: 180px; display: inline-block; margin-right: 10px;">
                     <select name="status" class="form-control" style="width: 150px; display: inline-block; margin-right: 10px;">
                         <option value="">All Statuses</option>
