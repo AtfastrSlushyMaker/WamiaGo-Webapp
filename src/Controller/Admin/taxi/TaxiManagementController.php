@@ -37,6 +37,7 @@ class TaxiManagementController extends AbstractController
         $filter = $request->query->get('filter');
         $search = $request->query->get('search');
         $status = $request->query->get('status');
+        $sort = $request->query->get('sort'); // Get sort parameter
 
         // Fetch all requests and rides
         $availableRequests = $this->requestService->getRealyAllRequest();
@@ -74,6 +75,24 @@ class TaxiManagementController extends AbstractController
             $availableRides = array_filter($availableRides, function ($ride) use ($status) {
                 return $ride->getStatus()->value === $status;
             });
+        }
+
+        // Sort requests and rides if sort parameter is provided
+        $sortDir = $request->query->get('direction', 'asc');
+        if ($sort) {
+            // Sort requests by request date
+            usort($availableRequests, function ($a, $b) use ($sortDir) {
+                $comparison = $a->getRequestDate() <=> $b->getRequestDate();
+                return $sortDir === 'desc' ? -$comparison : $comparison;
+            });
+
+            // Sort rides by request date (through the associated request)
+            if (!empty($availableRides)) {
+                usort($availableRides, function ($a, $b) use ($sortDir) {
+                    $comparison = $a->getRequest()->getRequestDate() <=> $b->getRequest()->getRequestDate();
+                    return $sortDir === 'desc' ? -$comparison : $comparison;
+                });
+            }
         }
 
         // Paginate requests using Pagerfanta

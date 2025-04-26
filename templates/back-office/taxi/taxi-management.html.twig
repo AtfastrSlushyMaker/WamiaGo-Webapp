@@ -25,11 +25,9 @@
                 <!-- Search Bar -->
              <form id="search-form" class="mb-3" method="get" action="{{ path('admin_taxi_management') }}">
     <select name="sort" id="sort-combobox" class="form-control" style="width: 180px; display: inline-block; margin-right: 10px;">
-        <option value="">Sort by...</option>
-        <option value="date_asc" {% if app.request.query.get('sort') == 'date_asc' %}selected{% endif %}>Date (Ascending)</option>
-        <option value="date_desc" {% if app.request.query.get('sort') == 'date_desc' %}selected{% endif %}>Date (Descending)</option>
-        <option value="status" {% if app.request.query.get('sort') == 'status' %}selected{% endif %}>Status</option>
-        <option value="user" {% if app.request.query.get('sort') == 'user' %}selected{% endif %}>User</option>
+        <option value="">Sort by Date</option>
+        <option value="date_asc" {% if app.request.query.get('sort') == 'date_asc' %}selected{% endif %}>Oldest First</option>
+        <option value="date_desc" {% if app.request.query.get('sort') == 'date_desc' %}selected{% endif %}>Newest First</option>
     </select>
     
     <input type="text" 
@@ -110,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .catch(error => console.error('Error:', error));
     }
 
-    // Add event listeners for real-time search
+    // Add event listeners for real-time search and sort
     searchInput.addEventListener('input', function() {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(performSearch, 500); // Debounce search
@@ -120,18 +118,13 @@ document.addEventListener('DOMContentLoaded', function () {
     statusSelect.addEventListener('change', performSearch);
     sortSelect.addEventListener('change', performSearch);
 
-    // Initialize event listeners for dynamic content
-    function initializeEventListeners() {
-        // Re-initialize view buttons
-        document.querySelectorAll('.view-ride-btn').forEach(button => {
-            // ... your existing view button logic
-        });
-
-        // Re-initialize delete buttons
-        document.querySelectorAll('.delete-request-btn, .delete-ride-btn').forEach(button => {
-            // ... your existing delete button logic
-        });
-    }
+    // Sort functionality
+    sortSelect.addEventListener('change', function () {
+        const selectedSort = sortSelect.value;
+        const url = new URL(window.location.href);
+        url.searchParams.set('sort', selectedSort);
+        window.location.href = url.toString();
+    });
 });
 </script>
 <!-- End Search Bar -->

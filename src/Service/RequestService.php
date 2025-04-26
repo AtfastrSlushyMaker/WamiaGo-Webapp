@@ -175,7 +175,7 @@ public function acceptRequest(int $requestId): Request
 }
 
 
-public function searchRequests(?string $search = null, ?string $status = null, ?string $sortBy = null, ?string $sortOrder = 'ASC'): array
+public function searchRequests(?string $search = null, ?string $status = null, ?string $sort = null): array
 {
     $qb = $this->entityManager->createQueryBuilder();
     $qb->select('r')
@@ -203,7 +203,12 @@ public function searchRequests(?string $search = null, ?string $status = null, ?
            ->setParameter('status', $status);
     }
 
-   
+    // Apply sorting (only by date)
+    if ($sort === 'date_asc') {
+        $qb->orderBy('r.requestDate', 'ASC');
+    } else {
+        $qb->orderBy('r.requestDate', 'DESC'); // Default sort
+    }
 
     return $qb->getQuery()->getResult();
 }
@@ -212,6 +217,35 @@ public function filterRequestsByStatus(string $status): array
 {
     return $this->requestRepository->findBy(['status' => $status]);
 }
+public function sortRequests(string $sortBy, string $sortOrder = 'ASC'): array
+{
+    $qb = $this->entityManager->createQueryBuilder();
+    $qb->select('r')
+       ->from(Request::class, 'r')
+       ->leftJoin('r.user', 'u'); // Join with the user entity for sorting by name
 
+    // Validate sort order
+    $sortOrder = strtoupper($sortOrder);
+    if (!in_array($sortOrder, ['ASC', 'DESC'])) {
+        throw new \InvalidArgumentException('Invalid sort order. Use "ASC" or "DESC".');
+    }
+
+    // Apply sorting
+    $validSortFields = ['request_date', 'user_name', 'id_request'];
+    if (!in_array($sortBy, $validSortFields)) {
+        throw new \InvalidArgumentException('Invalid sort field. Allowed fields: ' . implode(', ', $validSortFields));
+    }
+
+    // Map sortBy to actual database fields
+    $fieldMapping = [
+        'request_date' => 'r.request_date',
+        'user_name' => 'u.name',
+        'id_request' => 'r.id_request',
+    ];
+
+    $qb->orderBy($fieldMapping[$sortBy], $sortOrder);
+
+    return $qb->getQuery()->getResult();
+}
 
 }
