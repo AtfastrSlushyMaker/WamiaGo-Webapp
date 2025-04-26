@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>All Transport Announcements</title>
+    <title>All Reservations</title>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -13,10 +13,6 @@
         .header { 
             text-align: center; 
             margin-bottom: 30px; 
-        }
-        .header img {
-            width: 120px;
-            margin-bottom: 10px;
         }
         .footer { 
             text-align: center; 
@@ -33,39 +29,27 @@
         th, td { 
             border: 1px solid #ddd; 
             padding: 8px; 
-            text-align: center; 
+            text-align: left; 
         }
         th { 
             background-color: #f2f2f2; 
         }
-        .badge {
+        .status-badge {
             display: inline-block;
             padding: 4px 8px;
             border-radius: 12px;
             color: white;
-            font-size: 10px;
             font-weight: bold;
         }
-        .status-active { background-color: #27ae60; }
-        .status-inactive { background-color: #7f8c8d; }
         .signature {
             margin-top: 50px;
-            font-size: 12px;
             text-align: right;
-        }
-        .signature p {
-            margin: 2px 0;
         }
     </style>
 </head>
 <body>
-
     <div class="header">
-
-
-
-
-        <h1>All Transport Announcements</h1>
+        <h1>All Reservations</h1>
         <p>Generated on {{ "now"|date('M d, Y H:i') }}</p>
     </div>
 
@@ -73,42 +57,29 @@
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Title</th>
-                <th>Zone</th>
+                <th>Announcement</th>
+                <th>Client</th>
                 <th>Date</th>
                 <th>Status</th>
-                <th>Content</th>
             </tr>
         </thead>
         <tbody>
-            {% for announcement in announcements %}
+            {% for reservation in reservations %}
             <tr>
-                <td>{{ announcement.id_announcement }}</td>
-                <td>{{ announcement.title }}</td>
+                <td>{{ reservation.id_reservation }}</td>
+                <td>{{ reservation.announcement.title }}</td>
+                <td>{{ reservation.user.name }}</td>
+                <td>{{ reservation.date|date('Y-m-d H:i') }}</td>
                 <td>
-                    {% if announcement.zone is defined and announcement.zone %}
-                        <span class="badge" style="background-color: {{ announcement.zone.getColor() }};">
-                            {{ announcement.zone.getDisplayName() }}
-                        </span>
-                    {% else %}
-                        N/A
-                    {% endif %}
-                </td>
-                <td>{{ announcement.date|date('Y-m-d H:i') }}</td>
-                <td>
-                    <span class="badge {% if announcement.status %}status-active{% else %}status-inactive{% endif %}">
-                        {% if announcement.status %}Active{% else %}Inactive{% endif %}
+                    <span class="status-badge" style="background-color: {{ reservation.status.getColor() }};">
+                        {{ reservation.status.getDisplayName() }}
                     </span>
-                </td>
-                <td>
-                    {{ announcement.content|slice(0, 50) }}
-                    {% if announcement.content|length > 50 %}...{% endif %}
                 </td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="6" style="text-align: center; padding: 20px;">
-                    No announcements available.
+                <td colspan="5" style="text-align: center; padding: 20px;">
+                    No reservations available.
                 </td>
             </tr>
             {% endfor %}
@@ -122,8 +93,7 @@
     </div>
 
     <div class="footer">
-        WamiaGo Transport System </span>
+        WamiaGo Transport System
     </div>
-
 </body>
 </html>

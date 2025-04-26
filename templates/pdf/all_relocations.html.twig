@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>All Transport Announcements</title>
+    <title>Relocations Report</title>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -13,10 +13,6 @@
         .header { 
             text-align: center; 
             margin-bottom: 30px; 
-        }
-        .header img {
-            width: 120px;
-            margin-bottom: 10px;
         }
         .footer { 
             text-align: center; 
@@ -33,7 +29,7 @@
         th, td { 
             border: 1px solid #ddd; 
             padding: 8px; 
-            text-align: center; 
+            text-align: left; 
         }
         th { 
             background-color: #f2f2f2; 
@@ -43,29 +39,19 @@
             padding: 4px 8px;
             border-radius: 12px;
             color: white;
-            font-size: 10px;
             font-weight: bold;
         }
-        .status-active { background-color: #27ae60; }
-        .status-inactive { background-color: #7f8c8d; }
+        .badge-success { background-color: #28a745; }
+        .badge-secondary { background-color: #6c757d; }
         .signature {
             margin-top: 50px;
-            font-size: 12px;
             text-align: right;
-        }
-        .signature p {
-            margin: 2px 0;
         }
     </style>
 </head>
 <body>
-
     <div class="header">
-
-
-
-
-        <h1>All Transport Announcements</h1>
+        <h1>Relocations Report</h1>
         <p>Generated on {{ "now"|date('M d, Y H:i') }}</p>
     </div>
 
@@ -73,57 +59,45 @@
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Title</th>
-                <th>Zone</th>
+                <th>Reservation</th>
                 <th>Date</th>
+                <th>Cost (TND)</th>
                 <th>Status</th>
-                <th>Content</th>
             </tr>
         </thead>
         <tbody>
-            {% for announcement in announcements %}
+            {% for relocation in relocations %}
             <tr>
-                <td>{{ announcement.id_announcement }}</td>
-                <td>{{ announcement.title }}</td>
+                <td>{{ relocation.id_relocation }}</td>
                 <td>
-                    {% if announcement.zone is defined and announcement.zone %}
-                        <span class="badge" style="background-color: {{ announcement.zone.getColor() }};">
-                            {{ announcement.zone.getDisplayName() }}
-                        </span>
-                    {% else %}
-                        N/A
-                    {% endif %}
+                    #{{ relocation.reservation.id_reservation }} - 
+                    {{ relocation.reservation.announcement.title|slice(0, 50) }}
+                    {% if relocation.reservation.announcement.title|length > 50 %}...{% endif %}
                 </td>
-                <td>{{ announcement.date|date('Y-m-d H:i') }}</td>
+                <td>{{ relocation.date|date('Y-m-d H:i') }}</td>
+                <td>{{ relocation.cost }}</td>
                 <td>
-                    <span class="badge {% if announcement.status %}status-active{% else %}status-inactive{% endif %}">
-                        {% if announcement.status %}Active{% else %}Inactive{% endif %}
+                    <span class="badge badge-{{ relocation.status ? 'success' : 'secondary' }}">
+                        {{ relocation.status ? 'Active' : 'Inactive' }}
                     </span>
-                </td>
-                <td>
-                    {{ announcement.content|slice(0, 50) }}
-                    {% if announcement.content|length > 50 %}...{% endif %}
                 </td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="6" style="text-align: center; padding: 20px;">
-                    No announcements available.
+                <td colspan="5" style="text-align: center; padding: 20px;">
+                    No relocations available
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-
-    <div class="signature">
+     <div class="signature">
         <p><strong>WamiaGo Transport System</strong></p>
         <p>Authorized by: ______________________</p>
         <p>Date: {{ "now"|date('M d, Y') }}</p>
     </div>
-
     <div class="footer">
-        WamiaGo Transport System </span>
+        WamiaGo Transport System - Confidential
     </div>
-
 </body>
 </html>

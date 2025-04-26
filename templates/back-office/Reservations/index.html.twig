@@ -32,6 +32,11 @@
                     <h3 class="card-title">
                         <i class="fas fa-calendar-check mr-2"></i>Reservations List
                     </h3>
+                    <div class="card-tools">
+                        <button id="exportAllPdfBtn" class="btn btn-sm btn-danger">
+                            <i class="fas fa-file-pdf mr-1"></i> Export All to PDF
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body table-responsive p-0">
                     <table class="table table-hover text-nowrap">
@@ -83,6 +88,7 @@
                                             <i class="fas fa-trash-alt"></i>
                                             <span class="btn-label">Delete</span>
                                         </button>
+                                        
                                     </div>
                                 </td>
                             </tr>
@@ -113,4 +119,82 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('adminlte/js/reservations.js') }}"></script>
+    <script >
+    document.getElementById('exportAllPdfBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    
+    const btn = e.currentTarget;
+    
+    try {
+        btn.disabled = true;
+        btn.classList.add('button-loading');
+
+        const response = await fetch('{{ path('admin_reservations_export_all') }}');
+
+        if (!response.ok) {
+            throw new Error('Erreur lors de la génération du PDF');
+        }
+
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        const filename = response.headers.get('Content-Disposition')?.split('filename=')[1]?.replaceAll('"', '') || 'reservations.pdf';
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        showToast('success', 'PDF exported successfully!');
+    } catch (error) {
+        console.error(error);
+        showToast('error', 'Failed to export PDF.');
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove('button-loading');
+    }
+});
+
+// Gestion des PDF individuels
+document.querySelectorAll('.btn-pdf').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const url = e.currentTarget.href;
+        const icon = e.currentTarget.querySelector('i');
+        const originalIcon = icon.className;
+        
+        try {
+            // Show loading state
+            btn.classList.add('generating-pdf');
+            icon.className = 'fas fa-spinner fa-spin';
+            
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('PDF generation failed');
+            
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            
+            // Create and trigger download
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = 'reservation_details.pdf';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            // Show success toast
+            showToast('success', 'PDF generated successfully');
+            
+        } catch (error) {
+            console.error('PDF Error:', error);
+            showToast('error', 'Failed to generate PDF');
+        } finally {
+            // Reset button state
+            btn.classList.remove('generating-pdf');
+            icon.className = originalIcon;
+        }
+    });
+});
+    </script>
 {% endblock %}

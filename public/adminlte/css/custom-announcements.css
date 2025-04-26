@@ -768,3 +768,29 @@
 .generating-pdf i {
     animation: pdfLoading 1s linear infinite;
 }
+
+.button-loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.button-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  margin-top: -9px;
+  margin-left: -9px;
+  border: 2px solid white;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+/* Animation de rotation */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -32,6 +32,11 @@
                     <h3 class="card-title">
                         <i class="fas fa-truck-moving mr-2"></i>Relocations List
                     </h3>
+                    <div class="card-tools">
+                        <button id="exportAllPdfBtn" class="btn btn-sm btn-danger">
+                            <i class="fas fa-file-pdf mr-1"></i> Export to PDF
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body table-responsive p-0">
                     <table class="table table-hover text-nowrap">
@@ -108,4 +113,41 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('adminlte/js/relocations.js') }}"></script>
+    <script>
+        document.getElementById('exportAllPdfBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    
+    const btn = e.currentTarget;
+    
+    try {
+        btn.disabled = true;
+        btn.classList.add('button-loading');
+
+        const response = await fetch('{{ path('admin_relocations_export_all') }}');
+
+        if (!response.ok) {
+            throw new Error('Error generating PDF');
+        }
+
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        const filename = response.headers.get('Content-Disposition')?.split('filename=')[1]?.replaceAll('"', '') || 'relocations_export.pdf';
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        showToast('success', 'PDF exported successfully!');
+    } catch (error) {
+        console.error(error);
+        showToast('error', 'Failed to export PDF');
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove('button-loading');
+    }
+});
+    </script>
 {% endblock %}

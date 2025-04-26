@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Knp\Component\Pager\PaginatorInterface;
+use App\Service\PdfGenerator;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 #[Route('/admin/relocations')]
 class RelocationsController extends AbstractController
@@ -74,4 +76,39 @@ class RelocationsController extends AbstractController
 
         return $this->redirectToRoute('admin_relocations_index');
     }
+
+    
+
+#[Route('/export/all-pdf', name: 'admin_relocations_export_all', methods: ['GET'])]
+public function exportAllToPdf(
+    RelocationRepository $relocationRepo,
+    PdfGenerator $pdfGenerator
+): Response {
+    try {
+        // Récupérer toutes les relocalisations
+        $relocations = $relocationRepo->findAll();
+        
+        // Rendre le template HTML
+        $html = $this->renderView('pdf/all_relocations.html.twig', [
+            'relocations' => $relocations
+        ]);
+        
+        // Générer le nom du fichier
+        $filename = 'relocations_export_' . date('Y-m-d') . '.pdf';
+        
+        // Générer le PDF
+        $pdfFile = $pdfGenerator->generatePdfFromHtml($html, $filename);
+        
+        // Télécharger le PDF
+        return $this->file(
+            $this->getParameter('kernel.project_dir') . '/public/pdf/' . $pdfFile,
+            $filename,
+            ResponseHeaderBag::DISPOSITION_ATTACHMENT
+        );
+        
+    } catch (\Exception $e) {
+        $this->addFlash('error', 'Failed to generate PDF: ' . $e->getMessage());
+        return $this->redirectToRoute('admin_relocations_index');
+    }
+}
 }
