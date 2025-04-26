@@ -9,10 +9,6 @@
     <h1 class="dashboard-title">Taxi Management Dashboard</h1>
     <meta name="csrf-token" content="{{ csrf_token('delete_request') }}">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  
-    {# Dans votre base.html.twig #}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
     <div class="dashboard-layout" style="display: flex; gap: 20px;">
@@ -23,118 +19,34 @@
             </div>
             <div class="panel-body">
                 <!-- Search Bar -->
-             <form id="search-form" class="mb-3" method="get" action="{{ path('admin_taxi_management') }}">
-    <select name="sort" id="sort-combobox" class="form-control" style="width: 180px; display: inline-block; margin-right: 10px;">
-        <option value="">Sort by...</option>
-        <option value="date_asc" {% if app.request.query.get('sort') == 'date_asc' %}selected{% endif %}>Date (Ascending)</option>
-        <option value="date_desc" {% if app.request.query.get('sort') == 'date_desc' %}selected{% endif %}>Date (Descending)</option>
-        <option value="status" {% if app.request.query.get('sort') == 'status' %}selected{% endif %}>Status</option>
-        <option value="user" {% if app.request.query.get('sort') == 'user' %}selected{% endif %}>User</option>
-    </select>
-    
-    <input type="text" 
-           name="search" 
-           id="search-input" 
-           class="form-control" 
-           value="{{ app.request.query.get('search') }}"
-           placeholder="Enter value..." 
-           style="width: 180px; display: inline-block; margin-right: 10px;">
-    
-    <select name="status" class="form-control" style="width: 150px; display: inline-block; margin-right: 10px;">
-        <option value="">All Statuses</option>
-        <option value="pending" {% if app.request.query.get('status') == 'pending' %}selected{% endif %}>Pending</option>
-        <option value="accepted" {% if app.request.query.get('status') == 'accepted' %}selected{% endif %}>Accepted</option>
-        <option value="completed" {% if app.request.query.get('status') == 'completed' %}selected{% endif %}>Completed</option>
-        <option value="canceled" {% if app.request.query.get('status') == 'canceled' %}selected{% endif %}>Canceled</option>
-    </select>
-    
-    {# Preserve pagination state #}
-    <input type="hidden" name="page_requests" value="{{ app.request.query.get('page_requests', 1) }}">
-    <input type="hidden" name="page_rides" value="{{ app.request.query.get('page_rides') is not null ? app.request.query.get('page_rides') : 1 }}">
-    
-    <button type="submit" class="btn btn-primary" style="background-color: #2c87c2; border-color: #2ab967;">Search</button>
-</form>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const searchForm = document.getElementById('search-form');
-    const searchInput = document.getElementById('search-input');
-    const filterSelect = document.getElementById('search-combobox');
-    const statusSelect = document.querySelector('select[name="status"]');
-    const sortSelect = document.getElementById('sort-combobox');
-    
-    let searchTimeout;
-
-    // Function to perform search
-    function performSearch() {
-        const formData = new URLSearchParams(new FormData(searchForm));
-        
-        fetch('{{ path('admin_taxi_management') }}?' + formData.toString(), {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.text())
-        .then(html => {
-            // Update only the table content
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            
-            // Update requests table
-            const requestsTable = document.querySelector('.admin-table tbody');
-            const newRequestsContent = doc.querySelector('.admin-table tbody');
-            if (requestsTable && newRequestsContent) {
-                requestsTable.innerHTML = newRequestsContent.innerHTML;
-            }
-
-            // Update rides table
-            const ridesTable = document.querySelector('.rides-table tbody');
-            const newRidesContent = doc.querySelector('.rides-table tbody');
-            if (ridesTable && newRidesContent) {
-                ridesTable.innerHTML = newRidesContent.innerHTML;
-            }
-
-            // Update pagination
-            const paginationContainers = document.querySelectorAll('.pagination');
-            const newPaginationContainers = doc.querySelectorAll('.pagination');
-            paginationContainers.forEach((container, index) => {
-                if (newPaginationContainers[index]) {
-                    container.innerHTML = newPaginationContainers[index].innerHTML;
-                }
-            });
-
-            // Reinitialize any event listeners
-            initializeEventListeners();
-        })
-        .catch(error => console.error('Error:', error));
-    }
-
-    // Add event listeners for real-time search
-    searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(performSearch, 500); // Debounce search
-    });
-
-    filterSelect.addEventListener('change', performSearch);
-    statusSelect.addEventListener('change', performSearch);
-    sortSelect.addEventListener('change', performSearch);
-
-    // Initialize event listeners for dynamic content
-    function initializeEventListeners() {
-        // Re-initialize view buttons
-        document.querySelectorAll('.view-ride-btn').forEach(button => {
-            // ... your existing view button logic
-        });
-
-        // Re-initialize delete buttons
-        document.querySelectorAll('.delete-request-btn, .delete-ride-btn').forEach(button => {
-            // ... your existing delete button logic
-        });
-    }
-});
-</script>
-<!-- End Search Bar -->
+                <form id="search-form" class="mb-3" method="get" action="">
+                    <select name="filter" id="search-combobox" class="form-control" style="width: 180px; display: inline-block; margin-right: 10px;">
+                        <option value="">Filter by...</option>
+                        <option value="user">User</option>
+                        <option value="location">Location</option>
+                        <option value="status">Status</option>
+                        <option value="driver">Driver</option>
+                        <option value="completed">Completed</option>
+                        <option value="pending">Pending</option>
+                        <option value="active">Active</option>
+                    </select>
+                    <input type="text" name="search" id="search-input" class="form-control" placeholder="Enter value..." style="width: 180px; display: inline-block; margin-right: 10px;">
+                    <select name="status" class="form-control" style="width: 150px; display: inline-block; margin-right: 10px;">
+                        <option value="">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="accepted">Accepted</option>
+                        <option value="completed">Completed</option>
+                        <option value="canceled">Canceled</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary" style="background-color: #2c87c2; border-color: #2ab967;">Search</button>
+                    <button type="button" id="export-pdf-btn" class="btn btn-pdf" style="margin-left: 10px;" title="Export PDF">
+                        <i class="bi bi-file-earmark-pdf" style="font-size: 1.2em;"></i>
+                    </button>
+                    <button type="button" id="export-excel-btn" class="btn btn-excel" style="margin-left: 5px;" title="Export Excel">
+                        <i class="bi bi-file-earmark-excel" style="font-size: 1.2em;"></i>
+                    </button>
+                </form>
+                <!-- End Search Bar -->
                 <div class="table-responsive">
                     <table class="admin-table">
                         <thead>
@@ -180,34 +92,8 @@ document.addEventListener('DOMContentLoaded', function () {
                             {% endfor %}
                         </tbody>
                     </table>
-                    <!-- Centered Pagination Controls -->
-                    <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
-                        {% set currentPageRequests = app.request.query.get('page_requests', 1) %}
-                        {% set currentPageRides = app.request.query.get('page_rides', 1) %}
-                        {% set totalPagesRequests = paginationRequests.getNbPages() %}
-                        {% set totalPagesRides = paginationRides.getNbPages() %}
-
-                        {% if currentPageRequests > 1 %}
-                            <a href="{{ path('admin_taxi_management', {'page_requests': currentPageRequests - 1, 'page_rides': currentPageRides}) }}" class="btn btn-secondary">Previous</a>
-                        {% endif %}
-
-                        {% for page in 1..totalPagesRequests %}
-                            {% if page == currentPageRequests %}
-                                <span class="btn btn-primary">{{ page }}</span>
-                            {% else %}
-                                <a href="{{ path('admin_taxi_management', {'page_requests': page, 'page_rides': currentPageRides}) }}" class="btn btn-secondary">{{ page }}</a>
-                            {% endif %}
-                        {% endfor %}
-
-                        {% if currentPageRequests < totalPagesRequests %}
-                            <a href="{{ path('admin_taxi_management', {'page_requests': currentPageRequests + 1, 'page_rides': currentPageRides}) }}" class="btn btn-secondary">Next</a>
-                        {% endif %}
-                    </div>
-
                 </div>
-                
             </div>
-
         </div>
 
         <!-- Rides Panel -->
@@ -287,37 +173,11 @@ document.addEventListener('DOMContentLoaded', function () {
                             {% endfor %}
                         </tbody>
                     </table>
-      
-<!-- Rides Pagination -->
-<!-- Pagination Controls -->
-<div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
-    {% set currentPageRequests = app.request.query.get('page_requests', 1) %}
-    {% set currentPageRides = app.request.query.get('page_rides', 1) %}
-    {% set totalPagesRequests = paginationRequests.getNbPages() %}
-    {% set totalPagesRides = paginationRides.getNbPages() %}
-
-    {% if currentPageRides > 1 %}
-        <a href="{{ path('admin_taxi_management', {'page_requests': currentPageRequests, 'page_rides': currentPageRides - 1}) }}" class="btn btn-secondary">Previous</a>
-    {% endif %}
-
-    {% for page in 1..totalPagesRides %}
-        {% if page == currentPageRides %}
-            <span class="btn btn-primary">{{ page }}</span>
-        {% else %}
-            <a href="{{ path('admin_taxi_management', {'page_requests': currentPageRequests, 'page_rides': page}) }}" class="btn btn-secondary">{{ page }}</a>
-        {% endif %}
-    {% endfor %}
-
-    {% if currentPageRides < totalPagesRides %}
-        <a href="{{ path('admin_taxi_management', {'page_requests': currentPageRequests, 'page_rides': currentPageRides + 1}) }}" class="btn btn-secondary">Next</a>
-    {% endif %}
-</div>
-
                 </div>
-                <!-- End Pagination Controls -->
             </div>
         </div>
     </div>
+
     <!-- Map Modal -->
     <div class="modal fade" id="viewMapModal" tabindex="-1" aria-labelledby="viewMapModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -389,12 +249,6 @@ document.addEventListener('DOMContentLoaded', function () {
     </script>
     <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Helper function to get the current page from the URL
-    function getQueryParam(param) {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(param);
-    }
-
     // Request delete
     document.querySelectorAll('.delete-request-btn').forEach(button => {
         button.addEventListener('click', function () {
@@ -429,11 +283,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             row.style.opacity = '0';
                             setTimeout(() => row.remove(), 500);
                             Swal.fire('Deleted!', 'The request has been deleted.', 'success');
-
-                            // After deletion, reload the table content or navigate to the current page
-                            const pageRequests = getQueryParam('page_requests') || 1;
-                            const pageRides = getQueryParam('page_rides') || 1;
-                            window.location.href = `/admin/taxi-management?page_requests=${pageRequests}&page_rides=${pageRides}`;
                         } else {
                             Swal.fire('Error!', data.message || 'Failed to delete request.', 'error');
                         }
@@ -476,11 +325,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             row.style.opacity = '0';
                             setTimeout(() => row.remove(), 500);
                             Swal.fire('Deleted!', data.message, 'success');
-
-                            // After deletion, reload the table content or navigate to the current page
-                            const pageRequests = getQueryParam('page_requests') || 1;
-                            const pageRides = getQueryParam('page_rides') || 1;
-                            window.location.href = `/admin/taxi-management?page_requests=${pageRequests}&page_rides=${pageRides}`;
                         } else {
                             Swal.fire('Error!', data.message || 'Deletion failed.', 'error');
                         }
@@ -493,7 +337,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
-
 </script>
     <!-- Summary Cards -->
     <div class="summary-cards">

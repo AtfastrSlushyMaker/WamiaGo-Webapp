@@ -13,90 +13,48 @@ use Symfony\Component\HttpFoundation\Request as HttpRequest;
 use Symfony\Component\HttpFoundation\RequestStack;
 use App\Enum\RIDE_STATUS;
 use App\Service\RideService;
-use Doctrine\ORM\Tools\Pagination\Paginator;
-use Knp\Component\Pager\PaginatorInterface;
-
 
 class TaxiManagementController extends AbstractController
 {
     private RequestService $requestService;
     private RideService $rideService;
-   
 
     public function __construct(RequestService $requestService, RideService $rideService)
     {
         $this->requestService = $requestService;
         $this->rideService = $rideService; 
-       
     }
 
     #[Route('/admin/taxi-management', name: 'admin_taxi_management')]
-    public function index(HttpRequest $request): Response
+    public function index(): Response
     {
-        // Get search parameters from request
-        $filter = $request->query->get('filter');
-        $search = $request->query->get('search');
-        $status = $request->query->get('status');
-
-        // Fetch all requests and rides
+        // Fetch all requests using the RequestService
         $availableRequests = $this->requestService->getRealyAllRequest();
         $availableRides = $this->rideService->getAllRides();
 
-        // Apply search filters to requests
-        if ($search) {
-            $availableRequests = array_filter($availableRequests, function ($request) use ($search) {
-                return stripos($request->getUser()->getName(), $search) !== false ||
-                       stripos($request->getDepartureLocation()->getAddress(), $search) !== false ||
-                       stripos($request->getArrivalLocation()->getAddress(), $search) !== false ||
-                       stripos($request->getStatus()->value, $search) !== false ||
-                     
-                       stripos($request->getIdRequest(), $search) !== false;
-                       
-            });
-        }
+        $ridesWithDetails = array_map(function ($ride) {
+            return [
+                'id' => $ride->getIdRide(), // Ride ID
+                'pickupLocation' => $ride->getRequest()->getDepartureLocation() ? $ride->getRequest()->getDepartureLocation()->getAddress() : 'Unknown', // Pickup address
+                'duration' => $ride->getDuration(), // Ride duration
+               // 'driverName' => $ride->getDriver() ? $ride->getDriver()->getname : 'Unknown', // Driver name
+                'dropoffLocation' => $ride->getRequest()->getArrivalLocation() ? $ride->getRequest()->getArrivalLocation()->getAddress() : 'Unknown', // Destination address
+                'price' => $ride->getPrice(), // Ride price
+                'status' => $ride->getStatus()->value, // Ride status
+                'distance' => $ride->getDistance(), // Ride distance
+                'userName' =>$ride->getRequest()->getUser()->getName(), // User name
+                'pickupLat' => $ride->getRequest()->getDepartureLocation() ? $ride->getRequest()->getDepartureLocation()->getLatitude() : null, // Pickup latitude
+                'pickupLng' => $ride->getRequest()->getDepartureLocation() ? $ride->getRequest()->getDepartureLocation()->getLongitude() : null, // Pickup longitude
+                'dropoffLat' => $ride->getRequest()->getArrivalLocation() ? $ride->getRequest()->getArrivalLocation()->getLatitude() : null, // Destination latitude
 
-        // Apply search filters to rides
-        if ($search) {
-            $availableRides = array_filter($availableRides, function ($ride) use ($search) {
-                return stripos($ride->getRequest()->getUser()->getName(), $search) !== false ||
-                       stripos($ride->getRequest()->getDepartureLocation()->getAddress(), $search) !== false ||
-                       stripos($ride->getRequest()->getArrivalLocation()->getAddress(), $search) !== false;
-            });
-        }
 
-        // Paginate requests using Pagerfanta
-        $requestPaginator = new \Pagerfanta\Pagerfanta(new \Pagerfanta\Adapter\ArrayAdapter($availableRequests));
-        $requestPaginator->setMaxPerPage(2);
-        $requestPaginator->setCurrentPage($request->query->getInt('page_requests', 1));  // Get 'page_requests' from the URL, default to 1
-
-        // Paginate rides using Pagerfanta
-        $ridePaginator = new \Pagerfanta\Pagerfanta(new \Pagerfanta\Adapter\ArrayAdapter($availableRides));
-        $ridePaginator->setMaxPerPage(2);
-        $ridePaginator->setCurrentPage($request->query->getInt('page_rides', 1));  // Get 'page_rides' from the URL, default to 1
-
-        // Map paginated data to include additional details
-        $ridesWithDetails = [];
-        foreach ($ridePaginator->getCurrentPageResults() as $ride) {
-            $ridesWithDetails[] = [
-                'id' => $ride->getIdRide(),
-                'pickupLocation' => $ride->getRequest()->getDepartureLocation() ? $ride->getRequest()->getDepartureLocation()->getAddress() : 'Unknown',
-                'duration' => $ride->getDuration(),
-                'dropoffLocation' => $ride->getRequest()->getArrivalLocation() ? $ride->getRequest()->getArrivalLocation()->getAddress() : 'Unknown',
-                'price' => $ride->getPrice(),
-                'status' => $ride->getStatus()->value,
-                'distance' => $ride->getDistance(),
-                'userName' => $ride->getRequest()->getUser()->getName(),
-                'pickupLat' => $ride->getRequest()->getDepartureLocation() ? $ride->getRequest()->getDepartureLocation()->getLatitude() : null,
-                'pickupLng' => $ride->getRequest()->getDepartureLocation() ? $ride->getRequest()->getDepartureLocation()->getLongitude() : null,
-                'dropoffLat' => $ride->getRequest()->getArrivalLocation() ? $ride->getRequest()->getArrivalLocation()->getLatitude() : null,
-                'dropoffLng' => $ride->getRequest()->getArrivalLocation() ? $ride->getRequest()->getArrivalLocation()->getLongitude() : null,
-                'time' => $ride->getRequest()->getRequestDate() ? $ride->getRequest()->getRequestDate()->format('Y-m-d H:i:s') : 'Unknown',
+                'dropoffLng' => $ride->getRequest()->getArrivalLocation() ? $ride->getRequest()->getArrivalLocation()->getLongitude() : null, // Destination longitude
+                'time' => $ride->getRequest()->getRequestDate() ? $ride->getRequest()->getRequestDate()->format('Y-m-d H:i:s') : 'Unknown', // Request time
             ];
-        }
+        }, $availableRides);
 
-        $requestsWithDetails = [];
-        foreach ($requestPaginator->getCurrentPageResults() as $request) {
-            $requestsWithDetails[] = [
+        $requestsWithDetails = array_map(function ($request) {
+            return [
                 'id' => $request->getIdRequest(),
                 'pickupLocation' => $request->getDepartureLocation() ? $request->getDepartureLocation()->getAddress() : 'Unknown',
                 'dropoffLocation' => $request->getArrivalLocation() ? $request->getArrivalLocation()->getAddress() : 'Unknown',
@@ -108,14 +66,23 @@ class TaxiManagementController extends AbstractController
                 'status' => $request->getStatus() instanceof REQUEST_STATUS ? $request->getStatus()->value : 'Unknown',
                 'userName' => $request->getUser() ? $request->getUser()->getName() : 'Unknown',
             ];
-        }
+        }, $availableRequests);
 
         return $this->render('back-office/taxi/taxi-management.html.twig', [
             'availableRequests' => $requestsWithDetails,
             'availableRides' => $ridesWithDetails,
-            'paginationRequests' => $requestPaginator, // Corrected variable name
-            'paginationRides' => $ridePaginator,
         ]);
+    }
+
+    #[Route('/request/delete/{id}', name: 'delete_request_backoffice', methods: ['POST'])]
+    public function delete(int $id, RequestService $requestService): JsonResponse
+    {
+        try {
+            $requestService->deleteRequest($id);
+            return new JsonResponse(['status' => 'success']);
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(['status' => 'error', 'message' => 'An error occurred while deleting the request.'], 404);
+        }
     }
 
     #[Route('/ride/delete/{id}', name: 'delete_ride_backoffice', methods: ['POST'])]
@@ -135,7 +102,6 @@ class TaxiManagementController extends AbstractController
                 'message' => $e->getMessage(),
             ], 400);
         }
-        
     }
 
     
