@@ -197,24 +197,149 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="dashboard-panel" style="flex: 1;">
             <div class="panel-header rides-header">Active Rides</div>
             <div class="panel-body">
-                <form id="search-form" class="mb-3" method="get" action="">
+            
+              <form id="rides-search-form" class="mb-3" method="get" action="">
+    <input type="text" name="search" id="rides-search-input" class="form-control" 
+           placeholder="Enter value..." style="width: 180px; display: inline-block; margin-right: 10px;"
+           value="{{ search }}">
+    <select name="status" id="rides-status-select" class="form-control" style="width: 150px; display: inline-block; margin-right: 10px;">
+        <option value="">All Statuses</option>
+        <option value="{{ constant('App\\Enum\\RIDE_STATUS::ONGOING').value }}" {% if status == constant('App\\Enum\\RIDE_STATUS::ONGOING').value %}selected{% endif %}>Ongoing</option>
+        <option value="{{ constant('App\\Enum\\RIDE_STATUS::COMPLETED').value }}" {% if status == constant('App\\Enum\\RIDE_STATUS::COMPLETED').value %}selected{% endif %}>Completed</option> 
+        <option value="{{ constant('App\\Enum\\RIDE_STATUS::CANCELED').value }}" {% if status == constant('App\\Enum\\RIDE_STATUS::CANCELED').value %}selected{% endif %}>Canceled</option>
+    </select>
+
+
+    <select name="sort" id="rides-sort-select" class="form-control" style="width: 150px; display: inline-block; margin-right: 10px;">
+        <option value="">Sort By</option>
+        <option value="date" {% if sort == 'date' %}selected{% endif %}>Date</option>
+        <option value="name" {% if sort == 'name' %}selected{% endif %}>Name</option>
+        <option value="status" {% if sort == 'status' %}selected{% endif %}>Status</option>
+        <option value="price" {% if sort == 'price' %}selected{% endif %}>Price</option>
+        <option value="distance" {% if sort == 'distance' %}selected{% endif %}>Distance</option>
+    </select>
+    <select name="direction" id="rides-direction-select" class="form-control" style="width: 100px; display: inline-block; margin-right: 10px;">
+        <option value="asc" {% if direction == 'asc' or direction is not defined %}selected{% endif %}>Ascending</option>
+        <option value="desc" {% if direction == 'desc' %}selected{% endif %}>Descending</option>
+    </select>
+    <button type="submit" class="btn btn-primary" style="background-color: #2ab967; border-color: #2ab967;">Search</button>
+    <button type="button" id="reset-search" class="btn btn-secondary" style="margin-left: 5px;">Reset</button>
+    <button type="button" id="export-pdf-btn-rides" class="btn btn-pdf" style="margin-left: 10px;" title="Export PDF">
+        <i class="bi bi-file-earmark-pdf" style="font-size: 1.2em;"></i>
+    </button>
+    <button type="button" id="export-excel-btn-rides" class="btn btn-excel" style="margin-left: 5px;" title="Export Excel">
+        <i class="bi bi-file-earmark-excel" style="font-size: 1.2em;"></i>
+    </button>
+</form>
+
+
+<!-- AJAX Script for Dynamic Loading -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let debounceTimer;
+
+    // Function to load data with AJAX
+    function loadData() {
+        // Show loading indicator
+        const ridesTableBody = document.querySelector('.rides-table tbody');
+        if (ridesTableBody) {
+            ridesTableBody.innerHTML = '<tr><td colspan="8" class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+        }
+        
+        // Get form values
+        const search = document.getElementById('rides-search-input').value;
+        const status = document.getElementById('rides-status-select').value;
+        const sort = document.getElementById('rides-sort-select').value;
+        const direction = document.getElementById('rides-direction-select').value;
+        
+        // Create URL with query parameters
+        const url = new URL(window.location.href);
+        url.searchParams.set('search', search);
+        if (status) url.searchParams.set('status', status);
+        else url.searchParams.delete('status');
+        if (sort) url.searchParams.set('sort', sort);
+        else url.searchParams.delete('sort');
+        url.searchParams.set('direction', direction);
+        
+        // Fetch data with AJAX
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                // Create a temporary element to parse the HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
                 
-                    <input type="text" name="search" id="search-input" class="form-control" placeholder="Enter value..." style="width: 180px; display: inline-block; margin-right: 10px;">
-                    <select name="status" class="form-control" style="width: 150px; display: inline-block; margin-right: 10px;">
-                        <option value="">All Statuses</option>
-                        <option value="pending">Pending</option>
-                        <option value="accepted">Accepted</option>
-                        <option value="completed">Completed</option>
-                        <option value="canceled">Canceled</option>
-                    </select>
-                    <button type="submit" class="btn btn-primary" style="background-color: #2ab967; border-color: #2ab967;">Search</button>
-                    <button type="button" id="export-pdf-btn-rides" class="btn btn-pdf" style="margin-left: 10px;" title="Export PDF">
-                        <i class="bi bi-file-earmark-pdf" style="font-size: 1.2em;"></i>
-                    </button>
-                    <button type="button" id="export-excel-btn-rides" class="btn btn-excel" style="margin-left: 5px;" title="Export Excel">
-                        <i class="bi bi-file-earmark-excel" style="font-size: 1.2em;"></i>
-                    </button>
-                </form>
+                // Update tables content
+                const ridesTable = doc.querySelector('.rides-table tbody');
+                if (ridesTable && ridesTableBody) {
+                    ridesTableBody.innerHTML = ridesTable.innerHTML;
+                }
+                
+                // Update pagination if it exists
+                const paginationContainer = document.querySelector('.pagination');
+                const newPagination = doc.querySelector('.pagination');
+                if (paginationContainer && newPagination) {
+                    paginationContainer.innerHTML = newPagination.innerHTML;
+                }
+                
+                // Update browser history without reloading
+                window.history.pushState({}, '', url);
+            })
+            .catch(error => {
+                console.error('Error loading data:', error);
+                if (ridesTableBody) {
+                    ridesTableBody.innerHTML = '<tr><td colspan="8" class="text-center"><div class="alert alert-danger">Error loading data. Please try again.</div></td></tr>';
+                }
+            });
+    }
+
+    // Attach event listeners for form inputs
+    ['rides-search-input', 'rides-status-select', 'rides-sort-select', 'rides-direction-select'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('change', function(e) {
+                e.preventDefault();
+                loadData();
+            });
+        }
+    });
+    
+    // Add input event listener with debounce for search input
+    const searchInput = document.getElementById('rides-search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(loadData, 500);
+        });
+    }
+
+    // Handle form submission
+    const searchForm = document.getElementById('rides-search-form');
+    if (searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            loadData();
+        });
+    }
+    
+    // Handle reset button
+    const resetButton = document.getElementById('reset-search');
+    if (resetButton) {
+        resetButton.addEventListener('click', function() {
+            if (searchInput) searchInput.value = '';
+            const statusSelect = document.getElementById('rides-status-select');
+            const sortSelect = document.getElementById('rides-sort-select');
+            const directionSelect = document.getElementById('rides-direction-select');
+            
+            if (statusSelect) statusSelect.selectedIndex = 0;
+            if (sortSelect) sortSelect.selectedIndex = 0;
+            if (directionSelect) directionSelect.selectedIndex = 0;
+            
+            loadData();
+        });
+    }
+});
+</script>
                 <div class="table-responsive">
                     <table class="admin-table rides-table">
                         <thead>

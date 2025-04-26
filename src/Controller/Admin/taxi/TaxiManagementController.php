@@ -34,15 +34,14 @@ class TaxiManagementController extends AbstractController
     public function index(HttpRequest $request): Response
     {
         // Get search parameters from request
-        $filter = $request->query->get('filter');
-        $search = $request->query->get('search');
+        $search = (string) $request->query->get('search', '');
         $status = $request->query->get('status');
         $sort = $request->query->get('sort'); // Get sort parameter
-
+    
         // Fetch all requests and rides
         $availableRequests = $this->requestService->getRealyAllRequest();
         $availableRides = $this->rideService->getAllRides();
-
+    
         // Apply search filters to requests
         if ($search) {
             $availableRequests = array_filter($availableRequests, function ($request) use ($search) {
@@ -53,58 +52,98 @@ class TaxiManagementController extends AbstractController
                        stripos($request->getIdRequest(), $search) !== false;
             });
         }
-
+    
         // Apply search filters to rides
         if ($search) {
             $availableRides = array_filter($availableRides, function ($ride) use ($search) {
                 return stripos($ride->getRequest()->getUser()->getName(), $search) !== false ||
                        stripos($ride->getRequest()->getDepartureLocation()->getAddress(), $search) !== false ||
-                       stripos($ride->getRequest()->getArrivalLocation()->getAddress(), $search) !== false;
+                       stripos($ride->getRequest()->getArrivalLocation()->getAddress(), $search) !== false ||
+                       stripos($ride->getStatus()->value, $search) !== false ||
+                       stripos($ride->getIdRide(), $search) !== false ||
+                       stripos((string)$ride->getPrice(), $search) !== false ||
+                       stripos((string)$ride->getDistance(), $search) !== false;
             });
         }
-
+    
         // Filter requests by status
         if ($status) {
             $availableRequests = array_filter($availableRequests, function ($request) use ($status) {
                 return $request->getStatus()->value === $status;
             });
         }
-
+    
         // Filter rides by status
         if ($status) {
             $availableRides = array_filter($availableRides, function ($ride) use ($status) {
                 return $ride->getStatus()->value === $status;
             });
         }
-
+    
         // Sort requests and rides if sort parameter is provided
         $sortDir = $request->query->get('direction', 'asc');
         if ($sort) {
-            // Sort requests by request date
-            usort($availableRequests, function ($a, $b) use ($sortDir) {
-                $comparison = $a->getRequestDate() <=> $b->getRequestDate();
+            // Sort requests based on the sort parameter
+            usort($availableRequests, function ($a, $b) use ($sort, $sortDir) {
+                $comparison = 0;
+                
+                switch ($sort) {
+                    case 'date':
+                        $comparison = $a->getRequestDate() <=> $b->getRequestDate();
+                        break;
+                    case 'name':
+                        $comparison = $a->getUser()->getName() <=> $b->getUser()->getName();
+                        break;
+                    case 'status':
+                        $comparison = $a->getStatus()->value <=> $b->getStatus()->value;
+                        break;
+                    default:
+                        $comparison = $a->getRequestDate() <=> $b->getRequestDate();
+                }
+                
                 return $sortDir === 'desc' ? -$comparison : $comparison;
             });
-
-            // Sort rides by request date (through the associated request)
+    
+            // Sort rides based on the sort parameter
             if (!empty($availableRides)) {
-                usort($availableRides, function ($a, $b) use ($sortDir) {
-                    $comparison = $a->getRequest()->getRequestDate() <=> $b->getRequest()->getRequestDate();
+                usort($availableRides, function ($a, $b) use ($sort, $sortDir) {
+                    $comparison = 0;
+                    
+                    switch ($sort) {
+                        case 'date':
+                            $comparison = $a->getRequest()->getRequestDate() <=> $b->getRequest()->getRequestDate();
+                            break;
+                        case 'name':
+                            $comparison = $a->getRequest()->getUser()->getName() <=> $b->getRequest()->getUser()->getName();
+                            break;
+                        case 'status':
+                            $comparison = $a->getStatus()->value <=> $b->getStatus()->value;
+                            break;
+                        case 'price':
+                            $comparison = $a->getPrice() <=> $b->getPrice();
+                            break;
+                        case 'distance':
+                            $comparison = $a->getDistance() <=> $b->getDistance();
+                            break;
+                        default:
+                            $comparison = $a->getRequest()->getRequestDate() <=> $b->getRequest()->getRequestDate();
+                    }
+                    
                     return $sortDir === 'desc' ? -$comparison : $comparison;
                 });
             }
         }
-
+    
         // Paginate requests using Pagerfanta
         $requestPaginator = new \Pagerfanta\Pagerfanta(new \Pagerfanta\Adapter\ArrayAdapter($availableRequests));
         $requestPaginator->setMaxPerPage(2);
         $requestPaginator->setCurrentPage($request->query->getInt('page_requests', 1));  // Get 'page_requests' from the URL, default to 1
-
+    
         // Paginate rides using Pagerfanta
         $ridePaginator = new \Pagerfanta\Pagerfanta(new \Pagerfanta\Adapter\ArrayAdapter($availableRides));
         $ridePaginator->setMaxPerPage(2);
         $ridePaginator->setCurrentPage($request->query->getInt('page_rides', 1));  // Get 'page_rides' from the URL, default to 1
-
+    
         // Map paginated data to include additional details
         $ridesWithDetails = [];
         foreach ($ridePaginator->getCurrentPageResults() as $ride) {
@@ -124,7 +163,7 @@ class TaxiManagementController extends AbstractController
                 'time' => $ride->getRequest()->getRequestDate() ? $ride->getRequest()->getRequestDate()->format('Y-m-d H:i:s') : 'Unknown',
             ];
         }
-
+    
         $requestsWithDetails = [];
         foreach ($requestPaginator->getCurrentPageResults() as $request) {
             $requestsWithDetails[] = [
@@ -140,12 +179,16 @@ class TaxiManagementController extends AbstractController
                 'userName' => $request->getUser() ? $request->getUser()->getName() : 'Unknown',
             ];
         }
-
+    
         return $this->render('back-office/taxi/taxi-management.html.twig', [
             'availableRequests' => $requestsWithDetails,
             'availableRides' => $ridesWithDetails,
-            'paginationRequests' => $requestPaginator, // Corrected variable name
+            'paginationRequests' => $requestPaginator,
             'paginationRides' => $ridePaginator,
+            'search' => $search,  // Pass search parameter to the template
+            'status' => $status,  // Pass status parameter to the template
+            'sort' => $sort,      // Pass sort parameter to the template
+            'direction' => $sortDir, // Pass sort direction to the template
         ]);
     }
 

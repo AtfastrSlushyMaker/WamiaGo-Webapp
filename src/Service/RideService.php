@@ -169,4 +169,63 @@ public function getRidesByUser(int $userId): array
 }
 
 
+public function searchRides(array $criteria = []): array
+{
+    $qb = $this->rideRepository->createQueryBuilder('r');
+    $qb->leftJoin('r.driver', 'd')
+       ->leftJoin('r.request', 'req');
+
+    foreach ($criteria as $field => $value) {
+        if ($value === null || $value === '') {
+            continue;
+        }
+
+        switch ($field) {
+            case 'id':
+                $qb->andWhere('r.id = :id')
+                   ->setParameter('id', $value);
+                break;
+            
+            case 'price':
+                $qb->andWhere('r.price LIKE :price')
+                   ->setParameter('price', '%' . $value . '%');
+                break;
+
+            case 'distance':
+                $qb->andWhere('r.distance LIKE :distance')
+                   ->setParameter('distance', '%' . $value . '%');
+                break;
+
+            case 'status':
+                $qb->andWhere('r.status = :status')
+                   ->setParameter('status', $value);
+                break;
+
+            case 'driver':
+                if (is_string($value)) {
+                    $qb->andWhere('d.name LIKE :driverName')
+                       ->setParameter('driverName', '%' . $value . '%');
+                } else {
+                    $qb->andWhere('r.driver = :driver')
+                       ->setParameter('driver', $value);
+                }
+                break;
+
+            case 'request':
+                if (is_numeric($value)) {
+                    $qb->andWhere('req.id = :requestId')
+                       ->setParameter('requestId', $value);
+                } else {
+                    $qb->andWhere('r.request = :request')
+                       ->setParameter('request', $value);
+                }
+                break;
+        }
+    }
+
+    return $qb->getQuery()->getResult();
+}
+
+
+
 }
