@@ -355,7 +355,7 @@
     <div class="tab-content" id="bicycleManagementTabsContent">
         <div id="rentalsTab" class="tab-pane {{ active_tab == 'rentals' ? 'active' : '' }}">
             {% if active_tab == 'rentals' %}
-                {% include 'back-office/bicycle/rental.html.twig' with {
+                {% include 'back-office/bicycle/Rental/rental.html.twig' with {
                     'rentals': rentals|default([]),
                     'stations': stations|default([]),
                     'stats': stats|default({})
@@ -364,7 +364,7 @@
         </div>
         <div id="bicyclesTab" class="tab-pane {{ active_tab == 'bicycles' ? 'active' : '' }}">
             {% if active_tab == 'bicycles' %}
-                {% include 'back-office/bicycle/bicycle.html.twig' with {
+                {% include 'back-office/bicycle/Bicycle/bicycle.html.twig' with {
                     'bicycles': bicycles|default([]),
                     'stations': stations|default([]),
                     'addBicycleForm': addBicycleForm is defined ? addBicycleForm : false,
@@ -380,7 +380,7 @@
         </div>
         <div id="stationsTab" class="tab-pane {{ active_tab == 'stations' ? 'active' : '' }}">
             {% if active_tab == 'stations' %}
-                {% include 'back-office/bicycle/station.html.twig' with {
+                {% include 'back-office/bicycle/Station/station.html.twig' with {
                     'stations': stations|default([]),
                     'stationForm': stationForm is defined ? stationForm : false,
                     'stationCounts': stationCounts|default([]),
@@ -400,6 +400,30 @@
 document.addEventListener('DOMContentLoaded', function() {
     initAjaxTabs();
     initAjaxPagination();
+    
+    // Clean up any stuck loading overlays on page load
+    document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+        if (overlay) overlay.style.display = 'none';
+    });
+    
+    // Handle modal close events to ensure overlay is hidden
+    document.addEventListener('hidden.bs.modal', function(event) {
+        // When any modal is closed, check and hide all loading overlays
+        document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+            if (overlay) overlay.style.display = 'none';
+        });
+    }, true);
+    
+    // Add escape key handler to hide any visible loading overlay
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+                if (overlay && overlay.style.display === 'flex') {
+                    overlay.style.display = 'none';
+                }
+            });
+        }
+    });
 });
 
 function initAjaxTabs() {
@@ -522,6 +546,30 @@ function initAjaxTabs() {
 function initTabSpecificFunctionality(tabName) {
     console.log(`Initializing ${tabName} tab specific functionality`);
     // This function is intentionally minimal as each tab template now contains its own scripts
+    
+    // Extra initialization for form modals to ensure loading overlays are properly handled
+    if (tabName === 'bicycles' || tabName === 'stations') {
+        // Make sure all "cancel" and "close" buttons in modals hide loading overlays
+        document.querySelectorAll('.modal .btn-close, .modal .btn-secondary').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+                    if (overlay) overlay.style.display = 'none';
+                });
+            });
+        });
+        
+        // Ensure all forms have submit event listeners to hide overlays on validation errors
+        document.querySelectorAll('.modal form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                // If form validation fails, hide loading overlay
+                if (!this.checkValidity()) {
+                    document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+                        if (overlay) overlay.style.display = 'none';
+                    });
+                }
+            });
+        });
+    }
 }
 
 function initAjaxPagination() {
@@ -628,5 +676,13 @@ function initAjaxPagination() {
         });
     });
 }
+
+// Add a global emergency reset function that can be called from console if needed
+window.resetAllOverlays = function() {
+    document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+        overlay.style.display = 'none';
+    });
+    console.log("All loading overlays have been reset!");
+};
 </script>
 {% endblock %}

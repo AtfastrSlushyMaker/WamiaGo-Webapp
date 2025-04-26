@@ -30,14 +30,133 @@ document.addEventListener('DOMContentLoaded', function () {
                 updateCapacityVisualization();
             }, 200);
         });
+
+        // Hide loading overlay when modal is closed
+        stationFormModal.addEventListener('hidden.bs.modal', function () {
+            const loadingOverlay = document.getElementById('modalLoadingOverlay');
+            if (loadingOverlay) loadingOverlay.style.display = 'none';
+        });
     }
 });
 
+/**
+ * Load existing locations from the database
+ */
+function loadExistingLocations() {
+    // Show loading overlay - using both IDs for compatibility
+    const loadingOverlay = document.getElementById('modalLoadingOverlay') ||
+        document.getElementById('stationModalLoadingOverlay');
+    if (loadingOverlay) loadingOverlay.style.display = 'flex';
+
+    fetch('/admin/bicycle/api/locations')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            existingLocations = data;
+
+            // Only show other stations if the checkbox is checked
+            if (document.getElementById('showOtherStations') &&
+                document.getElementById('showOtherStations').checked) {
+                displayExistingLocations();
+            }
+
+            // Hide loading overlay - using all possible IDs
+            hideAllLoadingOverlays();
+        })
+        .catch(error => {
+            console.error('Error loading locations:', error);
+            // Hide loading overlay
+            hideAllLoadingOverlays();
+
+            // Show error notification
+            alert('Failed to load existing locations. Please try again later.');
+        });
+}
+
+/**
+ * Search for a location
+ */
+function searchLocation() {
+    const searchInput = document.getElementById('locationSearch');
+    if (!searchInput || !searchInput.value.trim()) return;
+
+    // Show loading indicator - using both IDs for compatibility
+    const loadingOverlay = document.getElementById('modalLoadingOverlay') ||
+        document.getElementById('stationModalLoadingOverlay');
+    if (loadingOverlay) loadingOverlay.style.display = 'flex';
+
+    // Use Nominatim for geocoding
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchInput.value.trim())}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data && data.length > 0) {
+                const result = data[0];
+                const lat = parseFloat(result.lat);
+                const lng = parseFloat(result.lon);
+
+                if (formMap) {
+                    formMap.setView([lat, lng], 15);
+                    placeMarker({ lat, lng });
+                }
+
+                const addressField = document.getElementById('station_address');
+                const addressDisplay = document.getElementById('selectedAddress');
+                if (addressField) addressField.value = result.display_name;
+                if (addressDisplay) addressDisplay.textContent = result.display_name;
+            } else {
+                alert('No locations found for this search term.');
+            }
+        })
+        .catch(error => {
+            console.error('Error during geocoding:', error);
+            alert('Error searching for location. Please try again.');
+        })
+        .finally(() => {
+            // Hide loading overlay - using all possible IDs
+            hideAllLoadingOverlays();
+        });
+}
+
+/**
+ * A helper function to hide all loading overlays regardless of ID
+ */
+function hideAllLoadingOverlays() {
+    // Hide all possible loading overlays by their IDs
+    ['modalLoadingOverlay', 'stationModalLoadingOverlay', 'bicycleModalLoadingOverlay'].forEach(id => {
+        const overlay = document.getElementById(id);
+        if (overlay) {
+            overlay.style.display = 'none';
+            overlay.style.visibility = 'hidden';
+        }
+    });
+
+    // Also try to find any element with "LoadingOverlay" in its ID
+    document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+        if (overlay) {
+            overlay.style.display = 'none';
+            overlay.style.visibility = 'hidden';
+        }
+    });
+}
+
+/**
+ * Validate the station form
+ */
 function validateForm() {
     const form = document.getElementById('stationForm');
     if (!form) {
         console.error('Create form not found');
         alert('Form not found. Please reload the page.');
+        hideAllLoadingOverlays();
         return false;
     }
 
@@ -46,13 +165,17 @@ function validateForm() {
 
     // Check if form is valid
     if (!form.checkValidity()) {
+        hideAllLoadingOverlays();
         return false;
     }
 
     // Check if location is selected
-    if (!document.getElementById('station_latitude').value ||
+    if (!document.getElementById('station_latitude') ||
+        !document.getElementById('station_longitude') ||
+        !document.getElementById('station_latitude').value ||
         !document.getElementById('station_longitude').value) {
         alert('Please select a location on the map.');
+        hideAllLoadingOverlays();
         return false;
     }
 
@@ -67,12 +190,14 @@ function validateForm() {
         console.error('Station name input not found or empty', nameInput);
         alert('Station name cannot be empty.');
         if (nameInput) nameInput.focus();
+        hideAllLoadingOverlays();
         return false;
     }
 
     if (nameInput.value.trim().length < 2) {
         alert('Station name must be at least 2 characters long.');
         nameInput.focus();
+        hideAllLoadingOverlays();
         return false;
     }
 
@@ -86,6 +211,7 @@ function validateForm() {
     if (!totalDocksInput) {
         console.error('Total docks input not found');
         alert('Total docks field not found. Please reload the page.');
+        hideAllLoadingOverlays();
         return false;
     }
 
@@ -94,6 +220,7 @@ function validateForm() {
     if (!availableBikesInput) {
         console.error('Available bikes input not found');
         alert('Available bikes field not found. Please reload the page.');
+        hideAllLoadingOverlays();
         return false;
     }
 
@@ -104,6 +231,7 @@ function validateForm() {
     if (availableBikes > totalDocks) {
         alert('Available bikes cannot exceed total docks.');
         availableBikesInput.focus();
+        hideAllLoadingOverlays();
         return false;
     }
 
@@ -256,6 +384,7 @@ function submitStationForm() {
             if (loadingOverlay) loadingOverlay.style.display = 'none';
         });
 }
+
 /**
  * Initialize the map in the form modal
  */
@@ -346,42 +475,6 @@ function updateLocationFields(lat, lng, address = null, locationId = null) {
     } else {
         document.getElementById('station_location_id').value = '';
     }
-}
-
-/**
- * Load existing locations from the database
- */
-function loadExistingLocations() {
-    // Show loading overlay
-    const loadingOverlay = document.getElementById('modalLoadingOverlay');
-    if (loadingOverlay) loadingOverlay.style.display = 'flex';
-
-    fetch('/admin/bicycle/api/locations')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            existingLocations = data;
-
-            // Only show other stations if the checkbox is checked
-            if (document.getElementById('showOtherStations').checked) {
-                displayExistingLocations();
-            }
-
-            // Hide loading overlay
-            if (loadingOverlay) loadingOverlay.style.display = 'none';
-        })
-        .catch(error => {
-            console.error('Error loading locations:', error);
-            // Hide loading overlay
-            if (loadingOverlay) loadingOverlay.style.display = 'none';
-
-            // Show error notification
-            alert('Failed to load existing locations. Please try again later.');
-        });
 }
 
 /**
@@ -517,49 +610,6 @@ function setupFormListeners() {
     if (saveStationBtn) {
         saveStationBtn.addEventListener('click', submitStationForm);
     }
-}
-
-/**
- * Search for a location
- */
-function searchLocation() {
-    const searchInput = document.getElementById('locationSearch').value.trim();
-    if (!searchInput) return;
-
-    // Show loading indicator
-    const loadingOverlay = document.getElementById('modalLoadingOverlay');
-    if (loadingOverlay) loadingOverlay.style.display = 'flex';
-
-    // Use Nominatim for geocoding
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchInput)}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data && data.length > 0) {
-                const result = data[0];
-                const lat = parseFloat(result.lat);
-                const lng = parseFloat(result.lon);
-
-                formMap.setView([lat, lng], 15);
-                placeMarker({ lat, lng });
-
-                document.getElementById('station_address').value = result.display_name;
-                document.getElementById('selectedAddress').textContent = result.display_name;
-            } else {
-                alert('No locations found for this search term.');
-            }
-        })
-        .catch(error => {
-            console.error('Error during geocoding:', error);
-            alert('Error searching for location. Please try again.');
-        })
-        .finally(() => {
-            if (loadingOverlay) loadingOverlay.style.display = 'none';
-        });
 }
 
 /**

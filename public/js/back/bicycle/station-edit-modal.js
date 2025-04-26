@@ -13,6 +13,12 @@
         console.log("Station edit modal JS loaded");
         // Set up listeners for station edit buttons
         setupEditButtonListeners();
+
+        // Clean up any lingering loading overlays on page load
+        const editModalLoadingOverlay = document.getElementById('editModalLoadingOverlay');
+        if (editModalLoadingOverlay) {
+            editModalLoadingOverlay.style.display = 'none';
+        }
     });
 
     // ======== Public Functions (Module Exports) ========
@@ -58,6 +64,12 @@
                 }
 
                 const modal = new bootstrap.Modal(modalElement);
+
+                // Add event listener for when the modal is hidden - to clean up loading overlay
+                modalElement.addEventListener('hidden.bs.modal', function () {
+                    showLoadingOverlay(false);
+                });
+
                 modal.show();
 
                 // Initialize map after modal is shown
@@ -100,6 +112,7 @@
 
         if (!latitudeInput || !longitudeInput) {
             console.error('Latitude or longitude inputs not found');
+            showLoadingOverlay(false);
             return;
         }
 
@@ -111,6 +124,7 @@
         const mapElement = document.getElementById('stationEditMap');
         if (!mapElement) {
             console.error('Map element not found');
+            showLoadingOverlay(false);
             return;
         }
 
@@ -183,6 +197,7 @@
             mapElement.innerHTML = `<div class="alert alert-danger m-3">
                 <i class="ti ti-alert-triangle me-2"></i> Error initializing map: ${error.message}
             </div>`;
+            showLoadingOverlay(false);
         }
     }
 

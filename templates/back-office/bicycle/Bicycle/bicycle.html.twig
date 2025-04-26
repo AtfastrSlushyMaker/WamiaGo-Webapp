@@ -1174,3 +1174,106 @@
     <input type="hidden" id="statusChangeBicycleId" name="bicycleId">
     <input type="hidden" id="statusChangeValue" name="status">
 </form>
+
+<!-- Modal Loading Overlay -->
+<div id="bicycleModalLoadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style="background-color: rgba(0, 0, 0, 0.7); z-index: 9999; display: none !important;">
+    <div class="text-center text-white">
+        <div class="spinner-border" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Processing...</p>
+    </div>
+</div>
+
+<!-- JavaScript to manage modals and loading overlays -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Immediately hide all loading overlays on page load
+    document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+        if (overlay) {
+            overlay.style.display = 'none';
+            overlay.style.visibility = 'hidden';
+        }
+    });
+    
+    // Form submission with loading overlay
+    const addBicycleForm = document.querySelector('#addBicycleModal form');
+    if (addBicycleForm) {
+        addBicycleForm.addEventListener('submit', function(e) {
+            // Only show loading if form is valid
+            if (this.checkValidity()) {
+                // Use setTimeout to ensure the form submits before showing overlay
+                setTimeout(function() {
+                    const overlay = document.getElementById('bicycleModalLoadingOverlay');
+                    if (overlay) overlay.style.display = 'none';
+                }, 5000);
+            }
+        });
+    }
+    
+    const editBicycleForm = document.querySelector('#editBicycleModal form');
+    if (editBicycleForm) {
+        editBicycleForm.addEventListener('submit', function(e) {
+            // Only show loading if form is valid
+            if (this.checkValidity()) {
+                // Use setTimeout to ensure the form submits before showing overlay
+                setTimeout(function() {
+                    const overlay = document.getElementById('bicycleModalLoadingOverlay');
+                    if (overlay) overlay.style.display = 'none';
+                }, 5000);
+            }
+        });
+    }
+    
+    // Handle modal close events
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('hidden.bs.modal', function() {
+            // When modal is closed, hide loading overlay
+            document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+                if (overlay) {
+                    overlay.style.display = 'none';
+                    overlay.style.visibility = 'hidden';
+                }
+            });
+        });
+    });
+    
+    // Add escape key handler to close stuck loading overlays
+    document.addEventListener('keydown', function(e) {
+        // If Escape key is pressed
+        if (e.key === 'Escape') {
+            // Hide all loading overlays
+            document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+                if (overlay) {
+                    overlay.style.display = 'none';
+                    overlay.style.visibility = 'hidden';
+                }
+            });
+        }
+    });
+    
+    // Add click handler on overlays to dismiss them
+    document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+        if (overlay) {
+            overlay.addEventListener('click', function(e) {
+                this.style.display = 'none';
+                this.style.visibility = 'hidden';
+            });
+        }
+    });
+});
+
+// Make a global reset function available to clear any stuck overlays
+window.resetOverlays = function() {
+    document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+        if (overlay) {
+            overlay.style.display = 'none';
+            overlay.style.visibility = 'hidden';
+        }
+    });
+    console.log('All loading overlays have been reset');
+};
+
+// Call resetOverlays every 10 seconds as a failsafe
+setInterval(window.resetOverlays, 10000);
+</script>
