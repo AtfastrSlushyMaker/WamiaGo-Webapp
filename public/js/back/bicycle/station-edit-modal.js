@@ -31,15 +31,16 @@
         console.log("Opening edit modal for station ID:", stationId);
         showLoadingOverlay(true);
 
-        // Fetch station data from server
-        fetch(`/admin/bicycle/station/${stationId}/edit`, {
+        // Fix the URL path to match the route defined in StationAdminController
+        fetch(`/admin/bicycle/station/${stationId}/edit-form`, {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
             }
         })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+                    // *** Add URL to error message for clarity ***
+                    throw new Error(`Server responded with ${response.status}: ${response.statusText} while fetching edit form`);
                 }
                 return response.text();
             })
@@ -57,13 +58,37 @@
                 // Append the modal HTML to the document body
                 document.body.appendChild(tempContainer.firstElementChild);
 
-                // Initialize the modal
+                // Initialize the modal with positioning options
                 const modalElement = document.getElementById('stationEditModal');
                 if (!modalElement) {
                     throw new Error("Modal element not found in response HTML");
                 }
 
-                const modal = new bootstrap.Modal(modalElement);
+                // Set modal to appear in the center of the current viewport
+                const viewportHeight = window.innerHeight;
+                const scrollTop = window.scrollY || document.documentElement.scrollTop;
+
+                // Calculate the position relative to current viewport
+                const modalOptions = {
+                    backdrop: true,
+                    keyboard: true,
+                    focus: true
+                };
+
+                const modal = new bootstrap.Modal(modalElement, modalOptions);
+
+                // Position the modal based on current scroll position
+                modalElement.style.paddingTop = '0';
+
+                // Add event listener for when modal is about to be shown
+                modalElement.addEventListener('show.bs.modal', function () {
+                    // Adjust the positioning relative to current scroll position
+                    const modalDialog = modalElement.querySelector('.modal-dialog');
+                    if (modalDialog) {
+                        // Reset any previous manual positioning
+                        modalDialog.style.marginTop = '';
+                    }
+                });
 
                 // Add event listener for when the modal is hidden - to clean up loading overlay
                 modalElement.addEventListener('hidden.bs.modal', function () {
@@ -387,6 +412,13 @@
                     formData.append('stationId', stationId);
                 }
 
+                // Include the CSRF token
+                const csrfTokenInput = form.querySelector('input[name="_token"]') ||
+                    form.querySelector('input[name="bicycle_station[_token]"]');
+                if (csrfTokenInput) {
+                    formData.append('_token', csrfTokenInput.value);
+                }
+
                 // Log what we're submitting
                 const formValues = {};
                 formData.forEach((value, key) => {
@@ -395,7 +427,7 @@
                 console.log("Edit form data being submitted:", formValues);
 
                 // Submit form via AJAX to the correct endpoint
-                fetch(`/admin/bicycle/station/station/${stationId}/edit`, {
+                fetch(`/admin/bicycle/station/${stationId}/edit`, {
                     method: 'POST',
                     body: formData,
                     headers: {

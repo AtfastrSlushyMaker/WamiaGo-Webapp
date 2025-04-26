@@ -60,6 +60,7 @@ class BicycleStationType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => BicycleStation::class,
+            'csrf_protection' => false, // Disable CSRF protection for this form
         ]);
     }
 }

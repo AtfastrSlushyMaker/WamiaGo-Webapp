@@ -272,6 +272,19 @@
             font-weight: 700;
             color: #8540f5;
         }
+
+        /* Ensure modal-content height is constrained and scrollable */
+        #stationFormModal .modal-content,
+        #editStationModal .modal-content {
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+        #stationFormModal .modal-body,
+        #editStationModal .modal-body {
+            flex: 1 1 auto;
+            overflow-y: auto;
+        }
     </style>
 {% endblock %}
 
@@ -314,6 +327,7 @@
                             <span class="text-muted fw-semibold d-block">Active Stations</span>
                             <h3 class="mt-2 mb-0 fw-bold">{{ stationCounts.active }}</h3>
                             {% set activePercentage = (stationCounts.active / stations|length * 100)|round %}
+
                             <div class="small mt-2">
                                 <span class="text-success">
                                     <i class="fas fa-arrow-trend-up me-1"></i> {{ activePercentage }}%
@@ -634,36 +648,244 @@
 </div>
 
 <!-- Delete confirmation modal -->
-<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="confirmDeleteModal" data-bs-backdrop="false" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirm Deletion</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">
+                    <i class="fas fa-trash me-2"></i> Confirm Deletion
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="text-center mb-4">
-                    <i class="fas fa-triangle-exclamation text-warning" style="font-size: 3rem;"></i>
+                    <i class="fas fa-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
                     <h4 class="mt-3">Are you sure?</h4>
                     <p class="text-muted">Do you really want to delete this station? This process cannot be undone.</p>
                 </div>
                 <form id="deleteStationForm" method="post" action="">
-                    <!-- CSRF token removed to disable CSRF protection -->
+                    {% if csrf_token is defined %}
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete-station') }}">
+                    {% endif %}
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Yes, Delete It</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="fas fa-trash me-1"></i> Yes, Delete It
+                </button>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Station Form Modal -->
-{% include 'back-office/bicycle/Station/station-form.html.twig' with {
-    'stationForm': createStationForm is defined ? createStationForm : stationForm,
-    'is_new': true
-} %}
+<div class="modal fade" id="stationFormModal" data-bs-backdrop="false" tabindex="-1" aria-labelledby="stationFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-gradient-primary text-white">
+                <h5 class="modal-title" id="stationFormModalLabel">
+                    <i class="fas fa-plus-circle me-2"></i> Add New Station
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% if stationForm %}
+                    {{ form_start(stationForm, { 
+                        'attr': { 
+                            'id': 'stationForm', 
+                            'novalidate': true,
+                            'class': 'needs-validation'
+                        }
+                    }) }}
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form_label(stationForm.name, 'Station Name', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                                {{ form_widget(stationForm.name, {
+                                    'attr': {
+                                        'class': 'form-control' ~ (stationForm.name.vars.valid ? '' : ' is-invalid'),
+                                        'placeholder': 'Enter station name'
+                                    }
+                                }) }}
+                                {{ form_errors(stationForm.name, {'attr': {'class': 'invalid-feedback'}}) }}
+                                <div class="form-text text-muted">A descriptive name for this station</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form_label(stationForm.totalDocks, 'Total Docks', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                                <div class="input-group">
+                                    {{ form_widget(stationForm.totalDocks, {
+                                        'attr': {
+                                            'class': 'form-control' ~ (stationForm.totalDocks.vars.valid ? '' : ' is-invalid'),
+                                            'min': '1',
+                                            'placeholder': 'Number of docks'
+                                        }
+                                    }) }}
+                                    <span class="input-group-text"><i class="fas fa-bicycle"></i></span>
+                                    {{ form_errors(stationForm.totalDocks, {'attr': {'class': 'invalid-feedback'}}) }}
+                                </div>
+                                <div class="form-text text-muted">Maximum bike capacity at this station</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form_label(stationForm.status, 'Status', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                                {{ form_widget(stationForm.status, {
+                                    'attr': {
+                                        'class': 'form-select' ~ (stationForm.status.vars.valid ? '' : ' is-invalid')
+                                    }
+                                }) }}
+                                {{ form_errors(stationForm.status, {'attr': {'class': 'invalid-feedback'}}) }}
+                            </div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <hr>
+                            <h5 class="mb-3"><i class="fas fa-map-marker-alt me-2"></i>Location Information</h5>
+                        </div>
+                        
+                        <div class="col-12 mb-3">
+                            <div class="input-group">
+                                <input type="text" id="locationSearch" class="form-control" placeholder="Search for a location...">
+                                <button type="button" id="searchLocationBtn" class="btn btn-primary">
+                                    <i class="fas fa-search me-1"></i> Search
+                                </button>
+                            </div>
+                            <div class="form-text text-muted">Enter an address, city, or landmark</div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="showOtherStations" checked>
+                                <label class="form-check-label" for="showOtherStations">
+                                    Show other stations on map
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Map Container -->
+                        <div class="col-12 mb-4">
+                            <div id="stationMap" style="height: 300px;" class="border rounded"></div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <h6 class="text-muted mb-1">Selected Location</h6>
+                            <div class="card bg-light rounded p-3 mb-3">
+                                <div class="d-flex">
+                                    <div class="me-3">
+                                        <div id="selectedLatitude"><strong>Lat:</strong> Not selected</div>
+                                        <div id="selectedLongitude"><strong>Lng:</strong> Not selected</div>
+                                    </div>
+                                    <div class="ms-auto">
+                                        <span class="badge bg-primary px-3 py-2">
+                                            <i class="fas fa-map-pin me-1"></i> Location
+                                        </span>
+                                    </div>
+                                </div>
+                                <div id="selectedAddress" class="mt-2 text-truncate">No location selected</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Hidden fields for location data -->
+                        <input type="hidden" id="station_latitude" name="station_latitude" value="">
+                        <input type="hidden" id="station_longitude" name="station_longitude" value="">
+                        <input type="hidden" id="station_address" name="station_address" value="">
+                        <input type="hidden" id="station_location_id" name="station_location_id" value="">
+                        
+                        <div class="col-12">
+                            <hr>
+                            <h5 class="mb-3"><i class="fas fa-bicycle me-2"></i>Current Capacity</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="availableBikes" class="form-label fw-bold">Available Bikes</label>
+                                        <div class="input-group">
+                                            <input type="number" id="availableBikes" name="availableBikes" class="form-control" min="0" value="0">
+                                            <span class="input-group-text"><i class="fas fa-bicycle"></i></span>
+                                        </div>
+                                        <div class="form-text text-muted">Number of bikes currently at this station</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Visual capacity representation -->
+                        <div class="col-12">
+                            <div class="card bg-light mb-4">
+                                <div class="card-body">
+                                    <h6 class="mb-3">Capacity Visualization</h6>
+                                    <div class="row text-center mb-3">
+                                        <div class="col">
+                                            <div class="small text-muted">Available Bikes</div>
+                                            <div id="availableBikesValue" class="fw-bold fs-4 text-primary">0</div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="small text-muted">Available Docks</div>
+                                            <div id="availableDocksValue" class="fw-bold fs-4 text-success">0</div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="small text-muted">Charging Docks</div>
+                                            <div id="chargingBikesValue" class="fw-bold fs-4 text-info">0</div>
+                                        </div>
+                                    </div>
+                                    <div class="progress" style="height: 12px;">
+                                        <div id="bikeSegment" class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
+                                        <div id="dockSegment" class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                                        <div id="chargingSegment" class="progress-bar bg-info" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i> Cancel
+                        </button>
+                        <button type="submit" id="saveStationBtn" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Save Station
+                        </button>
+                    </div>
+                    
+                    {{ form_end(stationForm) }}
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Unable to load the station form. Please refresh the page and try again.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Station Modal -->
+<div class="modal fade" id="editStationModal" data-bs-backdrop="false" tabindex="-1" aria-labelledby="editStationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+         <div class="modal-content">
+            <div class="modal-header bg-gradient-primary text-white">
+                <h5 class="modal-title" id="editStationModalLabel">
+                    <i class="fas fa-edit me-2"></i> Edit Station
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="editStationFormContainer">
+                    <div class="text-center p-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading station data...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Modal Loading Overlay -->
 <div id="stationModalLoadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style="background-color: rgba(0, 0, 0, 0.7); z-index: 9999; display: none !important;">
@@ -751,6 +973,63 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
+    });
+    
+    // Load edit station form via AJAX
+    document.querySelectorAll('.station-edit-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const stationId = this.getAttribute('data-station-id');
+            const container = document.getElementById('editStationFormContainer');
+            const modalElement = document.getElementById('editStationModal'); // Get modal element
+            const bsModal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement); // Get or create modal instance
+
+            if (!stationId || !container) {
+                console.error('Missing station ID or container element.');
+                return;
+            }
+
+            // Show spinner
+            container.innerHTML = `
+                <div class="text-center p-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading station details...</p>
+                </div>
+            `;
+            bsModal.show(); // Show modal immediately with loading indicator
+
+            // Construct URL manually
+            const url = `/admin/bicycle/station/${stationId}/edit-form`;
+            console.log('Fetching edit form from URL:', url); // Log the URL
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        // Throw an error with status text to provide more context
+                        throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    container.innerHTML = html;
+                    // Any necessary initialization scripts for the loaded form should be called here
+                    // e.g., initialize map, datepickers, etc., if they are part of the loaded 'html'
+                    console.log('Station edit form loaded successfully.');
+                    // Re-initialize components if needed, e.g., map from station-modal.js
+                    if (window.initializeStationMap) {
+                         // Assuming station-modal.js exposes an init function
+                         // You might need to pass data extracted from the loaded 'html' or fetch it separately
+                         // window.initializeStationMap('stationMap', { lat: ..., lng: ... });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching station edit form:', error);
+                    // Display a user-friendly error inside the modal container
+                    container.innerHTML = `<div class="alert alert-danger m-3">Failed to load station data. Please try again: ${error.message}</div>`;
+                });
+        });
     });
 });
 

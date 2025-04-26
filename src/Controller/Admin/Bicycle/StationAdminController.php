@@ -21,8 +21,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use ValueError; // Import ValueError for catching enum errors
 use Knp\Component\Pager\PaginatorInterface;
+use App\Form\BicycleStationType;
 
-//#[IsGranted('ROLE_ADMIN')]
 #[Route('/admin/bicycle/station')]
 class StationAdminController extends AbstractController
 {
@@ -211,7 +211,7 @@ class StationAdminController extends AbstractController
         }
     }
 
-    #[Route('/station/{id}/edit', name: 'admin_bicycle_station_edit', methods: ['POST'])]
+    #[Route('/{id}/edit', name: 'admin_bicycle_station_edit', methods: ['POST'])]
     public function editStation(int $id, Request $request, ValidatorInterface $validator): Response
     {
         try {
@@ -388,6 +388,24 @@ class StationAdminController extends AbstractController
         }
     }
 
+    #[Route('/{id}/edit-form', name: 'admin_bicycle_station_edit_form', methods: ['GET'])]
+    public function editStationForm(int $id): Response
+    {
+        $station = $this->stationService->getStation($id);
+        if (!$station) {
+            return new Response('Station not found', 404);
+        }
+        // Create the form for AJAX editing
+        $form = $this->createForm(BicycleStationType::class, $station, [
+            'action' => $this->generateUrl('admin_bicycle_station_edit', ['id' => $id]),
+            'method' => 'POST',
+        ]);
+        return $this->render('back-office/bicycle/Station/station-edit.html.twig', [
+            'stationForm' => $form->createView(),
+            'station' => $station,
+        ]);
+    }
+
     #[Route('/{id}', name: 'admin_bicycle_station_detail')]
     public function stationDetail(int $id): Response
     {
@@ -431,7 +449,7 @@ class StationAdminController extends AbstractController
                 : 0,
         ];
 
-        return $this->render('back-office/bicycle/station-detail.html.twig', [
+        return $this->render('back-office/bicycle/Station/station-detail.html.twig', [
             'station' => $station,
             'bicycles' => $bicycles,
             'rentals' => $rentals,

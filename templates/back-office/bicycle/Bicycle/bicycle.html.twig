@@ -1,6 +1,7 @@
 {% block stylesheets %}
 <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+<link href="{{ asset('css/back/modal-positioning.css') }}" rel="stylesheet">
 <style>
     /* Green Theme for Bicycle Fleet Management */
     
@@ -667,7 +668,7 @@
                             <td>
                                 <div class="action-buttons">
                                     <div class="dropdown">
-                                        <button class="btn btn-sm btn-icon btn-outline-secondary dropdown-toggle hide-arrow" type="button" data-bs-toggle="dropdown">
+                                        <button class="btn btn-sm btn-icon btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
                                             <i class="fas fa-ellipsis-v"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end">
@@ -731,7 +732,7 @@
 </div>
 
 <!-- Add Bicycle Modal -->
-<div class="modal fade" id="addBicycleModal" tabindex="-1" aria-labelledby="addBicycleModalLabel" aria-hidden="true">
+<div class="modal fade" id="addBicycleModal" data-bs-backdrop="false" tabindex="-1" aria-labelledby="addBicycleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-gradient-primary-to-secondary text-white">
@@ -834,7 +835,7 @@
 </div>
 
 <!-- Edit Bicycle Modal -->
-<div class="modal fade" id="editBicycleModal" tabindex="-1" aria-labelledby="editBicycleModalLabel" aria-hidden="true">
+<div class="modal fade" id="editBicycleModal" data-bs-backdrop="false" tabindex="-1" aria-labelledby="editBicycleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-gradient-primary-to-secondary text-white">
@@ -927,8 +928,8 @@
 </div>
 
 <!-- Delete Bicycle Modal -->
-<div class="modal fade" id="deleteBicycleModal" tabindex="-1" aria-labelledby="deleteBicycleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+<div class="modal fade" id="deleteBicycleModal" data-bs-backdrop="false" data-bs-keyboard="false" tabindex="-1" aria-labelledby="deleteBicycleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title" id="deleteBicycleModalLabel">
@@ -995,7 +996,7 @@
 </div>
 
 <!-- Station Assignment Modal -->
-<div class="modal fade" id="stationAssignModal" tabindex="-1" aria-labelledby="stationAssignModalLabel" aria-hidden="true">
+<div class="modal fade" id="stationAssignModal" data-bs-backdrop="false" tabindex="-1" aria-labelledby="stationAssignModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-gradient-primary-to-secondary text-white">
@@ -1074,7 +1075,7 @@
 </div>
 
 <!-- Maintenance Scheduling Modal -->
-<div class="modal fade" id="scheduleMaintenance" tabindex="-1" aria-labelledby="scheduleMaintenanceLabel" aria-hidden="true">
+<div class="modal fade" id="scheduleMaintenance" data-bs-backdrop="false" tabindex="-1" aria-labelledby="scheduleMaintenanceLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-warning text-dark">
@@ -1175,104 +1176,107 @@
     <input type="hidden" id="statusChangeValue" name="status">
 </form>
 
-<!-- Modal Loading Overlay -->
-<div id="bicycleModalLoadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style="background-color: rgba(0, 0, 0, 0.7); z-index: 9999; display: none !important;">
-    <div class="text-center text-white">
-        <div class="spinner-border" role="status" style="width: 3rem; height: 3rem;">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-        <p class="mt-2">Processing...</p>
-    </div>
-</div>
-
 <!-- JavaScript to manage modals and loading overlays -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Immediately hide all loading overlays on page load
-    document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
-        if (overlay) {
-            overlay.style.display = 'none';
-            overlay.style.visibility = 'hidden';
-        }
-    });
-    
-    // Form submission with loading overlay
-    const addBicycleForm = document.querySelector('#addBicycleModal form');
-    if (addBicycleForm) {
-        addBicycleForm.addEventListener('submit', function(e) {
-            // Only show loading if form is valid
-            if (this.checkValidity()) {
-                // Use setTimeout to ensure the form submits before showing overlay
-                setTimeout(function() {
-                    const overlay = document.getElementById('bicycleModalLoadingOverlay');
-                    if (overlay) overlay.style.display = 'none';
-                }, 5000);
-            }
-        });
-    }
-    
-    const editBicycleForm = document.querySelector('#editBicycleModal form');
-    if (editBicycleForm) {
-        editBicycleForm.addEventListener('submit', function(e) {
-            // Only show loading if form is valid
-            if (this.checkValidity()) {
-                // Use setTimeout to ensure the form submits before showing overlay
-                setTimeout(function() {
-                    const overlay = document.getElementById('bicycleModalLoadingOverlay');
-                    if (overlay) overlay.style.display = 'none';
-                }, 5000);
-            }
-        });
-    }
-    
     // Handle modal close events
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('hidden.bs.modal', function() {
-            // When modal is closed, hide loading overlay
-            document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
-                if (overlay) {
-                    overlay.style.display = 'none';
-                    overlay.style.visibility = 'hidden';
-                }
-            });
+            // Reset any state when modal is closed
         });
     });
     
-    // Add escape key handler to close stuck loading overlays
+    // Add escape key handler for accessibility
     document.addEventListener('keydown', function(e) {
         // If Escape key is pressed
         if (e.key === 'Escape') {
-            // Hide all loading overlays
-            document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
-                if (overlay) {
-                    overlay.style.display = 'none';
-                    overlay.style.visibility = 'hidden';
-                }
-            });
+            // Additional escape key handling if needed
         }
     });
     
-    // Add click handler on overlays to dismiss them
-    document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
-        if (overlay) {
-            overlay.addEventListener('click', function(e) {
-                this.style.display = 'none';
-                this.style.visibility = 'hidden';
+    // Initialize bicycle delete confirmation modal
+    const deleteModalEl = document.getElementById('deleteBicycleModal');
+    if (deleteModalEl) {
+        // No need to manually create new bootstrap.Modal if using data-bs attributes correctly
+        // const bsDeleteModal = new bootstrap.Modal(deleteModalEl, {backdrop: 'static', keyboard: false});
+        const bsDeleteModal = bootstrap.Modal.getInstance(deleteModalEl) || new bootstrap.Modal(deleteModalEl);
+
+        document.querySelectorAll('.delete-bicycle').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const id = this.getAttribute('data-bicycle-id');
+                console.log('Delete button clicked for bicycle ID:', id);
+
+                const idInput = document.getElementById('deleteBicycleIdInput');
+                const idDisplay = document.getElementById('deleteBicycleId');
+
+                if (idInput) {
+                    idInput.value = id;
+                } else {
+                    console.error('Delete modal hidden input #deleteBicycleIdInput not found!');
+                }
+                if (idDisplay) {
+                     idDisplay.textContent = id;
+                }
+
+                // Get bicycle data from the table row
+                const bicycleRow = document.querySelector(`tr[data-bicycle-id="${id}"]`);
+                if (bicycleRow) {
+                    // Extract bicycle details from the row
+                    const batteryText = bicycleRow.querySelector('td:nth-child(4)').textContent.trim();
+                    const battery = batteryText.match(/(\d+)%/)?.[1] || '--';
+                    
+                    const rangeText = bicycleRow.querySelector('td:nth-child(5)').textContent.trim();
+                    const range = rangeText.match(/(\d+)\s*km/)?.[1] || '--';
+                    
+                    const status = bicycleRow.querySelector('td:nth-child(3) .badge').textContent.trim();
+                    
+                    const stationEl = bicycleRow.querySelector('td:nth-child(6)');
+                    const station = stationEl ? (stationEl.textContent.trim() || 'No station assigned') : 'No station assigned';
+                    
+                    // Update modal with bicycle details
+                    document.getElementById('deleteBicycleType').textContent = 'E-Bike';
+                    document.getElementById('deleteBicycleBattery').textContent = battery + '%';
+                    document.getElementById('deleteBicycleRange').textContent = range + ' km';
+                    document.getElementById('deleteBicycleStatus').textContent = status;
+                    document.getElementById('deleteBicycleStation').textContent = station;
+                }
+
+                // Show the modal
+                try {
+                    if (bsDeleteModal) {
+                        bsDeleteModal.show();
+                        console.log('bsDeleteModal.show() called for ID:', id);
+                    } else {
+                        console.error('Could not get Bootstrap modal instance for deleteBicycleModal');
+                    }
+                } catch (modalError) {
+                    console.error('Error showing delete modal:', modalError);
+                }
             });
-        }
-    });
+        });
+
+         // Keep the checkbox logic
+        const confirmCheckbox = document.getElementById('confirmBicycleDelete');
+        const deleteButton = document.getElementById('deleteBicycleBtn');
+         if (confirmCheckbox && deleteButton) {
+            confirmCheckbox.addEventListener('change', function() {
+                deleteButton.disabled = !this.checked;
+            });
+            // Reset checkbox and button state when modal is hidden
+            deleteModalEl.addEventListener('hidden.bs.modal', function () {
+                confirmCheckbox.checked = false;
+                deleteButton.disabled = true;
+            });
+        } else {
+             console.error('Could not find confirm checkbox or delete button for bicycle delete modal.');
+         }
+
+    } else {
+        console.error('Delete modal element #deleteBicycleModal not found!');
+    }
 });
 
-// Make a global reset function available to clear any stuck overlays
-window.resetOverlays = function() {
-    document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
-        if (overlay) {
-            overlay.style.display = 'none';
-            overlay.style.visibility = 'hidden';
-        }
-    });
-    console.log('All loading overlays have been reset');
-};
 
 // Call resetOverlays every 10 seconds as a failsafe
 setInterval(window.resetOverlays, 10000);
