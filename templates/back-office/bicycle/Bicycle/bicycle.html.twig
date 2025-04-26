@@ -1,7 +1,8 @@
 {% block stylesheets %}
+
 <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-<link href="{{ asset('css/back/modal-positioning.css') }}" rel="stylesheet">
+<link href="{{ asset('css/back/bicycle/bicycle.css') }}" rel="stylesheet">
 <style>
     /* Green Theme for Bicycle Fleet Management */
     
@@ -672,7 +673,7 @@
                                             <i class="fas fa-ellipsis-v"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end">
-                                            <li><a class="dropdown-item view-bicycle" href="#" data-bicycle-id="{{ bicycle.idBike }}">
+                                            <li><a class="dropdown-item" href="{{ path('admin_bicycle_details', {'id': bicycle.idBike}) }}">
                                                 <i class="fas fa-eye me-2"></i> View Details
                                             </a></li>
                                             <li><a class="dropdown-item edit-bicycle" href="#" data-bicycle-id="{{ bicycle.idBike }}">
@@ -836,7 +837,7 @@
 
 <!-- Edit Bicycle Modal -->
 <div class="modal fade" id="editBicycleModal" data-bs-backdrop="false" tabindex="-1" aria-labelledby="editBicycleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-gradient-primary-to-secondary text-white">
                 <h5 class="modal-title" id="editBicycleModalLabel">
@@ -1176,108 +1177,273 @@
     <input type="hidden" id="statusChangeValue" name="status">
 </form>
 
-<!-- JavaScript to manage modals and loading overlays -->
+<!-- JavaScript for bicycle form validation -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle modal close events
-    document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('hidden.bs.modal', function() {
-            // Reset any state when modal is closed
-        });
-    });
-    
-    // Add escape key handler for accessibility
-    document.addEventListener('keydown', function(e) {
-        // If Escape key is pressed
-        if (e.key === 'Escape') {
-            // Additional escape key handling if needed
+    // Client-side validation functions
+    function validateBicycleForm(form) {
+        let isValid = true;
+        const errorMessages = [];
+        
+        // Battery Level validation
+        const batteryInput = form.querySelector('[name$="[battery_level]"]');
+        if (batteryInput) {
+            const batteryValue = parseFloat(batteryInput.value);
+            if (isNaN(batteryValue) || batteryValue < 0 || batteryValue > 100) {
+                isValid = false;
+                addError(batteryInput, 'Battery level must be between 0 and 100%');
+                errorMessages.push('Battery level must be between 0 and 100%');
+            } else {
+                removeError(batteryInput);
+            }
         }
+        
+        // Range validation
+        const rangeInput = form.querySelector('[name$="[range_km]"]');
+        if (rangeInput) {
+            const rangeValue = parseFloat(rangeInput.value);
+            if (isNaN(rangeValue) || rangeValue < 0) {
+                isValid = false;
+                addError(rangeInput, 'Range must be a positive number');
+                errorMessages.push('Range must be a positive number');
+            } else {
+                removeError(rangeInput);
+            }
+        }
+        
+        // Status validation
+        const statusInput = form.querySelector('[name$="[status]"]');
+        if (statusInput && statusInput.value === '') {
+            isValid = false;
+            addError(statusInput, 'Status is required');
+            errorMessages.push('Status is required');
+        } else {
+            removeError(statusInput);
+        }
+        
+        // Last updated validation
+        const lastUpdatedInput = form.querySelector('[name$="[last_updated]"]');
+        if (lastUpdatedInput && lastUpdatedInput.value === '') {
+            isValid = false;
+            addError(lastUpdatedInput, 'Last updated date is required');
+            errorMessages.push('Last updated date is required');
+        } else {
+            removeError(lastUpdatedInput);
+        }
+        
+        // Station validation - Only if bicycle status is "Available"
+        const stationInput = form.querySelector('[name$="[bicycleStation]"]');
+        if (statusInput && statusInput.value === 'available' && stationInput && stationInput.value === '') {
+            isValid = false;
+            addError(stationInput, 'Station is required for available bicycles');
+            errorMessages.push('Station is required for available bicycles');
+        } else {
+            removeError(stationInput);
+        }
+        
+        return { isValid, errorMessages };
+    }
+    
+    function addError(input, message) {
+        input.classList.add('is-invalid');
+        
+        // Create or update error message
+        let errorDiv = input.parentNode.querySelector('.invalid-feedback');
+        if (!errorDiv) {
+            errorDiv = document.createElement('div');
+            errorDiv.className = 'invalid-feedback';
+            input.parentNode.appendChild(errorDiv);
+        }
+        errorDiv.textContent = message;
+    }
+    
+    function removeError(input) {
+        input.classList.remove('is-invalid');
+        const errorDiv = input.parentNode.querySelector('.invalid-feedback');
+        if (errorDiv) {
+            errorDiv.textContent = '';
+        }
+    }
+    
+    // Add Bicycle Form Validation
+    const addBicycleForm = document.querySelector('#addBicycleModal form');
+    if (addBicycleForm) {
+        addBicycleForm.addEventListener('submit', function(e) {
+            const { isValid, errorMessages } = validateBicycleForm(this);
+            
+            if (!isValid) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Show error alert
+                const errorAlert = document.createElement('div');
+                errorAlert.className = 'alert alert-danger mt-3';
+                errorAlert.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i><strong>Error:</strong> Please correct the following issues:<ul>' +
+                    errorMessages.map(msg => `<li>${msg}</li>`).join('') + '</ul>';
+                
+                // Remove any existing error alerts
+                const existingAlerts = this.querySelectorAll('.alert');
+                existingAlerts.forEach(alert => alert.remove());
+                
+                // Add new error alert at the top of the form
+                this.insertAdjacentElement('afterbegin', errorAlert);
+                
+                // Scroll to the first error
+                const firstError = this.querySelector('.is-invalid');
+                if (firstError) {
+                    firstError.focus();
+                }
+            }
+        });
+    }
+    
+    // Edit Bicycle Form Validation
+    const editBicycleForm = document.querySelector('#editBicycleForm');
+    if (editBicycleForm) {
+        editBicycleForm.addEventListener('submit', function(e) {
+            const { isValid, errorMessages } = validateBicycleForm(this);
+            
+            if (!isValid) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Show error alert
+                const errorAlert = document.createElement('div');
+                errorAlert.className = 'alert alert-danger mt-3';
+                errorAlert.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i><strong>Error:</strong> Please correct the following issues:<ul>' +
+                    errorMessages.map(msg => `<li>${msg}</li>`).join('') + '</ul>';
+                
+                // Remove any existing error alerts
+                const existingAlerts = this.querySelectorAll('.alert');
+                existingAlerts.forEach(alert => alert.remove());
+                
+                // Add new error alert at the top of the form
+                this.insertAdjacentElement('afterbegin', errorAlert);
+                
+                // Scroll to the first error
+                const firstError = this.querySelector('.is-invalid');
+                if (firstError) {
+                    firstError.focus();
+                }
+            } else {
+                // If valid, update the form action with the correct ID before submitting
+                const bicycleId = this.querySelector('.bicycle-id-field').value;
+                const actionUrl = this.getAttribute('data-action-url').replace('__bicycleId__', bicycleId);
+                this.action = actionUrl;
+            }
+        });
+    }
+    
+    // Real-time validation on input
+    document.querySelectorAll('#addBicycleModal input, #addBicycleModal select, #editBicycleModal input, #editBicycleModal select').forEach(input => {
+        input.addEventListener('change', function() {
+            const parent = this.closest('form');
+            if (parent) {
+                // Only validate the changed field
+                if (this.name.includes('battery_level')) {
+                    const value = parseFloat(this.value);
+                    if (isNaN(value) || value < 0 || value > 100) {
+                        addError(this, 'Battery level must be between 0 and 100%');
+                    } else {
+                        removeError(this);
+                    }
+                } else if (this.name.includes('range_km')) {
+                    const value = parseFloat(this.value);
+                    if (isNaN(value) || value < 0) {
+                        addError(this, 'Range must be a positive number');
+                    } else {
+                        removeError(this);
+                    }
+                } else if (this.name.includes('status')) {
+                    if (this.value === '') {
+                        addError(this, 'Status is required');
+                    } else {
+                        removeError(this);
+                        
+                        // Check if status is "Available", then station is required
+                        const stationInput = parent.querySelector('[name$="[bicycleStation]"]');
+                        if (this.value === 'available' && stationInput && stationInput.value === '') {
+                            addError(stationInput, 'Station is required for available bicycles');
+                        } else if (stationInput) {
+                            removeError(stationInput);
+                        }
+                    }
+                } else if (this.name.includes('bicycleStation')) {
+                    const statusInput = parent.querySelector('[name$="[status]"]');
+                    if (statusInput && statusInput.value === 'available' && this.value === '') {
+                        addError(this, 'Station is required for available bicycles');
+                    } else {
+                        removeError(this);
+                    }
+                } else if (this.name.includes('last_updated')) {
+                    if (this.value === '') {
+                        addError(this, 'Last updated date is required');
+                    } else {
+                        removeError(this);
+                    }
+                }
+            }
+        });
     });
     
-    // Initialize bicycle delete confirmation modal
-    const deleteModalEl = document.getElementById('deleteBicycleModal');
-    if (deleteModalEl) {
-        // No need to manually create new bootstrap.Modal if using data-bs attributes correctly
-        // const bsDeleteModal = new bootstrap.Modal(deleteModalEl, {backdrop: 'static', keyboard: false});
-        const bsDeleteModal = bootstrap.Modal.getInstance(deleteModalEl) || new bootstrap.Modal(deleteModalEl);
+    // Handle loading bicycle data for edit
+    document.querySelectorAll('.edit-bicycle').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const bicycleId = this.getAttribute('data-bicycle-id');
+            
+            if (bicycleId) {
+                // Show loading state
+                const modal = new bootstrap.Modal(document.getElementById('editBicycleModal'));
+                modal.show();
+                
+                // Fetch bicycle data
+                fetch(`/admin/bicycle/bicycle/${bicycleId}/data`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Set form hidden id field
+                        const idField = document.querySelector('.bicycle-id-field');
+                        if (idField) idField.value = bicycleId;
 
-        document.querySelectorAll('.delete-bicycle').forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                const id = this.getAttribute('data-bicycle-id');
-                console.log('Delete button clicked for bicycle ID:', id);
+                        // Set battery level
+                        const batteryField = document.querySelector('#editBicycleForm [name$="[battery_level]"]');
+                        if (batteryField) batteryField.value = data.batteryLevel;
 
-                const idInput = document.getElementById('deleteBicycleIdInput');
-                const idDisplay = document.getElementById('deleteBicycleId');
+                        // Set range
+                        const rangeField = document.querySelector('#editBicycleForm [name$="[range_km]"]');
+                        if (rangeField) rangeField.value = data.rangeKm;
 
-                if (idInput) {
-                    idInput.value = id;
-                } else {
-                    console.error('Delete modal hidden input #deleteBicycleIdInput not found!');
-                }
-                if (idDisplay) {
-                     idDisplay.textContent = id;
-                }
-
-                // Get bicycle data from the table row
-                const bicycleRow = document.querySelector(`tr[data-bicycle-id="${id}"]`);
-                if (bicycleRow) {
-                    // Extract bicycle details from the row
-                    const batteryText = bicycleRow.querySelector('td:nth-child(4)').textContent.trim();
-                    const battery = batteryText.match(/(\d+)%/)?.[1] || '--';
-                    
-                    const rangeText = bicycleRow.querySelector('td:nth-child(5)').textContent.trim();
-                    const range = rangeText.match(/(\d+)\s*km/)?.[1] || '--';
-                    
-                    const status = bicycleRow.querySelector('td:nth-child(3) .badge').textContent.trim();
-                    
-                    const stationEl = bicycleRow.querySelector('td:nth-child(6)');
-                    const station = stationEl ? (stationEl.textContent.trim() || 'No station assigned') : 'No station assigned';
-                    
-                    // Update modal with bicycle details
-                    document.getElementById('deleteBicycleType').textContent = 'E-Bike';
-                    document.getElementById('deleteBicycleBattery').textContent = battery + '%';
-                    document.getElementById('deleteBicycleRange').textContent = range + ' km';
-                    document.getElementById('deleteBicycleStatus').textContent = status;
-                    document.getElementById('deleteBicycleStation').textContent = station;
-                }
-
-                // Show the modal
-                try {
-                    if (bsDeleteModal) {
-                        bsDeleteModal.show();
-                        console.log('bsDeleteModal.show() called for ID:', id);
-                    } else {
-                        console.error('Could not get Bootstrap modal instance for deleteBicycleModal');
-                    }
-                } catch (modalError) {
-                    console.error('Error showing delete modal:', modalError);
-                }
-            });
+                        // Set status select
+                        const statusSelect = document.querySelector('#editBicycleForm [name$="[status]"]');
+                        if (statusSelect) {
+                            Array.from(statusSelect.options).forEach(option => {
+                                if (option.value === data.status.value) {
+                                    option.selected = true;
+                                }
+                            });
+                        }
+                        
+                        // Set station select if available
+                        const stationSelect = document.querySelector('#editBicycleForm [name$="[bicycleStation]"]');
+                        if (stationSelect && data.bicycleStation) {
+                            Array.from(stationSelect.options).forEach(option => {
+                                if (option.value === data.bicycleStation.idStation.toString()) {
+                                    option.selected = true;
+                                }
+                            });
+                        }
+                        
+                        // Set last updated
+                        const lastUpdatedField = document.querySelector('#editBicycleForm [name$="[last_updated]"]');
+                        if (lastUpdatedField) lastUpdatedField.value = data.lastUpdated;
+                    })
+                    .catch(error => {
+                        console.error('Error loading bicycle data:', error);
+                        modal.hide();
+                        alert('Error loading bicycle data. Please try again.');
+                    });
+            }
         });
-
-         // Keep the checkbox logic
-        const confirmCheckbox = document.getElementById('confirmBicycleDelete');
-        const deleteButton = document.getElementById('deleteBicycleBtn');
-         if (confirmCheckbox && deleteButton) {
-            confirmCheckbox.addEventListener('change', function() {
-                deleteButton.disabled = !this.checked;
-            });
-            // Reset checkbox and button state when modal is hidden
-            deleteModalEl.addEventListener('hidden.bs.modal', function () {
-                confirmCheckbox.checked = false;
-                deleteButton.disabled = true;
-            });
-        } else {
-             console.error('Could not find confirm checkbox or delete button for bicycle delete modal.');
-         }
-
-    } else {
-        console.error('Delete modal element #deleteBicycleModal not found!');
-    }
+    });
 });
-
-
-// Call resetOverlays every 10 seconds as a failsafe
-setInterval(window.resetOverlays, 10000);
 </script>

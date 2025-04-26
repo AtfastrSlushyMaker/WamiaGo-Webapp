@@ -450,4 +450,63 @@ class BicycleAdminController extends AbstractController
         }
         return $choices;
     }
+    #[Route('/{id}/details', name: 'admin_bicycle_details', methods: ['GET'])]
+    public function details(
+        int $id, 
+        EntityManagerInterface $em
+    ): Response {
+        $bicycle = $em->getRepository(Bicycle::class)->find($id);
+        
+        if (!$bicycle) {
+            $this->addFlash('error', 'Bicycle not found.');
+            return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => 'bicycles']);
+        }
+        
+        // Get rental history for this bicycle
+        $rentalHistory = $em->getRepository(BicycleRental::class)->findBy(
+            ['bicycle' => $bicycle],
+            ['start_time' => 'DESC'],
+            10 // Limit to last 10 rentals
+        );
+        
+        // Get statistics
+        $stats = [
+            'totalRentals' => count($rentalHistory),
+            'totalDistance' => 0,
+            'totalRevenue' => 0,
+            'totalRentalDuration' => 0,
+            'avgRentalDuration' => 0,
+        ];
+        
+        $totalDuration = 0;
+        foreach ($rentalHistory as $rental) {
+            $stats['totalDistance'] += $rental->getDistance_km() ?? 0;
+            $stats['totalRevenue'] += $rental->getCost() ?? 0;
+            
+            if ($rental->getEnd_time() && $rental->getStart_time()) {
+                $duration = $rental->getEnd_time()->getTimestamp() - $rental->getStart_time()->getTimestamp();
+                $totalDuration += $duration;
+            }
+        }
+        
+        $stats['totalRentalDuration'] = $totalDuration;
+        
+        if ($stats['totalRentals'] > 0) {
+            $stats['avgRentalDuration'] = round($totalDuration / $stats['totalRentals'] / 60); // in minutes
+        }
+        
+        // Get all stations for map display
+        $stations = $em->getRepository(BicycleStation::class)->findAll();
+        
+        // Get maintenance history (placeholder)
+        $maintenanceHistory = [];
+        
+        return $this->render('back-office/bicycle/Bicycle/bicycle-details.html.twig', [
+            'bicycle' => $bicycle,
+            'rentalHistory' => $rentalHistory,
+            'statistics' => $stats,
+            'stations' => $stations,
+            'maintenanceHistory' => $maintenanceHistory
+        ]);
+    }
 }
