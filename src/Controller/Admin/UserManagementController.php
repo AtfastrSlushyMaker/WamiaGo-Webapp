@@ -39,6 +39,52 @@ class UserManagementController extends AbstractController
         $this->logger = $logger;
     }
     
+    #[Route('/generate-test-users', name: 'admin_generate_test_users')]
+    public function generateTestUsers(): JsonResponse
+    {
+        // Check if we already have users
+        $existingUserCount = $this->userRepository->count([]);
+        
+        if ($existingUserCount > 5) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'You already have ' . $existingUserCount . ' users in the database'
+            ]);
+        }
+        
+        // Create 10 test users
+        $names = ['John Doe', 'Jane Smith', 'Mike Johnson', 'Sarah Williams', 'Robert Brown', 
+                 'Emma Davis', 'James Wilson', 'Olivia Taylor', 'William Miller', 'Sophia Anderson'];
+                 
+        $roles = ['ADMIN', 'USER', 'DRIVER', 'ADMIN', 'USER', 'USER', 'USER', 'DRIVER', 'DRIVER', 'USER'];
+        $statuses = ['ACTIVE', 'ACTIVE', 'ACTIVE', 'SUSPENDED', 'ACTIVE', 'BANNED', 'ACTIVE', 'ACTIVE', 'SUSPENDED', 'ACTIVE'];
+        $genders = ['MALE', 'FEMALE', 'MALE', 'FEMALE', 'MALE', 'FEMALE', 'MALE', 'FEMALE', 'MALE', 'FEMALE'];
+        
+        $createdCount = 0;
+        
+        for ($i = 0; $i < 10; $i++) {
+            $user = new User();
+            $user->setName($names[$i]);
+            $user->setEmail(strtolower(str_replace(' ', '.', $names[$i])) . '@example.com');
+            $user->setPassword($this->passwordHasher->hashPassword($user, 'password123'));
+            $user->setPhone_number('+1234567' . str_pad($i, 4, '0', STR_PAD_LEFT));
+            $user->setRole($roles[$i]);
+            $user->setAccount_status($statuses[$i]);
+            $user->setGender($genders[$i]);
+            $user->setIs_verified($i % 3 == 0); // Every 3rd user is verified
+            
+            $this->entityManager->persist($user);
+            $createdCount++;
+        }
+        
+        $this->entityManager->flush();
+        
+        return new JsonResponse([
+            'success' => true,
+            'message' => 'Created ' . $createdCount . ' test users'
+        ]);
+    }
+    
     #[Route('/', name: 'admin_users_management')]
     public function index(): Response
     {

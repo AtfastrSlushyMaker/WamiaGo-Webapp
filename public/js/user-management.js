@@ -9,21 +9,59 @@
  */
 
 // These variables will be populated by the template
-let userGetUrl;
-let userEditUrl;
-let userUpdateUrl;
-let userDeleteUrl;
-let userDeleteApiUrl;
-let userCreateUrl;
-let addUserRouteUrl;
-let apiRouteUrl;
+let userGetUrl = window.userGetUrl;
+let userEditUrl = window.userEditUrl;
+let userUpdateUrl = window.userUpdateUrl;
+let userDeleteUrl = window.userDeleteUrl;
+let userDeleteApiUrl = window.userDeleteApiUrl;
+let userCreateUrl = window.userCreateUrl;
+let addUserRouteUrl = window.addUserRouteUrl;
+let apiRouteUrl = window.apiRouteUrl;
 
 document.addEventListener('DOMContentLoaded', function () {
+    // Debug output to verify route variables
+    console.log('Route variables:', {
+        userGetUrl,
+        userEditUrl,
+        userUpdateUrl,
+        userDeleteUrl,
+        userDeleteApiUrl,
+        userCreateUrl,
+        addUserRouteUrl,
+        apiRouteUrl
+    });
+
     // View toggle functionality
     const listViewBtn = document.getElementById('list-view-btn');
     const cardViewBtn = document.getElementById('card-view-btn');
     const listView = document.getElementById('list-view');
     const cardView = document.getElementById('card-view');
+
+    // Initialize all modals
+    let editUserModal, addUserModal, deleteUserModal;
+
+    if (document.getElementById('edit-user-modal')) {
+        editUserModal = new bootstrap.Modal(document.getElementById('edit-user-modal'));
+    }
+    if (document.getElementById('add-user-modal')) {
+        addUserModal = new bootstrap.Modal(document.getElementById('add-user-modal'));
+    }
+    if (document.getElementById('delete-user-modal')) {
+        deleteUserModal = new bootstrap.Modal(document.getElementById('delete-user-modal'));
+    }
+
+    // Add cancel button handlers
+    document.getElementById('edit-cancel-btn')?.addEventListener('click', function () {
+        editUserModal.hide();
+    });
+
+    document.getElementById('add-cancel-btn')?.addEventListener('click', function () {
+        addUserModal.hide();
+    });
+
+    document.getElementById('delete-cancel-btn')?.addEventListener('click', function () {
+        deleteUserModal.hide();
+    });
 
     listViewBtn.addEventListener('click', function () {
         listViewBtn.classList.add('active');
@@ -49,8 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
         listViewBtn.click();
     }
 
-    // Initialize all modals
-    let editUserModal, addUserModal, deleteUserModal;
+
 
     if (document.getElementById('edit-user-modal')) {
         editUserModal = new bootstrap.Modal(document.getElementById('edit-user-modal'));
@@ -194,10 +231,26 @@ document.addEventListener('DOMContentLoaded', function () {
         applyFilters();
     });
 
-    // Handle Enter key in search field
+    // Add real-time filtering on dropdown changes
+    filterStatus?.addEventListener('change', function () {
+        debounce(applyFilters, 300)();
+    });
+
+    filterRole?.addEventListener('change', function () {
+        debounce(applyFilters, 300)();
+    });
+
+    filterVerified?.addEventListener('change', function () {
+        debounce(applyFilters, 300)();
+    });
+
+    // Handle Enter key in search field and implement real-time search
     searchInput?.addEventListener('keyup', function (event) {
         if (event.key === 'Enter') {
             applyFilters();
+        } else {
+            // Apply real-time search after user stops typing for 500ms
+            debounce(applyFilters, 500)();
         }
     });
 
@@ -210,13 +263,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // More comprehensive filter application function
     function applyFilters() {
-        const searchTerm = searchInput?.value || '';
+        const searchTerm = searchInput?.value.trim() || '';
         const roleFilter = filterRole?.value || '';
         const statusFilter = filterStatus?.value || '';
         const verifiedFilter = filterVerified?.value || '';
 
         // Reset to first page when applying new filters
         currentPage = 1;
+
+        // If search term is very short and no other filters, we might want to delay search
+        if (searchTerm.length === 1 && !roleFilter && !statusFilter && !verifiedFilter) {
+            console.log('Search term too short, waiting for more input');
+            return; // Wait for more characters before triggering search
+        }
 
         loadUsers(searchTerm, roleFilter, statusFilter, verifiedFilter);
     }
@@ -284,7 +343,10 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentSortDir = 'asc';
     let totalPages = 1;
 
-    // Load users from API
+    // Track the ongoing request to prevent overlapping requests
+    let currentRequest = null;
+
+    // Load users from API with improved pagination handling
     function loadUsers(search = '', role = '', status = '', verified = '') {
         showLoading();
 
@@ -299,11 +361,50 @@ document.addEventListener('DOMContentLoaded', function () {
         params.append('page', currentPage);
         params.append('limit', currentLimit);
 
+        // Debug information to help troubleshooting
+        console.log('Pagination parameters:', {
+            page: currentPage,
+            limit: currentLimit,
+            sortBy: currentSortBy,
+            sortDir: currentSortDir
+        });
+
+        // Enhanced debug information
+        console.log('Route variables available:', {
+            userGetUrl,
+            userEditUrl,
+            userUpdateUrl,
+            userDeleteUrl,
+            userDeleteApiUrl,
+            userCreateUrl,
+            addUserRouteUrl,
+            apiRouteUrl
+        });
+
+        // Debug: Log the API URL with all parameters
+        const apiUrl = apiRouteUrl + (params.toString() ? '?' + params.toString() : '');
+        console.log('Loading users from API URL:', apiUrl);
+
+        // Cancel any existing fetch
+        if (currentRequest) {
+            currentRequest.abort();
+        }
+
+        // Use AbortController to be able to cancel requests
+        const controller = new AbortController();
+        currentRequest = controller;
+
         // Use the API URL from the global variable set in the template
-        console.log('Fetching users from:', apiRouteUrl);
-        
-        fetch(apiRouteUrl + (params.toString() ? '?' + params.toString() : ''))
+        fetch(apiUrl, {
+            credentials: 'same-origin',
+            signal: controller.signal,
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
             .then(function (response) {
+                console.log('Response received:', response);
                 if (!response.ok) {
                     console.error('API Response Status:', response.status, response.statusText);
                     return response.text().then(text => {
@@ -315,11 +416,19 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(function (data) {
                 console.log('Users loaded successfully:', data);
-                
-                // Check if data has the expected structure
+
+                // More robust data structure handling
                 const users = data.rows || data.users || data;
                 const total = data.total || users.length;
-                
+
+                // Debug pagination values
+                console.log('Pagination data:', {
+                    total: total,
+                    currentPage: currentPage,
+                    totalPages: Math.ceil(total / currentLimit),
+                    itemsPerPage: currentLimit
+                });
+
                 populateUserTable(users);
                 populateUserCards(users);
                 updateUserCounts(users);
@@ -330,7 +439,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Error details:', error);
                 hideLoading();
                 showToast('error', 'Error loading users: ' + error.message);
-                
+
                 // Display a helpful message in the table body
                 const tableBody = document.getElementById('users-table-body');
                 if (tableBody) {
@@ -351,18 +460,18 @@ document.addEventListener('DOMContentLoaded', function () {
     // Update pagination controls
     function updatePagination(totalItems) {
         totalPages = Math.ceil(totalItems / currentLimit);
-        
+
         // Update counts
         document.getElementById('showing-results').textContent = Math.min(currentLimit, totalItems);
         document.getElementById('total-results').textContent = totalItems;
         document.getElementById('showing-results-cards').textContent = Math.min(currentLimit, totalItems);
         document.getElementById('total-results-cards').textContent = totalItems;
-        
+
         // Generate pagination for list view
         const paginationContainer = document.querySelector('.pagination-container');
         if (paginationContainer) {
             let paginationHtml = `<ul class="pagination pagination-sm justify-content-center">`;
-            
+
             // Previous button
             paginationHtml += `
                 <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
@@ -371,11 +480,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     </a>
                 </li>
             `;
-            
+
             // Page numbers
             const startPage = Math.max(1, currentPage - 2);
             const endPage = Math.min(totalPages, startPage + 4);
-            
+
             for (let i = startPage; i <= endPage; i++) {
                 paginationHtml += `
                     <li class="page-item ${i === currentPage ? 'active' : ''}">
@@ -383,7 +492,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     </li>
                 `;
             }
-            
+
             // Next button
             paginationHtml += `
                 <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
@@ -392,13 +501,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     </a>
                 </li>
             `;
-            
+
             paginationHtml += `</ul>`;
             paginationContainer.innerHTML = paginationHtml;
-            
+
             // Add event listeners to pagination links
             paginationContainer.querySelectorAll('.page-link').forEach(link => {
-                link.addEventListener('click', function(e) {
+                link.addEventListener('click', function (e) {
                     e.preventDefault();
                     const page = parseInt(this.getAttribute('data-page'));
                     if (page && page !== currentPage && page > 0 && page <= totalPages) {
@@ -408,12 +517,55 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             });
         }
-        
+
         // Generate pagination for card view (similar structure)
         const cardPaginationContainer = document.querySelector('#card-view .pagination');
         if (cardPaginationContainer) {
-            // Similar implementation as above
-            // ...
+            let paginationHtml = '';
+
+            // Previous button
+            paginationHtml += `
+                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            `;
+
+            // Page numbers
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, startPage + 4);
+
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHtml += `
+                    <li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                    </li>
+                `;
+            }
+
+            // Next button
+            paginationHtml += `
+                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            `;
+
+            cardPaginationContainer.innerHTML = paginationHtml;
+
+            // Add event listeners to pagination links
+            cardPaginationContainer.querySelectorAll('.page-link').forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const page = parseInt(this.getAttribute('data-page'));
+                    if (page && page !== currentPage && page > 0 && page <= totalPages) {
+                        currentPage = page;
+                        applyFilters();
+                    }
+                });
+            });
         }
     }
 
@@ -421,14 +573,14 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateUserCounts(users) {
         // Count total users
         document.getElementById('total-users-count').textContent = users.length;
-        
+
         // Count active, suspended and banned users
         let activeCount = 0;
         let suspendedCount = 0;
         let bannedCount = 0;
-        
+
         users.forEach(user => {
-            switch(user.accountStatus) {
+            switch (user.accountStatus) {
                 case 'ACTIVE':
                     activeCount++;
                     break;
@@ -440,12 +592,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     break;
             }
         });
-        
+
         document.getElementById('active-users-count').textContent = activeCount;
         document.getElementById('suspended-users-count').textContent = suspendedCount;
         document.getElementById('banned-users-count').textContent = bannedCount;
     }
-    
+
     // Populate table with users
     function populateUserTable(users) {
         const tableBody = document.getElementById('users-table-body');
@@ -453,9 +605,9 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Table body element not found');
             return;
         }
-        
+
         tableBody.innerHTML = '';
-        
+
         if (users.length === 0) {
             tableBody.innerHTML = `
                 <tr>
@@ -468,32 +620,32 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
             return;
         }
-        
+
         users.forEach((user, index) => {
             const statusClass = getStatusClass(user.accountStatus);
             const row = document.createElement('tr');
             row.setAttribute('data-user-id', user.id);
-            
+
             // Generate user initials from name
             const nameParts = user.name?.trim().split(' ') || ['U', 'ser'];
-            const initials = nameParts.length > 1 
+            const initials = nameParts.length > 1
                 ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
                 : (nameParts[0][0] + (nameParts[0][1] || '')).toUpperCase();
-            
+
             // Get proper gender icon
             const genderIcon = getGenderIcon(user.gender);
-            
+
             // Get status icon and class
             const statusIconClass = getStatusIconClass(user.accountStatus);
-            
+
             row.innerHTML = `
                 <td class="text-center">${user.id}</td>
                 <td>
                     <div class="d-flex align-items-center">
-                        ${user.profilePicture 
-                            ? `<img src="/images/${user.profilePicture}" alt="Avatar" class="user-avatar" onerror="this.src='/images/default-avatar.png'">`
-                            : `<div class="avatar-initials role-${user.role}">${initials}</div>`
-                        }
+                        ${user.profilePicture
+                    ? `<img src="/images/${user.profilePicture}" alt="Avatar" class="user-avatar" onerror="this.src='/images/default-avatar.png'">`
+                    : `<div class="avatar-initials role-${user.role}">${initials}</div>`
+                }
                         <div class="user-info-container">
                             <span class="user-name">${user.name || 'Unknown'}</span>
                             <span class="gender-indicator">
@@ -513,7 +665,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <span class="user-detail-value">${user.phoneNumber || 'Not provided'}</span>
                         </div>
                         ${user.dateOfBirth ?
-                        `<div class="contact-info-item">
+                    `<div class="contact-info-item">
                             <span class="user-detail-icon"><i class="fas fa-birthday-cake"></i></span>
                             <span class="user-detail-value">${user.dateOfBirth}</span>
                         </div>` : ''}
@@ -526,11 +678,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     <span class="user-status-pill status-${(user.accountStatus || 'unknown').toLowerCase()}">
                         <i class="${statusIconClass.icon}"></i> ${user.accountStatus || 'UNKNOWN'}
                     </span>
-                    ${user.isVerified !== undefined ? 
-                        (user.isVerified 
-                            ? '<div class="mt-1"><i class="fas fa-check-circle text-success"></i> <small>Verified</small></div>' 
-                            : '<div class="mt-1"><i class="fas fa-times-circle text-danger"></i> <small>Not Verified</small></div>') 
-                        : ''}
+                    ${user.isVerified !== undefined ?
+                    (user.isVerified
+                        ? '<div class="mt-1"><i class="fas fa-check-circle text-success"></i> <small>Verified</small></div>'
+                        : '<div class="mt-1"><i class="fas fa-times-circle text-danger"></i> <small>Not Verified</small></div>')
+                    : ''}
                 </td>
                 <td>
                     <div class="d-flex justify-content-center">
@@ -543,14 +695,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 </td>
             `;
-            
+
             tableBody.appendChild(row);
         });
-        
+
         // Attach event listeners to buttons
         attachTableButtonListeners();
     }
-    
+
     // Populate card view with users
     function populateUserCards(users) {
         const cardsContainer = document.getElementById('users-card-container');
@@ -558,9 +710,9 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Card container not found');
             return;
         }
-        
+
         cardsContainer.innerHTML = '';
-        
+
         if (users.length === 0) {
             cardsContainer.innerHTML = `
                 <div class="col-12 py-5 text-center">
@@ -571,24 +723,24 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
             return;
         }
-        
+
         users.forEach(user => {
             const statusClass = getStatusClass(user.accountStatus);
             const cardCol = document.createElement('div');
             cardCol.className = 'col-xl-3 col-lg-4 col-md-6 mb-4';
-            
+
             // Generate a gradient background based on user role
             const gradientClass = getGradientByRole(user.role);
-            
+
             // Generate user initials from name
             const nameParts = user.name?.trim().split(' ') || ['U', 'ser'];
-            const initials = nameParts.length > 1 
+            const initials = nameParts.length > 1
                 ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
                 : (nameParts[0][0] + (nameParts[0][1] || '')).toUpperCase();
-            
+
             // Get status icon and class
             const statusIconClass = getStatusIconClass(user.accountStatus);
-            
+
             cardCol.innerHTML = `
                 <div class="card user-card shadow-sm" data-user-id="${user.id}">
                     <div class="card-header ${gradientClass}">
@@ -598,10 +750,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                     
                     <div class="avatar-container">
-                        ${user.profilePicture 
-                            ? `<img src="/images/${user.profilePicture}" alt="Avatar" class="avatar" onerror="this.src='/images/default-avatar.png'">`
-                            : `<div class="avatar-initials role-${user.role}">${initials}</div>`
-                        }
+                        ${user.profilePicture
+                    ? `<img src="/images/${user.profilePicture}" alt="Avatar" class="avatar" onerror="this.src='/images/default-avatar.png'">`
+                    : `<div class="avatar-initials role-${user.role}">${initials}</div>`
+                }
                         ${user.isVerified ? '<span class="verified-badge" title="Verified Account"><i class="fas fa-check-circle"></i></span>' : ''}
                     </div>
                     
@@ -610,12 +762,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         
                         <div class="d-flex justify-content-center mb-3">
                             <span class="user-role badge badge-role">${user.role || 'USER'}</span>
-                            ${user.isVerified !== undefined ? 
-                                (user.isVerified 
-                                    ? '<span class="badge badge-success ml-2"><i class="fas fa-check-circle mr-1"></i>Verified</span>' 
-                                    : '<span class="badge badge-secondary ml-2"><i class="fas fa-times-circle mr-1"></i>Not Verified</span>')
-                                : ''
-                            }
+                            ${user.isVerified !== undefined ?
+                    (user.isVerified
+                        ? '<span class="badge badge-success ml-2"><i class="fas fa-check-circle mr-1"></i>Verified</span>'
+                        : '<span class="badge badge-secondary ml-2"><i class="fas fa-times-circle mr-1"></i>Not Verified</span>')
+                    : ''
+                }
                         </div>
                         
                         <div class="user-card-details">
@@ -673,17 +825,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 </div>
             `;
-            
+
             cardsContainer.appendChild(cardCol);
         });
-        
+
         // Attach event listeners to buttons
         attachCardButtonListeners();
     }
-    
+
     // Get card gradient by user role
     function getGradientByRole(role) {
-        switch(role) {
+        switch (role) {
             case 'ADMIN':
                 return 'bg-gradient-primary';
             case 'USER':
@@ -694,10 +846,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 return 'bg-gradient-secondary';
         }
     }
-    
+
     // Helper functions for status classes
     function getStatusClass(status) {
-        switch(status) {
+        switch (status) {
             case 'ACTIVE':
                 return 'badge-success';
             case 'SUSPENDED':
@@ -708,10 +860,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 return 'badge-secondary';
         }
     }
-    
+
     // Helper function for status icons and classes
     function getStatusIconClass(status) {
-        switch(status) {
+        switch (status) {
             case 'ACTIVE':
                 return {
                     icon: 'fas fa-check-circle',
@@ -734,10 +886,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 };
         }
     }
-    
+
     // Helper function for gender icons
     function getGenderIcon(gender) {
-        switch(gender) {
+        switch (gender) {
             case 'MALE':
                 return {
                     icon: 'fas fa-mars',
@@ -760,58 +912,58 @@ document.addEventListener('DOMContentLoaded', function () {
                 };
         }
     }
-    
+
     // Attach event listeners to table buttons
     function attachTableButtonListeners() {
-        document.querySelectorAll('.users-table .edit-user-btn').forEach(function(button) {
-            button.addEventListener('click', function() {
+        document.querySelectorAll('.users-table .edit-user-btn').forEach(function (button) {
+            button.addEventListener('click', function () {
                 const userId = this.getAttribute('data-user-id');
                 openEditUserModal(userId);
             });
         });
-        
-        document.querySelectorAll('.users-table .delete-user-btn').forEach(function(button) {
-            button.addEventListener('click', function() {
+
+        document.querySelectorAll('.users-table .delete-user-btn').forEach(function (button) {
+            button.addEventListener('click', function () {
                 const userId = this.getAttribute('data-user-id');
                 const userName = this.getAttribute('data-user-name');
                 openDeleteConfirmationModal(userId, userName);
             });
         });
     }
-    
+
     // Attach event listeners to card buttons
     function attachCardButtonListeners() {
-        document.querySelectorAll('.user-card .edit-user-btn').forEach(function(button) {
-            button.addEventListener('click', function() {
+        document.querySelectorAll('.user-card .edit-user-btn').forEach(function (button) {
+            button.addEventListener('click', function () {
                 const userId = this.getAttribute('data-user-id');
                 openEditUserModal(userId);
             });
         });
-        
-        document.querySelectorAll('.user-card .delete-user-btn').forEach(function(button) {
-            button.addEventListener('click', function() {
+
+        document.querySelectorAll('.user-card .delete-user-btn').forEach(function (button) {
+            button.addEventListener('click', function () {
                 const userId = this.getAttribute('data-user-id');
                 const userName = this.getAttribute('data-user-name');
                 openDeleteConfirmationModal(userId, userName);
             });
         });
     }
-    
+
     // Open edit user modal with user data
     function openEditUserModal(userId) {
         showLoading();
-        
+
         // First get the user data
-        fetch(`/admin/users-management/api/get/${userId}`)
-            .then(function(response) {
+        fetch(userGetUrl.replace('USER_ID', userId))
+            .then(function (response) {
                 if (!response.ok) {
                     throw new Error('Error fetching user details');
                 }
                 return response.json();
             })
-            .then(function(user) {
+            .then(function (user) {
                 // Then get the form with CSRF token
-                return fetch(`/admin/users-management/edit/${userId}`, {
+                return fetch(userEditUrl.replace('USER_ID', userId), {
                     headers: {
                         "X-Requested-With": "XMLHttpRequest"
                     }
@@ -819,11 +971,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     return Promise.all([user, response.text()]);
                 });
             })
-            .then(function([user, html]) {
+            .then(function ([user, html]) {
                 // Update header info
                 document.getElementById('edit-user-header-name').textContent = user.name || 'Unknown';
                 document.getElementById('edit-user-header-email').textContent = user.email || 'No email';
-                
+
                 // Update avatar if available
                 const avatarContainer = document.getElementById('edit-user-avatar-container');
                 if (avatarContainer) {
@@ -832,19 +984,19 @@ document.addEventListener('DOMContentLoaded', function () {
                         avatarImg.src = user.profilePicture ? `/images/${user.profilePicture}` : '/images/default-avatar.png';
                     }
                 }
-                
+
                 // Update user ID
                 document.getElementById('edit-user-id').value = user.id;
-                
+
                 // Replace form content with the fetched form
                 const editForm = document.getElementById('edit-user-form');
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = html;
                 const newForm = tempDiv.querySelector('form');
-                
+
                 if (newForm) {
                     editForm.innerHTML = newForm.innerHTML;
-                    
+
                     // Populate form fields from the user data
                     if (document.getElementById('edit-name')) document.getElementById('edit-name').value = user.name || '';
                     if (document.getElementById('edit-email')) document.getElementById('edit-email').value = user.email || '';
@@ -854,39 +1006,39 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (document.getElementById('edit-gender')) document.getElementById('edit-gender').value = user.gender || '';
                     if (document.getElementById('edit-is-verified')) document.getElementById('edit-is-verified').checked = user.isVerified || false;
                     if (document.getElementById('edit-password')) document.getElementById('edit-password').value = ''; // Clear password field
-                    
+
                     // Stylize the account status select based on status
                     const statusSelect = document.getElementById('edit-account-status');
                     if (statusSelect) updateStatusSelectStyles(statusSelect);
-                    
+
                     // Re-initialize password visibility toggles
                     initPasswordToggle();
                 }
-                
+
                 // Show modal
                 editUserModal.show();
                 hideLoading();
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 console.error('Error:', error);
                 hideLoading();
                 showToast('error', 'Error loading user details: ' + error.message);
             });
-            
+
         // Add event listener for save button
-        document.getElementById('save-user-btn').onclick = function() {
+        document.getElementById('save-user-btn').onclick = function () {
             updateUser();
         };
     }
-    
+
     // Update status select styles based on selected status
     function updateStatusSelectStyles(select) {
         const selectedOption = select.options[select.selectedIndex];
         const statusValue = selectedOption.value || '';
-        
+
         // Remove all previous color classes
         select.classList.remove('border-success', 'border-warning', 'border-danger', 'text-success', 'text-warning', 'text-danger');
-        
+
         // Add appropriate color classes based on selected status
         if (statusValue === 'ACTIVE') {
             select.classList.add('border-success', 'text-success');
@@ -896,38 +1048,38 @@ document.addEventListener('DOMContentLoaded', function () {
             select.classList.add('border-danger', 'text-danger');
         }
     }
-    
+
     // Add event listeners for status select dropdowns
     const editStatusSelect = document.getElementById('edit-account-status');
     const addStatusSelect = document.getElementById('add-account-status');
-    
+
     if (editStatusSelect) {
-        editStatusSelect.addEventListener('change', function() {
+        editStatusSelect.addEventListener('change', function () {
             updateStatusSelectStyles(this);
         });
     }
-    
+
     if (addStatusSelect) {
-        addStatusSelect.addEventListener('change', function() {
+        addStatusSelect.addEventListener('change', function () {
             updateStatusSelectStyles(this);
         });
     }
-    
+
     // Update user data
     function updateUser() {
         const userId = document.getElementById('edit-user-id').value;
         const form = document.getElementById('edit-user-form');
         const formData = new FormData(form);
-        
+
         // Convert FormData to JSON
         const jsonData = {};
         formData.forEach((value, key) => {
             jsonData[key] = value;
         });
-        
+
         showLoading();
-        
-        fetch(`/admin/users-management/api/update/${userId}`, {
+
+        fetch(userUpdateUrl.replace('USER_ID', userId), {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",
@@ -935,19 +1087,18 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: JSON.stringify(jsonData)
         })
-            .then(function(response) {
+            .then(function (response) {
                 return response.json();
             })
-            .then(function(data) {
-                hideLoading();
-                
-                if (data.success) {
+            .then(function (data) {
+                hideLoading(); if (data.success) {
                     // Close modal
                     editUserModal.hide();
-                    
+
                     // Refresh user list
                     loadUsers();
                     showToast('success', data.message || 'User updated successfully');
+                    showFloatingSuccess('User updated successfully');
                 } else {
                     // Show validation errors
                     if (data.errors) {
@@ -957,27 +1108,27 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 hideLoading();
                 console.error('Error:', error);
                 showToast('error', 'Error updating user: ' + error.message);
             });
     }
-    
+
     // Create new user
     function createUser() {
         const form = document.getElementById('add-user-form');
         const formData = new FormData(form);
-        
+
         // Convert FormData to JSON
         const jsonData = {};
         formData.forEach((value, key) => {
             jsonData[key] = value;
         });
-        
+
         showLoading();
-        
-        fetch('/admin/users-management/api/create', {
+
+        fetch(userCreateUrl, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -985,19 +1136,18 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: JSON.stringify(jsonData)
         })
-            .then(function(response) {
+            .then(function (response) {
                 return response.json();
             })
-            .then(function(data) {
-                hideLoading();
-                
-                if (data.success) {
+            .then(function (data) {
+                hideLoading(); if (data.success) {
                     // Close modal
                     addUserModal.hide();
-                    
+
                     // Refresh user list
                     loadUsers();
                     showToast('success', data.message || 'User created successfully');
+                    showFloatingSuccess('New user created successfully');
                 } else {
                     // Show validation errors
                     if (data.errors) {
@@ -1007,74 +1157,74 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 hideLoading();
                 console.error('Error:', error);
                 showToast('error', 'Error creating user: ' + error.message);
             });
     }
-    
+
     // Open delete confirmation modal
     function openDeleteConfirmationModal(userId, userName) {
         // Fetch the delete form with CSRF token
-        fetch(`/admin/users-management/delete/${userId}`, {
+        fetch(userDeleteUrl.replace('USER_ID', userId), {
             headers: {
                 "X-Requested-With": "XMLHttpRequest"
             }
         })
-        .then(response => response.text())
-        .then(html => {
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
-            
-            // Update user info
-            document.getElementById('delete-user-id').value = userId;
-            document.getElementById('delete-user-name').textContent = userName;
-            
-            // Replace form content with the fetched form
-            const deleteForm = document.getElementById('delete-user-form');
-            const newForm = tempDiv.querySelector('form');
-            if (newForm) {
-                deleteForm.innerHTML = newForm.innerHTML;
-            }
-            
-            // Show modal
-            deleteUserModal.show();
-        })
-        .catch(error => {
-            console.error('Error loading delete form:', error);
-            showToast('error', 'Error loading delete form: ' + error.message);
-        });
-        
+            .then(response => response.text())
+            .then(html => {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+
+                // Update user info
+                document.getElementById('delete-user-id').value = userId;
+                document.getElementById('delete-user-name').textContent = userName;
+
+                // Replace form content with the fetched form
+                const deleteForm = document.getElementById('delete-user-form');
+                const newForm = tempDiv.querySelector('form');
+                if (newForm) {
+                    deleteForm.innerHTML = newForm.innerHTML;
+                }
+
+                // Show modal
+                deleteUserModal.show();
+            })
+            .catch(error => {
+                console.error('Error loading delete form:', error);
+                showToast('error', 'Error loading delete form: ' + error.message);
+            });
+
         // Add event listener for confirm delete button
-        document.getElementById('confirm-delete-btn').onclick = function() {
+        document.getElementById('confirm-delete-btn').onclick = function () {
             deleteUser(userId);
         };
     }
-    
+
     // Delete user
     function deleteUser(userId) {
         showLoading();
-        
+
         const form = document.getElementById('delete-user-form');
         const formData = new FormData(form);
-        
-        fetch(`/admin/users-management/api/delete/${userId}`, {
+
+        fetch(userDeleteApiUrl.replace('USER_ID', userId), {
             method: "POST",
             headers: {
                 "X-CSRF-TOKEN": formData.get('_token')
             }
         })
-            .then(function(response) {
+            .then(function (response) {
                 return response.json();
             })
-            .then(function(data) {
+            .then(function (data) {
                 hideLoading();
-                
+
                 if (data.success) {
                     // Close modal
                     deleteUserModal.hide();
-                    
+
                     // Refresh user list
                     loadUsers();
                     showToast('success', data.message || 'User deleted successfully');
@@ -1082,46 +1232,46 @@ document.addEventListener('DOMContentLoaded', function () {
                     showToast('error', data.message || 'An error occurred while deleting the user');
                 }
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 hideLoading();
                 console.error('Error:', error);
                 showToast('error', 'Error deleting user: ' + error.message);
             });
     }
-    
+
     // Helper functions for form validation
     function clearFormErrors(form) {
         if (!form) return;
-        
-        form.querySelectorAll('.is-invalid').forEach(function(field) {
+
+        form.querySelectorAll('.is-invalid').forEach(function (field) {
             field.classList.remove('is-invalid');
         });
-        
-        form.querySelectorAll('.invalid-feedback').forEach(function(feedback) {
+
+        form.querySelectorAll('.invalid-feedback').forEach(function (feedback) {
             feedback.textContent = '';
         });
     }
-    
+
     function displayFormErrors(form, errors) {
         clearFormErrors(form);
-        
+
         if (typeof errors === 'string') {
             showToast('error', errors);
             return;
         }
-        
+
         if (Array.isArray(errors)) {
-            errors.forEach(function(error) {
+            errors.forEach(function (error) {
                 // Try to find the field by error path
                 const parts = error.split(':');
                 if (parts.length >= 2) {
                     const fieldName = parts[0]; // Assumes format "field: message"
                     const message = parts.slice(1).join(':').trim();
-                    
+
                     const field = form.querySelector(`[name="${fieldName}"]`);
                     if (field) {
                         field.classList.add('is-invalid');
-                        
+
                         // Add error message
                         let feedbackEl = field.nextElementSibling;
                         if (!feedbackEl || !feedbackEl.classList.contains('invalid-feedback')) {
@@ -1142,7 +1292,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const fieldEl = form.querySelector(`[name="${field}"]`);
                 if (fieldEl) {
                     fieldEl.classList.add('is-invalid');
-                    
+
                     let feedbackEl = fieldEl.nextElementSibling;
                     if (!feedbackEl || !feedbackEl.classList.contains('invalid-feedback')) {
                         feedbackEl = document.createElement('div');
@@ -1154,7 +1304,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     }
-    
+
     // Loading indicator functions
     function showLoading() {
         const loadingOverlay = document.getElementById('loading-overlay');
@@ -1162,14 +1312,36 @@ document.addEventListener('DOMContentLoaded', function () {
             loadingOverlay.classList.add('active');
         }
     }
-    
+
     function hideLoading() {
         const loadingOverlay = document.getElementById('loading-overlay');
         if (loadingOverlay) {
             loadingOverlay.classList.remove('active');
         }
     }
-    
+
+    // Show floating success animation
+    function showFloatingSuccess(message) {
+        // Create a floating success element
+        const successEl = document.createElement('div');
+        successEl.className = 'floating-success';
+        successEl.innerHTML = `
+            <div class="success-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            <div class="success-message">${message}</div>
+        `;
+
+        document.body.appendChild(successEl);
+
+        // Remove after animation completes
+        setTimeout(function () {
+            if (document.body.contains(successEl)) {
+                document.body.removeChild(successEl);
+            }
+        }, 2500);
+    }
+
     // Toast notification function
     function showToast(type, message) {
         // Check if Toast notification library is available
@@ -1183,18 +1355,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 showMethod: 'fadeIn',
                 hideMethod: 'fadeOut'
             };
-            
+
             toastr[type](message);
         } else {
             // Create custom toast if toastr is not available
             const toast = document.createElement('div');
             toast.className = `custom-toast toast-${type}`;
-            
+
             let iconClass = 'info-circle';
             if (type === 'success') iconClass = 'check-circle';
             if (type === 'error') iconClass = 'exclamation-circle';
             if (type === 'warning') iconClass = 'exclamation-triangle';
-            
+
             toast.innerHTML = `
                 <div class="toast-icon">
                     <i class="fas fa-${iconClass}"></i>
@@ -1202,14 +1374,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="toast-message">${message}</div>
                 <button class="toast-close">×</button>
             `;
-            
+
             // Add toast container if not exists
             let toastContainer = document.querySelector('.toast-container');
             if (!toastContainer) {
                 toastContainer = document.createElement('div');
                 toastContainer.className = 'toast-container';
                 document.body.appendChild(toastContainer);
-                
+
                 // Add toast styles
                 const style = document.createElement('style');
                 style.innerHTML = `
@@ -1272,25 +1444,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 `;
                 document.head.appendChild(style);
             }
-            
+
             toastContainer.appendChild(toast);
-            
+
             // Auto remove after 3 seconds
-            setTimeout(function() {
+            setTimeout(function () {
                 if (toastContainer.contains(toast)) {
                     toast.style.opacity = 0;
                     toast.style.transform = 'translateX(100%)';
                     toast.style.transition = 'opacity 0.3s, transform 0.3s';
-                    setTimeout(function() {
+                    setTimeout(function () {
                         if (toastContainer.contains(toast)) {
                             toastContainer.removeChild(toast);
                         }
                     }, 300);
                 }
             }, 3000);
-            
+
             // Close button functionality
-            toast.querySelector('.toast-close').addEventListener('click', function() {
+            toast.querySelector('.toast-close').addEventListener('click', function () {
                 if (toastContainer.contains(toast)) {
                     toastContainer.removeChild(toast);
                 }

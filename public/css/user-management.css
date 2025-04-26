@@ -399,6 +399,50 @@
     width: 32px;
     height: 32px;
     display: flex;
+}
+
+/* Floating Success Message */
+.floating-success {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(46, 125, 50, 0.9);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10000;
+    animation: float-in-out 2.5s ease-in-out forwards;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+.success-icon {
+    background-color: white;
+    color: #2E7D32;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    font-size: 24px;
+}
+
+.success-message {
+    font-weight: 500;
+    font-size: 16px;
+}
+
+@keyframes float-in-out {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+    15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+}
     align-items: center;
     justify-content: center;
     padding: 0;
@@ -653,6 +697,49 @@
     background-color: #007bff;
     color: white;
     border-color: #007bff;
+}
+
+/* ========== STAT CARDS STYLES ========== */
+.stat-card {
+    border-radius: 15px; 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.stat-card-footer {
+    background-color: rgba(0,0,0,0.1) !important; 
+    border: none !important;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #4776E6, #8E54E9);
+}
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, #2DCE89, #2DCECC);
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #FB6340, #FBB140);
+}
+
+.bg-gradient-danger {
+    background: linear-gradient(135deg, #F5365C, #F56036);
+}
+
+.icon-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
 }
 
 /* ========== RESPONSIVE STYLES ========== */

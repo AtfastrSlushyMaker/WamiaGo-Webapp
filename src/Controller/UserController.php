@@ -21,6 +21,38 @@ class UserController extends AbstractController
         $this->serializer = $serializer;
     }
 
+    #[Route('/admin/users-management/generate-test-users', name: 'admin_generate_test_users', options: ['expose' => true])]
+    public function generateTestUsers(): JsonResponse
+    {
+        try {
+            // Generate 10 test users
+            for ($i = 1; $i <= 10; $i++) {
+                $userData = [
+                    'name' => 'Test User ' . $i,
+                    'email' => 'testuser' . $i . '@example.com',
+                    'password' => 'password123',
+                    'phone_number' => '55123456',
+                    'role' => 'CLIENT',
+                    'gender' => 'MALE',
+                    'account_status' => 'ACTIVE',
+                    'date_of_birth' => '1990-01-01'
+                ];
+
+                $this->userService->createUser($userData);
+            }
+
+            return $this->json([
+                'success' => true,
+                'message' => '10 test users created successfully'
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error creating test users: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     #[Route('/users', name: 'api_users', methods: ['GET'])]
     public function index(): JsonResponse
     {

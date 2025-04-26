@@ -35,4 +35,128 @@ class UserRepository extends ServiceEntityRepository
             return false;
         }
     }
+    
+    /**
+     * Find users by search term with additional criteria and pagination
+     */
+    public function findBySearchTerm(string $search, array $criteria = [], string $sortBy = 'name', string $sortDir = 'asc', int $limit = 10, int $offset = 0)
+    {
+        try {
+            $qb = $this->createQueryBuilder('u');
+            
+            // Apply search filter
+            if (!empty($search)) {
+                $qb->andWhere('(u.name LIKE :search OR u.email LIKE :search OR u.phone_number LIKE :search)')
+                   ->setParameter('search', '%' . $search . '%');
+            }
+            
+            // Add additional criteria
+            $this->addCriteriaToQueryBuilder($qb, $criteria);
+            
+            // Add sorting - make sure the column exists or use a fallback
+            if (property_exists(User::class, $sortBy)) {
+                $qb->orderBy('u.' . $sortBy, strtoupper($sortDir) === 'DESC' ? 'DESC' : 'ASC');
+            } else {
+                // Fallback to ID if the sort column doesn't exist
+                $qb->orderBy('u.id_user', 'ASC');
+            }
+            
+            // Debug log to track pagination parameters
+            error_log("Pagination params - limit: {$limit}, offset: {$offset}, total criteria: " . count($criteria));
+            
+            // Add pagination
+            if ($limit > 0) {
+                $qb->setMaxResults($limit)
+                   ->setFirstResult($offset);
+            }
+            
+            return $qb->getQuery()->getResult();
+        } catch (\Exception $e) {
+            // Log any errors that occur
+            error_log('Error in findBySearchTerm: ' . $e->getMessage());
+            return [];
+        }
+        $qb->orderBy('u.' . $sortBy, $sortDir);
+        
+        // Add pagination
+        if ($limit > 0) {
+            $qb->setMaxResults($limit)
+               ->setFirstResult($offset);
+        }
+        
+        return $qb->getQuery()->getResult();
+    }
+    
+    /**
+     * Count users by search term with additional criteria
+     */
+    public function countBySearchTerm(string $search, array $criteria = [])
+    {
+        try {
+            $qb = $this->createQueryBuilder('u')
+                    ->select('COUNT(u.id_user)');
+            
+            // Apply search filter if provided
+            if (!empty($search)) {
+                $qb->andWhere('(u.name LIKE :search OR u.email LIKE :search OR u.phone_number LIKE :search)')
+                ->setParameter('search', '%' . $search . '%');
+            }
+            
+            // Add additional criteria
+            $this->addCriteriaToQueryBuilder($qb, $criteria);
+            
+            $count = $qb->getQuery()->getSingleScalarResult();
+            
+            // Debug log the count for troubleshooting
+            error_log("Count result for search '{$search}': {$count}");
+            
+            return (int)$count;
+        } catch (\Exception $e) {
+            error_log('Error in countBySearchTerm: ' . $e->getMessage());
+            // Return 0 as a fallback to prevent breaking the frontend
+            return 0;
+        }
+    }
+    
+    /**
+     * Check if a field exists in the User entity
+     */
+    private function hasField($field)
+    {
+        try {
+            $metadata = $this->getEntityManager()->getClassMetadata(User::class);
+            return $metadata->hasField($field) || $metadata->hasAssociation($field);
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Add criteria to a query builder instance
+     */
+    private function addCriteriaToQueryBuilder($qb, array $criteria)
+    {
+        try {
+            foreach ($criteria as $field => $value) {
+                $paramName = 'param_' . $field;
+                
+                // Handle boolean values specially
+                if (is_bool($value) || in_array($field, ['is_verified'])) {
+                    $qb->andWhere('u.' . $field . ' = :' . $paramName)
+                       ->setParameter($paramName, $value);
+                } else {
+                    $qb->andWhere('u.' . $field . ' = :' . $paramName)
+                       ->setParameter($paramName, $value);
+                }
+                
+                // Debug log each criteria being added
+                error_log("Added criteria: {$field} = " . (is_bool($value) ? ($value ? 'true' : 'false') : $value));
+            }
+            
+            return $qb;
+        } catch (\Exception $e) {
+            error_log('Error adding criteria: ' . $e->getMessage());
+            return $qb;
+        }
+    }
 }
