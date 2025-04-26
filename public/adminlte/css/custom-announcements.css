@@ -713,3 +713,58 @@
   from { width: 100%; }
   to { width: 0%; }
 }
+
+/* PDF Button Styles */
+.btn-pdf {
+    color: #dc3545;
+    background-color: rgba(220, 53, 69, 0.1);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-pdf:hover {
+    color: #fff;
+    background-color: #dc3545;
+    transform: translateY(-2px);
+}
+
+.btn-pdf .dropdown-menu {
+    min-width: 200px;
+    padding: 0.5rem 0;
+    margin: 0.125rem 0 0;
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.btn-pdf .dropdown-item {
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.btn-pdf .dropdown-item:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+.btn-pdf .dropdown-item i {
+    width: 20px;
+    text-align: center;
+    margin-right: 0.5rem;
+}
+
+/* Animation for PDF generation */
+@keyframes pdfLoading {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.generating-pdf {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.generating-pdf i {
+    animation: pdfLoading 1s linear infinite;
+}

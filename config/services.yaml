@@ -23,5 +23,22 @@ services:
     App\Service\Speech\AzureSpeechService:
         public: true
 
+    App\Service\Export\PdfExportService:
+        arguments:
+            $twig: '@twig'
+
+    # Configure Dompdf as a service
+    Dompdf\Dompdf:
+        calls:
+            - [setOptions, ['@dompdf.options']]
+
+    dompdf.options:
+        class: Dompdf\Options
+        calls:
+            - [setIsHtml5ParserEnabled, [true]]
+            - [setIsRemoteEnabled, [true]]
+            - [setIsPhpEnabled, [true]]
+            - [setDefaultFont, ['DejaVu Sans']]
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
