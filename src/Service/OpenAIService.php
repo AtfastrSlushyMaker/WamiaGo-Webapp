@@ -64,4 +64,35 @@ private function detectLanguage(string $text): string
     // Par défaut en anglais
     return 'en';
 }
+
+public function generateTitleSuggestions(string $content, string $language = 'auto'): array
+{
+    try {
+        $prompt = $language === 'fr'
+            ? "Génère 3 titres accrocheurs pour une annonce de transport basée sur ce contenu. Format JSON: {\"titles\":[\"titre 1\", \"titre 2\"]}"
+            : "Generate 3 catchy transport announcement titles based on this content. JSON format: {\"titles\":[\"title 1\", \"title 2\"]}";
+
+        $response = $this->client->request('POST', 'https://api.openai.com/v1/chat/completions', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Content-Type' => 'application/json',
+            ],
+            'json' => [
+                'model' => 'gpt-3.5-turbo',
+                'messages' => [
+                    ['role' => 'system', 'content' => $prompt],
+                    ['role' => 'user', 'content' => $content]
+                ],
+                'response_format' => ['type' => 'json_object'],
+                'max_tokens' => 100
+            ]
+        ]);
+
+        $data = $response->toArray();
+        return json_decode($data['choices'][0]['message']['content'], true)['titles'];
+
+    } catch (\Exception $e) {
+        throw new \RuntimeException('Title generation failed: ' . $e->getMessage());
+    }
+}
 }

@@ -6,6 +6,21 @@
     <link rel="stylesheet" href="{{ asset('css/front/announcement/transporter-create-announcement.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <style>
+
+  .title-suggestion {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.title-suggestion:hover {
+    background-color: #f8f9fa;
+    border-color: #4361ee;
+}
+
+.use-title-btn {
+    padding: 0.1rem 0.5rem;
+    font-size: 0.8rem;
+}
                 /* Generation button styles */
         .btn-generate {
             background: linear-gradient(135deg, #6e8efb, #a777e3);
@@ -132,6 +147,28 @@
             right: 0;
             padding: 1.25rem;
         }
+
+        .content-tools-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.language-selector .btn-group {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.language-selector .btn {
+    padding: 5px 12px;
+    font-size: 0.8rem;
+}
+
+.language-btn.active {
+    background: #4361ee;
+    color: white;
+}
     </style>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap">
 {% endblock %}
@@ -186,17 +223,29 @@
             <div class="form-card">
                 <!-- Title Field -->
                 <div class="form-group floating-label">
-    {{ form_widget(form.title, {'attr': {
-        'class': 'form-control' ~ (form.title.vars.errors|length ? ' is-invalid' : ''),
-        'placeholder': ' '
-    }}) }}
-    {{ form_label(form.title) }}
-    <div class="invalid-feedback">
-        {% for error in form.title.vars.errors %}
-            {{ error.message }}
-        {% endfor %}
-    </div>
-</div>
+                    {{ form_widget(form.title, {'attr': {
+                        'class': 'form-control' ~ (form.title.vars.errors|length ? ' is-invalid' : ''),
+                        'placeholder': ' ',
+                        'id': 'announcement_title'
+                    }}) }}
+                    {{ form_label(form.title) }}
+                    <div class="invalid-feedback">
+                        {% for error in form.title.vars.errors %}
+                            {{ error.message }}
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="title-suggestions mt-2">
+                        <button type="button" id="suggestTitlesBtn" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-lightbulb me-1"></i> Suggest Titles
+                        </button>
+                        <div id="titleSuggestionsLoader" class="spinner-border spinner-border-sm text-primary d-none ms-2" role="status"></div>
+                        
+                        <div id="titleSuggestions" class="mt-2">
+                            <!-- Les suggestions apparaîtront ici -->
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Content Field -->
                 <div class="form-group floating-label">
@@ -208,17 +257,18 @@
                     }}) }}
                     {{ form_label(form.content) }}
                     <div class="invalid-feedback">{{ form_errors(form.content)|striptags }}</div>
-                    <div class="content-generation-container mb-3">
-    <button type="button" id="generateContentBtn" class="btn btn-primary btn-generate">
-        <i class="fas fa-robot me-2"></i>Generate with AI
-    </button>
-    <div id="generationLoader" class="generation-loader d-none">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-        <span class="ms-2">Generating content...</span>
-    </div>
-</div>
+                
+                    <div class="content-generation-container mb-3 mt-3">
+                        <button type="button" id="generateContentBtn" class="btn btn-primary btn-generate">
+                            <i class="fas fa-robot me-2"></i>Generate with AI
+                        </button>
+                        <div id="generationLoader" class="generation-loader d-none">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span class="ms-2">Generating content...</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Voice Recorder -->
@@ -513,6 +563,72 @@
                 }
             });
         });
+
+        // Title Suggestions
+document.getElementById('suggestTitlesBtn').addEventListener('click', async function() {
+    const btn = this;
+    const loader = document.getElementById('titleSuggestionsLoader');
+    const suggestionsDiv = document.getElementById('titleSuggestions');
+    const content = document.querySelector('#{{ form.content.vars.id }}').value;
+
+    if (!content.trim()) {
+        alert('Please enter some content first');
+        return;
+    }
+
+    btn.disabled = true;
+    loader.classList.remove('d-none');
+    suggestionsDiv.innerHTML = '';
+
+    try {
+        const response = await fetch('{{ path('app_announcement_generate_titles') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                content: content,
+                language: document.querySelector('.language-btn.active')?.dataset.lang || 'auto'
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            suggestionsDiv.innerHTML = data.titles.map(title => `
+                <div class="card mb-2 title-suggestion">
+                    <div class="card-body p-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>${title}</span>
+                            <button class="btn btn-sm btn-success use-title-btn">
+                                <i class="fas fa-check"></i> Use
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Add click handlers
+            document.querySelectorAll('.use-title-btn').forEach((btn, index) => {
+                btn.addEventListener('click', () => {
+                    document.getElementById('{{ form.title.vars.id }}').value = data.titles[index];
+                });
+            });
+        } else {
+            throw new Error(data.error || 'Failed to generate titles');
+        }
+    } catch (error) {
+        suggestionsDiv.innerHTML = `
+            <div class="alert alert-danger mt-2">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                ${error.message}
+            </div>
+        `;
+    } finally {
+        btn.disabled = false;
+        loader.classList.add('d-none');
+    }
+});
     </script>
 
     <style>

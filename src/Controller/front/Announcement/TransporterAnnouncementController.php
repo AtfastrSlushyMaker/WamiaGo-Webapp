@@ -17,6 +17,7 @@ use App\Repository\AnnouncementRepository;
 
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\OpenAIService;
+use App\Utils\BadWordFilter; // Adjust the namespace to the actual location of BadWordFilter
 
 use function PHPUnit\Framework\throwException;
 
@@ -35,83 +36,88 @@ class TransporterAnnouncementController extends AbstractController
     ) {
     }
 
-    #[Route('/new', name: 'app_transporter_announcement_new', methods: ['GET', 'POST'])]
-    public function new(Request $request): Response
-    {/*
-        $data= $request->request->all();
-        if($data['transporter_announcement']['zone']==""){
-            throw $this->createNotFoundException('Zone invalid');
-        }
-        exit();*/
-        $driver = $this->driverRepository->find(self::HARDCODED_DRIVER_ID);
-        if (!$driver) {
-            throw $this->createNotFoundException('Driver not found');
-        }
-    
-        $announcement = new Announcement();
-        $announcement->setDriver($driver);
-        $announcement->setStatus(true);
-        //$announcement->setDate((new \DateTime())); 
-    
-        $form = $this->createForm(TransporterAnnouncementType::class, $announcement, [
-            'validation_groups' => ['Default']
-        ]);
-        $form->handleRequest($request);
-       
-        if ($form->isSubmitted()) {
 
-           
-            if ($form->isValid()) {
-                try {
-                    $this->announcementService->createAnnouncement(
-                        $driver,
-                        $announcement->getTitle(),
-                        $announcement->getContent(),
-                        $announcement->getZone(),
-                        $announcement->getDate(),
-                        $announcement->isStatus()
-                    );
-    
-                    if ($request->isXmlHttpRequest()) {
-                        return new JsonResponse([
-                            'success' => true,
-                            'message' => 'Annonce créée avec succès!',
-                            'redirectUrl' => $this->generateUrl('app_transporter_announcement_list')
-                        ]);
-                    }
-    
-                    $this->addFlash('success', 'Annonce créée avec succès!');
-                    return $this->redirectToRoute('app_transporter_announcement_list');
-                } catch (\Exception $e) {
-                    if ($request->isXmlHttpRequest()) {
-                        return new JsonResponse([
-                            'success' => false,
-                            'message' => 'Erreur système: ' . $e->getMessage()
-                        ], 500);
-                    }
-                    $this->addFlash('error', 'Une erreur est survenue: ' . $e->getMessage());
+#[Route('/new', name: 'app_transporter_announcement_new', methods: ['GET', 'POST'])]
+public function new(Request $request): Response
+{
+    $driver = $this->driverRepository->find(self::HARDCODED_DRIVER_ID);
+    if (!$driver) {
+        throw $this->createNotFoundException('Driver not found');
+    }
+
+    $announcement = new Announcement();
+    $announcement->setDriver($driver);
+    $announcement->setStatus(true);
+
+    $form = $this->createForm(TransporterAnnouncementType::class, $announcement, [
+        'validation_groups' => ['Default']
+    ]);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted()) {
+        if ($form->isValid()) {
+            try {
+                // Filtrer les bad words avant d’enregistrer
+                $badWordsPath = $this->getParameter('kernel.project_dir') . '/public/data/bad_words.csv';
+                $badWords = BadWordFilter::loadBadWords($badWordsPath);
+
+                $announcement->setTitle(
+                    BadWordFilter::filterBadWords($announcement->getTitle(), $badWords)
+                );
+                $announcement->setContent(
+                    BadWordFilter::filterBadWords($announcement->getContent(), $badWords)
+                );
+
+                $this->announcementService->createAnnouncement(
+                    $driver,
+                    $announcement->getTitle(),
+                    $announcement->getContent(),
+                    $announcement->getZone(),
+                    $announcement->getDate(),
+                    $announcement->isStatus()
+                );
+
+                if ($request->isXmlHttpRequest()) {
+                    return new JsonResponse([
+                        'success' => true,
+                        'message' => 'Annonce créée avec succès!',
+                        'redirectUrl' => $this->generateUrl('app_transporter_announcement_list')
+                    ]);
                 }
-            } else {
-                $errors = $this->getFormErrors($form);
-            
-                foreach ($errors as $field => $message) {
-                    $this->addFlash('error', is_array($message) ? implode(' ', $message) : $message);
-                }
-                
+
+                $this->addFlash('success', 'Annonce créée avec succès!');
+                return $this->redirectToRoute('app_transporter_announcement_list');
+            } catch (\Exception $e) {
                 if ($request->isXmlHttpRequest()) {
                     return new JsonResponse([
                         'success' => false,
-                        'message' => 'Veuillez corriger les erreurs',
-                        'errors' => $errors
-                    ], 422);
+                        'message' => 'Erreur système: ' . $e->getMessage()
+                    ], 500);
                 }
+                $this->addFlash('error', 'Une erreur est survenue: ' . $e->getMessage());
+            }
+        } else {
+            $errors = $this->getFormErrors($form);
+
+            foreach ($errors as $field => $message) {
+                $this->addFlash('error', is_array($message) ? implode(' ', $message) : $message);
+            }
+
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Veuillez corriger les erreurs',
+                    'errors' => $errors
+                ], 422);
             }
         }
-    
-        return $this->render('front/announcement/transporter/add.html.twig', [
-            'form' => $form->createView()
-        ]);
     }
+
+    return $this->render('front/announcement/transporter/add.html.twig', [
+        'form' => $form->createView()
+    ]);
+}
+
     
     private function getFormErrors($form): array
     {
@@ -310,6 +316,26 @@ public function generateContent(Request $request, OpenAIService $openAIService):
         return $this->json([
             'success' => false,
             'error' => 'Failed to generate text: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+#[Route('/generate-titles', name: 'app_announcement_generate_titles', methods: ['POST'])]
+public function generateTitles(Request $request, OpenAIService $openAIService): JsonResponse
+{
+    $content = $request->request->get('content', '');
+    $language = $request->request->get('language', 'auto');
+
+    try {
+        $suggestions = $openAIService->generateTitleSuggestions($content, $language);
+        return $this->json([
+            'success' => true,
+            'titles' => $suggestions
+        ]);
+    } catch (\Exception $e) {
+        return $this->json([
+            'success' => false,
+            'error' => $e->getMessage()
         ], 500);
     }
 }
