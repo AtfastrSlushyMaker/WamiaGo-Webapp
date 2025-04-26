@@ -70,11 +70,12 @@ class TaxiController extends AbstractController
                 'id' => $ride->getIdRide(), 
                 'pickupLocation' => $ride->getRequest()->getDepartureLocation() ? $ride->getRequest()->getDepartureLocation()->getAddress() : 'Unknown', 
                 'duration' => $ride->getDuration(), 
-               // 'driverName' => $ride->getDriver() ? $ride->getDriver()->getname : 'Unknown', 
+               'driverName' => $ride->getDriver() ? $ride->getDriver()->getUser()->getName() : 'Unknown', 
                 'destination' => $ride->getRequest()->getArrivalLocation() ? $ride->getRequest()->getArrivalLocation()->getAddress() : 'Unknown', 
                 'price' => $ride->getPrice(), 
                 'status' => $ride->getStatus()->value, 
                 'distance' => $ride->getDistance(), 
+                'driverPhone' => $ride->getDriver() ? $ride->getDriver()->getUser()->getPhone_number() : 'Unknown',
             ];
         }
 
@@ -138,6 +139,8 @@ class TaxiController extends AbstractController
             ], 400);
         }
     }
+
+    
 
    
    
