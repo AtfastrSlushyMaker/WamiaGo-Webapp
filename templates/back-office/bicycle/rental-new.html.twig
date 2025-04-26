@@ -8,7 +8,7 @@
         <div class="col-12">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_rentals_index') }}" class="text-decoration-none"><i class="fas fa-list me-1"></i>Rentals</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_rentals', {tab:"rentals"}) }}" class="text-decoration-none"><i class="fas fa-list me-1"></i>Rentals</a></li>
                     <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-plus me-1"></i>New Rental</li>
                 </ol>
             </nav>
@@ -17,7 +17,7 @@
                     <h1 class="h3 mb-2"><i class="fas fa-bicycle text-primary me-2"></i>Create New Bicycle Rental</h1>
                     <p class="text-muted"><i class="fas fa-info-circle me-1"></i> Create a new rental record for a customer</p>
                 </div>
-                <a href="{{ path('admin_bicycle_rentals_index') }}" class="btn btn-outline-secondary">
+                <a href="{{ path('admin_bicycle_rentals', {tab:"rentals"}) }}" class="btn btn-outline-secondary">
                     <i class="fas fa-arrow-left me-2"></i>Back to Rentals
                 </a>
             </div>
@@ -211,7 +211,7 @@
                     </div>
 
                     <div class="form-actions mt-4 pt-4 border-top text-end">
-                        <a href="{{ path('admin_bicycle_rentals_index') }}" class="btn btn-outline-secondary btn-lg me-2">
+                        <a href="{{ path('admin_bicycle_rentals', {tab:"rentals"}) }}" class="btn btn-outline-secondary btn-lg me-2">
                             <i class="fas fa-times me-2"></i>Cancel
                         </a>
                         <button type="submit" class="btn btn-primary btn-lg px-5">

@@ -77,6 +77,7 @@ class AdminController extends AbstractController
     public function bicycleRentals(Request $request): Response
     {
         $tab = $request->query->get('tab', 'rentals');
+        $isAjax = $request->headers->get('X-Requested-With') === 'XMLHttpRequest';
         
         // Get bicycles query and paginate it
         $bicyclesQuery = $this->bicycleService->getAllBicyclesQuery();
@@ -266,7 +267,8 @@ class AdminController extends AbstractController
         $totalChargingDocks = $this->bicycleStationService->getTotalChargingDocks();
         $stationActivity = $this->bicycleStationService->getStationsWithRentalActivity(5);
 
-        return $this->render('back-office/bicycle-rentals.html.twig', [
+        // Prepare view parameters
+        $params = [
             'bicycles' => $bicycles,
             'stations' => $stations,
             'users' => $users,
@@ -303,7 +305,14 @@ class AdminController extends AbstractController
             'bicycleService' => $this->bicycleService,
             'stationService' => $this->bicycleStationService,
             'rentalService' => $this->bicycleRentalService,
-        ]);
+        ];
+
+        // For AJAX requests, just return the specific tab content
+        if ($isAjax) {
+            return $this->render('back-office/bicycle-rentals.html.twig', $params);
+        }
+
+        return $this->render('back-office/bicycle-rentals.html.twig', $params);
     }
 
     #[Route('/admin/relocations', name: 'admin_relocations')]

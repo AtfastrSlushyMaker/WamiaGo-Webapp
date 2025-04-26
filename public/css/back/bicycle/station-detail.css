@@ -469,21 +469,39 @@ body {
 }
 
 /* ============= TABS NAVIGATION ============= */
-.nav-tabs {
-    border-bottom: 0;
-}
-
-.nav-tabs .nav-link {
-    border: none;
-    padding: 0.75rem 1.25rem;
-    color: var(--secondary);
-    font-weight: 500;
-    border-radius: 0;
+.station-tabs .nav-tabs {
+    border-bottom: 1px solid #dee2e6;
     position: relative;
-    transition: var(--transition-fast);
 }
 
-.nav-tabs .nav-link::after {
+.station-tabs .nav-tabs .nav-item {
+    margin-bottom: -1px;
+}
+
+.station-tabs .nav-tabs .nav-link {
+    border: 1px solid transparent;
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+    color: #6c757d;
+    position: relative;
+    transition: all 0.25s ease;
+}
+
+.station-tabs .nav-tabs .nav-link:hover {
+    color: #495057;
+    background-color: rgba(102, 187, 106, 0.1);
+    border-color: #e9ecef #e9ecef #dee2e6;
+}
+
+.station-tabs .nav-tabs .nav-link.active {
+    color: #66bb6a;
+    background-color: #fff;
+    border-color: #dee2e6 #dee2e6 #fff;
+    font-weight: 500;
+}
+
+/* Active indicator for station tabs */
+.station-tabs .nav-tabs .nav-link::after {
     content: "";
     position: absolute;
     bottom: 0;
@@ -491,461 +509,23 @@ body {
     width: 100%;
     height: 3px;
     background-color: transparent;
-    transition: var(--transition-fast);
+    transition: all 0.25s ease;
 }
 
-.nav-tabs .nav-link:hover::after {
-    background-color: rgba(101, 113, 255, 0.3);
+.station-tabs .nav-tabs .nav-link:hover::after {
+    background-color: rgba(102, 187, 106, 0.3);
 }
 
-.nav-tabs .nav-link.active {
-    color: var(--primary);
-    background-color: transparent;
+.station-tabs .nav-tabs .nav-link.active::after {
+    background-color: #66bb6a;
+    box-shadow: 0 0 8px rgba(102, 187, 106, 0.4);
 }
 
-.nav-tabs .nav-link.active::after {
-    background-color: var(--primary);
-}
-
-/* ============= TABLES STYLING ============= */
-.table {
-    border-collapse: separate;
-    border-spacing: 0 10px;
-}
-
-.table thead th {
-    background-color: #f8f9fa;
-    font-weight: 600;
-    text-align: center;
-    border: none;
-}
-
-.table tbody td {
-    text-align: center;
-    vertical-align: middle;
-    padding: 15px;
-    border: none;
-}
-
-.table tbody tr {
+.station-tabs .tab-content {
+    padding: 20px;
+    border: 1px solid #dee2e6;
+    border-top: none;
+    border-bottom-left-radius: 0.25rem;
+    border-bottom-right-radius: 0.25rem;
     background-color: #fff;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    overflow: hidden;
-    transition: var(--transition-fast);
-}
-
-.table tbody tr:hover {
-    background-color: #f1f1f1;
-}
-
-/* Table-specific styles */
-.table .bicycle-type-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.table .battery-indicator {
-    position: relative;
-    height: 8px;
-    width: 100px;
-    background-color: #e9ecef;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.table .battery-level {
-    height: 100%;
-    border-radius: 4px;
-}
-
-.table .battery-level.bg-success {
-    background-color: #28a745;
-}
-
-.table .battery-level.bg-warning {
-    background-color: #ffc107;
-}
-
-.table .battery-level.bg-danger {
-    background-color: #dc3545;
-}
-
-.table .avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-}
-
-/* ============= TABLE RESPONSIVE FIX ============= */
-/* CRITICAL: This ensures dropdowns in tables are visible */
-.table-responsive {
-    overflow: visible !important;
-}
-
-/* ============= DROPDOWN MENU FIXES ============= */
-/* These styles ensure dropdowns work correctly throughout the app */
-.dropdown-toggle::after {
-    display: inline-block !important;
-}
-
-.dropdown-menu {
-    display: none;
-    position: absolute;
-    z-index: 1050;
-    min-width: 10rem;
-    padding: 0.5rem 0;
-    color: #212529;
-    text-align: left;
-    background-color: #fff;
-    background-clip: padding-box;
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    border-radius: 0.25rem;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
-    max-height: 80vh;
-    overflow-y: auto;
-}
-
-.dropdown-menu.show {
-    display: block;
-}
-
-.dropdown-item {
-    display: block;
-    width: 100%;
-    padding: 0.5rem 1rem;
-    clear: both;
-    font-weight: 400;
-    color: #212529;
-    text-align: inherit;
-    text-decoration: none;
-    white-space: nowrap;
-    background-color: transparent;
-    border: 0;
-}
-
-.dropdown-item:hover,
-.dropdown-item:focus {
-    color: #16181b;
-    background-color: #f8f9fa;
-    text-decoration: none;
-}
-
-.dropdown-item i {
-    margin-right: 0.5rem;
-    width: 1rem;
-    text-align: center;
-}
-
-/* Fix for dropdowns in table cells */
-.table td .dropdown .dropdown-menu,
-.table th .dropdown .dropdown-menu {
-    right: 0;
-    left: auto;
-}
-
-/* ============= BICYCLE TYPE SELECTOR ============= */
-.bicycle-type-selector {
-    width: 100%;
-    display: flex;
-}
-
-.bicycle-type-option {
-    position: relative;
-    flex-grow: 1;
-}
-
-.bicycle-type-option:first-child {
-    margin-right: 1rem;
-}
-
-.bicycle-type-input {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-    width: 0;
-    height: 0;
-}
-
-.bicycle-type-label {
-    display: flex;
-    align-items: center;
-    padding: 1rem;
-    border-radius: 8px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-    transition: var(--transition-fast);
-}
-
-.bicycle-type-input:checked+.bicycle-type-label {
-    border-color: var(--primary);
-    background-color: rgba(101, 113, 255, 0.05);
-    box-shadow: var(--shadow-sm);
-}
-
-.bicycle-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.05);
-    color: var(--secondary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 1rem;
-    transition: var(--transition-fast);
-}
-
-.bicycle-icon.premium {
-    background-color: rgba(101, 113, 255, 0.1);
-    color: var(--primary);
-}
-
-.bicycle-type-input:checked+.bicycle-type-label .bicycle-icon {
-    background-color: var(--primary);
-    color: white;
-    transform: scale(1.1);
-}
-
-.bicycle-info {
-    display: flex;
-    flex-direction: column;
-}
-
-.bicycle-name {
-    font-weight: 500;
-    margin-bottom: 0.25rem;
-}
-
-.bicycle-desc {
-    font-size: 0.75rem;
-    color: var(--secondary);
-}
-
-/* ============= MAINTENANCE TIMELINE ============= */
-.maintenance-timeline {
-    position: relative;
-    padding-left: 1.5rem;
-}
-
-.maintenance-timeline::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 7px;
-    border-left: 2px dashed rgba(0, 0, 0, 0.1);
-    z-index: 1;
-}
-
-.timeline-item {
-    position: relative;
-    padding-bottom: 1.5rem;
-}
-
-.timeline-item:last-child {
-    padding-bottom: 0;
-}
-
-.timeline-item-marker {
-    position: absolute;
-    left: -1.5rem;
-    top: 0;
-    z-index: 2;
-}
-
-.timeline-item-marker-indicator {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 8px;
-    box-shadow: var(--shadow-sm);
-}
-
-.timeline-item-content {
-    padding: 1rem;
-    border-radius: 8px;
-    background-color: rgba(0, 0, 0, 0.02);
-    transition: var(--transition-fast);
-}
-
-.timeline-item-content:hover {
-    background-color: rgba(0, 0, 0, 0.04);
-}
-
-/* ============= QR CODE PLACEHOLDER ============= */
-.qr-code-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    margin: 0 auto;
-    max-width: 250px;
-}
-
-.station-qr-placeholder {
-    width: 200px;
-    height: 200px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #f5f5f5;
-    margin: 0 auto;
-    overflow: hidden;
-    /* Ensure QR code doesn't overflow */
-}
-
-.station-qr-placeholder img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    display: block;
-}
-
-/* For print modal styling */
-.qr-container {
-    text-align: center;
-    padding: 10px;
-    background: white;
-    border-radius: 5px;
-    margin: 0 auto;
-    max-width: 250px;
-}
-
-.qr-image {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 0 auto;
-}
-
-/* ============= MODAL STYLING ============= */
-.modal-content {
-    border: none;
-    border-radius: 10px;
-    box-shadow: var(--shadow-lg);
-}
-
-.modal-header {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    padding: 1.25rem 1.5rem;
-}
-
-.modal-body {
-    padding: 1.5rem;
-}
-
-.modal-footer {
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
-    padding: 1.25rem 1.5rem;
-}
-
-.modal-icon {
-    font-size: 48px;
-    margin-bottom: 1rem;
-}
-
-/* Delete confirmation styling */
-#confirmDelete:checked~#deleteStationBtn:disabled {
-    opacity: 1;
-    cursor: pointer;
-}
-
-/* ============= Quick Overview Cards ============= */
-.card {
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-}
-
-.card-title {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #333;
-}
-
-/* ============= RESPONSIVE ADJUSTMENTS ============= */
-@media (max-width: 992px) {
-    .station-map {
-        height: 350px;
-    }
-
-    .metric-icon {
-        width: 48px;
-        height: 48px;
-    }
-
-    .metric-icon i {
-        font-size: 20px;
-    }
-}
-
-@media (max-width: 768px) {
-    .station-avatar {
-        width: 48px;
-        height: 48px;
-    }
-
-    .station-avatar i {
-        font-size: 22px;
-    }
-
-    .station-map {
-        height: 300px;
-    }
-
-    .bicycle-type-selector {
-        flex-direction: column;
-    }
-
-    .bicycle-type-option:first-child {
-        margin-right: 0;
-        margin-bottom: 1rem;
-    }
-}
-
-@media (max-width: 576px) {
-    .metric-icon {
-        width: 40px;
-        height: 40px;
-    }
-
-    .metric-icon i {
-        font-size: 18px;
-    }
-
-    .station-map {
-        height: 250px;
-    }
-
-    /* Ensure dropdowns work well on mobile */
-    .dropdown-menu {
-        position: absolute;
-        width: auto;
-        min-width: 10rem;
-        max-width: 16rem;
-    }
-
-    .dropdown-item {
-        white-space: normal;
-        word-break: normal;
-    }
 }

@@ -9,7 +9,7 @@
         <div class="d-flex align-items-center">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_rentals_index') }}">Rentals</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_rentals', {tab:"rentals"}) }}">Rentals</a></li>
                     <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_rental_show', {'id': rental.idUserRental}) }}">Rental #{{ rental.idUserRental }}</a></li>
                     <li class="breadcrumb-item active">Edit Rental</li>
                 </ol>

@@ -10,7 +10,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_rentals_index') }}">Rentals</a></li>
+                        <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_rentals', {tab:"rentals"}) }}">Rentals</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             {{ mode == 'edit' ? 'Edit Rental #' ~ rental.idUserRental : 'Create New Rental' }}
                         </li>
@@ -98,7 +98,7 @@
                     </div>
                     
                     <div class="d-flex justify-content-end">
-                        <a href="{{ mode == 'edit' ? path('admin_bicycle_rental_show', {'id': rental.idUserRental}) : path('admin_bicycle_rentals_index') }}" class="btn btn-outline-secondary me-2">
+                        <a href="{{ mode == 'edit' ? path('admin_bicycle_rental_show', {'id': rental.idUserRental}) : {{ path('admin_bicycle_rentals', {tab:"rentals"}) }} class="btn btn-outline-secondary me-2">
                             Cancel
                         </a>
                         <button type="submit" class="btn btn-primary">

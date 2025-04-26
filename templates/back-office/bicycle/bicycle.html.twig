@@ -1,17 +1,338 @@
-<div class="bicycles-dashboard">
-    <!-- Hero Section -->
-    <div class="hero-section mb-4 p-4 bg-gradient-primary-to-secondary text-white rounded-3 shadow-sm">
-        <div class="row align-items-center">
-            <div class="col-lg-7">
-                <h2 class="fw-bold mb-1"><i class="ti ti-bike-off"></i> Bicycle Fleet Management</h2>
-                <p class="lead mb-0 opacity-75">Manage your entire fleet of e-bicycles with real-time tracking and analytics</p>
-            </div>
-            <div class="col-lg-5 d-none d-lg-block text-end">
-                <img src="https://cdn-icons-png.freepik.com/512/171/171253.png" alt="Fleet Management" class="img-fluid" style="max-height: 120px;">
+{% block stylesheets %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+<style>
+    /* Green Theme for Bicycle Fleet Management */
+    
+    /* Hero Section Styling */
+    .hero-section {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 0.75rem;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .hero-section:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.75rem 2rem rgba(40, 167, 69, 0.2);
+    }
+    
+    .hero-section::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        z-index: 1;
+    }
+    
+    /* Quick Overview Cards */
+    .hover-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1.5rem rgba(40, 167, 69, 0.15) !important;
+    }
+    
+    .shadow-hover:hover {
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    /* Battery Status Animations */
+    .pulse-animation {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.6; }
+        100% { opacity: 1; }
+    }
+    
+    .pulse-danger {
+        animation: pulse-danger 2s infinite;
+    }
+    
+    @keyframes pulse-danger {
+        0% { color: #dc3545; }
+        50% { color: #f06a75; }
+        100% { color: #dc3545; }
+    }
+    
+    /* Battery Status Circles */
+    .battery-status-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        font-size: 2rem;
+    }
+    
+    .battery-percentage {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.75rem;
+        font-weight: bold;
+        background: white;
+        padding: 2px 8px;
+        border-radius: 10px;
+    }
+    
+    /* Battery health bar */
+    .battery-health-bar {
+        height: 8px;
+        border-radius: 4px;
+        background-color: #e9ecef;
+        margin-top: 15px;
+        overflow: hidden;
+        display: flex;
+    }
+    
+    .battery-segment {
+        height: 100%;
+        transition: width 0.5s ease;
+    }
+    
+    /* Actions & Filters Card */
+    .card-header {
+        padding: 1rem 1.25rem;
+        background-color: #f8f9fa;
+        border-bottom: none;
+    }
+    
+    /* Quick Action Buttons */
+    .quick-action-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    
+    .quick-action-btn {
+        background-color: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 15px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+    }
+    
+    .quick-action-btn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    .quick-action-btn .icon-wrapper {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 1.25rem;
+    }
+    
+    .btn-add .icon-wrapper {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+    
+    .btn-assign .icon-wrapper {
+        background-color: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+    }
+    
+    .btn-maintenance .icon-wrapper {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+    }
+    
+    .btn-battery .icon-wrapper {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+    
+    /* Table Styling */
+    .bicycle-table {
+        margin-bottom: 0;
+    }
+    
+    .bicycle-mini-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .bicycle-row {
+        transition: all 0.15s ease-in-out;
+    }
+    
+    .bicycle-row:hover {
+        background-color: rgba(40, 167, 69, 0.05) !important;
+    }
+    
+    .bicycle-table .action-buttons {
+        white-space: nowrap;
+    }
+    
+    /* Small Battery Indicator */
+    .battery-indicator {
+        width: 60px;
+        height: 8px;
+        border-radius: 4px;
+        background-color: rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+    
+    .battery-level-small {
+        height: 100%;
+        transition: width 0.5s ease;
+    }
+    
+    /* Fade-in Animation for Rows */
+    .fade-in-row {
+        opacity: 0;
+        animation: fadeIn 0.3s ease forwards;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Battery indicators */
+    .battery-indicator.high i {
+        color: #28a745;
+    }
+    
+    .battery-indicator.medium i {
+        color: #17a2b8;
+    }
+    
+    .battery-indicator.low i {
+        color: #ffc107;
+    }
+    
+    .battery-indicator.critical i {
+        color: #dc3545;
+        animation: pulse-danger 2s infinite;
+    }
+    
+    /* Pagination styling */
+    .pagination-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 0 0 0.5rem 0.5rem;
+    }
+    
+    .pagination-modern {
+        display: flex;
+    }
+    
+    .pagination-modern .page-item .page-link {
+        border-radius: 0.5rem;
+        border: none;
+        margin: 0 0.15rem;
+        width: 2.5rem;
+        height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 500;
+        color: #495057;
+        transition: all 0.2s ease;
+    }
+    
+    .pagination-modern .page-item.active .page-link {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        box-shadow: 0 0.25rem 0.75rem rgba(40, 167, 69, 0.25);
+    }
+    
+    .pagination-modern .page-item .page-link:hover:not(.active) {
+        background-color: #e9ecef;
+        transform: translateY(-2px);
+    }
+    
+    /* Modal improvements */
+    .modal-header.bg-gradient-primary-to-secondary {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+        color: white;
+    }
+    
+    /* Bicycle delete dialog */
+    .bicycle-icon-container {
+        width: 80px;
+        height: 80px;
+        background-color: rgba(40, 167, 69, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #28a745;
+    }
+    
+    .bicycle-delete-info {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+    }
+    
+    /* Form styling */
+    .form-group label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+<!-- New Hero Section with Add Button -->
+<div class="hero-section mb-4 p-4 text-white rounded-3 shadow-sm">
+    <div class="row align-items-center">
+        <div class="col-lg-7">
+            <div class="d-flex align-items-center">
+                <div class="tab-icon-container bg-white bg-opacity-25 rounded-circle p-3 me-3">
+                    <i class="fas fa-bicycle fa-3x text-white"></i>
+                </div>
+                <div>
+                    <h2 class="fw-bold mb-1">Bicycle Fleet Management</h2>
+                    <p class="lead mb-0 opacity-75">Manage your entire fleet of e-bicycles with real-time tracking and analytics</p>
+                </div>
             </div>
         </div>
+        <div class="col-lg-5 text-lg-end mt-3 mt-lg-0">
+            <button class="btn btn-light btn-lg shadow-sm" data-bs-toggle="modal" data-bs-target="#addBicycleModal">
+                <i class="fas fa-plus-circle me-2"></i> Add New Bicycle
+            </button>
+            <button class="btn btn-outline-light btn-lg ms-2" data-bs-toggle="modal" data-bs-target="#scheduleMaintenance">
+                <i class="fas fa-tools me-2"></i> Schedule Maintenance
+            </button>
+        </div>
     </div>
+</div>
 
+<div class="bicycles-dashboard">
     <!-- Quick Overview Cards with Animation -->
     <div class="row mb-4">
         <div class="col-md-3">
@@ -19,7 +340,7 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
                         <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 rounded-circle me-3" style="width: 48px; height: 48px;">
-                            <i class="ti ti-circle-check fa-2x text-success pulse-animation"></i>
+                            <i class="fas fa-check-circle fa-2x text-success pulse-animation"></i>
                         </div>
                         <div>
                             <h3 class="card-title h5 mb-0">Available Bikes</h3>
@@ -29,7 +350,7 @@
                     <div class="d-flex align-items-center justify-content-between">
                         <div class="display-6 fw-bold">{{ availableCount|default(0) }}</div>
                         <span class="badge bg-success bg-opacity-10 text-success px-3 py-2">
-                            <i class="ti ti-chart-bar me-1"></i> {{ availableCount|default(0) > 0 ? (availableCount / (availableCount + inUseCount + maintenanceCount + chargingCount) * 100)|number_format(1) ~ '%' : '0%' }}
+                            <i class="fas fa-chart-bar me-1"></i> {{ availableCount|default(0) > 0 ? (availableCount / (availableCount + inUseCount + maintenanceCount + chargingCount) * 100)|number_format(1) ~ '%' : '0%' }}
                         </span>
                     </div>
                 </div>
@@ -40,7 +361,7 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
                         <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle me-3" style="width: 48px; height: 48px;">
-                            <i class="ti ti-bike fa-2x text-primary"></i>
+                            <i class="fas fa-bicycle fa-2x text-primary"></i>
                         </div>
                         <div>
                             <h3 class="card-title h5 mb-0">In Use</h3>
@@ -49,7 +370,7 @@
                     <div class="d-flex align-items-center justify-content-between">
                         <div class="display-6 fw-bold">{{ inUseCount|default(0) }}</div>
                         <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
-                            <i class="ti ti-users me-1"></i> Active Rentals
+                            <i class="fas fa-users me-1"></i> Active Rentals
                         </span>
                     </div>
                 </div>
@@ -60,7 +381,7 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
                         <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 rounded-circle me-3" style="width: 48px; height: 48px;">
-                            <i class="ti ti-tool fa-2x text-warning"></i>
+                            <i class="fas fa-tools fa-2x text-warning"></i>
                         </div>
                         <div>
                             <h3 class="card-title h5 mb-0">Maintenance</h3>
@@ -70,7 +391,7 @@
                     <div class="d-flex align-items-center justify-content-between">
                         <div class="display-6 fw-bold">{{ maintenanceCount|default(0) }}</div>
                         <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2">
-                            <i class="ti ti-wrench me-1"></i> Service Required
+                            <i class="fas fa-wrench me-1"></i> Service Required
                         </span>
                     </div>
                 </div>
@@ -81,7 +402,7 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
                         <div class="d-inline-flex align-items-center justify-content-center bg-info bg-opacity-10 rounded-circle me-3" style="width: 48px; height: 48px;">
-                            <i class="ti ti-bolt fa-2x text-info"></i>
+                            <i class="fas fa-bolt fa-2x text-info"></i>
                         </div>
                         <div>
                             <h3 class="card-title h5 mb-0">Charging</h3>
@@ -91,7 +412,7 @@
                     <div class="d-flex align-items-center justify-content-between">
                         <div class="display-6 fw-bold">{{ chargingCount|default(0) }}</div>
                         <span class="badge bg-info bg-opacity-10 text-info px-3 py-2">
-                            <i class="ti ti-battery-charging me-1"></i> Power Up
+                            <i class="fas fa-battery-half me-1"></i> Power Up
                         </span>
                     </div>
                 </div>
@@ -102,7 +423,7 @@
     <!-- Battery Statistics Card - Visual Enhancement -->
 <div class="card mb-4 shadow-sm rounded-3 border-0 overflow-hidden">
     <div class="card-header bg-gradient-dark text-white d-flex justify-content-between align-items-center py-3">
-        <h5 class="mb-0"><i class="ti ti-battery-automotive me-2 pulse-animation"></i>Battery Distribution</h5>
+        <h5 class="mb-0"><i class="fas fa-car-battery me-2 pulse-animation"></i>Battery Distribution</h5>
         <span class="badge bg-white text-dark">Fleet Health Indicator</span>
     </div>
     <div class="card-body p-0">
@@ -115,7 +436,7 @@
         <div class="row g-0">
             <div class="col-md-3 p-4 text-center border-end">
                 <div class="battery-status-circle bg-success bg-opacity-10 mx-auto mb-3">
-                    <i class="ti ti-battery-4 text-success"></i>
+                    <i class="fas fa-battery-full text-success"></i>
                     <span class="battery-percentage">{{ totalBikes > 0 ? ((highCount / totalBikes) * 100)|round }}% </span>
                 </div>
                 <h6 class="text-success fw-bold">90%+ Charge</h6>
@@ -124,7 +445,7 @@
             </div>
             <div class="col-md-3 p-4 text-center border-end">
                 <div class="battery-status-circle bg-primary bg-opacity-10 mx-auto mb-3">
-                    <i class="ti ti-battery-3 text-primary"></i>
+                    <i class="fas fa-battery-three-quarters text-primary"></i>
                     <span class="battery-percentage">{{ totalBikes > 0 ? ((mediumCount / totalBikes) * 100)|round }}%</span>
                 </div>
                 <h6 class="text-primary fw-bold">50%-89% Charge</h6>
@@ -133,7 +454,7 @@
             </div>
             <div class="col-md-3 p-4 text-center border-end">
                 <div class="battery-status-circle bg-warning bg-opacity-10 mx-auto mb-3">
-                    <i class="ti ti-battery-2 text-warning"></i>
+                    <i class="fas fa-battery-half text-warning"></i>
                     <span class="battery-percentage">{{ totalBikes > 0 ? ((lowCount / totalBikes) * 100)|round }}%</span>
                 </div>
                 <h6 class="text-warning fw-bold">25%-49% Charge</h6>
@@ -142,7 +463,7 @@
             </div>
             <div class="col-md-3 p-4 text-center">
                 <div class="battery-status-circle bg-danger bg-opacity-10 mx-auto mb-3">
-                    <i class="ti ti-battery-1 text-danger pulse-danger"></i>
+                    <i class="fas fa-battery-quarter text-danger pulse-danger"></i>
                     <span class="battery-percentage">{{ totalBikes > 0 ? ((criticalCount / totalBikes) * 100)|round }}%</span>
                 </div>
                 <h6 class="text-danger fw-bold">Below 25% Charge</h6>
@@ -151,7 +472,7 @@
             </div>
         </div>
         <!-- Battery Progress Bar -->
-        <div class="battery-progress">
+        <div class="battery-health-bar">
             <div class="battery-segment bg-success" style="width: {{ totalBikes > 0 ? ((highCount / totalBikes) * 100)|round }}%"></div>
             <div class="battery-segment bg-primary" style="width: {{ totalBikes > 0 ? ((mediumCount / totalBikes) * 100)|round }}%"></div>
             <div class="battery-segment bg-warning" style="width: {{ totalBikes > 0 ? ((lowCount / totalBikes) * 100)|round }}%"></div>
@@ -165,7 +486,7 @@
         <div class="col-lg-8">
             <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
-                    <h5 class="mb-0"><i class="ti ti-adjustments-horizontal me-2"></i>Smart Filters</h5>
+                    <h5 class="mb-0"><i class="fas fa-sliders-h me-2"></i>Smart Filters</h5>
                     <span class="badge bg-primary bg-opacity-10 text-primary">Find Bicycles Fast</span>
                 </div>
                 <div class="card-body">
@@ -181,7 +502,7 @@
                                         <option value="charging" {% if app.request.query.get('status') == 'charging' %}selected{% endif %}>Charging</option>
                                         <option value="reserved" {% if app.request.query.get('status') == 'reserved' %}selected{% endif %}>Reserved</option>
                                     </select>
-                                    <label for="bicycleStatus"><i class="ti ti-activity-heartbeat me-1"></i>Status</label>
+                                    <label for="bicycleStatus"><i class="fas fa-heartbeat me-1"></i>Status</label>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -194,10 +515,9 @@
                                             </option>
                                         {% endfor %}
                                     </select>
-                                    <label for="bicycleStation"><i class="ti ti-map-pin me-1"></i>Station</label>
+                                    <label for="bicycleStation"><i class="fas fa-map-marker-alt me-1"></i>Station</label>
                                 </div>
                             </div>
-                           
                             <div class="col-md-4">
                                 <div class="form-floating">
                                     <select class="form-select" id="bicycleBattery" name="battery">
@@ -207,16 +527,16 @@
                                         <option value="25" {% if app.request.query.get('battery') == '25' %}selected{% endif %}>25%+</option>
                                         <option value="low" {% if app.request.query.get('battery') == 'low' %}selected{% endif %}>Low (< 25%)</option>
                                     </select>
-                                    <label for="bicycleBattery"><i class="ti ti-battery-automotive me-1"></i>Battery Level</label>
+                                    <label for="bicycleBattery"><i class="fas fa-battery-half me-1"></i>Battery Level</label>
                                 </div>
                             </div>
                             <div class="col-12">
                                 <div class="d-flex">
                                     <button type="submit" class="btn btn-primary btn-lg me-2">
-                                        <i class="ti ti-filter me-2"></i>Apply Filters
+                                        <i class="fas fa-filter me-2"></i>Apply Filters
                                     </button>
                                     <a href="{{ path('admin_bicycle_rentals', {'tab': 'bicycles'}) }}" class="btn btn-outline-secondary btn-lg">
-                                        <i class="ti ti-refresh me-2"></i>Reset
+                                        <i class="fas fa-sync me-2"></i>Reset
                                     </a>
                                 </div>
                             </div>
@@ -228,36 +548,35 @@
         <div class="col-lg-4">
             <div class="card shadow-sm border-0 rounded-3 overflow-hidden h-100">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
-                    <h5 class="mb-0"><i class="ti ti-bolt me-2"></i>Quick Actions</h5>
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
                     <span class="badge bg-primary bg-opacity-10 text-primary">Management Tools</span>
                 </div>
-                 
-                <div class="card-body d-flex flex-column">
+                  <div class="card-body d-flex flex-column">
                     <div class="quick-action-buttons mt-2">
                         <button class="quick-action-btn btn-add" data-bs-toggle="modal" data-bs-target="#addBicycleModal">
                             <div class="icon-wrapper">
-                                <i class="ti ti-plus"></i>
+                                <i class="fas fa-plus"></i>
                             </div>
                             <span>Add New Bicycle</span>
                         </button>
 
                         <button class="quick-action-btn btn-assign" data-bs-toggle="modal" data-bs-target="#stationAssignModal">
                             <div class="icon-wrapper">
-                                <i class="ti ti-map-pin-plus"></i>
+                                <i class="fas fa-map-pin"></i>
                             </div>
                             <span>Assign to Stations</span>
                         </button>
 
                         <button class="quick-action-btn btn-maintenance" data-bs-toggle="modal" data-bs-target="#scheduleMaintenance">
                             <div class="icon-wrapper">
-                                <i class="ti ti-tool"></i>
+                                <i class="fas fa-tools"></i>
                             </div>
                             <span>Schedule Maintenance</span>
                         </button>
 
                         <a href="{{ path('admin_bicycle_rentals', {'tab': 'bicycles', 'battery': 'low'}) }}" class="quick-action-btn btn-battery">
                             <div class="icon-wrapper">
-                                <i class="ti ti-battery-1"></i>
+                                <i class="fas fa-battery-quarter"></i>
                             </div>
                             <span>Low Battery Report</span>
                         </a>
@@ -316,14 +635,14 @@
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="battery-indicator me-2 {{ bicycle.batteryLevel >= 90 ? 'high' : (bicycle.batteryLevel >= 50 ? 'medium' : (bicycle.batteryLevel >= 25 ? 'low' : 'critical')) }}">
-                                        <i class="ti ti-battery-{{ bicycle.batteryLevel >= 90 ? '4' : (bicycle.batteryLevel >= 50 ? '3' : (bicycle.batteryLevel >= 25 ? '2' : '1')) }}"></i>
+                                        <i class="fas fa-battery-{{ bicycle.batteryLevel >= 90 ? 'full' : (bicycle.batteryLevel >= 50 ? 'three-quarters' : (bicycle.batteryLevel >= 25 ? 'half' : 'quarter')) }}"></i>
                                     </div>
                                     <span class="fw-medium">{{ bicycle.batteryLevel }}%</span>
                                 </div>
                             </td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <i class="ti ti-route text-muted me-1"></i>
+                                    <i class="fas fa-route text-muted me-1"></i>
                                     <span>{{ bicycle.rangeKm }} km</span>
                                 </div>
                             </td>
@@ -331,7 +650,7 @@
                                 {% if bicycle.bicycleStation %}
                                     <a href="{{ path('admin_bicycle_station_detail', {'id': bicycle.bicycleStation.idStation}) }}">
                                         <div class="d-flex align-items-center">
-                                            <i class="ti ti-map-pin text-muted me-2"></i>
+                                            <i class="fas fa-map-marker-alt text-muted me-2"></i>
                                             <span>{{ bicycle.bicycleStation.name }}</span>
                                         </div>
                                     </a>
@@ -341,7 +660,7 @@
                             </td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <i class="ti ti-calendar-time text-muted me-1"></i>
+                                    <i class="fas fa-calendar-alt text-muted me-1"></i>
                                     <span>{{ bicycle.lastUpdated|date('M d, Y H:i') }}</span>
                                 </div>
                             </td>
@@ -349,37 +668,37 @@
                                 <div class="action-buttons">
                                     <div class="dropdown">
                                         <button class="btn btn-sm btn-icon btn-outline-secondary dropdown-toggle hide-arrow" type="button" data-bs-toggle="dropdown">
-                                            <i class="ti ti-dots-vertical"></i>
+                                            <i class="fas fa-ellipsis-v"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end">
                                             <li><a class="dropdown-item view-bicycle" href="#" data-bicycle-id="{{ bicycle.idBike }}">
-                                                <i class="ti ti-eye me-2"></i> View Details
+                                                <i class="fas fa-eye me-2"></i> View Details
                                             </a></li>
                                             <li><a class="dropdown-item edit-bicycle" href="#" data-bicycle-id="{{ bicycle.idBike }}">
-                                                <i class="ti ti-edit me-2"></i> Edit Bicycle
+                                                <i class="fas fa-edit me-2"></i> Edit Bicycle
                                             </a></li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#stationAssignModal" data-bicycle-id="{{ bicycle.idBike }}">
-                                                <i class="ti ti-map-pin me-2"></i> Change Station
+                                                <i class="fas fa-map-marker-alt me-2"></i> Change Station
                                             </a></li>
                                             <li class="dropdown-submenu">
                                                 <a class="dropdown-item dropdown-toggle" href="#">
-                                                    <i class="ti ti-status-change me-2"></i> Change Status
+                                                    <i class="fas fa-exchange-alt me-2"></i> Change Status
                                                 </a>
                                                 <ul class="dropdown-menu">
                                                     {% if bicycle.status.value != 'available' %}
                                                     <li><a class="dropdown-item" href="{{ path('admin_bicycle_change_status', {'id': bicycle.idBike, 'status': 'available'}) }}">
-                                                        <i class="ti ti-check text-success me-2"></i>Mark Available
+                                                        <i class="fas fa-check text-success me-2"></i>Mark Available
                                                     </a></li>
                                                     {% endif %}
                                                     {% if bicycle.status.value != 'maintenance' %}
                                                     <li><a class="dropdown-item" href="{{ path('admin_bicycle_change_status', {'id': bicycle.idBike, 'status': 'maintenance'}) }}">
-                                                        <i class="ti ti-tool text-warning me-2"></i>Send to Maintenance
+                                                        <i class="fas fa-tools text-warning me-2"></i>Send to Maintenance
                                                     </a></li>
                                                     {% endif %}
                                                     {% if bicycle.status.value != 'charging' %}
                                                     <li><a class="dropdown-item" href="{{ path('admin_bicycle_change_status', {'id': bicycle.idBike, 'status': 'charging'}) }}">
-                                                        <i class="ti ti-bolt text-info me-2"></i>Send to Charging
+                                                        <i class="fas fa-bolt text-info me-2"></i>Send to Charging
                                                     </a></li>
                                                     {% endif %}
                                                 </ul>
@@ -387,7 +706,7 @@
                                             <li><hr class="dropdown-divider"></li>
                                             <li>
                                                 <button class="dropdown-item text-danger delete-bicycle" type="button" data-bicycle-id="{{ bicycle.idBike }}">
-                                                    <i class="ti ti-trash me-2"></i> Delete Bicycle
+                                                    <i class="fas fa-trash me-2"></i> Delete Bicycle
                                                 </button>
                                             </li>
                                         </ul>
@@ -401,32 +720,14 @@
         </div>
     {% else %}
         <div class="alert alert-info">
-            <i class="ti ti-info-circle me-2"></i> No bicycles found.
+            <i class="fas fa-info-circle me-2"></i> No bicycles found.
         </div>
     {% endif %}
     
-    <!-- Pagination for bicycles -->
-    {% if bicycles is defined and bicycles.getTotalItemCount is defined and bicycles.getTotalItemCount > 0 %}
-        <div class="pagination-wrapper py-3 bg-light border-top">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="pagination-info">
-                    Showing {{ bicycles.items|length }} of {{ bicycles.getTotalItemCount }} bicycles
-                </div>
-                <div class="pagination-modern">
-                    {{ knp_pagination_render(bicycles, 'back-office/bicycle/bicycle-pagination.html.twig') }}
-                </div>
-                <div class="pagination-per-page">
-                    <label for="perPageSelectBicycles">Items per page:</label>
-                    <select id="perPageSelectBicycles" name="perPage" class="form-select form-select-sm">
-                        <option value="10" {{ app.request.query.get('perPage') == '10' or app.request.query.get('perPage') == null ? 'selected' : '' }}>10</option>
-                        <option value="25" {{ app.request.query.get('perPage') == '25' ? 'selected' : '' }}>25</option>
-                        <option value="50" {{ app.request.query.get('perPage') == '50' ? 'selected' : '' }}>50</option>
-                        <option value="100" {{ app.request.query.get('perPage') == '100' ? 'selected' : '' }}>100</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-    {% endif %}
+    <!-- Pagination -->
+    <div class="d-flex justify-content-center mt-4">
+        {{ knp_pagination_render(bicycles, 'back-office/bicycle/ajax-pagination.html.twig') }}
+    </div>
 </div>
 
 <!-- Add Bicycle Modal -->
@@ -435,7 +736,7 @@
         <div class="modal-content">
             <div class="modal-header bg-gradient-primary-to-secondary text-white">
                 <h5 class="modal-title" id="addBicycleModalLabel">
-                    <i class="ti ti-plus me-2"></i>Add New Bicycle
+                    <i class="fas fa-plus me-2"></i>Add New Bicycle
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -446,6 +747,7 @@
     'action': path('admin_bicycle_add'), 
     'method': 'POST'
 }) }}
+
 
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -459,7 +761,7 @@
                                             'max': '100'
                                         }
                                     }) }}
-                                    <span class="input-group-text"><i class="ti ti-battery-3"></i></span>
+                                    <span class="input-group-text"><i class="fas fa-battery-half"></i></span>
                                     {{ form_errors(addBicycleForm.battery_level, {'attr': {'class': 'invalid-feedback'}}) }}
                                 </div>
                             </div>
@@ -473,7 +775,7 @@
                                             'class': 'form-control' ~ (addBicycleForm.range_km.vars.valid ? '' : ' is-invalid')
                                         }
                                     }) }}
-                                    <span class="input-group-text"><i class="ti ti-route"></i></span>
+                                    <span class="input-group-text"><i class="fas fa-route"></i></span>
                                     {{ form_errors(addBicycleForm.range_km, {'attr': {'class': 'invalid-feedback'}}) }}
                                 </div>
                             </div>
@@ -514,16 +816,16 @@
                     </div>
                     <div class="mt-4">
                         <button type="submit" class="btn btn-primary">
-                            <i class="ti ti-device-floppy me-1"></i> Save Bicycle
+                            <i class="fas fa-save me-1"></i> Save Bicycle
                         </button>
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                            <i class="ti ti-x me-1"></i> Cancel
+                            <i class="fas fa-times me-1"></i> Cancel
                         </button>
                     </div>
                 {{ form_end(addBicycleForm) }}
                 {% else %}
                 <div class="alert alert-info">
-                    <i class="ti ti-info-circle me-2"></i> Form is not available. Please reload the page or contact support.
+                    <i class="fas fa-info-circle me-2"></i> Form is not available. Please reload the page or contact support.
                 </div>
                 {% endif %}
             </div>
@@ -537,7 +839,7 @@
         <div class="modal-content">
             <div class="modal-header bg-gradient-primary-to-secondary text-white">
                 <h5 class="modal-title" id="editBicycleModalLabel">
-                    <i class="ti ti-edit me-2"></i>Edit Bicycle
+                    <i class="fas fa-edit me-2"></i>Edit Bicycle
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -557,7 +859,7 @@
                                             'max': '100'
                                         }
                                     }) }}
-                                    <span class="input-group-text"><i class="ti ti-battery-3"></i></span>
+                                    <span class="input-group-text"><i class="fas fa-battery-half"></i></span>
                                     {{ form_errors(editBicycleForm.battery_level, {'attr': {'class': 'invalid-feedback'}}) }}
                                 </div>
                             </div>
@@ -571,7 +873,7 @@
                                             'class': 'form-control' ~ (editBicycleForm.range_km.vars.valid ? '' : ' is-invalid')
                                         }
                                     }) }}
-                                    <span class="input-group-text"><i class="ti ti-route"></i></span>
+                                    <span class="input-group-text"><i class="fas fa-route"></i></span>
                                     {{ form_errors(editBicycleForm.range_km, {'attr': {'class': 'invalid-feedback'}}) }}
                                 </div>
                             </div>
@@ -612,10 +914,10 @@
                     </div>
                     <div class="mt-4">
                         <button type="submit" class="btn btn-primary">
-                            <i class="ti ti-device-floppy me-1"></i> Update Bicycle
+                            <i class="fas fa-save me-1"></i> Update Bicycle
                         </button>
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                            <i class="ti ti-x me-1"></i> Cancel
+                            <i class="fas fa-times me-1"></i> Cancel
                         </button>
                     </div>
                 {{ form_end(editBicycleForm) }}
@@ -630,14 +932,14 @@
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title" id="deleteBicycleModalLabel">
-                    <i class="ti ti-trash me-2"></i>Delete Bicycle
+                    <i class="fas fa-trash me-2"></i>Delete Bicycle
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="text-center mb-3 bicycle-preview">
                     <div class="bicycle-icon-container mx-auto mb-3">
-                        <i class="ti ti-bike" style="font-size: 32px;"></i>
+                        <i class="fas fa-bicycle" style="font-size: 32px;"></i>
                     </div>
                     <h5>Bicycle #<span id="deleteBicycleId"></span></h5>
                 </div>
@@ -668,7 +970,7 @@
                 </div>
                 
                 <div class="alert alert-danger">
-                    <i class="ti ti-alert-triangle me-2"></i>
+                    <i class="fas fa-exclamation-triangle me-2"></i>
                     <span><strong>Warning:</strong> This action cannot be undone and will permanently remove this bicycle from your fleet.</span>
                 </div>
                 
@@ -684,7 +986,7 @@
                 <form action="{{ path('admin_bicycle_delete') }}" method="POST">
                     <input type="hidden" name="bicycleId" id="deleteBicycleIdInput">
                     <button type="submit" id="deleteBicycleBtn" class="btn btn-danger" disabled>
-                        <i class="ti ti-trash me-1"></i> Delete Bicycle
+                        <i class="fas fa-trash me-1"></i> Delete Bicycle
                     </button>
                 </form>
             </div>
@@ -698,7 +1000,7 @@
         <div class="modal-content">
             <div class="modal-header bg-gradient-primary-to-secondary text-white">
                 <h5 class="modal-title" id="stationAssignModalLabel">
-                    <i class="ti ti-map-pin-plus me-2"></i>Assign Bicycles to Station
+                    <i class="fas fa-map-marker-alt me-2"></i>Assign Bicycles to Station
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -735,7 +1037,7 @@
                         <div class="col-12 mt-3">
                             <div class="card bg-light border">
                                 <div class="card-body">
-                                    <h6 class="mb-3"><i class="ti ti-info-circle me-2"></i>Station Information</h6>
+                                    <h6 class="mb-3"><i class="fas fa-info-circle me-2"></i>Station Information</h6>
                                     <div id="stationInfo" class="d-flex align-items-center">
                                         <div id="stationCapacityVisual" class="me-3" style="height: 50px; width: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; background-color: rgba(13, 110, 253, 0.1); color: #0d6efd;">
                                             --
@@ -743,8 +1045,8 @@
                                         <div>
                                             <div id="stationName" class="fw-bold mb-1">Please select a station</div>
                                             <div class="d-flex align-items-center text-muted small">
-                                                <div class="me-3"><i class="ti ti-bike me-1"></i>Capacity: <span id="stationCapacity">--</span></div>
-                                                <div><i class="ti ti-check me-1"></i>Available: <span id="stationAvailable">--</span></div>
+                                                <div class="me-3"><i class="fas fa-bicycle me-1"></i>Capacity: <span id="stationCapacity">--</span></div>
+                                                <div><i class="fas fa-check me-1"></i>Available: <span id="stationAvailable">--</span></div>
                                             </div>
                                         </div>
                                     </div>
@@ -754,16 +1056,16 @@
                     </div>
                     <div class="mt-4">
                         <button type="submit" class="btn btn-primary">
-                            <i class="ti ti-device-floppy me-1"></i> Assign Bicycles
+                            <i class="fas fa-save me-1"></i> Assign Bicycles
                         </button>
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                            <i class="ti ti-x me-1"></i> Cancel
+                            <i class="fas fa-times me-1"></i> Cancel
                         </button>
                     </div>
                 {{ form_end(stationAssignForm) }}
                 {% else %}
                 <div class="alert alert-info">
-                    <i class="ti ti-info-circle me-2"></i> Station assignment form is not available. Please reload the page or contact support.
+                    <i class="fas fa-info-circle me-2"></i> Station assignment form is not available. Please reload the page or contact support.
                 </div>
                 {% endif %}
             </div>
@@ -777,7 +1079,7 @@
         <div class="modal-content">
             <div class="modal-header bg-warning text-dark">
                 <h5 class="modal-title" id="scheduleMaintenanceLabel">
-                    <i class="ti ti-tool me-2"></i>Schedule Maintenance
+                    <i class="fas fa-tools me-2"></i>Schedule Maintenance
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -819,7 +1121,7 @@
                                             'class': 'form-control' ~ (maintenanceForm.scheduledDate.vars.valid ? '' : ' is-invalid')
                                         }
                                     }) }}
-                                    <span class="input-group-text"><i class="ti ti-calendar"></i></span>
+                                    <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
                                     {{ form_errors(maintenanceForm.scheduledDate, {'attr': {'class': 'invalid-feedback'}}) }}
                                 </div>
                             </div>
@@ -850,16 +1152,16 @@
                     </div>
                     <div class="mt-4">
                         <button type="submit" class="btn btn-warning text-dark">
-                            <i class="ti ti-tool me-1"></i> Schedule Maintenance
+                            <i class="fas fa-tools me-1"></i> Schedule Maintenance
                         </button>
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                            <i class="ti ti-x me-1"></i> Cancel
+                            <i class="fas fa-times me-1"></i> Cancel
                         </button>
                     </div>
                 {{ form_end(maintenanceForm) }}
                 {% else %}
                 <div class="alert alert-info">
-                    <i class="ti ti-info-circle me-2"></i> Maintenance form is not available. Please reload the page or contact support.
+                    <i class="fas fa-info-circle me-2"></i> Maintenance form is not available. Please reload the page or contact support.
                 </div>
                 {% endif %}
             </div>
@@ -872,732 +1174,3 @@
     <input type="hidden" id="statusChangeBicycleId" name="bicycleId">
     <input type="hidden" id="statusChangeValue" name="status">
 </form>
-
-<style>
-    /* Enhanced Visual Styling */
-    .bicycles-dashboard {
-        position: relative;
-    }
-    
-    /* Hero section with gradient */
-    .bg-gradient-primary-to-secondary {
-        background: linear-gradient(135deg, #5a75ff 0%, #8c5fff 100%);
-    }
-    
-    .bg-gradient-dark {
-        background: linear-gradient(135deg, #343a40 0%, #212529 100%);
-    }
-    
-    /* Card hover effects */
-    .hover-card {
-        transition: all 0.3s ease-in-out;
-        border-left-width: 4px;
-    }
-    
-    .shadow-hover:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
-    }
-    
-    /* Animation effects */
-    .pulse-animation {
-        animation: pulse 2s infinite;
-    }
-    
-    .pulse-danger {
-        animation: pulseDanger 1.5s infinite;
-    }
-    
-    @keyframes pulse {
-        0% { opacity: 1; }
-        50% { opacity: 0.7; }
-        100% { opacity: 1; }
-    }
-    
-    @keyframes pulseDanger {
-        0% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.8; transform: scale(1.05); }
-        100% { opacity: 1; transform: scale(1); }
-    }
-    
-    /* Battery Status Circles */
-    .battery-status-circle {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-    }
-    
-    .battery-status-circle i {
-        font-size: 32px;
-        margin-bottom: 5px;
-    }
-    
-    .battery-percentage {
-        font-size: 12px;
-        font-weight: 500;
-    }
-    
-    /* Battery Progress Bar */
-    .battery-progress {
-        display: flex;
-        height: 8px;
-        overflow: hidden;
-    }
-    
-    .battery-segment {
-        height: 100%;
-        transition: width 0.5s ease;
-    }
-    
-    /* Form Enhancements */
-    .filter-form .form-floating label {
-        color: #6c757d;
-    }
-    
-    .filter-form .form-floating .form-select:focus + label,
-    .filter-form .form-floating .form-select:not(:placeholder-shown) + label {
-        opacity: 0.85;
-        transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
-    }
-    
-    /* Quick Action Buttons */
-    .quick-action-buttons {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
-    
-    .quick-action-btn {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 15px;
-        border-radius: 8px;
-        border: none;
-        background-color: #f8f9fa;
-        transition: all 0.2s ease;
-    }
-    
-    .quick-action-btn:hover {
-        transform: translateY(-3px);
-    }
-    
-    .quick-action-btn .icon-wrapper {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 8px;
-    }
-    
-    .quick-action-btn i {
-        font-size: 24px;
-    }
-    
-    .quick-action-btn span {
-        font-size: 14px;
-        font-weight: 500;
-        text-align: center;
-    }
-    
-    .btn-add .icon-wrapper {
-        background-color: rgba(25, 135, 84, 0.1);
-        color: #198754;
-    }
-    
-    .btn-add:hover {
-        background-color: rgba(25, 135, 84, 0.1);
-    }
-    
-    .btn-assign .icon-wrapper {
-        background-color: rgba(13, 110, 253, 0.1);
-        color: #0d6efd;
-    }
-    
-    .btn-assign:hover {
-        background-color: rgba(13, 110, 253, 0.1);
-    }
-    
-    .btn-maintenance .icon-wrapper {
-        background-color: rgba(255, 193, 7, 0.1);
-        color: #ffc107;
-    }
-    
-    .btn-maintenance:hover {
-        background-color: rgba(255, 193, 7, 0.1);
-    }
-    
-    .btn-battery .icon-wrapper {
-        background-color: rgba(220, 53, 69, 0.1);
-        color: #dc3545;
-    }
-    
-    .btn-battery:hover {
-        background-color: rgba(220, 53, 69, 0.1);
-    }
-
-    /* Empty State Styling */
-    .empty-state {
-        padding: 3rem 1rem;
-    }
-    
-    .empty-state-icon {
-        font-size: 5rem;
-        color: #dee2e6;
-    }
-    
-    /* Bicycle Card Styling */
-    .bicycle-avatar {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .bicycle-detail-item {
-        display: flex;
-        align-items: center;
-        margin-bottom: 10px;
-        padding: 8px;
-        background-color: #f8f9fa;
-        border-radius: 6px;
-    }
-    
-    .detail-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background-color: rgba(13, 110, 253, 0.1);
-        color: #0d6efd;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 10px;
-    }
-    
-    .detail-content {
-        flex: 1;
-    }
-    
-    .detail-label {
-        display: block;
-        font-size: 12px;
-        color: #6c757d;
-    }
-    
-    .detail-value {
-        font-weight: 500;
-        color: #212529;
-    }
-    
-    /* Battery Indicator */
-    .battery-indicator-wrapper {
-        margin: 15px 0;
-    }
-    
-    .battery-visual {
-        height: 10px;
-        background-color: rgba(0, 0, 0, 0.05);
-        border-radius: 5px;
-        overflow: hidden;
-    }
-    
-    .battery-level {
-        height: 100%;
-        transition: width 0.5s ease;
-    }
-    
-    .battery-value {
-        font-weight: 600;
-    }
-    
-    /* Status Pills */
-    .status-pill {
-        display: inline-flex;
-        align-items: center;
-        border-radius: 20px;
-        padding: 8px 16px;
-        font-weight: 600;
-        font-size: 14px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        background-color: white;
-    }
-    
-    .status-pill .status-icon {
-        margin-right: 6px;
-    }
-    
-    .status-available {
-        background-color: rgba(25, 135, 84, 0.1);
-        color: #198754;
-    }
-    
-    .status-in-use {
-        background-color: rgba(13, 110, 253, 0.1);
-        color: #0d6efd;
-    }
-    
-    .status-maintenance {
-        background-color: rgba(255, 193, 7, 0.1);
-        color: #ffc107;
-    }
-    
-    .status-charging {
-        background-color: rgba(13, 202, 240, 0.1);
-        color: #0dcaf0;
-    }
-    
-    .status-reserved {
-        background-color: rgba(108, 117, 125, 0.1);
-        color: #6c757d;
-    }
-    
-    .status-pill-small {
-        display: inline-flex;
-        align-items: center;
-        border-radius: 20px;
-        padding: 5px 10px;
-        font-weight: 500;
-        font-size: 12px;
-    }
-    
-    /* Table Styling */
-    .bicycle-table-wrapper {
-        border-radius: 0.25rem;
-        overflow: hidden;
-    }
-    
-    .bicycle-table thead th {
-        background-color: #f8f9fa;
-        border-bottom: 2px solid #dee2e6;
-        padding: 0.75rem 1rem;
-        font-weight: 600;
-        color: #495057;
-    }
-    
-    .bicycle-mini-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .bicycle-row {
-        transition: all 0.15s ease-in-out;
-    }
-    
-    .bicycle-row:hover {
-        background-color: rgba(13, 110, 253, 0.05) !important;
-    }
-    
-    .bicycle-table .action-buttons {
-        white-space: nowrap;
-    }
-    
-    /* Small Battery Indicator */
-    .battery-indicator {
-        width: 60px;
-        height: 8px;
-        border-radius: 4px;
-        background-color: rgba(0, 0, 0, 0.05);
-        overflow: hidden;
-    }
-    
-    .battery-level-small {
-        height: 100%;
-        transition: width 0.5s ease;
-    }
-    
-    /* Fade-in Animation for Rows */
-    .fade-in-row {
-        opacity: 0;
-        animation: fadeIn 0.5s ease-in-out forwards;
-    }
-    
-    @keyframes fadeIn {
-        0% { opacity: 0; transform: translateY(10px); }
-        100% { opacity: 1; transform: translateY(0); }
-    }
-    
-    /* Modern Pagination */
-    .pagination-modern {
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        border-radius: 30px;
-        overflow: hidden;
-        background-color: white;
-        display: inline-flex;
-    }
-    
-    .pagination-modern .page-link {
-        border: none;
-        color: #495057;
-        padding: 0.5rem 0.75rem;
-        min-width: 36px;
-        text-align: center;
-        font-weight: 500;
-    }
-    
-    .pagination-modern .page-item.active .page-link {
-        background-color: #0d6efd;
-        color: white;
-    }
-    
-    /* Dropdown submenu */
-    .dropdown-submenu {
-        position: relative;
-    }
-    .dropdown-submenu .dropdown-menu {
-        top: 0;
-        left: 100%;
-        margin-top: -1px;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-        z-index: 1060; /* Ensure dropdowns appear above modals */
-    }
-
-    /* Fix dropdowns inside modals */
-    .modal .dropdown-menu {
-        z-index: 1070;
-        max-height: 300px;
-        overflow-y: auto;
-    }
-</style>
-{% block stylesheets %}
-    {# Keep your existing stylesheets #}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.40.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-{% endblock %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize modals
-    const deleteBicycleModal = document.getElementById('deleteBicycleModal');
-    if (deleteBicycleModal) {
-        const bsDeleteModal = new bootstrap.Modal(deleteBicycleModal, {
-            backdrop: 'static'
-        });
-        
-        // Set up delete bicycle button handlers
-        document.querySelectorAll('.delete-bicycle').forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                const bicycleId = this.dataset.bicycleId;
-                document.getElementById('deleteBicycleId').textContent = bicycleId;
-                document.getElementById('deleteBicycleIdInput').value = bicycleId;
-                
-                // Show loading state
-                document.getElementById('deleteBicycleType').innerHTML = '<i class="ti ti-loader ti-spin"></i>';
-                document.getElementById('deleteBicycleBattery').innerHTML = '<i class="ti ti-loader ti-spin"></i>';
-                document.getElementById('deleteBicycleRange').innerHTML = '<i class="ti ti-loader ti-spin"></i>';
-                document.getElementById('deleteBicycleStatus').innerHTML = '<i class="ti ti-loader ti-spin"></i>';
-                document.getElementById('deleteBicycleStation').innerHTML = '<i class="ti ti-loader ti-spin"></i>';
-                
-                // Fetch bicycle details for preview
-                let url = '{{ path("admin_bicycle_data", {"id": "__bicycleId__"})|escape("js") }}';
-                // Replace the placeholder with the actual bicycleId
-                url = url.replace('__bicycleId__', bicycleId);
-                
-                fetch(url)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok: ' + response.status);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        // Set bicycle type with appropriate icon based on battery level
-                        const isHighBattery = data.batteryLevel > 90;
-                        document.getElementById('deleteBicycleType').innerHTML = 
-                            `<i class="ti ti-${isHighBattery ? 'star' : 'bike'} text-${isHighBattery ? 'success' : 'primary'} me-1"></i>
-                            ${isHighBattery ? 'Premium E-Bike' : 'Standard E-Bike'}`;
-                        
-                        // Set battery level with color coding
-                        let batteryColor = 'success';
-                        if (data.batteryLevel < 25) batteryColor = 'danger';
-                        else if (data.batteryLevel < 50) batteryColor = 'warning';
-                        else if (data.batteryLevel < 90) batteryColor = 'primary';
-                        
-                        document.getElementById('deleteBicycleBattery').innerHTML = 
-                            `<span class="text-${batteryColor}">${data.batteryLevel}%</span>`;
-                        
-                        // Set range
-                        document.getElementById('deleteBicycleRange').textContent = `${data.rangeKm} km`;
-                        
-                        // Set status with appropriate styling
-                        const statusMap = {
-                            'available': 'success',
-                            'in_use': 'primary',
-                            'maintenance': 'warning',
-                            'charging': 'info',
-                            'reserved': 'secondary'
-                        };
-                        
-                        const statusColor = statusMap[data.status.value] || 'secondary';
-                        const statusLabel = data.status.value.replace('_', ' ').toUpperCase();
-                        document.getElementById('deleteBicycleStatus').innerHTML = 
-                            `<span class="badge bg-${statusColor} bg-opacity-10 text-${statusColor} px-2 py-1">
-                                ${statusLabel}
-                            </span>`;
-                        
-                        // Set station
-                        if (data.bicycleStation) {
-                            document.getElementById('deleteBicycleStation').innerHTML = 
-                                `<i class="ti ti-map-pin text-primary me-1"></i> ${data.bicycleStation.name}`;
-                        } else {
-                            document.getElementById('deleteBicycleStation').innerHTML = 
-                                `<span class="text-muted">No Station Assigned</span>`;
-                        }
-                        
-                        // Change bicycle icon color based on battery
-                        const iconContainer = document.querySelector('.bicycle-preview .bicycle-icon-container');
-                        iconContainer.className = 'bicycle-icon-container mx-auto mb-3';
-                        iconContainer.classList.add(`bg-${batteryColor}-subtle`);
-                        
-                        const bicycleIcon = iconContainer.querySelector('i');
-                        bicycleIcon.className = `ti ti-bike text-${batteryColor}`;
-                        bicycleIcon.style.fontSize = '32px';
-                    })
-                    .catch(error => {
-                        console.error('Error fetching bicycle data:', error);
-                        document.getElementById('deleteBicycleType').textContent = 'Error loading data';
-                        document.getElementById('deleteBicycleBattery').textContent = 'Error loading data';
-                        document.getElementById('deleteBicycleRange').textContent = 'Error loading data';
-                        document.getElementById('deleteBicycleStatus').textContent = 'Error loading data';
-                        document.getElementById('deleteBicycleStation').textContent = 'Error loading data';
-                    });
-                
-                bsDeleteModal.show();
-            });
-        });
-        
-        // Enable delete button only when checkbox is checked
-        const confirmCheckbox = document.getElementById('confirmBicycleDelete');
-        const deleteButton = document.getElementById('deleteBicycleBtn');
-        confirmCheckbox.addEventListener('change', function() {
-            deleteButton.disabled = !this.checked;
-        });
-    }
-    
-    // Set up status change handlers
-    document.querySelectorAll('.status-change').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const bicycleId = this.dataset.bicycleId;
-            const status = this.dataset.status;
-            
-            document.getElementById('statusChangeBicycleId').value = bicycleId;
-            document.getElementById('statusChangeValue').value = status;
-            document.getElementById('bicycleStatusForm').submit();
-        });
-    });
-    
-    // Edit bicycle modal data population
-    document.querySelectorAll('[data-bs-target="#editBicycleModal"]').forEach(button => {
-        button.addEventListener('click', function() {
-            const bicycleId = this.dataset.bicycleId;
-            populateEditForm(bicycleId);
-        });
-    });
-    
-    function populateEditForm(bicycleId) {
-        // Use the Twig-generated URL with a placeholder that we'll replace
-        let url = '{{ path("admin_bicycle_data", {"id": "__bicycleId__"})|escape("js") }}';
-        // Replace the placeholder with the actual bicycle ID
-        url = url.replace('__bicycleId__', bicycleId);
-        
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                console.log('Bicycle data received:', data);
-                document.querySelector('#editBicycleForm .bicycle-id-field').value = data.idBike;
-                
-                const formAction = '{{ path('admin_bicycle_edit', {'id': 'bicycleId'}) }}'.replace('bicycleId', data.idBike);
-                document.getElementById('editBicycleForm').setAttribute('action', formAction);
-                
-                // Battery level
-                const batteryField = document.querySelector('#editBicycleForm [name*="[battery_level]"]');
-                if (batteryField && data.batteryLevel !== undefined) batteryField.value = data.batteryLevel;
-                
-                // Range
-                const rangeField = document.querySelector('#editBicycleForm [name*="[range_km]"]');
-                if (rangeField && data.rangeKm !== undefined) rangeField.value = data.rangeKm;
-                
-                // Status
-                const statusField = document.querySelector('#editBicycleForm [name*="[status]"]');
-                if (statusField && data.status) {
-                    Array.from(statusField.options).forEach(option => {
-                        option.selected = option.value === data.status.value;
-                    });
-                }
-                
-                // Station
-                const stationField = document.querySelector('#editBicycleForm [name*="[bicycleStation]"]');
-                if (stationField) {
-                    // Check if data.stationId exists and is not null
-                    if (data.stationId !== null && data.stationId !== undefined) {
-                        // Set the value of the select element directly using data.stationId
-                        stationField.value = data.stationId;
-                    } else {
-                        // If no station ID is provided, select the placeholder/empty option.
-                        stationField.value = ""; 
-                    }
-                }
-                
-                // Last updated
-                const lastUpdatedField = document.querySelector('#editBicycleForm [name*="[last_updated]"]');
-                if (lastUpdatedField && data.lastUpdated) {
-                    const date = new Date(data.lastUpdated);
-                    const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-                    lastUpdatedField.value = formattedDate;
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching bicycle data:', error);
-                alert('Could not load bicycle data. Please try again.');
-            });
-    }
-    
-    // Station assignment functionality
-    function setupStationAssignment() {
-        const stationSelect = document.querySelector('#stationAssignForm [name*="[station]"]');
-        if (!stationSelect) return;
-        
-        stationSelect.addEventListener('change', function() {
-            const stationId = this.value;
-            if (!stationId) {
-                document.getElementById('stationName').textContent = 'Please select a station';
-                document.getElementById('stationCapacity').textContent = '--';
-                document.getElementById('stationAvailable').textContent = '--';
-                document.getElementById('stationCapacityVisual').textContent = '--';
-                document.getElementById('stationCapacityVisual').style.backgroundColor = 'rgba(13, 110, 253, 0.1)';
-                document.getElementById('stationCapacityVisual').style.color = '#0d6efd';
-                return;
-            }
-            
-            fetch(`/admin/station/${stationId}/capacity`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('stationName').textContent = data.name;
-                    document.getElementById('stationCapacity').textContent = data.capacity;
-                    document.getElementById('stationAvailable').textContent = data.available;
-                    const capacityPercentage = (data.available / data.capacity) * 100;
-                    document.getElementById('stationCapacityVisual').textContent = Math.round(capacityPercentage) + '%';
-                    
-                    // Update visual indicator based on capacity
-                    if (capacityPercentage < 20) {
-                        document.getElementById('stationCapacityVisual').style.backgroundColor = 'rgba(220, 53, 69, 0.1)';
-                        document.getElementById('stationCapacityVisual').style.color = '#dc3545';
-                    } else if (capacityPercentage < 50) {
-                        document.getElementById('stationCapacityVisual').style.backgroundColor = 'rgba(255, 193, 7, 0.1)';
-                        document.getElementById('stationCapacityVisual').style.color = '#ffc107';
-                    } else {
-                        document.getElementById('stationCapacityVisual').style.backgroundColor = 'rgba(25, 135, 84, 0.1)';
-                        document.getElementById('stationCapacityVisual').style.color = '#198754';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching station data:', error);
-                });
-        });
-    }
-    
-    // Initialize Select2 for multiple select boxes if available
-    if (typeof $.fn !== 'undefined' && typeof $.fn.select2 !== 'undefined') {
-        $('.form-select[multiple]').select2({
-            theme: 'bootstrap-5',
-            width: '100%'
-        });
-    }
-    
-    // Initialize datepicker if available
-    if (typeof $.fn !== 'undefined' && typeof $.fn.datepicker !== 'undefined') {
-        $('input[name*="[scheduledDate]"]').datepicker({
-            format: 'yyyy-mm-dd',
-            autoclose: true,
-            todayHighlight: true
-        });
-    }
-    
-    // Initialize other functions
-    setupStationAssignment();
-    initSearchFunctionality();
-    setupDropdownMenus();
-    
-    function initSearchFunctionality() {
-        const searchInput = document.getElementById('bicycleSearch');
-        if (!searchInput) return;
-        
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const tableRows = document.querySelectorAll('#bicyclesTable tbody tr');
-            const gridCards = document.querySelectorAll('.bicycle-card-wrapper');
-            
-            if (tableRows.length > 0) {
-                tableRows.forEach(row => {
-                    const text = row.textContent.toLowerCase();
-                    row.style.display = text.includes(searchTerm) ? '' : 'none';
-                });
-            } else if (gridCards.length > 0) {
-                gridCards.forEach(card => {
-                    const text = card.textContent.toLowerCase();
-                    card.style.display = text.includes(searchTerm) ? '' : 'none';
-                });
-            }
-        });
-    }
-    
-    function setupDropdownMenus() {
-        const dropdownSubmenus = document.querySelectorAll('.dropdown-submenu > a');
-        dropdownSubmenus.forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const submenu = this.nextElementSibling;
-                if (!submenu) return;
-                
-                const isOpen = submenu.classList.contains('show');
-                // Close other open submenus
-                document.querySelectorAll('.dropdown-submenu .dropdown-menu.show').forEach(menu => {
-                    menu.classList.remove('show');
-                });
-                
-                if (!isOpen) {
-                    submenu.classList.add('show');
-                    // Position the submenu
-                    const rect = this.getBoundingClientRect();
-                    const windowWidth = window.innerWidth;
-                    const menuWidth = 200;
-                    
-                    if (rect.right + menuWidth > windowWidth) {
-                        submenu.style.left = 'auto';
-                        submenu.style.right = '100%';
-                    } else {
-                        submenu.style.left = '100%';
-                        submenu.style.right = 'auto';
-                    }
-                    submenu.style.top = '0';
-                }
-            });
-        });
-        
-        // Close submenus when clicking outside
-        document.addEventListener('click', function(event) {
-            if (!event.target.closest('.dropdown-menu')) {
-                document.querySelectorAll('.dropdown-submenu .dropdown-menu.show').forEach(menu => {
-                    menu.classList.remove('show');
-                });
-            }
-        });
-    }
-});
-</script>

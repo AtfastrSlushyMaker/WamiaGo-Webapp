@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller\Admin;
+namespace App\Controller\Admin\Bicycle;
 
 use App\Entity\BicycleRental;
 use App\Entity\BicycleStation;
@@ -51,8 +51,6 @@ class StationAdminController extends AbstractController
         $this->logger = $logger;
         $this->paginator = $paginator;
     }
-
-    
 
     #[Route('/station/new', name: 'admin_bicycle_station_new', methods: ['POST'])]
     public function newStation(Request $request, ValidatorInterface $validator): JsonResponse

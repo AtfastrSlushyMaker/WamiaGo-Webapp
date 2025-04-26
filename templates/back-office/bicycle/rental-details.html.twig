@@ -51,7 +51,7 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0 p-3">
                         <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_rentals') }}" class="text-decoration-none"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a></li>
-                        <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_rentals_index') }}" class="text-decoration-none"><i class="fas fa-list me-1"></i>Rentals</a></li>
+                        <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_rentals', {tab:"rentals"}) }}" class="text-decoration-none"><i class="fas fa-list me-1"></i>Rentals</a></li>
                         <li class="breadcrumb-item active fw-semibold" aria-current="page">Rental B{{ '%05d'|format(rental.idUserRental) }}</li>
                     </ol>
                 </nav>

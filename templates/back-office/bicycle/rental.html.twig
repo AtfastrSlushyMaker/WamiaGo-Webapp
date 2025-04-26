@@ -1,13 +1,16 @@
 {% block stylesheets %}
 <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 <style>
+    /* Blue Theme for Rental Management */
+    
     /* Main Banner Styles */
     .bicycle-fleet-banner {
         background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
         color: white;
         padding: 2rem;
         border-radius: 0.75rem;
-        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+        box-shadow: 0 0.5rem 1.5rem rgba(13, 110, 253, 0.15);
         margin-bottom: 2rem;
         overflow: hidden;
         position: relative;
@@ -23,36 +26,26 @@
         height: 300px;
         background: rgba(255, 255, 255, 0.1);
         border-radius: 50%;
-        pointer-events: none;
     }
 
-    .bicycle-fleet-banner::after {
-        content: "";
-        position: absolute;
-        bottom: -30%;
-        left: -5%;
-        width: 200px;
-        height: 200px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        pointer-events: none;
+    .bicycle-fleet-banner:hover {
+        transform: scale(1.01);
     }
 
     .banner-icon {
-        width: 5rem;
-        height: 5rem;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 1.25rem;
+        width: 80px;
+        height: 80px;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 2.5rem;
-        margin-right: 1.5rem;
-        box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
-        transition: transform 0.3s ease;
+        font-size: 36px;
+        margin-right: 2rem;
+        transition: all 0.3s ease;
     }
-    
-    .bicycle-fleet-banner:hover .banner-icon {
+
+    .banner-icon:hover {
         transform: scale(1.05) rotate(5deg);
     }
 
@@ -88,39 +81,33 @@
     .stat-card::after {
         content: "";
         position: absolute;
-        top: 0;
+        bottom: 0;
         left: 0;
         width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
-        pointer-events: none;
+        height: 4px;
+        background: linear-gradient(90deg, #0d6efd, #0a58ca);
     }
 
     .stat-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.12);
+        box-shadow: 0 0.5rem 1.5rem rgba(13, 110, 253, 0.15);
     }
 
     .stat-card-body {
-        display: flex;
-        align-items: center;
-        padding: 1.75rem;
+        padding: 1.5rem;
+        position: relative;
+        overflow: hidden;
     }
 
     .stat-card-icon {
-        width: 3.75rem;
-        height: 3.75rem;
-        border-radius: 1rem;
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.75rem;
-        margin-right: 1.25rem;
-        transition: transform 0.3s ease;
-    }
-    
-    .stat-card:hover .stat-card-icon {
-        transform: scale(1.1);
+        font-size: 1.5rem;
+        margin-right: 1rem;
     }
 
     .stat-card-info {
@@ -128,286 +115,92 @@
     }
 
     .stat-card-title {
-        font-size: 0.95rem;
-        font-weight: 500;
-        color: #6c757d;
-        margin-bottom: 0.25rem;
+        font-size: 0.875rem;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.05rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
     }
 
     .stat-card-value {
-        font-size: 2rem;
+        font-size: 1.75rem;
         font-weight: 700;
-        line-height: 1.1;
+        margin-bottom: 0.25rem;
         color: #212529;
     }
-    
+
     .stat-card-trend {
-        font-size: 0.85rem;
-        color: #28a745;
-        display: flex;
-        align-items: center;
-        margin-top: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
     }
-    
+
+    .trend-up {
+        color: #28a745;
+    }
+
     .trend-down {
         color: #dc3545;
     }
 
-    /* Filter Card Enhancements */
+    /* Filter Card */
     .filter-card {
-        margin-bottom: 2rem;
-        border: none;
         border-radius: 1rem;
-        box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
         overflow: hidden;
+        box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
+        border: none;
+        margin-bottom: 2rem;
+        animation-delay: 0.2s;
     }
 
     .filter-card .card-header {
-        background: white;
+        background-color: #f8f9fa;
         border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         padding: 1.25rem 1.5rem;
-    }
-    
-    .filter-card .card-header h5 {
-        margin: 0;
-        display: flex;
-        align-items: center;
-    }
-    
-    .filter-card .card-header h5 i {
-        margin-right: 0.75rem;
-        font-size: 1.25rem;
-        color: #0d6efd;
     }
 
     .filter-card .card-body {
         padding: 1.5rem;
     }
-    
-    .filter-card label.form-label {
-        font-weight: 600;
-        color: #495057;
-        margin-bottom: 0.5rem;
-    }
 
     .form-control, .form-select {
-        border-radius: 0.5rem;
         border-color: #ced4da;
-        padding: 0.6rem 1rem;
-        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        border-radius: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        transition: all 0.2s ease;
     }
 
     .form-control:focus, .form-select:focus {
-        border-color: #86b7fe;
+        border-color: #0d6efd;
         box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
     }
 
-    /* Data Table Improvements */
+    /* Data Card */
     .data-card {
-        border: none;
         border-radius: 1rem;
-        box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
         overflow: hidden;
-        margin-bottom: 2rem;
+        box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
+        border: none;
+        animation-delay: 0.3s;
     }
 
     .data-card .card-header {
-        background: white;
+        background-color: #f8f9fa;
         border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         padding: 1.25rem 1.5rem;
     }
 
-    .datatable {
-        width: 100%;
-        margin-bottom: 0;
-    }
-
-    .datatable th {
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-size: 0.75rem;
-        padding: 1rem 1.25rem;
-        color: #495057;
-        background-color: #f8f9fa;
-        border-bottom: 2px solid #e9ecef;
-    }
-
-    .datatable td {
-        vertical-align: middle;
-        padding: 1rem 1.25rem;
-        border-bottom: 1px solid #e9ecef;
-    }
-    
-    .datatable tr:hover {
-        background-color: rgba(0, 0, 0, 0.02);
-    }
-    
-    /* Highlighted rows for active rentals */
-    .datatable tr.active-rental {
-        background-color: rgba(13, 110, 253, 0.05);
-    }
-    
-    /* Row color variations */
-    .datatable tr.completed-rental {
-        background-color: rgba(40, 167, 69, 0.05);
-    }
-
-    /* Status Badge Styles */
-    .status-badge {
-        padding: 0.4rem 0.75rem;
-        border-radius: 2rem;
-        font-weight: 500;
-        font-size: 0.85rem;
-        display: inline-flex;
-        align-items: center;
-        line-height: 1;
-    }
-    
-    .status-badge i {
-        margin-right: 0.35rem;
-        font-size: 0.75rem;
-    }
-    
-    .status-badge.completed {
-        background-color: rgba(40, 167, 69, 0.15);
-        color: #198754;
-    }
-    
-    .status-badge.active {
-        background-color: rgba(13, 110, 253, 0.15);
-        color: #0d6efd;
-    }
-    
-    .status-badge.reserved {
-        background-color: rgba(255, 193, 7, 0.15);
-        color: #997404;
-    }
-
-    /* Action Button Styles */
-    .btn-action {
-        width: 2.25rem;
-        height: 2.25rem;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 0.5rem;
-        font-size: 0.9rem;
-        margin: 0 0.15rem;
-        transition: all 0.2s;
-    }
-    
-    .btn-action:hover {
-        transform: translateY(-2px);
-    }
-    
-    /* Export Button Group */
-    .export-buttons .btn {
-        border-radius: 0.5rem;
-        padding: 0.4rem 0.75rem;
-        font-weight: 500;
-        font-size: 0.85rem;
-    }
-    
-    /* Empty State Styling */
-    .empty-state {
-        padding: 3rem 0;
-        text-align: center;
-    }
-    
-    .empty-state-icon {
-        width: 5rem;
-        height: 5rem;
-        background: #f8f9fa;
-        border-radius: 50%;
-        margin: 0 auto 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2rem;
-        color: #adb5bd;
-    }
-    
-    /* Pagination Styling */
-    .pagination {
-        margin: 0;
-        padding: 1rem 0;
-    }
-    
-    .pagination .page-item .page-link {
-        margin: 0 0.15rem;
-        border-radius: 0.5rem;
-        color: #0d6efd;
-        padding: 0.5rem 0.85rem;
-        border: none;
-        background-color: #f8f9fa;
-        transition: all 0.2s;
-    }
-    
-    .pagination .page-item.active .page-link {
-        background-color: #0d6efd;
-        color: white;
-        box-shadow: 0 0.25rem 0.5rem rgba(13, 110, 253, 0.25);
-    }
-    
-    .pagination .page-item .page-link:hover {
-        background-color: #e9ecef;
-        transform: translateY(-1px);
-    }
-    
-    /* Confirmation Modal Styling */
-    .modal-content {
-        border: none;
-        border-radius: 1rem;
-        overflow: hidden;
-        box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.15);
-    }
-    
-    .modal-success .modal-header {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        color: white;
-        border: none;
-        padding: 1.25rem 1.5rem;
-    }
-    
-    .modal-danger .modal-header {
-        background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
-        color: white;
-        border: none;
-        padding: 1.25rem 1.5rem;
-    }
-    
-    .modal-primary .modal-header {
-        background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);
-        color: white;
-        border: none;
-        padding: 1.25rem 1.5rem;
-    }
-    
-    .modal-body {
-        padding: 1.75rem;
-    }
-    
-    .modal-footer {
-        border: none;
-        padding: 1rem 1.5rem 1.5rem;
-    }
-
-    /* Custom Buttons */
+    /* Custom Primary Button */
     .btn-custom-primary {
         background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
         border: none;
         color: white;
-        font-weight: 500;
         border-radius: 0.5rem;
-        padding: 0.6rem 1.25rem;
-        transition: all 0.2s;
-        box-shadow: 0 0.25rem 0.5rem rgba(13, 110, 253, 0.25);
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+        box-shadow: 0 0.25rem 0.5rem rgba(13, 110, 253, 0.15);
+        transition: all 0.2s ease;
     }
-    
+
     .btn-custom-primary:hover {
         box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.35);
         transform: translateY(-2px);
@@ -534,25 +327,28 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<!-- Main Header Banner -->
-<div class="bicycle-fleet-banner mb-4 animate__animated animate__fadeIn">
-    <div class="container-fluid">
-        <div class="row align-items-center">
-            <div class="col-auto">
-                <div class="banner-icon">
-                    <i class="fas fa-bicycle"></i>
+{% block body %}
+<!-- Hero Section with New Button -->
+<div class="hero-section mb-4 p-4 text-white rounded-3 shadow-sm" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
+    <div class="row align-items-center">
+        <div class="col-lg-7">
+            <div class="d-flex align-items-center">
+                <div class="tab-icon-container bg-white bg-opacity-25 rounded-circle p-3 me-3">
+                    <i class="fas fa-receipt fa-3x text-white"></i>
+                </div>
+                <div>
+                    <h2 class="fw-bold mb-1">Bicycle Rental Management</h2>
+                    <p class="lead mb-0 opacity-75">View, track and manage all bicycle rentals across the city network</p>
                 </div>
             </div>
-            <div class="col">
-                <h1 class="banner-title">Bicycle Rental Management</h1>
-                <p class="banner-subtitle mb-0">View, track and manage all bicycle rentals across the city network</p>
-            </div>
-            <div class="col-auto">
-                <a href="{{ path('admin_bicycle_rental_new') }}" class="btn btn-light btn-lg">
-                    <i class="fas fa-plus-circle me-2"></i>New Rental
-                </a>
-            </div>
+        </div>
+        <div class="col-lg-5 text-lg-end mt-3 mt-lg-0">
+            <a href="{{ path('admin_bicycle_rental_new') }}" class="btn btn-light btn-lg shadow-sm">
+                <i class="fas fa-plus-circle me-2"></i> New Rental
+            </a>
+            <button class="btn btn-outline-light btn-lg ms-2">
+                <i class="fas fa-file-export me-2"></i> Export Data
+            </button>
         </div>
     </div>
 </div>
@@ -634,7 +430,7 @@
             <h5 class="fw-bold"><i class="fas fa-filter"></i> Search & Filters</h5>
         </div>
         <div class="card-body">
-            <form action="{{ path('admin_bicycle_rentals_index') }}" method="GET" id="rentalFilterForm">
+            <form action="{{ path('admin_bicycle_rentals', {tab:"rentals"}) }}" method="GET" id="rentalFilterForm">
                 <div class="row g-3">
                     <div class="col-lg-3 col-md-6">
                         <label class="form-label">Rental Status</label>
@@ -676,7 +472,7 @@
                         <button type="submit" class="btn-custom-primary">
                             <i class="fas fa-search me-2"></i>Search
                         </button>
-                        <a href="{{ path('admin_bicycle_rentals_index') }}" class="btn btn-outline-secondary">
+                        <a href="{{ path('admin_bicycle_rentals', {tab:"rentals"}) }}" class="btn btn-outline-secondary">
                             <i class="fas fa-redo me-2"></i>Reset Filters
                         </a>
                     </div>
@@ -936,26 +732,10 @@
         {% if rentals|length > 0 %}
             <div class="pagination-wrapper">
                 <div class="d-flex justify-content-between align-items-center">
-                    <div class="pagination-info">
-                        {% if rentals.getTotalItemCount is defined %}
-                            Showing {{ rentals.items|length }} of {{ rentals.getTotalItemCount }} rentals
-                        {% else %}
-                            Showing {{ rentals|length }} rentals
-                        {% endif %}
-                    </div>
                     <div class="pagination-modern">
                         {% if rentals.isPaginationObject is defined or rentals.getTotalItemCount is defined %}
-                            {{ knp_pagination_render(rentals, 'back-office/bicycle/rental-pagination.html.twig') }}
+                            {{ knp_pagination_render(rentals, 'back-office/bicycle/ajax-pagination.html.twig') }}
                         {% endif %}
-                    </div>
-                    <div class="pagination-per-page">
-                        <label for="perPageSelect">Items per page:</label>
-                        <select id="perPageSelect" name="perPage" class="form-select form-select-sm">
-                            <option value="10" {{ app.request.query.get('perPage') == '10' or app.request.query.get('perPage') == null ? 'selected' : '' }}>10</option>
-                            <option value="25" {{ app.request.query.get('perPage') == '25' ? 'selected' : '' }}>25</option>
-                            <option value="50" {{ app.request.query.get('perPage') == '50' ? 'selected' : '' }}>50</option>
-                            <option value="100" {{ app.request.query.get('perPage') == '100' ? 'selected' : '' }}>100</option>
-                        </select>
                     </div>
                 </div>
             </div>
@@ -1041,7 +821,6 @@
 {% endblock %}
 
 {% block javascripts %}
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize tooltips
