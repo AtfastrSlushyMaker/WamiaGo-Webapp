@@ -45,3 +45,7 @@ services:
 
     App\Twig\Extension\ImageExtension:
         tags: ['twig.extension']
+    
+    App\Service\OpenAIService:
+        arguments:
+            $apiKey: '%env(OPENAI_API_KEY)%'

@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Repository\AnnouncementRepository;
 
 use Doctrine\ORM\EntityManagerInterface;
+use App\Service\OpenAIService;
 
 use function PHPUnit\Framework\throwException;
 
@@ -286,6 +287,31 @@ public function update(Request $request, int $id): Response
         'success' => false,
         'message' => 'Invalid form submission'
     ], 400);
+}
+
+#[Route('/generate-content', name: 'app_announcement_generate_content', methods: ['POST'])]
+public function generateContent(Request $request, OpenAIService $openAIService): JsonResponse
+{
+    $userContent = $request->request->get('content', '');
+    
+    // Utilisation du contenu utilisateur tel quel, le service détectera la langue
+    $prompt = $userContent;
+    
+    // Alternative avec langue explicite si préféré:
+    // $language = $request->request->get('language', 'auto');
+    
+    try {
+        $generatedText = $openAIService->generateText($prompt, 'auto');
+        return $this->json([
+            'success' => true,
+            'content' => $generatedText
+        ]);
+    } catch (\Exception $e) {
+        return $this->json([
+            'success' => false,
+            'error' => 'Failed to generate text: ' . $e->getMessage()
+        ], 500);
+    }
 }
     
 }

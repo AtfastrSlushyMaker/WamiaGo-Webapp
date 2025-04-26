@@ -6,6 +6,46 @@
     <link rel="stylesheet" href="{{ asset('css/front/announcement/transporter-create-announcement.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <style>
+                /* Generation button styles */
+        .btn-generate {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(103, 58, 183, 0.2);
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(103, 58, 183, 0.3);
+        }
+
+        .btn-generate:disabled {
+            opacity: 0.7;
+            transform: none;
+        }
+
+        /* Loader styles */
+        .generation-loader {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* Text animation */
+        @keyframes textHighlight {
+            0% { background-color: rgba(167, 119, 227, 0.1); }
+            100% { background-color: transparent; }
+        }
+
+        .text-generated {
+            animation: textHighlight 1s ease-out;
+        }
+
         .voice-recorder {
             background: #fff;
             border-radius: 10px;
@@ -168,6 +208,17 @@
                     }}) }}
                     {{ form_label(form.content) }}
                     <div class="invalid-feedback">{{ form_errors(form.content)|striptags }}</div>
+                    <div class="content-generation-container mb-3">
+    <button type="button" id="generateContentBtn" class="btn btn-primary btn-generate">
+        <i class="fas fa-robot me-2"></i>Generate with AI
+    </button>
+    <div id="generationLoader" class="generation-loader d-none">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <span class="ms-2">Generating content...</span>
+    </div>
+</div>
                 </div>
 
                 <!-- Voice Recorder -->
@@ -262,11 +313,63 @@
     <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+    const generateBtn = document.getElementById('generateContentBtn');
+    const contentField = document.querySelector('#{{ form.content.vars.id }}');
+    const loader = document.getElementById('generationLoader');
+    
+    generateBtn.addEventListener('click', async function() {
+        try {
+            // Show loading state
+            generateBtn.disabled = true;
+            loader.classList.remove('d-none');
+            
+            const response = await fetch('{{ path('app_announcement_generate_content') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({
+                    content: contentField.value
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                contentField.value = data.content;
+                
+                // Show success animation
+                contentField.classList.add('text-generated');
+                setTimeout(() => {
+                    contentField.classList.remove('text-generated');
+                }, 1000);
+            } else {
+                throw new Error(data.error || 'Unknown error');
+            }
+        } catch (error) {
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger mt-3';
+            alert.innerHTML = `
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                ${error.message}
+            `;
+            generateBtn.parentNode.insertBefore(alert, generateBtn.nextSibling);
+            
+            setTimeout(() => alert.remove(), 5000);
+        } finally {
+            generateBtn.disabled = false;
+            loader.classList.add('d-none');
+        }
+    });
+});
+
+        document.addEventListener('DOMContentLoaded', function() {
             let isRecording = false;
             let recognizer = null;
             let startTime = null;
             let timerInterval = null;
-            let accumulatedText = ''; // Store accumulated text
+            let accumulatedText = ''; 
 
             const recordButton = document.getElementById('recordButton');
             const timer = document.getElementById('timer');
