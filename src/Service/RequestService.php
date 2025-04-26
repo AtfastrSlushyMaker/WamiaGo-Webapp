@@ -208,6 +208,10 @@ public function searchRequests(?string $search = null, ?string $status = null, ?
     return $qb->getQuery()->getResult();
 }
 
+public function filterRequestsByStatus(string $status): array
+{
+    return $this->requestRepository->findBy(['status' => $status]);
+}
 
 
 }

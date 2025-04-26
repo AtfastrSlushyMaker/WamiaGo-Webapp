@@ -42,10 +42,10 @@
     
     <select name="status" class="form-control" style="width: 150px; display: inline-block; margin-right: 10px;">
         <option value="">All Statuses</option>
-        <option value="pending" {% if app.request.query.get('status') == 'pending' %}selected{% endif %}>Pending</option>
-        <option value="accepted" {% if app.request.query.get('status') == 'accepted' %}selected{% endif %}>Accepted</option>
-        <option value="completed" {% if app.request.query.get('status') == 'completed' %}selected{% endif %}>Completed</option>
-        <option value="canceled" {% if app.request.query.get('status') == 'canceled' %}selected{% endif %}>Canceled</option>
+        <option value="{{ 'PENDING' }}" {% if app.request.query.get('status') == 'PENDING' %}selected{% endif %}>Pending</option>
+        <option value="{{ 'ACCEPTED' }}" {% if app.request.query.get('status') == 'ACCEPTED' %}selected{% endif %}>Accepted</option>
+        <option value="{{ 'REJECTED' }}" {% if app.request.query.get('status') == 'REJECTED' %}selected{% endif %}>Rejected</option>
+        <option value="{{ 'CANCELED' }}" {% if app.request.query.get('status') == 'CANCELED' %}selected{% endif %}>Canceled</option>
     </select>
     
     {# Preserve pagination state #}

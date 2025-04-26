@@ -49,9 +49,7 @@ class TaxiManagementController extends AbstractController
                        stripos($request->getDepartureLocation()->getAddress(), $search) !== false ||
                        stripos($request->getArrivalLocation()->getAddress(), $search) !== false ||
                        stripos($request->getStatus()->value, $search) !== false ||
-                     
                        stripos($request->getIdRequest(), $search) !== false;
-                       
             });
         }
 
@@ -61,6 +59,20 @@ class TaxiManagementController extends AbstractController
                 return stripos($ride->getRequest()->getUser()->getName(), $search) !== false ||
                        stripos($ride->getRequest()->getDepartureLocation()->getAddress(), $search) !== false ||
                        stripos($ride->getRequest()->getArrivalLocation()->getAddress(), $search) !== false;
+            });
+        }
+
+        // Filter requests by status
+        if ($status) {
+            $availableRequests = array_filter($availableRequests, function ($request) use ($status) {
+                return $request->getStatus()->value === $status;
+            });
+        }
+
+        // Filter rides by status
+        if ($status) {
+            $availableRides = array_filter($availableRides, function ($ride) use ($status) {
+                return $ride->getStatus()->value === $status;
             });
         }
 
