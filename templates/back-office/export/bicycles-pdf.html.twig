@@ -1,0 +1,74 @@
+{% extends 'back-office/export/base-pdf.html.twig' %}
+
+{% block title %}WamiaGo Bicycle Inventory Export{% endblock %}
+{% block report_title %}{{ title }}{% endblock %}
+{% block subtitle %}Bicycle Fleet Inventory{% endblock %}
+{% block body_class %}bicycles{% endblock %}
+
+{% block content %}
+    <div class="stats-section">
+        <h3>Bicycle Fleet Statistics</h3>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value">{{ stats.totalBicycles }}</div>
+                <div class="stat-label">Total Bicycles</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ stats.availableCount }}</div>
+                <div class="stat-label">Available</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ stats.inUseCount }}</div>
+                <div class="stat-label">In Use</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ stats.maintenanceCount }}</div>
+                <div class="stat-label">In Maintenance</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ stats.chargingCount }}</div>
+                <div class="stat-label">Charging</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="charts">
+        <div class="chart">
+            <h3>Battery Status Distribution</h3>
+            <div>
+                <div>Premium (90-100%): {{ batteryDistribution.premium }} bikes</div>
+                <div>Good (60-89%): {{ batteryDistribution.good }} bikes</div>
+                <div>Medium (30-59%): {{ batteryDistribution.medium }} bikes</div>
+                <div>Low (0-29%): {{ batteryDistribution.low }} bikes</div>
+            </div>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Status</th>
+                <th>Battery Level (%)</th>
+                <th>Range (km)</th>
+                <th>Station</th>
+                <th>Last Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bicycle in bicycles %}
+                <tr>
+                    <td>{{ bicycle.getIdBike() }}</td>
+                    <td>
+                        {% set status = bicycle.getStatus().value %}
+                        {{ status|replace({'_': ' '})|capitalize }}
+                    </td>
+                    <td>{{ bicycle.getBatteryLevel() }}%</td>
+                    <td>{{ bicycle.getRangeKm() }}</td>
+                    <td>{{ bicycle.getBicycleStation() ? bicycle.getBicycleStation().getName() : '-' }}</td>
+                    <td>{{ bicycle.getLastUpdated()|date('Y-m-d H:i') }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

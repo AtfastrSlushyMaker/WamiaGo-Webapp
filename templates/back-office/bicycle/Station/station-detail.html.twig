@@ -727,8 +727,14 @@
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#exportDataModal">
-                                    <i class="ti ti-file-export me-2"></i> Export Station Data
+                                <a class="dropdown-item" href="{{ path('admin_bicycle_station_export', app.request.query.all|merge({'format': 'csv'})) }}" target="_blank">
+                                    <i class="ti ti-file-export me-2"></i> Export Station Data to CSV
+                                </a>
+                                <a class="dropdown-item" href="{{ path('admin_bicycle_station_export', app.request.query.all|merge({'format': 'excel'})) }}">
+                                    <i class="ti ti-file-export me-2"></i> Export Station Data to Excel
+                                </a>
+                                <a class="dropdown-item" href="{{ path('admin_bicycle_station_export', app.request.query.all|merge({'format': 'pdf'})) }}">
+                                    <i class="ti ti-file-export me-2"></i> Export Station Data to PDF
                                 </a>
                             </li>
                             <li><hr class="dropdown-divider"></li>
@@ -1740,6 +1746,7 @@
                     stops: [0, 90, 100]
                 }
             },
+            xaxis```javascript
             xaxis: {
                 categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                 labels: {

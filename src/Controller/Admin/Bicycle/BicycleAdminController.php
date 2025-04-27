@@ -14,6 +14,8 @@ use App\Service\BicycleService;
 use App\Service\BicycleStationService;
 use App\Service\BicycleRentalService;
 use App\Service\LocationService;
+use App\Service\ExportService;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -42,6 +44,7 @@ class BicycleAdminController extends AbstractController
     private $locationService;
     private $logger;
     private $paginator;
+    private $exportService;
 
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -50,7 +53,8 @@ class BicycleAdminController extends AbstractController
         BicycleRentalService $rentalService,
         LocationService $locationService,
         LoggerInterface $logger,
-        PaginatorInterface $paginator
+        PaginatorInterface $paginator,
+        ExportService $exportService
     ) {
         $this->entityManager = $entityManager;
         $this->bicycleService = $bicycleService;
@@ -59,6 +63,7 @@ class BicycleAdminController extends AbstractController
         $this->locationService = $locationService;
         $this->logger = $logger;
         $this->paginator = $paginator;
+        $this->exportService = $exportService;
     }
 
     #[Route('/add', name: 'admin_bicycle_add', methods: ['GET', 'POST'])]
@@ -508,5 +513,148 @@ class BicycleAdminController extends AbstractController
             'stations' => $stations,
             'maintenanceHistory' => $maintenanceHistory
         ]);
+    }
+
+    /**
+     * Export bicycles data in various formats
+     */
+    #[Route('/export', name: 'admin_bicycle_export', methods: ['GET'])]
+    public function export(Request $request): Response
+    {
+        // Get filter parameters
+        $status = $request->query->get('status');
+        $stationId = $request->query->get('station');
+        $format = $request->query->get('format', 'csv');
+        
+        // Create query builder with filters
+        $queryBuilder = $this->entityManager->getRepository(Bicycle::class)
+            ->createQueryBuilder('b')
+            ->leftJoin('b.bicycleStation', 's')
+            ->orderBy('b.idBike', 'ASC');
+        
+        // Apply filters
+        if ($status) {
+            $queryBuilder->andWhere('b.status = :status')
+                ->setParameter('status', BICYCLE_STATUS::from($status));
+        }
+        
+        if ($stationId) {
+            $queryBuilder->andWhere('s.idStation = :stationId')
+                ->setParameter('stationId', $stationId);
+        }
+        
+        // Get all bicycles matching the criteria
+        $bicycles = $queryBuilder->getQuery()->getResult();
+        
+        // Calculate statistics for PDF export
+        $stats = [
+            'totalBicycles' => count($bicycles),
+            'availableCount' => 0,
+            'inUseCount' => 0,
+            'maintenanceCount' => 0,
+            'chargingCount' => 0
+        ];
+        
+        $batteryDistribution = [
+            'premium' => 0,  // 90-100%
+            'good' => 0,     // 60-89%
+            'medium' => 0,   // 30-59%
+            'low' => 0       // 0-29%
+        ];
+        
+        // Set up data for export
+        $headers = [
+            'ID', 'Status', 'Battery Level (%)', 'Range (km)', 'Station', 'Last Updated'
+        ];
+        
+        $exportData = [];
+        
+        foreach ($bicycles as $bicycle) {
+            // Update statistics counts
+            $status = $bicycle->getStatus()->value;
+            switch($status) {
+                case 'available':
+                    $stats['availableCount']++;
+                    break;
+                case 'in_use':
+                    $stats['inUseCount']++;
+                    break;
+                case 'maintenance':
+                    $stats['maintenanceCount']++;
+                    break;
+                case 'charging':
+                    $stats['chargingCount']++;
+                    break;
+            }
+            
+            // Update battery distribution
+            $batteryLevel = $bicycle->getBatteryLevel();
+            if ($batteryLevel >= 90) {
+                $batteryDistribution['premium']++;
+            } elseif ($batteryLevel >= 60) {
+                $batteryDistribution['good']++;
+            } elseif ($batteryLevel >= 30) {
+                $batteryDistribution['medium']++;
+            } else {
+                $batteryDistribution['low']++;
+            }
+            
+            // Format status for display
+            $statusLabel = ucfirst(str_replace('_', ' ', $status));
+            
+            // Add row to export data
+            $exportData[] = [
+                $bicycle->getIdBike(),
+                $statusLabel,
+                $bicycle->getBatteryLevel(),
+                $bicycle->getRangeKm(),
+                $bicycle->getBicycleStation() ? $bicycle->getBicycleStation()->getName() : '-',
+                $bicycle->getLastUpdated()->format('Y-m-d H:i')
+            ];
+        }
+        
+        // Set filters context for PDF export
+        $filters = [
+            'status' => $status ? ucfirst($status) : '',
+            'stationId' => $stationId
+        ];
+        
+        // Export based on requested format
+        switch ($format) {
+            case 'excel':
+                $columnStyles = [
+                    2 => ['format' => NumberFormat::FORMAT_PERCENTAGE_00], // Battery Level column
+                    3 => ['format' => NumberFormat::FORMAT_NUMBER_00],     // Range column
+                ];
+                
+                return $this->exportService->exportToExcel(
+                    $headers, 
+                    $exportData, 
+                    'bicycles-export', 
+                    $columnStyles,
+                    'Bicycle Inventory'
+                );
+                
+            case 'pdf':
+                return $this->exportService->exportToPdf(
+                    'back-office/export/bicycles-pdf.html.twig',
+                    [
+                        'bicycles' => $bicycles,
+                        'stats' => $stats,
+                        'filters' => $filters,
+                        'batteryDistribution' => $batteryDistribution,
+                        'title' => 'Bicycle Inventory Export'
+                    ],
+                    'bicycles-export'
+                );
+                
+            case 'csv':
+            default:
+                return $this->exportService->exportToCsv(
+                    $headers,
+                    $exportData,
+                    'bicycles-export'
+                );
+        }
     }
 }

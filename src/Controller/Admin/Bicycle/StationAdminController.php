@@ -10,6 +10,7 @@ use App\Service\BicycleService;
 use App\Service\BicycleStationService;
 use App\Service\BicycleRentalService;
 use App\Service\LocationService;
+use App\Service\ExportService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,6 +23,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use ValueError; // Import ValueError for catching enum errors
 use Knp\Component\Pager\PaginatorInterface;
 use App\Form\BicycleStationType;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
 #[Route('/admin/bicycle/station')]
 class StationAdminController extends AbstractController
@@ -33,6 +35,7 @@ class StationAdminController extends AbstractController
     private $locationService;
     private $logger;
     private $paginator;
+    private $exportService;
 
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -41,7 +44,8 @@ class StationAdminController extends AbstractController
         BicycleRentalService $rentalService,
         LocationService $locationService,
         LoggerInterface $logger,
-        PaginatorInterface $paginator
+        PaginatorInterface $paginator,
+        ExportService $exportService
     ) {
         $this->entityManager = $entityManager;
         $this->bicycleService = $bicycleService;
@@ -50,6 +54,7 @@ class StationAdminController extends AbstractController
         $this->locationService = $locationService;
         $this->logger = $logger;
         $this->paginator = $paginator;
+        $this->exportService = $exportService;
     }
 
     #[Route('/station/new', name: 'admin_bicycle_station_new', methods: ['POST'])]
@@ -406,14 +411,295 @@ class StationAdminController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'admin_bicycle_station_detail')]
-    public function stationDetail(int $id): Response
+    /**
+     * Export stations data in various formats (CSV, Excel, PDF)
+     */
+    #[Route('/export', name: 'admin_bicycle_station_export', methods: ['GET'], priority: 10)]
+    public function export(Request $request): Response
     {
+        try {
+            // Add diagnostic log at the beginning
+            $this->logger->info('Starting station export process', [
+                'format' => $request->query->get('format', 'csv'),
+                'status' => $request->query->get('status')
+            ]);
+            
+            // Get filter parameters
+            $status = $request->query->get('status');
+            $format = $request->query->get('format', 'csv');
+            
+            // Create query builder with filters
+            $queryBuilder = $this->entityManager->getRepository(BicycleStation::class)
+                ->createQueryBuilder('s')
+                ->leftJoin('s.location', 'l')
+                ->orderBy('s.id_station', 'ASC');
+            
+            // Apply status filter if provided
+            if ($status) {
+                $queryBuilder->andWhere('s.status = :status')
+                    ->setParameter('status', BICYCLE_STATION_STATUS::from($status));
+            }
+            
+            // Get all stations matching the criteria
+            $this->logger->info('Executing station query');
+            $stations = $queryBuilder->getQuery()->getResult();
+            $this->logger->info('Retrieved ' . count($stations) . ' stations');
+            
+            // Special handling for empty results
+            if (empty($stations)) {
+                $this->logger->info('No stations found for export');
+                $this->addFlash('warning', 'No stations found matching the selected criteria');
+                return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => 'stations']);
+            }
+            
+            // Calculate statistics for PDF export
+            $totalCapacity = 0;
+            $totalBikes = 0;
+            $totalChargingDocks = 0;
+            $activeStations = 0;
+            
+            foreach ($stations as $station) {
+                // Null check for each station property
+                if ($station->getTotalDocks() === null) {
+                    $this->logger->warning('Station #' . $station->getIdStation() . ' has null totalDocks, defaulting to 0');
+                    $station->setTotalDocks(0);
+                }
+                
+                if ($station->getAvailableBikes() === null) {
+                    $this->logger->warning('Station #' . $station->getIdStation() . ' has null availableBikes, defaulting to 0');
+                    $station->setAvailableBikes(0);
+                }
+                
+                if ($station->getChargingBikes() === null) {
+                    $this->logger->warning('Station #' . $station->getIdStation() . ' has null chargingBikes, defaulting to 0');
+                    $station->setChargingBikes(0);
+                }
+                
+                $totalCapacity += $station->getTotalDocks();
+                $totalBikes += $station->getAvailableBikes();
+                $totalChargingDocks += $station->getChargingBikes();
+                
+                if ($station->getStatus() === BICYCLE_STATION_STATUS::ACTIVE) {
+                    $activeStations++;
+                }
+            }
+            
+            $stats = [
+                'totalStations' => count($stations),
+                'activeStations' => $activeStations,
+                'totalCapacity' => $totalCapacity,
+                'totalChargingDocks' => $totalChargingDocks,
+                'avgOccupancy' => $totalCapacity > 0 ? ($totalBikes / $totalCapacity) * 100 : 0
+            ];
+            
+            $this->logger->info('Calculating station activity data');
+            // Get station activity data for PDF export (which stations are busiest)
+            $stationActivity = [];
+            try {
+                $rentalStats = $this->entityManager->getRepository(BicycleRental::class)
+                    ->createQueryBuilder('r')
+                    ->select('COUNT(r.id_user_rental) as rentalCount', 'ss.name as stationName', 'ss.id_station as stationId')
+                    ->leftJoin('r.start_station', 'ss')
+                    ->groupBy('ss.id_station')
+                    ->orderBy('rentalCount', 'DESC')
+                    ->getQuery()
+                    ->getResult();
+                    
+                foreach ($rentalStats as $stat) {
+                    $stationActivity[$stat['stationId']] = [
+                        'name' => $stat['stationName'],
+                        'rentalsStarted' => $stat['rentalCount'],
+                        'rentalsEnded' => 0 // Will be populated below
+                    ];
+                }
+                
+                $returnStats = $this->entityManager->getRepository(BicycleRental::class)
+                    ->createQueryBuilder('r')
+                    ->select('COUNT(r.id_user_rental) as returnCount', 'es.name as stationName', 'es.id_station as stationId')
+                    ->leftJoin('r.end_station', 'es')
+                    ->groupBy('es.id_station')
+                    ->orderBy('returnCount', 'DESC')
+                    ->getQuery()
+                    ->getResult();
+                    
+                foreach ($returnStats as $stat) {
+                    if (isset($stationActivity[$stat['stationId']])) {
+                        $stationActivity[$stat['stationId']]['rentalsEnded'] = $stat['returnCount'];
+                    } else {
+                        $stationActivity[$stat['stationId']] = [
+                            'name' => $stat['stationName'],
+                            'rentalsStarted' => 0,
+                            'rentalsEnded' => $stat['returnCount']
+                        ];
+                    }
+                }
+                
+                // Sort by total activity
+                usort($stationActivity, function($a, $b) {
+                    $totalA = $a['rentalsStarted'] + $a['rentalsEnded'];
+                    $totalB = $b['rentalsStarted'] + $b['rentalsEnded'];
+                    return $totalB <=> $totalA;
+                });
+            } catch (\Exception $e) {
+                $this->logger->error('Error calculating station activity: ' . $e->getMessage(), [
+                    'exception' => $e
+                ]);
+                // Continue with export even if this fails
+                $stationActivity = [];
+            }
+            
+            $this->logger->info('Preparing data for export');
+            // Set up data for export
+            $headers = [
+                'ID', 'Station Name', 'Status', 'Available Bicycles', 
+                'Available Docks', 'Total Docks', 'Occupancy Rate (%)', 'Location'
+            ];
+            
+            $exportData = [];
+            
+            foreach ($stations as $station) {
+                // Calculate occupancy rate
+                $occupancyRate = $station->getTotalDocks() > 0 
+                    ? ($station->getAvailableBikes() / $station->getTotalDocks()) * 100 
+                    : 0;
+                
+                // Format status for display
+                try {
+                    $statusLabel = match($station->getStatus()) {
+                        BICYCLE_STATION_STATUS::ACTIVE => 'Active',
+                        BICYCLE_STATION_STATUS::MAINTENANCE => 'Maintenance',
+                        BICYCLE_STATION_STATUS::INACTIVE => 'Inactive',
+                        default => $station->getStatus() ? ucfirst($station->getStatus()->value) : 'Unknown'
+                    };
+                } catch (\Exception $e) {
+                    $this->logger->error('Error formatting status for station #' . $station->getIdStation() . ': ' . $e->getMessage());
+                    $statusLabel = 'Unknown';
+                }
+                
+                // Format location with null safety
+                if ($station->getLocation() === null) {
+                    $this->logger->warning('Station #' . $station->getIdStation() . ' has no location');
+                    $location = 'No location';
+                } else {
+                    $location = $station->getLocation()->getAddress() ?: 'No address';
+                }
+                
+                // Add row to export data
+                $exportData[] = [
+                    $station->getIdStation(),
+                    $station->getName() ?: 'Unnamed Station',
+                    $statusLabel,
+                    $station->getAvailableBikes(),
+                    $station->getAvailableDocks(),
+                    $station->getTotalDocks(),
+                    round($occupancyRate, 1),
+                    $location
+                ];
+            }
+            
+            $this->logger->info('Processed ' . count($exportData) . ' stations for export');
+            
+            // Set filters context for PDF export
+            $filters = [
+                'status' => $status ? ucfirst($status) : ''
+            ];
+            
+            $filename = 'stations-export-' . date('Y-m-d-H-i-s');
+            
+            $this->logger->info('Starting export generation in ' . $format . ' format');
+            
+            // Create response object directly to avoid memory issues
+            $response = null;
+            
+            // Export based on requested format
+            switch ($format) {
+                case 'excel':
+                    $this->logger->info('Generating Excel export');
+                    $columnStyles = [
+                        3 => ['format' => NumberFormat::FORMAT_NUMBER],     // Available Bicycles
+                        4 => ['format' => NumberFormat::FORMAT_NUMBER],     // Available Docks
+                        5 => ['format' => NumberFormat::FORMAT_NUMBER],     // Total Docks
+                        6 => ['format' => NumberFormat::FORMAT_PERCENTAGE_00], // Occupancy Rate
+                    ];
+                    
+                    $response = $this->exportService->exportToExcel(
+                        $headers, 
+                        $exportData, 
+                        $filename, 
+                        $columnStyles,
+                        'Bicycle Station Directory'
+                    );
+                    break;
+                    
+                case 'pdf':
+                    $this->logger->info('Generating PDF export');
+                    $response = $this->exportService->exportToPdf(
+                        'back-office/export/stations-pdf.html.twig',
+                        [
+                            'stations' => $stations,
+                            'stats' => $stats,
+                            'filters' => $filters,
+                            'stationActivity' => $stationActivity,
+                            'title' => 'Bicycle Station Network Export'
+                        ],
+                        $filename
+                    );
+                    break;
+                    
+                case 'csv':
+                default:
+                    $this->logger->info('Generating CSV export');
+                    $response = $this->exportService->exportToCsv(
+                        $headers,
+                        $exportData,
+                        $filename
+                    );
+                    break;
+            }
+            
+            $this->logger->info('Generated export response, preparing headers');
+            
+            // Add extra headers to force download
+            $response->headers->set('Content-Description', 'File Transfer');
+            $response->headers->set('Cache-Control', 'private');
+            $response->headers->set('X-Accel-Buffering', 'no');
+            
+            // Explicitly turn off output buffering to prevent interference with headers
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+            
+            $this->logger->info('Export complete, sending response');
+            return $response;
+            
+        } catch (\Exception $e) {
+            // Detailed error logging with full context
+            $this->logger->error('Station export error: ' . $e->getMessage(), [
+                'exception_class' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'previous' => $e->getPrevious() ? $e->getPrevious()->getMessage() : null,
+                'format' => $request->query->get('format', 'unknown')
+            ]);
+            
+            // Add helpful message for the user
+            $this->addFlash('error', 'Error creating station export: ' . $e->getMessage());
+            return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => 'stations']);
+        }
+    }
+
+    #[Route('/{id}', name: 'admin_bicycle_station_detail')]
+    public function stationDetail($id): Response
+    {
+        // Convert parameter to integer since Route parameters are strings
+        $id = (int) $id;
+        
         $station = $this->stationService->getStation($id);
 
         if (!$station) {
             $this->addFlash('error', 'Station not found.');
-            return $this->redirectToRoute('admin_bicycle_dashboard', ['tab' => 'stations']);
+            return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => 'stations']);
         }
 
         // Get bicycles at this station

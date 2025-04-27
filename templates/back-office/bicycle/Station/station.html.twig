@@ -1,5 +1,4 @@
-{% block stylesheets %}
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <link rel="stylesheet" href="{{ asset('css/back/bicycle/station.css') }}?v={{ 'now'|date('YmdHi') }}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/back/bicycle/station-edit-modal.css') }}">
@@ -286,9 +285,9 @@
             overflow-y: auto;
         }
     </style>
-{% endblock %}
 
-{% block body %}
+
+
 <!-- Hero Section with New Button -->
 <div class="hero-section mb-4 p-4 text-white rounded-3 shadow-sm" style="background: linear-gradient(135deg, #8540f5 0%, #6f42c1 100%);">
     <div class="row align-items-center">
@@ -304,6 +303,16 @@
             </div>
         </div>
         <div class="col-lg-5 text-lg-end mt-3 mt-lg-0">
+            <div class="btn-group me-2">
+                <button class="btn btn-light btn-lg shadow-sm dropdown-toggle" type="button" id="stationExportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-download me-2"></i> Export
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="stationExportDropdown">
+                    <li><a class="dropdown-item" href="{{ path('admin_bicycle_station_export', app.request.query.all|merge({'format': 'csv'})) }}"><i class="fas fa-file-csv me-2 text-primary"></i>Export to CSV</a></li>
+                    <li><a class="dropdown-item" href="{{ path('admin_bicycle_station_export', app.request.query.all|merge({'format': 'excel'})) }}"><i class="fas fa-file-excel me-2 text-success"></i>Export to Excel</a></li>
+                    <li><a class="dropdown-item" href="{{ path('admin_bicycle_station_export', app.request.query.all|merge({'format': 'pdf'})) }}"><i class="fas fa-file-pdf me-2 text-danger"></i>Export to PDF</a></li>
+                </ul>
+            </div>
             <button class="btn btn-light btn-lg shadow-sm" data-bs-toggle="modal" data-bs-target="#stationFormModal">
                 <i class="fas fa-plus-circle me-2"></i> Add New Station
             </button>
@@ -608,7 +617,7 @@
                             </td>
                             <td>
                                 <div class="dropdown">
-                                    <button class="btn btn-sm btn-icon btn-outline-secondary dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                    <button class="btn btn-sm btn-icon btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
@@ -1047,9 +1056,7 @@ window.resetStationOverlays = function() {
 // Call resetStationOverlays every 10 seconds as a failsafe
 setInterval(window.resetStationOverlays, 10000);
 </script>
-{% endblock %}
 
-{% block javascripts %}
 <script>
     // Pass station data to the JavaScript file
     window.stationData = {{ stations|map(s => {
@@ -1093,4 +1100,3 @@ setInterval(window.resetStationOverlays, 10000);
 <script src="{{ asset('js/back/bicycle/station-modal.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
 <script src="{{ asset('js/back/bicycle/station-edit-modal.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-{% endblock %}

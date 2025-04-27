@@ -324,6 +324,16 @@
             </div>
         </div>
         <div class="col-lg-5 text-lg-end mt-3 mt-lg-0">
+            <div class="btn-group me-2">
+                <button class="btn btn-light btn-lg shadow-sm dropdown-toggle" type="button" id="bicycleExportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-download me-2"></i> Export
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="bicycleExportDropdown">
+                    <li><a class="dropdown-item" href="{{ path('admin_bicycle_export', app.request.query.all|merge({'format': 'csv'})) }}"><i class="fas fa-file-csv me-2 text-primary"></i>Export to CSV</a></li>
+                    <li><a class="dropdown-item" href="{{ path('admin_bicycle_export', app.request.query.all|merge({'format': 'excel'})) }}"><i class="fas fa-file-excel me-2 text-success"></i>Export to Excel</a></li>
+                    <li><a class="dropdown-item" href="{{ path('admin_bicycle_export', app.request.query.all|merge({'format': 'pdf'})) }}"><i class="fas fa-file-pdf me-2 text-danger"></i>Export to PDF</a></li>
+                </ul>
+            </div>
             <button class="btn btn-light btn-lg shadow-sm" data-bs-toggle="modal" data-bs-target="#addBicycleModal">
                 <i class="fas fa-plus-circle me-2"></i> Add New Bicycle
             </button>
