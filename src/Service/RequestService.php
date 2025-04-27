@@ -248,4 +248,9 @@ public function sortRequests(string $sortBy, string $sortOrder = 'ASC'): array
     return $qb->getQuery()->getResult();
 }
 
+public function countRequests(): int
+{
+    return $this->requestRepository->count([]);
+}
+
 }

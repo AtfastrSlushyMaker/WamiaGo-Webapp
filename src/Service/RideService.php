@@ -226,6 +226,122 @@ public function searchRides(array $criteria = []): array
     return $qb->getQuery()->getResult();
 }
 
+public function getTotalRidesCount(): int
+{
+    return $this->rideRepository->count([]);
+}
 
+public function getRidesPriceStatistics(): array
+{
+    $qb = $this->rideRepository->createQueryBuilder('r');
+    $result = $qb->select('MIN(r.price) as min_price, MAX(r.price) as max_price, AVG(r.price) as avg_price')
+        ->getQuery()
+        ->getSingleResult();
+
+    return [
+        'min' => (float) $result['min_price'],
+        'max' => (float) $result['max_price'],
+        'avg' => (float) $result['avg_price']
+    ];
+}
+public function calculateTotalRidesPrice(): float
+{
+    $qb = $this->rideRepository->createQueryBuilder('r');
+    $result = $qb->select('SUM(r.price) as total_price')
+        ->getQuery()
+        ->getSingleResult();
+
+    return (float) ($result['total_price'] ?? 0.0);
+}
+
+public function getAverageDurationTimeStat(): array
+{
+    $qb = $this->rideRepository->createQueryBuilder('r');
+    $result = $qb->select('MIN(r.duration) as min_duration, MAX(r.duration) as max_duration, AVG(r.duration) as avg_duration')
+        ->where('r.duration IS NOT NULL')
+        ->getQuery()
+        ->getSingleResult();
+
+    return [
+        'min' => (float) $result['min_duration'],
+        'max' => (float) $result['max_duration'],
+        'avg' => (float) $result['avg_duration']
+    ];
+}
+public function getRidesCountPerWeek(): array
+{
+    $qb = $this->rideRepository->createQueryBuilder('r');
+    return $qb->select('WEEK(r.rideDate) as week, COUNT(r.id) as count')
+        ->groupBy('week')
+        ->getQuery()
+        ->getResult();
+}
+
+public function calculateAverageRideDuration(): float
+{
+    $rides = $this->rideRepository->findAll();
+    if (empty($rides)) {
+        return 0.0;
+    }
+
+    $totalDuration = 0;
+    $validRides = 0;
+
+    foreach ($rides as $ride) {
+        $duration = $ride->getDuration();
+        if ($duration !== null) {
+            $totalDuration += $duration;
+            $validRides++;
+        }
+    }
+
+    return $validRides > 0 ? round($totalDuration / $validRides, 2) : 0.0;
+}
+
+
+public function calculateAverageRidesPrice(): float
+{
+    $rides = $this->rideRepository->findAll();
+    if (empty($rides)) {
+        return 0.0;
+    }
+
+    $totalPrice = 0;
+    foreach ($rides as $ride) {
+        $totalPrice += $ride->getPrice();
+    }
+
+    return $totalPrice / count($rides);
+}
+
+public function getRidesCountByStatus(): array
+{
+    $qb = $this->rideRepository->createQueryBuilder('r');
+    $result = $qb->select('r.status, COUNT(r.id) as count')
+        ->groupBy('r.status')
+        ->getQuery()
+        ->getResult();
+
+    $counts = [
+        RIDE_STATUS::COMPLETED->value => 0,
+        RIDE_STATUS::CANCELED->value => 0,
+        RIDE_STATUS::ONGOING->value => 0
+    ];
+
+    foreach ($result as $row) {
+        $counts[$row['status']] = $row['count'];
+    }
+
+    return $counts;
+}
+
+public function getRidesStatusCount(): array
+{
+    return [
+        'COMPLETED' => $this->rideRepository->count(['status' => RIDE_STATUS::COMPLETED]),
+        'CANCELED' => $this->rideRepository->count(['status' => RIDE_STATUS::CANCELED]),
+        'ONGOING' => $this->rideRepository->count(['status' => RIDE_STATUS::ONGOING])
+    ];
+}
 
 }
