@@ -8,6 +8,7 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Entity\User;
+use App\Enum\ReservationStatus;
 
 class ReservationRepository extends ServiceEntityRepository
 {
@@ -68,5 +69,14 @@ class ReservationRepository extends ServiceEntityRepository
             ->setParameter('id', $id)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+    public function countByStatus(ReservationStatus $status): int
+    {
+        return $this->createQueryBuilder('r')
+            ->select('COUNT(r.id_reservation)')
+            ->where('r.status = :status')
+            ->setParameter('status', $status)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }
