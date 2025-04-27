@@ -45,22 +45,25 @@ class TripService
 
     public function updateTrip(Trip $trip, array $data): Trip
     {
-        if (isset($data['departure_city'])) {
+        if (isset($data['departure_city']) && !empty($data['departure_city'])) {
             $trip->setDepartureCity($data['departure_city']);
         }
-        if (isset($data['arrival_city'])) {
+        if (isset($data['arrival_city']) && !empty($data['arrival_city'])) {
             $trip->setArrivalCity($data['arrival_city']);
         }
-        if (isset($data['departure_date'])) {
-            $trip->setDepartureDate(new \DateTime($data['departure_date']));
+        if (isset($data['departure_date']) && !empty($data['departure_date'])) {
+            try {
+                $trip->setDepartureDate(new \DateTime($data['departure_date']));
+            } catch (\Exception $e) {
+                throw new \InvalidArgumentException('Invalid departure date format.');
+            }
         }
-        if (isset($data['available_seats'])) {
-            $trip->setAvailableSeats($data['available_seats']);
+        if (isset($data['available_seats']) && is_numeric($data['available_seats'])) {
+            $trip->setAvailableSeats((int) $data['available_seats']);
         }
-        if (isset($data['price_per_passenger'])) {
-            $trip->setPricePerPassenger($data['price_per_passenger']);
+        if (isset($data['price_per_passenger']) && is_numeric($data['price_per_passenger'])) {
+            $trip->setPricePerPassenger((float) $data['price_per_passenger']);
         }
-
 
         $this->entityManager->flush();
 

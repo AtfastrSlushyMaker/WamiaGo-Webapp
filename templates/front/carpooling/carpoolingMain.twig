@@ -277,6 +277,8 @@
                                 <div class="trip-group-header">
                                     <i class="fas fa-route me-2"></i> {{ trip.departureCity }} to {{ trip.arrivalCity }}
                                 </div>
+
+
                         {% endif %}
                         
                         <div class="card trip-card border-0 shadow-sm mb-3">
@@ -312,8 +314,13 @@
                                         <div class="d-flex flex-column">
                                             <div class="mb-2">
                                                 <span class="badge bg-carpooling-light text-carpooling mb-1">Arrival</span>
-                                                <div class="fw-bold">{{ trip.departureDate|date('h:i a') }}</div>
-                                                <div class="small text-muted">{{ trip.departureDate|date('d M Y') }}</div>
+                                                {% if trip.travelTimeData is defined and trip.travelTimeData is not null %}
+                                                    {% set arrivalDate = trip.departureDate|date_modify('+' ~ trip.travelTimeData.hours ~ ' hours +' ~ trip.travelTimeData.minutes ~ ' minutes') %}
+                                                    <div class="fw-bold">{{ arrivalDate|date('h:i a') }}</div>
+                                                    <div class="small text-muted">{{ arrivalDate|date('d M Y') }}</div>
+                                                {% else %}
+                                                    <div class="fw-bold text-muted">Not available</div>
+                                                {% endif %}
                                             </div>
                                             <div>
                                                 <div class="small text-muted">{{ trip.arrivalCity }}</div>

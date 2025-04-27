@@ -4,6 +4,7 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    app.here_api_key: 'DW9egp1lljrp_9klXkmSp8y-SuoywTOGIspZgdGCGlg'
 
 services:
     # default configuration for services in *this* file
@@ -19,6 +20,12 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+
+    # Explicitly define the TrafficTimeEstimator service
+    App\Service\TrafficTimeEstimator:
+        arguments:
+            $httpClient: '@http_client'
+            $apiKey: '%app.here_api_key%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

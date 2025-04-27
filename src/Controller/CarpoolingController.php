@@ -6,6 +6,7 @@ namespace App\Controller;
 use App\Entity\Booking;
 use App\Entity\Trip;
 use App\Entity\User;
+use App\Service\TrafficTimeEstimator;
 use App\Service\TripService;
 use App\Service\BookingService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -17,20 +18,46 @@ use Symfony\Component\Routing\Attribute\Route;
 final class CarpoolingController extends AbstractController
 {
     private TripService $tripService;
+    private TrafficTimeEstimator $trafficEstimator;
 
-    public function __construct(TripService $tripService)
+
+
+    public function __construct(TripService $tripService , TrafficTimeEstimator $trafficEstimator)
     {
         $this->tripService = $tripService;
+        $this->trafficEstimator = $trafficEstimator;
+
     }
+
 
     #[Route('/carpooling', name: 'app_carpooling')]
     public function index(): Response
     {
         $trips = $this->tripService->getAllTrips();
+        $tripsWithTravelTime = [];
+        foreach ($trips as $trip) {
+            try {
+                $travelTimeData = $this->trafficEstimator->calculateTravelTime(
+                    $trip->getDepartureCity(),
+                    $trip->getArrivalCity()
+                );
+
+                // Add travel time data to the trip
+                $trip->travelTimeData = $travelTimeData;
+                $tripsWithTravelTime[] = $trip;
+
+            } catch (\Exception $e) {
+                // Log error and continue with next trip
+                $this->addFlash('warning', "Could not estimate travel time for trip from {$trip->getDepartureCity()} to {$trip->getArrivalCity()}: {$e->getMessage()}");
+                $trip->travelTimeData = null;
+                $tripsWithTravelTime[] = $trip;
+            }
+        }
+
 
         return $this->render('front/carpooling/carpoolingMain.twig', [
             'controller_name' => 'CarpoolingController',
-            'trips' => $trips,
+            'trips' => $tripsWithTravelTime,
         ]);
     }
 
