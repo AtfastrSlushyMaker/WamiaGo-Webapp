@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Entity\User;
+use Knp\Component\Pager\PaginatorInterface;
 
 #[Route('/reclamation')]
 final class ReclamationController extends AbstractController
@@ -36,10 +37,20 @@ final class ReclamationController extends AbstractController
     
     
     #[Route('/getAllReclamation', name: 'app_reclamation_list', methods: ['GET'])]
-    public function getAllReclamation(ReclamationRepository $reclamationRepository): Response
+    public function getAllReclamation(Request $request, ReclamationRepository $reclamationRepository, PaginatorInterface $paginator): Response
     {
+        $query = $reclamationRepository->createQueryBuilder('r')
+            ->orderBy('r.date', 'DESC')
+            ->getQuery();
+            
+        $pagination = $paginator->paginate(
+            $query, // Query to paginate
+            $request->query->getInt('page', 1), // Current page number, default to 1
+            10 // Number of items per page
+        );
+        
         return $this->render('reclamation/index.html.twig', [
-            'reclamations' => $reclamationRepository->findAll(),
+            'reclamations' => $pagination,
         ]);
     }
 

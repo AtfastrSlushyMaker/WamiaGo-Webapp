@@ -1,0 +1,53 @@
+{# templates/pagination.html.twig #}
+{% if pageCount > 1 %}
+    <nav>
+        <ul class="pagination {{ options.size is defined ? 'pagination-' ~ options.size : '' }}">
+            {# Previous page link #}
+            {% if previous is defined %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ path(route, query|merge({(pageParameterName): previous})) }}" aria-label="Précédent">
+                        <span aria-hidden="true">&laquo;</span>
+                        <span class="sr-only">Précédent</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-label="Précédent">
+                        <span aria-hidden="true">&laquo;</span>
+                        <span class="sr-only">Précédent</span>
+                    </span>
+                </li>
+            {% endif %}
+
+            {# Page numbers #}
+            {% for page in pagesInRange %}
+                {% if page != current %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ path(route, query|merge({(pageParameterName): page})) }}">{{ page }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">{{ page }}</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {# Next page link #}
+            {% if next is defined %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ path(route, query|merge({(pageParameterName): next})) }}" aria-label="Suivant">
+                        <span aria-hidden="true">&raquo;</span>
+                        <span class="sr-only">Suivant</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-label="Suivant">
+                        <span aria-hidden="true">&raquo;</span>
+                        <span class="sr-only">Suivant</span>
+                    </span>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
