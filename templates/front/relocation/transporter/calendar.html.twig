@@ -1,0 +1,58 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Relocation Calendar | TransportApp{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/main.min.css" rel="stylesheet">
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/front/relocation/calendar.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="relocation-calendar-container">
+    <div class="calendar-header">
+        <h1><i class="fas fa-calendar-alt me-2"></i> Relocation Calendar</h1>
+        <div class="calendar-actions">
+            <a href="{{ path('app_transporter_relocation_list') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-list me-2"></i> List View
+            </a>
+        </div>
+    </div>
+
+    <div id="calendar"></div>
+</div>
+
+<!-- Event Details Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="eventModalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="eventModalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="editRelocationBtn">
+                    <i class="fas fa-edit me-2"></i>Edit
+                </button>
+                <button type="button" class="btn btn-danger" id="deleteRelocationBtn">
+                    <i class="fas fa-trash me-2"></i>Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {# Load FullCalendar bundle with all dependencies #}
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js'></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ asset('js/front/relocation/calendar.js') }}"></script>
+{% endblock %}

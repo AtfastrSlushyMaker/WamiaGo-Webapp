@@ -15,7 +15,7 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/client/relocations')]
 class ClientRelocationController extends AbstractController
 {
-    private const HARDCODED_CLIENT_ID = 115;
+    private const HARDCODED_CLIENT_ID = 122;
 
     public function __construct(
         private EntityManagerInterface $em,

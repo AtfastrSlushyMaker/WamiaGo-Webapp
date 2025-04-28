@@ -49,3 +49,8 @@ services:
     App\Service\OpenAIService:
         arguments:
             $apiKey: '%env(OPENAI_API_KEY)%'
+
+    App\Service\EmailService:
+        arguments:
+            $mailer: '@mailer'
+            $logger: '@logger'

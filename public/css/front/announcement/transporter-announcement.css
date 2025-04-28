@@ -116,18 +116,17 @@
     right: 0 !important;
     bottom: 0 !important;
     display: flex !important;
-    align-items: flex-start !important; /* Modifié pour positionner en haut */
-    justify-content: center !important;
-    padding: 20px !important; /* Espacement du haut */
+    align-items: center !important; /* Centrer verticalement */
+    justify-content: center !important; /* Centrer horizontalement */
+    padding: 20px !important;
     z-index: 1060 !important;
     background-color: rgba(0, 0, 0, 0.5) !important;
-    overflow-y: auto !important; /* Permettre le défilement si nécessaire */
+    overflow-y: auto !important; /* Permet le scroll uniquement si nécessaire */
 }
 
 .edit-modal-popup {
     position: relative !important;
     margin: 0 !important;
-    margin-top: 5vh !important; /* Position depuis le haut */
     max-width: 600px !important;
     width: 90% !important;
     background-color: #fff !important;
@@ -135,16 +134,15 @@
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2) !important;
     animation: modalFadeIn 0.3s ease-out !important;
 }
-
-/* Nouvelle animation plus fluide */
+/* Animation douce */
 @keyframes modalFadeIn {
     from {
         opacity: 0;
-        transform: scale(0.9) translateY(-20px);
+        transform: scale(0.95);
     }
     to {
         opacity: 1;
-        transform: scale(1) translateY(0);
+        transform: scale(1);
     }
 }
 
@@ -162,7 +160,7 @@ body.swal2-shown {
 /* Amélioration de la visibilité du contenu */
 .edit-modal-content {
     padding: 2rem !important;
-    max-height: calc(100vh - 200px) !important;
+    max-height: calc(100vh - 150px) !important; 
     overflow-y: auto !important;
 }
 
@@ -192,11 +190,16 @@ body.swal2-shown {
     overflow: hidden;
 }
 
+
 /* Assurer que la modale reste au-dessus des autres éléments */
 .swal2-popup {
     z-index: 1061 !important;
 }
 
+/* Ajouter cette règle */
+.modal-backdrop.show {
+    opacity: 0.5 !important;
+}
 
 
 

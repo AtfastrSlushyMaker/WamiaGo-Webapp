@@ -168,4 +168,47 @@ public function delete(Relocation $relocation): JsonResponse
         'message' => 'Relocation deleted successfully'
     ]);
 }
+
+
+
+#[Route('/calendar', name: 'app_transporter_relocation_calendar', methods: ['GET'])]
+public function calendar(DriverRepository $driverRepo): Response
+{
+    $driver = $driverRepo->find(self::HARDCODED_DRIVER_ID);
+    
+    if (!$driver) {
+        throw $this->createNotFoundException('Driver not found');
+    }
+
+    return $this->render('front/relocation/transporter/calendar.html.twig', [
+        'driver' => $driver
+    ]);
+}
+
+#[Route('/api/calendar-events', name: 'app_relocation_calendar_events', methods: ['GET'])]
+public function getCalendarEvents(DriverRepository $driverRepo): JsonResponse
+{
+    $driver = $driverRepo->find(self::HARDCODED_DRIVER_ID);
+    $relocations = $this->relocationRepo->findByDriver($driver);
+
+    $events = [];
+    foreach ($relocations as $relocation) {
+        $events[] = [
+            'id' => $relocation->getIdRelocation(),
+            'title' => $relocation->getReservation()->getAnnouncement()->getTitle(),
+            'start' => $relocation->getDate()->format('Y-m-d\TH:i:s'),
+            'end' => $relocation->getDate()->modify('+2 hours')->format('Y-m-d\TH:i:s'),
+            'color' => $relocation->isStatus() ? '#3788d8' : '#6c757d',
+            'extendedProps' => [
+                'cost' => $relocation->getCost(),
+                'client' => $relocation->getReservation()->getUser()->getName(),
+                'startLocation' => $relocation->getReservation()->getStartLocation()->getAddress(),
+                'endLocation' => $relocation->getReservation()->getEndLocation()->getAddress(),
+                'status' => $relocation->isStatus()
+            ]
+        ];
+    }
+
+    return $this->json($events);
+}
 }
