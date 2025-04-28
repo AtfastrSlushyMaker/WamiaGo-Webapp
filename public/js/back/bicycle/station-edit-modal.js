@@ -14,6 +14,11 @@
         // Set up listeners for station edit buttons
         setupEditButtonListeners();
 
+        // Also set up popup edit buttons (from map popups)
+        if (typeof window.setupPopupEditButtons === 'function') {
+            window.setupPopupEditButtons();
+        }
+
         // Clean up any lingering loading overlays on page load
         const editModalLoadingOverlay = document.getElementById('editModalLoadingOverlay');
         if (editModalLoadingOverlay) {
@@ -372,7 +377,32 @@
                 const statusInput = form.querySelector('#bicycle_station_status') ||
                     form.querySelector('[name$="[status]"]');
                 if (statusInput) {
-                    formData.append('status', statusInput.value);
+                    // Ensure we're getting the value attribute for the selected option
+                    const selectedOption = statusInput.options[statusInput.selectedIndex];
+                    let statusValue = selectedOption ? selectedOption.value : statusInput.value;
+
+                    // Convert numeric status values to string values that the PHP enum expects
+                    if (statusValue && !isNaN(parseInt(statusValue))) {
+                        switch (parseInt(statusValue)) {
+                            case 0:
+                                statusValue = 'active';
+                                break;
+                            case 1:
+                                statusValue = 'inactive';
+                                break;
+                            case 2:
+                                statusValue = 'maintenance';
+                                break;
+                            case 3:
+                                statusValue = 'disabled';
+                                break;
+                            default:
+                                statusValue = 'active';
+                        }
+                    }
+
+                    console.log("Mapped status value in edit form:", statusValue);
+                    formData.append('status', statusValue);
                 }
 
                 // Get the totalDocks field

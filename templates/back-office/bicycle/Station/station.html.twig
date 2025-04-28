@@ -316,9 +316,9 @@
             <button class="btn btn-light btn-lg shadow-sm" data-bs-toggle="modal" data-bs-target="#stationFormModal">
                 <i class="fas fa-plus-circle me-2"></i> Add New Station
             </button>
-            <button class="btn btn-outline-light btn-lg ms-2">
+            <a class="btn btn-outline-light btn-lg ms-2" href="#stationsMap"  id="viewMapBtn" data-bs-toggle="tooltip" data-bs-placement="top" title="View all stations on the map">
                 <i class="fas fa-map me-2"></i> View Map
-            </button>
+            </a>
         </div>
     </div>
 </div>
@@ -453,6 +453,12 @@
                             <button type="button" class="btn btn-outline-warning" id="showMaintenanceStations">
                                 <i class="fas fa-tools"></i> Maintenance
                             </button>
+                            <button type="button" class="btn btn-outline-secondary" id="showInactiveStations">
+                                <i class="fas fa-pause-circle"></i> Inactive
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" id="showDisabledStations">
+                                <i class="fas fa-times-circle"></i> Disabled
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -559,6 +565,8 @@
                                     <div class="station-icon me-2 
                                         {% if station.status.value == 'active' %}bg-success{% 
                                         elseif station.status.value == 'maintenance' %}bg-warning{% 
+                                        elseif station.status.value == 'inactive' %}bg-secondary{% 
+                                        elseif station.status.value == 'disabled' %}bg-danger{% 
                                         else %}bg-secondary{% endif %}">
                                         <i class="fas fa-map-marker-alt"></i>
                                     </div>
@@ -592,9 +600,13 @@
                                 <span class="station-status-badge 
                                     {% if station.status.value == 'active' %}bg-success-subtle text-success{% 
                                     elseif station.status.value == 'maintenance' %}bg-warning-subtle text-warning{% 
+                                    elseif station.status.value == 'inactive' %}bg-secondary-subtle text-secondary{% 
+                                    elseif station.status.value == 'disabled' %}bg-danger-subtle text-danger{% 
                                     else %}bg-secondary-subtle text-secondary{% endif %}">
                                     <i class="fas fa-{% if station.status.value == 'active' %}check-circle{% 
                                         elseif station.status.value == 'maintenance' %}tools{% 
+                                        elseif station.status.value == 'inactive' %}pause-circle{% 
+                                        elseif station.status.value == 'disabled' %}times-circle{% 
                                         else %}times-circle{% endif %} me-1"></i>
                                     {{ station.status.value|capitalize }}
                                 </span>
@@ -1057,9 +1069,11 @@ window.resetStationOverlays = function() {
 setInterval(window.resetStationOverlays, 10000);
 </script>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
-    // Pass station data to the JavaScript file
-    window.stationData = {{ stations|map(s => {
+    // Pass failsafe station data to scripts as a fallback
+    // This will only be used if the API fetch fails
+    window.stationDataFallback = {{ stations|map(s => {
         id: s.idStation,
         name: s.name,
         lat: s.location ? s.location.latitude : null,
@@ -1070,33 +1084,9 @@ setInterval(window.resetStationOverlays, 10000);
         totalDocks: s.totalDocks,
         chargingDocks: s.chargingDocks is defined ? s.chargingDocks : null
     })|json_encode|raw }};
-
-    // Ensure DOM is fully loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log("DOM fully loaded");
-        
-        // Items per page handler
-        const perPageSelect = document.getElementById('perPageSelect');
-        console.log("perPageSelect element:", perPageSelect);
-        
-        if (perPageSelect) {
-            // Add change event listener
-            perPageSelect.onchange = function() {
-                console.log("perPage changed to:", this.value);
-                
-                // Get current URL and update parameters
-                const url = new URL(window.location.href);
-                url.searchParams.set('perPage', this.value);
-                url.searchParams.set('page', '1'); // Reset to first page
-                
-                console.log("Redirecting to:", url.toString());
-                window.location.href = url.toString();
-            };
-            
-            console.log("Change event handler attached to perPageSelect");
-        }
-    });
 </script>
+<!-- Core station functionality scripts -->
+<script src="{{ asset('js/back/bicycle/station-map.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
+<script src="{{ asset('js/back/bicycle/station-pagination.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
 <script src="{{ asset('js/back/bicycle/station-modal.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
 <script src="{{ asset('js/back/bicycle/station-edit-modal.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>

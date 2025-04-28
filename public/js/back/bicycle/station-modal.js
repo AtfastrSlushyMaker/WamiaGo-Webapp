@@ -288,7 +288,36 @@ function submitStationForm() {
     const statusInput = form.querySelector('#station_status') ||
         form.querySelector('[name$="[status]"]');
     if (statusInput) {
-        formData.append('status', statusInput.value);
+        // Ensure we're getting the value attribute for the selected option
+        const selectedOption = statusInput.options[statusInput.selectedIndex];
+        let statusValue = selectedOption ? selectedOption.value : statusInput.value;
+
+        // Convert numeric status values to string values that the PHP enum expects
+        if (statusValue && !isNaN(parseInt(statusValue))) {
+            switch (parseInt(statusValue)) {
+                case 0:
+                    statusValue = 'active';
+                    break;
+                case 1:
+                    statusValue = 'inactive';
+                    break;
+                case 2:
+                    statusValue = 'maintenance';
+                    break;
+                case 3:
+                    statusValue = 'disabled';
+                    break;
+                default:
+                    statusValue = 'active';
+            }
+        }
+
+        console.log("Mapped status value:", statusValue);
+        formData.append('status', statusValue);
+    } else {
+        // Default to active if no status field found
+        console.log("No status field found, defaulting to active");
+        formData.append('status', 'active');
     }
 
     // 4. Add location fields
@@ -658,174 +687,18 @@ function updateCapacityVisualization() {
         const dockPercent = (availableDocks / totalDocks) * 100;
         const chargingPercent = (chargingBikes / totalDocks) * 100;
         if (bikeSegment) bikeSegment.style.width = bikePercent + '%';
-        if (dockSegment) bikeSegment.style.width = dockPercent + '%';
+        if (dockSegment) dockSegment.style.width = dockPercent + '%';
         if (chargingSegment) chargingSegment.style.width = chargingPercent + '%';
     } else {
         if (bikeSegment) bikeSegment.style.width = '0%';
-        if (dockSegment) bikeSegment.style.width = '100%';
-        if (chargingSegment) bikeSegment.style.width = '0%';
+        if (dockSegment) dockSegment.style.width = '100%';
+        if (chargingSegment) chargingSegment.style.width = '0%';
     }
 }
 
-// ======== Dashboard Map, Filter, Search, and Delete Logic ========
-document.addEventListener('DOMContentLoaded', function () {
-    // Dashboard map and management logic (moved from Twig inline script)
-    let map;
-    let markers = {};
-
-    // Initialize map if dashboard map exists
-    const mapElement = document.getElementById('stationsMap');
-    if (mapElement) {
-        map = L.map('stationsMap', {
-            zoomControl: false,
-            attributionControl: false
-        }).setView([36.8065, 10.1815], 13);
-
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
-            subdomains: 'abcd'
-        }).addTo(map);
-
-        // Get station data from a global JS variable or data attribute
-        const stations = window.stationData || (typeof getStationData === 'function' ? getStationData() : []);
-        stations.forEach(station => {
-            const marker = L.marker([station.lat, station.lng], {
-                title: station.name,
-                icon: L.divIcon({
-                    className: 'station-marker-icon',
-                    html: `<div style="background-color: ${station.status === 'active' ? '#66bb6a' : station.status === 'maintenance' ? '#ff9800' : '#9e9e9e'}; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); border: 2px solid white;"><i class="ti ti-map-pin" style="color: white; font-size: 20px;"></i></div>`,
-                    iconSize: [36, 36],
-                    iconAnchor: [18, 36],
-                    popupAnchor: [0, -36]
-                }),
-                riseOnHover: true
-            }).addTo(map);
-            markers[station.id] = marker;
-            marker.bindPopup(`<div class="station-info p-2"><h5 class="mb-2">${station.name}</h5><p class="text-muted mb-2"><i class="ti ti-map-pin me-1"></i> ${station.address}</p><div class="d-flex justify-content-between align-items-center mb-2"><span class="badge ${station.status === 'active' ? 'bg-success' : station.status === 'maintenance' ? 'bg-warning' : 'bg-secondary'}">${station.status.charAt(0).toUpperCase() + station.status.slice(1)}</span><span class="text-muted small">ID: ST-${String(station.id).padStart(4, '0')}</span></div><div class="stats-grid mb-3"><div class="stat-item"><div class="stat-value">${station.availableBikes}</div><div class="stat-label">Available</div></div><div class="stat-item"><div class="stat-value">${station.totalDocks}</div><div class="stat-label">Capacity</div></div><div class="stat-item"><div class="stat-value">${station.chargingDocks !== null && station.chargingDocks !== undefined ? station.chargingDocks : 0}</div><div class="stat-label">Charging</div></div></div><div class="d-flex justify-content-between"><a href="/admin/bicycle/station/${station.id}" class="btn btn-sm btn-primary"><i class="ti ti-info-circle me-1"></i> Details</a><button class="btn btn-sm btn-outline-secondary popup-edit-btn" data-station-id="${station.id}"><i class="ti ti-edit me-1"></i> Edit</button></div></div>`, { className: 'station-popup', maxWidth: 300, minWidth: 280 });
-        });
-        if (stations.length > 0) {
-            const bounds = stations.map(station => [station.lat, station.lng]);
-            map.fitBounds(bounds);
-        }
-        setTimeout(() => map.invalidateSize(), 200);
-    }
-
-    // Filter buttons
-    const allButton = document.getElementById('showAllStations');
-    const activeButton = document.getElementById('showActiveStations');
-    const maintenanceButton = document.getElementById('showMaintenanceStations');
-    function filterStations(filter) {
-        const stations = window.stationData || (typeof getStationData === 'function' ? getStationData() : []);
-        let filteredStations = [];
-        switch (filter) {
-            case 'active':
-                filteredStations = stations.filter(station => station.status === 'active');
-                break;
-            case 'maintenance':
-                filteredStations = stations.filter(station => station.status === 'maintenance');
-                break;
-            default:
-                filteredStations = stations;
-        }
-        stations.forEach(station => {
-            if ((filter === 'all') || (station.status === filter)) {
-                if (markers[station.id]) markers[station.id].addTo(map);
-            } else {
-                if (markers[station.id]) map.removeLayer(markers[station.id]);
-            }
-        });
-        if (filteredStations.length > 0) {
-            const bounds = filteredStations.map(station => [station.lat, station.lng]);
-            map.fitBounds(bounds);
-        }
-    }
-    function setActiveFilterButton(button) {
-        document.querySelectorAll('.map-controls .btn').forEach(btn => btn.classList.remove('active'));
-        button.classList.add('active');
-    }
-    if (allButton && activeButton && maintenanceButton) {
-        allButton.addEventListener('click', function () { filterStations('all'); setActiveFilterButton(this); });
-        activeButton.addEventListener('click', function () { filterStations('active'); setActiveFilterButton(this); });
-        maintenanceButton.addEventListener('click', function () { filterStations('maintenance'); setActiveFilterButton(this); });
-    }
-
-    // Search functionality
-    const stationSearch = document.getElementById('stationSearch');
-    const quickStationSearch = document.getElementById('quickStationSearch');
-    function filterTableRows(searchTerm) {
-        document.querySelectorAll('.station-row').forEach(row => {
-            const stationName = row.querySelector('.fw-medium').textContent.toLowerCase();
-            const stationAddress = row.querySelector('.text-muted').textContent.toLowerCase();
-            row.style.display = (stationName.includes(searchTerm) || stationAddress.includes(searchTerm)) ? '' : 'none';
-        });
-    }
-    function filterListItems(searchTerm) {
-        document.querySelectorAll('.station-list-item').forEach(item => {
-            const stationName = item.querySelector('.station-name').textContent.toLowerCase();
-            const stationAddress = item.querySelector('.station-address').textContent.toLowerCase();
-            item.style.display = (stationName.includes(searchTerm) || stationAddress.includes(searchTerm)) ? '' : 'none';
-        });
-    }
-    if (stationSearch) stationSearch.addEventListener('input', function () { filterTableRows(this.value.toLowerCase()); });
-    if (quickStationSearch) quickStationSearch.addEventListener('input', function () { filterListItems(this.value.toLowerCase()); });
-
-    // Station interactions
-    document.querySelectorAll('.station-locate-btn').forEach(button => {
-        button.addEventListener('click', function () {
-            const stationId = parseInt(this.getAttribute('data-station-id'), 10);
-            if (markers[stationId]) {
-                map.setView(markers[stationId].getLatLng(), 16);
-                markers[stationId].openPopup();
-                document.getElementById('stationsMap').scrollIntoView({ behavior: 'smooth' });
-            }
-        });
-    });
-    document.querySelectorAll('.view-on-map-btn').forEach(button => {
-        button.addEventListener('click', function () {
-            const stationId = parseInt(this.getAttribute('data-station-id'), 10);
-            if (markers[stationId]) {
-                map.setView(markers[stationId].getLatLng(), 16);
-                markers[stationId].openPopup();
-                document.getElementById('stationsMap').scrollIntoView({ behavior: 'smooth' });
-            }
-        });
-    });
-    document.querySelectorAll('.station-row').forEach(row => {
-        const stationId = parseInt(row.getAttribute('data-station-id'), 10);
-        row.addEventListener('mouseenter', function () {
-            if (markers[stationId] && markers[stationId].getElement()) markers[stationId].getElement().classList.add('highlight');
-        });
-        row.addEventListener('mouseleave', function () {
-            if (markers[stationId] && markers[stationId].getElement()) markers[stationId].getElement().classList.remove('highlight');
-        });
-    });
-
-    // Refresh button
-    const refreshButton = document.getElementById('refreshStations');
-    if (refreshButton) {
-        refreshButton.addEventListener('click', function () {
-            this.disabled = true;
-            const icon = this.querySelector('i');
-            if (icon) icon.classList.add('fa-spin');
-            setTimeout(() => { window.location.reload(); }, 800);
-        });
-    }
-
-    // Delete confirmation
-    const deleteModal = document.getElementById('confirmDeleteModal');
-    if (deleteModal) {
-        deleteModal.addEventListener('show.bs.modal', function (event) {
-            const button = event.relatedTarget;
-            const stationId = button.getAttribute('data-station-id');
-            const confirmBtn = document.getElementById('confirmDeleteBtn');
-            if (confirmBtn) {
-                const newConfirmBtn = confirmBtn.cloneNode(true);
-                confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-                const form = document.getElementById('deleteStationForm');
-                form.action = "/admin/bicycle/station/" + stationId + "/delete";
-                newConfirmBtn.addEventListener('click', function () { form.submit(); });
-            }
-        });
-    }
-});
+// Expose functions for global access
+window.initializeStationFormModal = {
+    submitStationForm,
+    initializeFormMap,
+    updateCapacityVisualization
+};

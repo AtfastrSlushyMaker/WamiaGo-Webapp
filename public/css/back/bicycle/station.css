@@ -25,276 +25,246 @@
     font-size: 24px;
 }
 
-/* Map Styling */
-.station-map {
-    height: 500px;
+/* Enhanced Station Map Styles */
+#stationsMap {
+    height: 400px !important;
     width: 100%;
+    background-color: #f8f9fa;
+    z-index: 1;
     border-radius: 0.5rem;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
 }
 
-/* Station marker styling */
-.station-marker-icon {
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-    transition: transform 0.2s ease, filter 0.2s ease;
-}
-
-.station-marker-icon.highlight div {
-    transform: scale(1.2);
-    box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.5) !important;
-}
-
-/* Enhanced markers with pulse effect */
-@keyframes markerPulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(102, 187, 106, 0.7);
-    }
-
-    70% {
-        box-shadow: 0 0 0 10px rgba(102, 187, 106, 0);
-    }
-
-    100% {
-        box-shadow: 0 0 0 0 rgba(102, 187, 106, 0);
-    }
-}
-
-/* Popup styling */
-.station-popup .leaflet-popup-content-wrapper {
-    border-radius: 10px;
+/* Ensure parent container looks good */
+.station-map {
+    height: 400px !important;
+    width: 100%;
+    position: relative;
+    border-radius: 0.5rem;
     overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem;
+}
+
+/* Enhance map card appearance */
+.card-body.p-0 {
+    height: 400px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Fix for Leaflet marker icons */
+.leaflet-marker-icon {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease-in-out;
+}
+
+.leaflet-marker-icon:hover {
+    z-index: 1000 !important;
+    transform: scale(1.1);
+}
+
+/* Fix for FontAwesome icons in leaflet markers */
+.leaflet-marker-icon .fas,
+.leaflet-marker-icon .ti {
+    font-size: 16px;
+    color: white;
+}
+
+/* Fix for custom markers with divIcons */
+.station-marker-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.3));
+}
+
+/* Prettier station popup styling */
+.station-popup .leaflet-popup-content-wrapper {
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     padding: 0;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
 }
 
 .station-popup .leaflet-popup-content {
     margin: 0;
-    width: 300px !important;
+    min-width: 280px;
 }
 
 .station-popup .station-info {
-    padding: 15px !important;
+    padding: 1rem;
 }
 
-.station-popup .station-info h5 {
+.station-popup h5 {
+    color: #333;
+    margin-bottom: 0.75rem;
     font-weight: 600;
-    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.75rem;
 }
 
-.station-popup .btn-primary {
-    color: white !important;
-    /* Ensure text is white */
+.station-popup .stats-grid {
+    margin: 1rem 0;
 }
 
-/* Stats grid in popups */
+/* Map loading/error overlay */
+.map-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(3px);
+    border-radius: 0.5rem;
+}
+
+.map-loading-overlay .spinner-border {
+    width: 3rem;
+    height: 3rem;
+    border-width: 0.25rem;
+}
+
+/* Stats grid in popup */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
     text-align: center;
-    margin-top: 10px;
 }
 
 .stat-item {
+    padding: 8px 5px;
     background-color: rgba(0, 0, 0, 0.03);
     border-radius: 8px;
-    padding: 8px 5px;
+    transition: all 0.2s ease;
+}
+
+.stat-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
 }
 
 .stat-value {
-    font-size: 18px;
-    font-weight: 600;
-    color: #444;
+    font-weight: 700;
+    color: #6571ff;
+    font-size: 1.2em;
 }
 
 .stat-label {
-    font-size: 12px;
-    color: #777;
+    font-size: 0.75em;
+    color: #6c757d;
+    margin-top: 3px;
 }
 
-/* Station list styling */
-.station-list-item {
-    transition: background-color 0.2s ease;
-    cursor: pointer;
-    border: none !important;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+/* Map control styles */
+.leaflet-control-zoom {
+    border-radius: 8px !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+    overflow: hidden;
 }
 
-.station-list-item:hover {
-    background-color: rgba(0, 0, 0, 0.02);
+.leaflet-control-zoom a {
+    background-color: white !important;
+    color: #555 !important;
+    width: 36px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+    font-size: 18px !important;
 }
 
-.station-list-item:last-child {
-    border-bottom: none !important;
+.leaflet-control-zoom a:hover {
+    background-color: #f8f9fa !important;
+    color: #333 !important;
 }
 
-.station-quick-list {
-    max-height: 500px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
+/* Map controls enhancement */
+.map-controls {
+    margin-bottom: 0.75rem;
 }
 
-.station-quick-list::-webkit-scrollbar {
-    width: 6px;
+.map-controls .btn-group {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    overflow: hidden;
 }
 
-.station-quick-list::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.05);
+.map-controls .btn {
+    padding: 0.5rem 0.75rem;
+    font-weight: 500;
+    border: none;
+    background-color: #fff;
+    color: #495057;
+    transition: all 0.15s ease-in-out;
 }
 
-.station-quick-list::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: 3px;
+.map-controls .btn:hover {
+    background-color: #f8f9fa;
+    color: #212529;
 }
 
-/* Station icon in table */
-.station-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
+.map-controls .btn.active {
+    background-color: #6571ff !important;
+    color: white !important;
 }
 
-.station-icon i {
-    font-size: 16px;
+/* Fix for highlight style when hovering over table row */
+.highlight {
+    transform: scale(1.2);
+    z-index: 1000 !important;
+    transition: transform 0.2s ease;
+    filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.4));
 }
 
-/* Status indicators */
-.station-status-badge {
-    padding: 6px 12px;
-    border-radius: 30px;
+/* Map attribution */
+.leaflet-control-attribution {
+    background-color: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(2px);
+    border-radius: 4px !important;
+    padding: 2px 8px !important;
+    font-size: 10px !important;
+}
+
+/* Popup buttons */
+.station-popup .btn {
+    border-radius: 6px;
+    padding: 0.4rem 0.75rem;
     font-weight: 500;
     font-size: 0.85rem;
 }
 
-.status-indicator {
-    display: inline-flex;
-    align-items: center;
-    padding: 3px 8px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-}
-
-.status-success {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-}
-
-.status-warning {
-    background-color: #fff8e1;
-    color: #f57c00;
-}
-
-.status-danger {
-    background-color: #ffebee;
-    color: #c62828;
-}
-
-/* Map control buttons */
-.map-controls .btn {
-    border-radius: 0;
-}
-
-.map-controls .btn:first-child {
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
-}
-
-.map-controls .btn:last-child {
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
-}
-
-.map-controls .btn.active {
-    background-color: #6c757d;
-    color: white;
-    border-color: #6c757d;
-}
-
-/* Animations */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.station-locate-btn {
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.station-locate-btn:hover {
-    background-color: #e3f2fd;
-    color: #1976d2;
-}
-
-/* Responsive adjustments */
+/* Media queries for responsive map */
 @media (max-width: 992px) {
+    #stationsMap,
     .station-map {
-        height: 400px;
-    }
-
-    .station-quick-list {
-        max-height: 300px;
+        height: 350px !important;
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 576px) {
+    #stationsMap,
     .station-map {
-        height: 350px;
+        height: 300px !important;
     }
-
-    .stats-icon {
-        width: 40px;
-        height: 40px;
+    
+    .map-controls .btn {
+        padding: 0.4rem 0.5rem;
+        font-size: 0.85rem;
     }
-
-    .stats-icon i {
-        font-size: 18px;
+    
+    .stat-value {   0.4rem 0.5rem;
+        font-size: 1.1em;
     }
 }
-
-#btn-detail {
-    background-color: #007bff !important;
-    color: white !important;
-    border-radius: 0.5rem !important;
-    padding: 0.5rem 1rem !important;
-    font-size: 1rem !important;
-    transition: background-color 0.3s ease !important;
-}
-
-#btn-detail:hover {
-    background-color: #0056b3 !important;
-    color: white !important;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
-}
-
-#btn-edit {
-    background-color: white !important;
-    color: #007bff !important;
-    border-radius: 0.5rem !important;
-    padding: 0.5rem 1rem !important;
-    font-size: 1rem !important;
-    transition: background-color 0.3s ease !important;
-}
-
-#btn-edit:hover {
-    background-color: #e9ecef !important;
-    color: #0056b3 !important;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
-    border: 1px solid #007bff !important;
+color: #0056b3 !important;
+box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+border: 1px solid #007bff !important;
 }
