@@ -6,6 +6,7 @@ use App\Entity\Reclamation;
 use App\Entity\Response;
 use App\Form\ResponseType;
 use App\Repository\ResponseRepository;
+use App\Service\TwilioService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -131,7 +132,8 @@ final class ResponseController extends AbstractController
         EntityManagerInterface $entityManager, 
         int $id_reclamation,
         MailerInterface $mailer,
-        ValidatorInterface $validator
+        ValidatorInterface $validator,
+        TwilioService $twilioService
     ): HttpResponse
     {
         $reclamation = $entityManager->getRepository(Reclamation::class)->find($id_reclamation);
@@ -203,6 +205,54 @@ final class ResponseController extends AbstractController
             } catch (\Exception $e) {
                // Log the error but continue
                $this->addFlash('warning', 'La réponse a été enregistrée mais l\'email n\'a pas pu être envoyé.');
+            }
+        }
+
+        // Send SMS to the user
+        if ($user) {
+            try {
+                // Get phone number directly from the user entity
+                $phoneNumber = $user->getPhone_number();
+                
+                // Make sure we have a phone number
+                if (!empty($phoneNumber)) {
+                    // Only clean up non-numeric characters
+                    $cleanedPhoneNumber = preg_replace('/[^\d]/', '', $phoneNumber);
+                    
+                    // Ensure E.164 format for Twilio (with + and country code)
+                    if (!preg_match('/^\+/', $cleanedPhoneNumber)) {
+                        // Add Tunisia country code if it's not already there
+                        if (!preg_match('/^216/', $cleanedPhoneNumber)) {
+                            $cleanedPhoneNumber = '+216' . $cleanedPhoneNumber;
+                        } else {
+                            // If it already has the country code but no +
+                            $cleanedPhoneNumber = '+' . $cleanedPhoneNumber;
+                        }
+                    }
+                    
+                    // Send SMS notification with the properly formatted number
+                    $twilioService->sendSms(
+                        $cleanedPhoneNumber,
+                        'Vous avez une nouvelle réponse à votre réclamation. Veuillez vérifier votre email pour plus de détails.'
+                    );
+                    
+                    // Add a flash message indicating SMS was sent
+                    $this->addFlash('info', 'Un SMS de notification a été envoyé au numéro ' . $phoneNumber . ' (formaté en ' . $cleanedPhoneNumber . ')');
+                } else {
+                    $this->addFlash('warning', 'Impossible d\'envoyer un SMS: numéro de téléphone manquant.');
+                }
+            } catch (\Exception $e) {
+                $errorMessage = $e->getMessage();
+                // Log the actual error for debugging
+                error_log('Twilio SMS error: ' . $errorMessage);
+                
+                // More specific error messages
+                if (strpos($errorMessage, 'unverified') !== false && strpos($errorMessage, 'Trial accounts') !== false) {
+                    $this->addFlash('warning', 'SMS non envoyé: Votre compte Twilio est un compte d\'essai. Vous devez vérifier le numéro du destinataire dans votre tableau de bord Twilio.');
+                } else {
+                    // General error
+                    $this->addFlash('warning', 'La réponse a été enregistrée mais le SMS n\'a pas pu être envoyé: ' . $errorMessage);
+                }
             }
         }
         
