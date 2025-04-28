@@ -148,25 +148,56 @@
 
         <div class="row">
             <div class="col-md-6">
-                <div class="bicycle-details">
-                    <h3>{{ bicycleType }}</h3>
-                    <p class="text-muted">ID: #{{ bicycle.idBike }}</p>
-                    
-                    <div class="mt-4">
-                        <p><strong>Battery Level:</strong></p>
-                        <div class="battery-indicator">
-                            <div class="battery-level" style="width: {{ bicycle.batteryLevel }}%;"></div>
+                <div class="bicycle-details mb-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bicycle-icon me-3">
+                            <i class="fas fa-bicycle fa-3x text-primary"></i>
                         </div>
-                        <p>{{ bicycle.batteryLevel }}%</p>
+                        <div>
+                            <h3 class="mb-0">{{ bicycleType }}</h3>
+                            <p class="text-muted mb-0">ID: #{{ bicycle.idBike }}</p>
+                        </div>
                     </div>
                     
-                    <div class="mt-3">
-                        <p><strong>Estimated Range:</strong> {{ bicycle.rangeKm }} km</p>
-                        <p><strong>Station:</strong> {{ bicycle.bicycleStation.name }}</p>
-                        <p><strong>Hourly Rate:</strong> {{ (hourlyRate)|number_format(3) }} TND</p>
+                    <div class="row mt-4">
+                        <div class="col-6">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="fas fa-battery-three-quarters text-success me-2"></i>Battery</h5>
+                                    <div class="battery-indicator">
+                                        <div class="battery-level" style="width: {{ bicycle.batteryLevel }}%;"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <span class="fw-bold">{{ bicycle.batteryLevel }}%</span>
+                                        <span class="badge bg-info">{{ bicycle.rangeKm }} km range</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="fas fa-tag text-warning me-2"></i>Pricing</h5>
+                                    <div class="pricing-info">
+                                        <p class="mb-1"><span class="fw-bold">{{ hourlyRate|number_format(3) }} TND</span> / hour</p>
+                                        <small class="text-muted">Weather conditions may affect pricing</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="weather-info" id="weather-container">
+                    <div class="station-info mt-4 p-3 border rounded">
+                        <h5><i class="fas fa-map-marker-alt text-danger me-2"></i>Pick-up Location</h5>
+                        <p class="mb-1"><strong>{{ bicycle.bicycleStation.name }}</strong></p>
+                        <p class="mb-1">{{ bicycle.bicycleStation.location ? bicycle.bicycleStation.location.address : 'Address not available' }}</p>
+                        <p class="mb-0 small">
+                            <span class="badge bg-success me-2">{{ bicycle.bicycleStation.availableBikes }} bikes available</span>
+                            <span class="badge bg-secondary">{{ bicycle.bicycleStation.availableDocks }} docks available</span>
+                        </p>
+                    </div>
+                    
+                    <div class="weather-info mt-4" id="weather-container">
                         <div class="weather-icon">
                             <i class="fas fa-spinner fa-pulse"></i>
                         </div>
@@ -178,7 +209,7 @@
                     </div>
                     
                     <div class="rental-info-box mt-4">
-                        <p class="mb-2"><span class="rental-info-label">How it works:</span></p>
+                        <h5 class="mb-3"><i class="fas fa-info-circle text-info me-2"></i>How it works</h5>
                         <ol>
                             <li>Reserve the bicycle now</li>
                             <li>Go to "My Reservations" page to activate your reservation</li>
@@ -202,7 +233,97 @@
                                    value="{{ "now"|date('Y-m-d H:i') }}" readonly>
                             <small class="form-text text-muted">Your rental will be reserved now but will only start when you activate it from "My Reservations" page.</small>
                         </div>
-                              
+                              {# Add this after the current date/time field in the reservation form #}
+<div class="form-group mb-3">
+    <label for="endStation">Destination Station:</label>
+    <select class="form-control" id="endStation" name="endStation" required>
+        <option value="">Select your destination</option>
+        {% for station in stations %}
+            <option value="{{ station.idStation }}">{{ station.name }}</option>
+        {% endfor %}
+    </select>
+    <small class="form-text text-muted">Select where you plan to return the bicycle.</small>
+</div>
+
+<div class="mb-3 text-center">
+    <button type="button" id="predictButton" class="btn btn-info">
+        <i class="fas fa-magic me-2"></i>Get AI Prediction
+    </button>
+</div>
+
+<div id="predictionLoading" class="text-center my-3 d-none">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">AI is calculating your prediction...</p>
+</div>
+
+<div id="predictionResult" class="rental-info-box d-none">
+    <h5 class="mb-3"><i class="fas fa-robot text-primary me-2"></i>AI-Powered Prediction</h5>
+    
+    <div class="row mb-3">
+        <div class="col-4">
+            <p><span class="rental-info-label">Distance:</span><br>
+            <span id="predictionDistance">--</span> km</p>
+        </div>
+        <div class="col-4">
+            <p><span class="rental-info-label">Duration:</span><br>
+            <span id="predictionDuration">--</span> minutes</p>
+        </div>
+        <div class="col-4">
+            <p><span class="rental-info-label">Estimated Cost:</span><br>
+            <span id="predictionCost">--</span> TND</p>
+        </div>
+    </div>
+    
+    <div class="row mb-3 border-top pt-3">
+        <div class="col-6">
+            <p><span class="rental-info-label">Battery Usage:</span><br>
+            <span id="predictionBattery">--</span></p>
+        </div>
+        <div class="col-6">
+            <p><span class="rental-info-label">Weather Impact:</span><br>
+            <span id="predictionWeather">--</span></p>
+        </div>
+    </div>
+
+    <div id="rechargingAlert" class="alert alert-warning d-none mb-3">
+        <i class="fas fa-charging-station me-2"></i>
+        <strong>Battery Recharging Recommended:</strong>
+        <span id="rechargingSuggestion">--</span>
+    </div>
+
+    <div class="enhanced-prediction border-top pt-3">
+        <div class="row mb-2">
+            <div class="col-12">
+                <p class="rental-info-label"><i class="fas fa-route me-2 text-info"></i>Route Suggestion:</p>
+                <p id="routeSuggestion" class="ps-4">--</p>
+            </div>
+        </div>
+        
+        <div class="accordion" id="predictionAccordion">
+
+            <!-- Health & Safety -->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#healthSafetyCollapse" aria-expanded="false" aria-controls="healthSafetyCollapse">
+                        <i class="fas fa-heartbeat me-2 text-danger"></i> Health & Safety
+                    </button>
+                </h2>
+                <div id="healthSafetyCollapse" class="accordion-collapse collapse" data-bs-parent="#predictionAccordion">
+                    <div class="accordion-body">
+                        <p><strong>Health Benefits:</strong> <span id="healthBenefits">--</span></p>
+                        <p><strong>Safety Tips:</strong> <span id="safetyTips">--</span></p>
+                        <p class="mt-2">
+                            <strong>Difficulty Level:</strong> 
+                            <span id="difficultyBadge" class="badge bg-success">--</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
                         <div class="price-calculation">
                             <p><strong>Hourly Rate:</strong> {{ hourlyRate|number_format(3) }} TND</p>
                             <p><strong>Weather Conditions:</strong> <span id="weatherCondition">Loading...</span></p>
@@ -231,12 +352,19 @@
 
 {% block page_javascripts %}
     <script src="{{ asset('js/front/bicycle/weatherService.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
+    <script src="{{ asset('js/front/bicycle/predictionDisplay.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const totalCostSpan = document.getElementById('totalCost');
             const estimatedCostInput = document.getElementById('estimatedCost');
             const weatherConditionSpan = document.getElementById('weatherCondition');
             const weatherContainer = document.getElementById('weather-container');
+            
+            // Prediction elements
+            const predictButton = document.getElementById('predictButton');
+            const endStationSelect = document.getElementById('endStation');
+            const predictionLoading = document.getElementById('predictionLoading');
+            const predictionResult = document.getElementById('predictionResult');
             
             const hourlyRate = {{ hourlyRate }};
             let weatherFactor = 1.0; // Default factor
@@ -247,6 +375,61 @@
             // Get the station coordinates from the hidden inputs
             const latitude = parseFloat(document.getElementById('stationLatitude').value);
             const longitude = parseFloat(document.getElementById('stationLongitude').value);
+            
+            // Prediction button click handler
+            predictButton.addEventListener('click', async function() {
+                const endStationId = endStationSelect.value;
+                
+                if (!endStationId) {
+                    alert('Please select a destination station first.');
+                    return;
+                }
+                
+                // Show loading indicator
+                predictionLoading.classList.remove('d-none');
+                predictionResult.classList.add('d-none');
+                
+                try {
+                    // Make API request to get prediction
+                    const response = await fetch('/services/bicycle/api-rental-predict', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            startStationId: {{ bicycle.bicycleStation.idStation }},
+                            endStationId: endStationId,
+                            bicycleId: {{ bicycle.idBike }}
+                        })
+                    });
+                    
+                    const predictionData = await response.json();
+                    
+                    if (predictionData.error) {
+                        throw new Error(predictionData.error);
+                    }
+                    
+                    // Use our helper class to update the UI
+                    PredictionDisplay.updatePredictionUI(predictionData);
+                    
+                    // Update form costs with the predicted values if higher than default
+                    const predictedCost = parseFloat(predictionData.estimatedCost);
+                    if (predictedCost > parseFloat(estimatedCostInput.value)) {
+                        totalCostSpan.textContent = predictedCost.toFixed(3);
+                        estimatedCostInput.value = predictedCost;
+                    }
+                    
+                    // Show results
+                    predictionResult.classList.remove('d-none');
+                    
+                } catch (error) {
+                    console.error('Error getting prediction:', error);
+                    alert('Unable to get prediction at this time. Please try again later.');
+                } finally {
+                    // Hide loading indicator
+                    predictionLoading.classList.add('d-none');
+                }
+            });
             
             // Fetch weather data for the bicycle station location
             async function loadWeatherData() {
