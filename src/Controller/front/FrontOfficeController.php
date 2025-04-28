@@ -92,6 +92,9 @@ class FrontOfficeController extends AbstractController
                     $reclamation->setStatus(false);
                 }
                 
+                // Verify CAPTCHA (handled automatically by the form validation)
+                // CAPTCHA is validated by the bundle as part of form validation
+                
                 // Debug information - showing this to help troubleshoot
                 $this->addFlash('info', 'Debug: Title: ' . $reclamation->getTitle() . 
                     ' | Content: ' . substr($reclamation->getContent(), 0, 20) . '...' .
@@ -118,6 +121,14 @@ class FrontOfficeController extends AbstractController
             foreach ($errors as $error) {
                 $this->addFlash('error', $error->getMessage());
             }
+            
+            // Check specifically for CAPTCHA errors
+            if ($form->get('captcha')->getErrors()->count() > 0) {
+                foreach ($form->get('captcha')->getErrors() as $error) {
+                    $this->addFlash('error', 'CAPTCHA Error: ' . $error->getMessage());
+                }
+            }
+            
             $this->addFlash('error', 'Please check your submission. There were validation errors.');
         }
         

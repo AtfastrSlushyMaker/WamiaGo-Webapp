@@ -11,6 +11,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Gregwar\CaptchaBundle\Type\CaptchaType;
 
 class ReclamationType extends AbstractType
 {
@@ -60,6 +61,32 @@ class ReclamationType extends AbstractType
                     ]),
                 ],
             ])
+            ->add('captcha', CaptchaType::class, [
+                'label' => 'Security Check',
+                'mapped' => false,
+                'error_bubbling' => false,
+                'label_attr' => ['class' => 'form-label'],
+                'row_attr' => ['class' => 'mb-4 captcha-container'],
+                'help' => 'Please enter the characters you see in the image',
+                'help_attr' => ['class' => 'form-text'],
+                'attr' => [
+                    'class' => 'form-control mt-2',
+                    'placeholder' => 'Enter the code shown above',
+                    'autocomplete' => 'off',
+                    'tabindex' => 0
+                ],
+                'invalid_message' => 'The security code is invalid. Please try again.',
+                'width' => 200,
+                'height' => 50,
+                'length' => 6,
+                'quality' => 70,
+                'distortion' => true,
+                'background_color' => [255, 255, 255],
+                'text_color' => [0, 0, 0],
+                'as_url' => true,
+                'reload' => true,
+                'ignore_all_effects' => false,
+            ])
             ->add('submit', SubmitType::class, [
                 'label' => 'Submit Reclamation',
                 'attr' => [
@@ -76,7 +103,6 @@ class ReclamationType extends AbstractType
         $resolver->setDefaults([
             'data_class' => Reclamation::class,
             'attr' => [
-                // Remove novalidate attribute to disable HTML5 validation
                 'class' => 'needs-validation',
             ],
             'csrf_protection' => true,

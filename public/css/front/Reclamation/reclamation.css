@@ -1423,3 +1423,68 @@ body.dark-mode .login-card .btn-outline-light:hover {
     color: #ffffff;
     border-color: rgba(255, 255, 255, 0.3);
 }
+
+/* ==================== CAPTCHA STYLING ==================== */
+.captcha-container {
+    margin-bottom: 2rem;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.25rem;
+    background-color: #f8f9fa;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.03);
+    transition: all 0.3s ease;
+}
+
+.captcha-container:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.captcha-container img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.captcha-container a {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    color: var(--primary);
+    font-weight: 500;
+    text-decoration: none;
+    gap: 0.5rem;
+    transition: color 0.2s ease;
+}
+
+.captcha-container a:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+.captcha-container a i {
+    font-size: 1rem;
+}
+
+.captcha-container .form-control {
+    background-color: #ffffff;
+    border: 1.5px solid #e9ecef;
+}
+
+/* Dark mode styles for captcha */
+body.dark-mode .captcha-container {
+    background-color: rgba(30, 30, 30, 0.5);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode .captcha-container img {
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    filter: brightness(0.9) contrast(1.1);
+}
+
+body.dark-mode .captcha-container .form-control {
+    background-color: rgba(30, 30, 30, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+}
