@@ -7,6 +7,7 @@ parameters:
     twilio.account_sid: '%env(TWILIO_ACCOUNT_SID)%'
     twilio.auth_token: '%env(TWILIO_AUTH_TOKEN)%'
     twilio.from_number: '%env(TWILIO_FROM_NUMBER)%'
+    gemini.api_key: '%env(GEMINI_API_KEY)%'
 
 services:
     # default configuration for services in *this* file
@@ -29,6 +30,11 @@ services:
             $accountSid: '%twilio.account_sid%'
             $authToken: '%twilio.auth_token%'
             $fromNumber: '%twilio.from_number%'
+            
+    # Gemini Chat service configuration
+    App\Service\GeminiChatService:
+        arguments:
+            $apiKey: '%gemini.api_key%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
