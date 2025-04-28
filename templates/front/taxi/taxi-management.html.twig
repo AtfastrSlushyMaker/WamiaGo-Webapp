@@ -97,46 +97,92 @@
 
 <div class="container-fluid">
     <div class="row">
-        <!-- Taxi Requests Section -->
-        <div class="col-lg-6">
-            <section id="requests-section" class="py-4">
-                <div class="container">
-                    <h3 class="text-center mb-4">Taxi Requests</h3>
-                    <div class="row justify-content-center">
-                        {% if requests is empty %}
-                            <div class="text-center py-4">
-                                <p class="text-muted">No active taxi requests at the moment.</p>
-                            </div>
-                        {% else %}
-                            {% for request in requests %}
-                                <div id="request-{{ request.id }}" class="col-md-12 mb-3">
-                                    <div class="card request-card border-0 h-100" style="background-color: #e3f2fd; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                                        <div class="card-header text-center" style="background-color: #bbdefb;">
-                                            <h6 class="mb-0 text-secondary">{{ request.status }}</h6>
-                                        </div>
-                                        <div class="card-body d-flex flex-column p-3">
-                                            <p class="mb-2"><i class="fas fa-map-marker-alt me-2 text-primary"></i> Pickup: {{ request.pickupLocation ?: 'Unknown' }}</p>
-                                            <p class="mb-2"><i class="fas fa-map-marker-alt me-2 text-primary"></i> Destination: {{ request.destination ?: 'Unknown' }}</p>
-                                            <p class="mb-2"><i class="fas fa-clock me-2 text-primary"></i> {{ request.requestTime|date('Y-m-d H:i') }}</p>
-                                            <div class="mt-auto d-flex justify-content-between">
-                                                <form class="delete-request-form" action="{{ path('delete_request', { id: request.id }) }}" method="POST">
-                                                    <button type="button" class="btn btn-danger btn-sm d-flex align-items-center delete-request-btn" data-request-id="{{ request.id }}">
-                                                        <i class="fas fa-trash-alt"></i> Delete
-                                                    </button>
-                                                </form>
-                                                <a href="{{ path('update_request', { id: request.id }) }}" class="btn btn-primary btn-md px-3 py-2 d-flex align-items-center">
-                                                    <i class="fas fa-edit"></i> Edit
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
+      <!-- Taxi Requests Section -->
+<div class="col-lg-6">
+    <section id="requests-section" class="py-4">
+        <div class="container">
+            <h3 class="text-center mb-4">Taxi Requests</h3>
+            <div class="row justify-content-center">
+                {% if requests is empty %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">No active taxi requests at the moment.</p>
                     </div>
-                </div>
-            </section>
+                {% else %}
+                    {% for request in requests %}
+                        <div id="request-{{ request.id }}" class="col-md-12 mb-3">
+                            <div class="card request-card border-0 h-100" style="background-color: #e3f2fd; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                                <div class="card-header text-center" style="background-color: #bbdefb;">
+                                    <h6 class="mb-0 text-secondary">{{ request.status }}</h6>
+                                </div>
+                                <div class="card-body d-flex flex-column p-3">
+                                    <p class="mb-2 d-flex align-items-center">
+                                        <i class="fas fa-map-marker-alt me-2 text-primary"></i> 
+                                        Pickup: {{ request.pickupLocation ?: 'Unknown' }}
+                                        {% if request.pickupLocation %}
+                                            <button type="button" class="btn btn-link btn-sm ms-2 p-0 play-address-btn" data-text="Pickup at {{ request.pickupLocation }}">
+                                                <i class="fas fa-volume-up"></i>
+                                            </button>
+                                        {% endif %}
+                                    </p>
+
+                                    <p class="mb-2 d-flex align-items-center">
+                                        <i class="fas fa-map-marker-alt me-2 text-primary"></i> 
+                                        Destination: {{ request.destination ?: 'Unknown' }}
+                                        {% if request.destination %}
+                                            <button type="button" class="btn btn-link btn-sm ms-2 p-0 play-address-btn" data-text="Destination at {{ request.destination }}">
+                                                <i class="fas fa-volume-up"></i>
+                                            </button>
+                                        {% endif %}
+                                    </p>
+
+                                    <p class="mb-2">
+                                        <i class="fas fa-clock me-2 text-primary"></i> {{ request.requestTime|date('Y-m-d H:i') }}
+                                    </p>
+
+                                    <div class="mt-auto d-flex justify-content-between">
+                                        <form class="delete-request-form" action="{{ path('delete_request', { id: request.id }) }}" method="POST">
+                                            <button type="button" class="btn btn-danger btn-sm d-flex align-items-center delete-request-btn" data-request-id="{{ request.id }}">
+                                                <i class="fas fa-trash-alt"></i> Delete
+                                            </button>
+                                        </form>
+                                        <a href="{{ path('update_request', { id: request.id }) }}" class="btn btn-primary btn-md px-3 py-2 d-flex align-items-center">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
         </div>
+    </section>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const playButtons = document.querySelectorAll('.play-address-btn');
+
+    playButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+            const textToSpeak = this.getAttribute('data-text');
+
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.lang = 'fr-FR'; // Langue français (tu peux changer en 'en-US' ou d'autres langues)
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert('Votre navigateur ne supporte pas la synthèse vocale.');
+            }
+        });
+    });
+});
+</script>
+
+
+
+
         <!-- Rides Section -->
         <div class="col-lg-6">
             <section id="rides-section" class="py-4">
@@ -178,7 +224,7 @@
                 <!-- This is the hidden QR code (inside the card, still inside the loop) -->
                 <div id="qr-code-{{ ride.id }}" class="qr-code-container text-center mt-3" style="display: none;">
                     {% if ride.driverPhone %}
-                        <img id="qr-code-img" src="{{ qr_code_data_uri('Driver Name: ' ~ ride.driverName ~ ' | Phone: ' ~ ride.driverPhone) }}" alt="Driver QR Code" style="width: 150px; height: 150px;">
+                        <img id="qr-code-img" src="{{ qr_code_data_uri('' ~ ride.driverPhone) }}" alt="Driver QR Code" style="width: 150px; height: 150px;">
 
 
                         <p class="small text-muted mt-2">Scan to call the driver</p>

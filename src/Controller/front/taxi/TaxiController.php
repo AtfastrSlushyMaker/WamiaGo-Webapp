@@ -5,16 +5,15 @@ namespace App\Controller\front\taxi;
 use App\Entity\Request;
 use App\Entity\User;
 use App\Service\RequestService;
+use App\Service\RideService;
+use App\Service\AzureTTSService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use App\Service\RideService;
-use App\Enum\RIDE_STATUS;
 use Symfony\Component\HttpFoundation\Request as HttpRequest;
-
 
 #[Route('/services/taxi')]
 class TaxiController extends AbstractController
@@ -22,70 +21,87 @@ class TaxiController extends AbstractController
     private $entityManager;
     private $requestService;
     private $rideService;
+    private $azureTTSService;
 
-    public function __construct(EntityManagerInterface $entityManager, RequestService $requestService, RideService $rideService)
+    public function __construct(EntityManagerInterface $entityManager, RequestService $requestService, RideService $rideService, AzureTTSService $azureTTSService)
     {
         $this->entityManager = $entityManager;
         $this->requestService = $requestService;
         $this->rideService = $rideService;
+        $this->azureTTSService = $azureTTSService;
     }
 
-    #[Route('/taxi/management', name: 'app_taxi_management')]
-    public function index(): Response
-    {
-       
-        $user = $this->entityManager->getRepository(User::class)->find(114);
+  #[Route('/taxi/management', name: 'app_taxi_management')]
+public function index(): Response
+{
+    $user = $this->entityManager->getRepository(User::class)->find(114);
 
-       
-        if (!$user) {
-            throw $this->createNotFoundException('User with ID 114 not found.');
-        }
-
-      
-        $requests = $this->requestService->getRequestsForUser($user->getIdUser());
-        $rides = $this->rideService->getRidesByUser($user->getIdUser());
-
-        
-        $requestData = [];
-
-        foreach ($requests as $request) {
-            $requestData[] = [
-                'id' => $request->getIdRequest(), 
-                'pickupLocation' => $request->getDepartureLocation() ? $request->getDepartureLocation()->getAddress() : 'Unknown', 
-                'pickupLatitude' => $request->getDepartureLocation() ? $request->getDepartureLocation()->getLatitude() : null, 
-                'pickupLongitude' => $request->getDepartureLocation() ? $request->getDepartureLocation()->getLongitude() : null, 
-                'destination' => $request->getArrivalLocation() ? $request->getArrivalLocation()->getAddress() : 'Unknown', 
-                'destinationLatitude' => $request->getArrivalLocation() ? $request->getArrivalLocation()->getLatitude() : null, 
-                'destinationLongitude' => $request->getArrivalLocation() ? $request->getArrivalLocation()->getLongitude() : null, 
-                'requestTime' => $request->getRequestDate()->format('Y-m-d H:i:s'), 
-                'status' => $request->getStatus()->value, 
-            ];
-        }
-
-
-        $rideData = [];
-
-        foreach ($rides as $ride) {
-            $rideData[] = [
-                'id' => $ride->getIdRide(), 
-                'pickupLocation' => $ride->getRequest()->getDepartureLocation() ? $ride->getRequest()->getDepartureLocation()->getAddress() : 'Unknown', 
-                'duration' => $ride->getDuration(), 
-               'driverName' => $ride->getDriver() ? $ride->getDriver()->getUser()->getName() : 'Unknown', 
-                'destination' => $ride->getRequest()->getArrivalLocation() ? $ride->getRequest()->getArrivalLocation()->getAddress() : 'Unknown', 
-                'price' => $ride->getPrice(), 
-                'status' => $ride->getStatus()->value, 
-                'distance' => $ride->getDistance(), 
-                'driverPhone' => $ride->getDriver() ? $ride->getDriver()->getUser()->getPhone_number() : 'Unknown',
-            ];
-        }
-
-
-
-        return $this->render('front/taxi/taxi-management.html.twig', [
-            'requests' => $requestData,
-            'rides' => $rideData, 
-        ]);
+    if (!$user) {
+        throw $this->createNotFoundException('User with ID 114 not found.');
     }
+
+    $requests = $this->requestService->getRequestsForUser($user->getIdUser());
+    $rides = $this->rideService->getRidesByUser($user->getIdUser());
+
+    $requestData = [];
+    foreach ($requests as $request) {
+        $pickup = $request->getDepartureLocation() ? $request->getDepartureLocation()->getAddress() : 'Adresse de départ inconnue';
+        $destination = $request->getArrivalLocation() ? $request->getArrivalLocation()->getAddress() : 'Adresse de destination inconnue';
+
+        // Générer l'audio texte pour Request
+        $speechText = "Votre départ est à {$pickup} et votre arrivée est à {$destination}.";
+        $audioContent = $this->azureTTSService->synthesizeSpeech($speechText);
+
+        // Sauvegarder l'audio dans public/audio/request_{id}.mp3
+        $audioFilename = 'D:/WamiaGo-Webapp/public/audio/request_' . $request->getIdRequest() . '.mp3';
+        file_put_contents($audioFilename, $audioContent);
+
+        $requestData[] = [
+            'id' => $request->getIdRequest(),
+            'pickupLocation' => $pickup,
+            'pickupLatitude' => $request->getDepartureLocation() ? $request->getDepartureLocation()->getLatitude() : null,
+            'pickupLongitude' => $request->getDepartureLocation() ? $request->getDepartureLocation()->getLongitude() : null,
+            'destination' => $destination,
+            'destinationLatitude' => $request->getArrivalLocation() ? $request->getArrivalLocation()->getLatitude() : null,
+            'destinationLongitude' => $request->getArrivalLocation() ? $request->getArrivalLocation()->getLongitude() : null,
+            'requestTime' => $request->getRequestDate()->format('Y-m-d H:i:s'),
+            'status' => $request->getStatus()->value,
+            'audioPath' => '/' . $audioFilename, // à utiliser dans Twig pour lire l'audio
+        ];
+    }
+
+    $rideData = [];
+    foreach ($rides as $ride) {
+        $pickupLocation = $ride->getRequest()->getDepartureLocation() ? $ride->getRequest()->getDepartureLocation()->getAddress() : 'Unknown';
+        $destination = $ride->getRequest()->getArrivalLocation() ? $ride->getRequest()->getArrivalLocation()->getAddress() : 'Unknown';
+
+        // Générer l'audio texte pour Ride
+        $speechText = "La course a démarré à {$pickupLocation} et se termine à {$destination}.";
+        $audioContent = $this->azureTTSService->synthesizeSpeech($speechText);
+
+        // Sauvegarder l'audio dans public/audio/ride_{id}.mp3
+        $audioFilename = 'D:/WamiaGo-Webapp/public/audio/ride_' . $ride->getIdRide() . '.mp3';
+        file_put_contents($audioFilename, $audioContent);
+
+        $rideData[] = [
+            'id' => $ride->getIdRide(),
+            'pickupLocation' => $pickupLocation,
+            'duration' => $ride->getDuration(),
+            'driverName' => $ride->getDriver() ? $ride->getDriver()->getUser()->getName() : 'Unknown',
+            'destination' => $destination,
+            'price' => $ride->getPrice(),
+            'status' => $ride->getStatus()->value,
+            'distance' => $ride->getDistance(),
+            'driverPhone' => $ride->getDriver() ? $ride->getDriver()->getUser()->getPhone_number() : 'Unknown',
+            'audioPath' => '/' . $audioFilename, // à utiliser dans Twig pour lire l'audio
+        ];
+    }
+
+    return $this->render('front/taxi/taxi-management.html.twig', [
+        'requests' => $requestData,
+        'rides' => $rideData,
+    ]);
+}
 
     #[Route('/request/delete/{id}', name: 'delete_request', methods: ['POST'])]
     public function delete(int $id, RequestService $requestService): JsonResponse
@@ -103,19 +119,16 @@ class TaxiController extends AbstractController
     {
         return $this->render('front/taxi/request.html.twig');
     }
-    
+
     #[Route('/request/update/{id}', name: 'request_update', methods: ['GET'])]
     public function requestUpdate(int $id): Response
     {
-        
         $request = $this->entityManager->getRepository(Request::class)->find($id);
 
-        
         if (!$request) {
             throw $this->createNotFoundException('Request not found.');
         }
 
-        
         return $this->render('front/taxi/request-update.html.twig', [
             'request' => $request,
         ]);
@@ -125,9 +138,8 @@ class TaxiController extends AbstractController
     public function deleteRide(int $id): JsonResponse
     {
         try {
-           
             $this->rideService->deleteRide($id);
-    
+
             return new JsonResponse([
                 'status' => 'success',
                 'message' => 'Ride deleted successfully.',
@@ -139,10 +151,4 @@ class TaxiController extends AbstractController
             ], 400);
         }
     }
-
-    
-
-   
-   
-  
 }
