@@ -122,6 +122,83 @@
             background-color: #f5c2c7;
             color: #58151c;
         }
+
+        .elevation-chart {
+            height: 100px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+        
+        .elevation-profile {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: linear-gradient(to top, rgba(41, 128, 185, 0.7), rgba(41, 128, 185, 0.2));
+            clip-path: polygon(0 100%, 20% 70%, 40% 85%, 60% 40%, 80% 60%, 100% 25%, 100% 100%);
+        }
+        
+        .terrain-badge {
+            font-size: 0.85rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .terrain-flat {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        
+        .terrain-hilly {
+            background-color: #fff3cd;
+            color: #664d03;
+        }
+        
+        .terrain-uphill {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        
+        .terrain-downhill {
+            background-color: #cfe2ff;
+            color: #084298;
+        }
+        
+        .poi-list {
+            margin-top: 10px;
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .poi-list li {
+            padding: 5px 0;
+            border-bottom: 1px dashed #e0e0e0;
+        }
+        
+        .poi-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .poi-list i {
+            margin-right: 8px;
+            color: #6c757d;
+        }
+        
+        .routing-provider {
+            position: absolute;
+            bottom: 5px;
+            right: 10px;
+            font-size: 0.7rem;
+            color: #6c757d;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 2px 5px;
+            border-radius: 3px;
+            z-index: 400;
+        }
     </style>
 {% endblock %}
 
@@ -233,97 +310,137 @@
                                    value="{{ "now"|date('Y-m-d H:i') }}" readonly>
                             <small class="form-text text-muted">Your rental will be reserved now but will only start when you activate it from "My Reservations" page.</small>
                         </div>
-                              {# Add this after the current date/time field in the reservation form #}
-<div class="form-group mb-3">
-    <label for="endStation">Destination Station:</label>
-    <select class="form-control" id="endStation" name="endStation" required>
-        <option value="">Select your destination</option>
-        {% for station in stations %}
-            <option value="{{ station.idStation }}">{{ station.name }}</option>
-        {% endfor %}
-    </select>
-    <small class="form-text text-muted">Select where you plan to return the bicycle.</small>
-</div>
+                        <div class="form-group mb-3">
+                            <label for="endStation">Destination Station:</label>
+                            <select class="form-control" id="endStation" name="endStation" required>
+                                <option value="">Select your destination</option>
+                                {% for station in stations %}
+                                    {% if station.idStation != bicycle.bicycleStation.idStation %}
+                                        <option value="{{ station.idStation }}">{{ station.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">Select where you plan to return the bicycle.</small>
+                        </div>
 
-<div class="mb-3 text-center">
-    <button type="button" id="predictButton" class="btn btn-info">
-        <i class="fas fa-magic me-2"></i>Get AI Prediction
-    </button>
-</div>
+                        <div class="mb-3 text-center">
+                            <button type="button" id="predictButton" class="btn btn-info">
+                                <i class="fas fa-magic me-2"></i>Get AI Prediction
+                            </button>
+                        </div>
 
-<div id="predictionLoading" class="text-center my-3 d-none">
-    <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
-    </div>
-    <p class="mt-2">AI is calculating your prediction...</p>
-</div>
+                        <div id="predictionLoading" class="text-center my-3 d-none">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">AI is calculating your prediction...</p>
+                        </div>
 
-<div id="predictionResult" class="rental-info-box d-none">
-    <h5 class="mb-3"><i class="fas fa-robot text-primary me-2"></i>AI-Powered Prediction</h5>
-    
-    <div class="row mb-3">
-        <div class="col-4">
-            <p><span class="rental-info-label">Distance:</span><br>
-            <span id="predictionDistance">--</span> km</p>
-        </div>
-        <div class="col-4">
-            <p><span class="rental-info-label">Duration:</span><br>
-            <span id="predictionDuration">--</span> minutes</p>
-        </div>
-        <div class="col-4">
-            <p><span class="rental-info-label">Estimated Cost:</span><br>
-            <span id="predictionCost">--</span> TND</p>
-        </div>
-    </div>
-    
-    <div class="row mb-3 border-top pt-3">
-        <div class="col-6">
-            <p><span class="rental-info-label">Battery Usage:</span><br>
-            <span id="predictionBattery">--</span></p>
-        </div>
-        <div class="col-6">
-            <p><span class="rental-info-label">Weather Impact:</span><br>
-            <span id="predictionWeather">--</span></p>
-        </div>
-    </div>
+                        <div id="predictionResult" class="rental-info-box d-none">
+                            <h5 class="mb-3"><i class="fas fa-robot text-primary me-2"></i>AI-Powered Prediction</h5>
+                            
 
-    <div id="rechargingAlert" class="alert alert-warning d-none mb-3">
-        <i class="fas fa-charging-station me-2"></i>
-        <strong>Battery Recharging Recommended:</strong>
-        <span id="rechargingSuggestion">--</span>
-    </div>
+                            <div class="row mb-3">
+                                <div class="col-4">
+                                    <p><span class="rental-info-label">Distance:</span><br>
+                                    <span id="predictionDistance">--</span> km</p>
+                                </div>
+                                <div class="col-4">
+                                    <p><span class="rental-info-label">Duration:</span><br>
+                                    <span id="predictionDuration">--</span> minutes</p>
+                                </div>
+                                <div class="col-4">
+                                    <p><span class="rental-info-label">Estimated Cost:</span><br>
+                                    <span id="predictionCost">--</span> TND</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Terrain Information - New Addition -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <p><span class="rental-info-label">Terrain:</span>
+                                    <span id="terrainBadge" class="terrain-badge ms-2">--</span></p>
+                                    <div class="elevation-chart">
+                                        <div class="elevation-profile"></div>
+                                    </div>
+                                    <p class="text-center small text-muted mt-1">
+                                        <span id="elevationData">--</span>
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3 border-top pt-3">
+                                <div class="col-6">
+                                    <p><span class="rental-info-label">Battery Usage:</span><br>
+                                    <span id="predictionBattery">--</span></p>
+                                </div>
+                                <div class="col-6">
+                                    <p><span class="rental-info-label">Weather Impact:</span><br>
+                                    <span id="predictionWeather">--</span></p>
+                                </div>
+                            </div>
 
-    <div class="enhanced-prediction border-top pt-3">
-        <div class="row mb-2">
-            <div class="col-12">
-                <p class="rental-info-label"><i class="fas fa-route me-2 text-info"></i>Route Suggestion:</p>
-                <p id="routeSuggestion" class="ps-4">--</p>
-            </div>
-        </div>
-        
-        <div class="accordion" id="predictionAccordion">
+                            <div id="rechargingAlert" class="alert alert-warning d-none mb-3">
+                                <i class="fas fa-charging-station me-2"></i>
+                                <strong>Battery Recharging Recommended:</strong>
+                                <span id="rechargingSuggestion">--</span>
+                            </div>
 
-            <!-- Health & Safety -->
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#healthSafetyCollapse" aria-expanded="false" aria-controls="healthSafetyCollapse">
-                        <i class="fas fa-heartbeat me-2 text-danger"></i> Health & Safety
-                    </button>
-                </h2>
-                <div id="healthSafetyCollapse" class="accordion-collapse collapse" data-bs-parent="#predictionAccordion">
-                    <div class="accordion-body">
-                        <p><strong>Health Benefits:</strong> <span id="healthBenefits">--</span></p>
-                        <p><strong>Safety Tips:</strong> <span id="safetyTips">--</span></p>
-                        <p class="mt-2">
-                            <strong>Difficulty Level:</strong> 
-                            <span id="difficultyBadge" class="badge bg-success">--</span>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+                            <div class="enhanced-prediction border-top pt-3">
+                                <div class="row mb-2">
+                                    <div class="col-12">
+                                        <p class="rental-info-label"><i class="fas fa-route me-2 text-info"></i>Route Suggestion:</p>
+                                        <p id="routeSuggestion" class="ps-4">--</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Points of Interest - New Addition -->
+                                <div class="row mb-2">
+                                    <div class="col-12">
+                                        <p class="rental-info-label"><i class="fas fa-map-pin me-2 text-danger"></i>Points of Interest:</p>
+                                        <ul id="pointsOfInterest" class="poi-list ps-4">
+                                            <li><i class="fas fa-spinner fa-pulse"></i> Loading points of interest...</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <div class="accordion" id="predictionAccordion">
+                                    <!-- Health & Safety -->
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#healthSafetyCollapse" aria-expanded="false" aria-controls="healthSafetyCollapse">
+                                                <i class="fas fa-heartbeat me-2 text-danger"></i> Health & Safety
+                                            </button>
+                                        </h2>
+                                        <div id="healthSafetyCollapse" class="accordion-collapse collapse" data-bs-parent="#predictionAccordion">
+                                            <div class="accordion-body">
+                                                <p><strong>Health Benefits:</strong> <span id="healthBenefits">--</span></p>
+                                                <p><strong>Safety Tips:</strong> <span id="safetyTips">--</span></p>
+                                                <p class="mt-2">
+                                                    <strong>Difficulty Level:</strong> 
+                                                    <span id="difficultyBadge" class="badge bg-success">--</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Environment & Impact - New Addition -->
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#environmentCollapse" aria-expanded="false" aria-controls="environmentCollapse">
+                                                <i class="fas fa-leaf me-2 text-success"></i> Environmental Impact
+                                            </button>
+                                        </h2>
+                                        <div id="environmentCollapse" class="accordion-collapse collapse" data-bs-parent="#predictionAccordion">
+                                            <div class="accordion-body">
+                                                <p id="environmentalImpact">--</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="price-calculation">
                             <p><strong>Hourly Rate:</strong> {{ hourlyRate|number_format(3) }} TND</p>
                             <p><strong>Weather Conditions:</strong> <span id="weatherCondition">Loading...</span></p>
@@ -351,14 +468,15 @@
 {% endblock %}
 
 {% block page_javascripts %}
+    {{ parent() }}
     <script src="{{ asset('js/front/bicycle/weatherService.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
-    <script src="{{ asset('js/front/bicycle/predictionDisplay.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const totalCostSpan = document.getElementById('totalCost');
             const estimatedCostInput = document.getElementById('estimatedCost');
             const weatherConditionSpan = document.getElementById('weatherCondition');
             const weatherContainer = document.getElementById('weather-container');
+            const durationInput = document.getElementById('duration');
             
             // Prediction elements
             const predictButton = document.getElementById('predictButton');
@@ -373,8 +491,8 @@
             const weatherService = new WeatherService();
             
             // Get the station coordinates from the hidden inputs
-            const latitude = parseFloat(document.getElementById('stationLatitude').value);
-            const longitude = parseFloat(document.getElementById('stationLongitude').value);
+            const startLat = {{ bicycle.bicycleStation.location ? bicycle.bicycleStation.location.latitude : 36.8065 }};
+            const startLon = {{ bicycle.bicycleStation.location ? bicycle.bicycleStation.location.longitude : 10.1815 }};
             
             // Prediction button click handler
             predictButton.addEventListener('click', async function() {
@@ -409,15 +527,22 @@
                         throw new Error(predictionData.error);
                     }
                     
-                    // Use our helper class to update the UI
-                    PredictionDisplay.updatePredictionUI(predictionData);
+                    // Update prediction display
+                    updatePredictionUI(predictionData);
                     
-                    // Update form costs with the predicted values if higher than default
+                    // Always update the cost with the predicted values - FIXED
                     const predictedCost = parseFloat(predictionData.estimatedCost);
-                    if (predictedCost > parseFloat(estimatedCostInput.value)) {
-                        totalCostSpan.textContent = predictedCost.toFixed(3);
-                        estimatedCostInput.value = predictedCost;
-                    }
+                    const predictedDuration = parseInt(predictionData.estimatedDuration);
+                    
+                    // Calculate a deposit based on predicted duration and hourly rate with weather factor
+                    // Using ceiling of hours needed (e.g., 70 minutes = 2 hours) plus a small buffer
+                    const hoursNeeded = Math.ceil(predictedDuration / 60) + 1; 
+                    const estimatedDeposit = (hourlyRate * weatherFactor * hoursNeeded).toFixed(3);
+                    
+                    // Update both display and input value - FIXED
+                    totalCostSpan.textContent = estimatedDeposit;
+                    estimatedCostInput.value = estimatedDeposit;
+                    durationInput.value = hoursNeeded; // Update duration input
                     
                     // Show results
                     predictionResult.classList.remove('d-none');
@@ -431,13 +556,279 @@
                 }
             });
             
+            // SIMPLIFIED POINTS OF INTEREST - Direct from GeoRoutingService API
+function updatePointsOfInterest(data) {
+    const poiList = document.getElementById('pointsOfInterest');
+    poiList.innerHTML = '';
+    
+    if (data.pointsOfInterest && typeof data.pointsOfInterest === 'string' && data.pointsOfInterest.trim() !== '') {
+        // Just use POIs directly from GeoRoutingService (as comma-separated string)
+        const pois = data.pointsOfInterest.split(',');
+        
+        let validPoisFound = false;
+        pois.forEach(poi => {
+            const poiText = poi.trim();
+            // Only show POIs with actual names (filter out unnamed or empty)
+            if (poiText && !poiText.includes('unnamed') && !poiText.includes('Unnamed')) {
+                validPoisFound = true;
+                const li = document.createElement('li');
+                li.innerHTML = getPoiHtml(poiText);
+                poiList.appendChild(li);
+            }
+        });
+        
+        // If no valid POIs found, use generic fallbacks
+        if (!validPoisFound) {
+            addGenericPois(data);
+        }
+    } else {
+        // No POIs in response, use generic fallbacks
+        addGenericPois(data);
+    }
+}
+
+// Generate generic POIs based on terrain when real data isn't available
+function addGenericPois(data) {
+    const poiList = document.getElementById('pointsOfInterest');
+    const terrainDescription = data.terrainDescription || '';
+    const distance = parseFloat(data.distance || 3);
+    
+    // Determine terrain type for more appropriate suggestions
+    let terrainType = 'Mixed';
+    if (terrainDescription.toLowerCase().includes('flat')) {
+        terrainType = 'Flat';
+    } else if (terrainDescription.toLowerCase().includes('downhill')) {
+        terrainType = 'Downhill';
+    } else if (terrainDescription.toLowerCase().includes('uphill')) {
+        terrainType = 'Uphill';
+    } else if (terrainDescription.toLowerCase().includes('hilly')) {
+        terrainType = 'Hilly';
+    }
+    
+    // Add generic POIs based on terrain type
+    const genericPois = [
+        '<i class="fas fa-city"></i> City district with shops and cafés'
+    ];
+    
+    // Add terrain-specific POI
+    if (terrainType === 'Flat') {
+        genericPois.push('<i class="fas fa-tree"></i> Urban park with green spaces');
+    } else if (terrainType === 'Downhill') {
+        genericPois.push('<i class="fas fa-mountain"></i> Scenic overlook point');
+    } else if (terrainType === 'Uphill') {
+        genericPois.push('<i class="fas fa-mountain"></i> Hilltop viewpoint');
+    } else {
+        genericPois.push('<i class="fas fa-map-signs"></i> Recreational area');
+    }
+    
+    // Add a third POI for longer routes
+    if (distance > 2) {
+        const thirdPoi = terrainType === 'Flat' ? 
+            '<i class="fas fa-utensils"></i> Local bistro area' :
+            terrainType === 'Downhill' ? 
+            '<i class="fas fa-water"></i> Water feature along route' :
+            terrainType === 'Uphill' ? 
+            '<i class="fas fa-store"></i> Convenience store for refreshments' :
+            '<i class="fas fa-coffee"></i> Café district';
+        
+        genericPois.push(thirdPoi);
+    }
+    
+    // Add the generic POIs to the list
+    genericPois.forEach(poi => {
+        const li = document.createElement('li');
+        li.innerHTML = poi;
+        poiList.appendChild(li);
+    });
+}
+            
+            // Update the prediction UI with the received data
+            function updatePredictionUI(data) {
+                // Basic prediction data
+                document.getElementById('predictionDistance').textContent = data.distance;
+                document.getElementById('predictionDuration').textContent = data.estimatedDuration;
+                document.getElementById('predictionCost').textContent = parseFloat(data.estimatedCost).toFixed(3);
+                
+                // Battery and weather info
+                document.getElementById('predictionBattery').textContent = `${data.batteryConsumption}% usage (${data.rangeAfterTrip} km remaining)`;
+                document.getElementById('predictionWeather').textContent = data.weatherImpact;
+                
+                // Route suggestion
+                document.getElementById('routeSuggestion').textContent = data.routeSuggestion;
+                
+                // Health and safety
+                document.getElementById('healthBenefits').textContent = data.healthBenefits;
+                document.getElementById('safetyTips').textContent = data.safetyTips;
+                
+                // Update difficulty badge
+                const difficultyBadge = document.getElementById('difficultyBadge');
+                difficultyBadge.textContent = data.difficultyLevel;
+                difficultyBadge.className = 'badge';
+                
+                switch(data.difficultyLevel) {
+                    case 'Easy':
+                        difficultyBadge.classList.add('bg-success');
+                        break;
+                    case 'Moderate':
+                        difficultyBadge.classList.add('bg-warning');
+                        break;
+                    case 'Challenging':
+                        difficultyBadge.classList.add('bg-danger');
+                        break;
+                    default:
+                        difficultyBadge.classList.add('bg-secondary');
+                }
+                
+                // ENHANCED TERRAIN INFO - More detailed description with custom styling
+                const terrainBadge = document.getElementById('terrainBadge');
+                const terrainDescription = data.terrainDescription || 'Mixed terrain with some flat sections';
+                
+                // Extract the main terrain type for the badge
+                let mainTerrainType = 'Mixed';
+                if (terrainDescription.toLowerCase().includes('flat')) {
+                    mainTerrainType = 'Flat';
+                } else if (terrainDescription.toLowerCase().includes('downhill')) {
+                    mainTerrainType = 'Downhill';
+                } else if (terrainDescription.toLowerCase().includes('uphill')) {
+                    mainTerrainType = 'Uphill';
+                } else if (terrainDescription.toLowerCase().includes('hilly')) {
+                    mainTerrainType = 'Hilly';
+                }
+                
+                terrainBadge.textContent = mainTerrainType;
+                terrainBadge.className = 'terrain-badge';
+                
+                // Set terrain badge color based on description
+                const terrainText = terrainDescription.toLowerCase();
+                if (terrainText.includes('flat')) {
+                    terrainBadge.classList.add('terrain-flat');
+                } else if (terrainText.includes('downhill')) {
+                    terrainBadge.classList.add('terrain-downhill');
+                } else if (terrainText.includes('uphill')) {
+                    terrainBadge.classList.add('terrain-uphill');
+                } else {
+                    terrainBadge.classList.add('terrain-hilly');
+                }
+                
+                // Update elevation data text - ENHANCED with more detail
+                document.getElementById('elevationData').textContent = generateElevationDescription(data);
+                
+                // Update environmental impact - New Addition
+                document.getElementById('environmentalImpact').textContent = data.environmentalImpact || 
+                    'By choosing this bicycle, you are helping reduce carbon emissions.';
+                
+                // Use our new POI update function which includes landmark extraction
+                updatePointsOfInterest(data);
+                
+                // Show/hide recharging recommendation
+                const rechargingAlert = document.getElementById('rechargingAlert');
+                const rechargingSuggestion = document.getElementById('rechargingSuggestion');
+                
+                if (data.rechargingNeeded) {
+                    rechargingAlert.classList.remove('d-none');
+                    rechargingSuggestion.textContent = data.rechargingSuggestion || 
+                        'Consider recharging during your trip.';
+                } else {
+                    rechargingAlert.classList.add('d-none');
+                }
+            }
+            
+            // HELPER FUNCTION - Generate elevation description with more detail
+            function generateElevationDescription(data) {
+                // If we have specific elevation data, use it
+                if (data.terrainDescription) {
+                    // Add additional details
+                    let description = data.terrainDescription;
+                    
+                    // Add difficulty context if not in the description
+                    if (!description.toLowerCase().includes('difficulty')) {
+                        const difficultyMap = {
+                            'Easy': 'suitable for all riders',
+                            'Moderate': 'requiring average effort',
+                            'Challenging': 'requiring good fitness'
+                        };
+                        
+                        if (data.difficultyLevel && difficultyMap[data.difficultyLevel]) {
+                            description += ` - ${difficultyMap[data.difficultyLevel]}.`;
+                        }
+                    }
+                    
+                    return description;
+                }
+                
+                // If we don't have specific data, generate based on distance
+                const distance = parseFloat(data.distance || 0);
+                
+                if (distance < 2) {
+                    return 'Short route with minimal elevation changes, suitable for all riders.';
+                } else if (distance < 5) {
+                    return 'Moderate distance with some gentle slopes. Comfortable for most riders.';
+                } else {
+                    return 'Longer route with varied terrain. Some hills may require moderate effort.';
+                }
+            }
+            
+            // HELPER FUNCTION - Generate POI HTML with appropriate icon
+            function getPoiHtml(poiText) {
+                let iconClass = 'fas fa-map-marker-alt';
+                
+                // Determine icon based on POI text
+                const lowerText = poiText.toLowerCase();
+                if (lowerText.includes('restaurant') || lowerText.includes('café') || 
+                    lowerText.includes('cafe') || lowerText.includes('food')) {
+                    iconClass = 'fas fa-utensils';
+                } else if (lowerText.includes('park') || lowerText.includes('garden')) {
+                    iconClass = 'fas fa-tree';
+                } else if (lowerText.includes('museum') || lowerText.includes('gallery') || 
+                           lowerText.includes('monument')) {
+                    iconClass = 'fas fa-landmark';
+                } else if (lowerText.includes('shop') || lowerText.includes('store') || 
+                           lowerText.includes('market')) {
+                    iconClass = 'fas fa-shopping-cart';
+                } else if (lowerText.includes('beach') || lowerText.includes('sea') || 
+                           lowerText.includes('lake')) {
+                    iconClass = 'fas fa-water';
+                } else if (lowerText.includes('hotel') || lowerText.includes('hostel') || 
+                           lowerText.includes('accommodation')) {
+                    iconClass = 'fas fa-bed';
+                }
+                
+                return `<i class="${iconClass}"></i> ${poiText}`;
+            }
+            
+            // HELPER FUNCTION - Generate generic POIs based on terrain type
+            function getGenericPois(terrainType, distance) {
+                const dist = parseFloat(distance || 3);
+                const pois = [];
+                
+                // Add a generic city/district point
+                pois.push('<i class="fas fa-city"></i> City center district with shops and cafés');
+                
+                // Add terrain-specific POIs
+                if (terrainType === 'Flat') {
+                    pois.push('<i class="fas fa-tree"></i> Urban park with green spaces');
+                    if (dist > 2) pois.push('<i class="fas fa-utensils"></i> Local bistro area');
+                } else if (terrainType === 'Downhill') {
+                    pois.push('<i class="fas fa-mountain"></i> Scenic overlook');
+                    if (dist > 2) pois.push('<i class="fas fa-water"></i> Water feature along route');
+                } else if (terrainType === 'Uphill') {
+                    pois.push('<i class="fas fa-mountain"></i> Hilltop viewpoint');
+                    if (dist > 2) pois.push('<i class="fas fa-store"></i> Convenience store for refreshments');
+                } else {
+                    pois.push('<i class="fas fa-map-signs"></i> Recreational area');
+                    if (dist > 2) pois.push('<i class="fas fa-coffee"></i> Café district');
+                }
+                
+                return pois;
+            }
+            
             // Fetch weather data for the bicycle station location
             async function loadWeatherData() {
                 try {
                     // Initialize the weather service first (this fetches the API key)
                     await weatherService.init();
                     
-                    const weatherData = await weatherService.getWeatherData(latitude, longitude);
+                    const weatherData = await weatherService.getWeatherData(startLat, startLon);
                     
                     // Update the weather factor for price calculation
                     weatherFactor = weatherData.weatherFactor;
@@ -495,13 +886,15 @@
             }
             
             function updatePriceCalculation() {
-                // We use a multiplier to ensure there's enough deposit for longer rentals
-                const depositMultiplier = 1.5; // 50% buffer for unexpected extended usage
-                const estimatedDeposit = (hourlyRate * weatherFactor * depositMultiplier).toFixed(3);
+                // Update price calculation with BETTER LOGIC
+                // Base deposit on 3 hours to ensure sufficient coverage
+                const baseHours = 3;
+                const estimatedDeposit = (hourlyRate * weatherFactor * baseHours).toFixed(3);
                 
                 // Update display
                 totalCostSpan.textContent = estimatedDeposit;
                 estimatedCostInput.value = estimatedDeposit;
+                durationInput.value = baseHours; // Set default duration
                 
                 // Update weather condition text
                 weatherConditionSpan.textContent = weatherService.getWeatherDescription(weatherFactor);

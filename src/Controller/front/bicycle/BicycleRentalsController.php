@@ -11,6 +11,7 @@ use App\Service\BicycleService;
 use App\Service\BicycleStationService;
 use App\Service\BicycleRentalService;
 use App\Service\GeminiApiService;
+use App\Service\Geo\GeoRoutingService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -35,6 +36,7 @@ class BicycleRentalsController extends AbstractController
         private readonly Security $security,
         private readonly ValidatorInterface $validator,
         private readonly GeminiApiService $geminiApiService,
+        private readonly GeoRoutingService $geoRoutingService,
         private readonly LoggerInterface $logger
     ) {
     }
@@ -450,28 +452,46 @@ class BicycleRentalsController extends AbstractController
             $endLat = $endStation->getLocation() ? $endStation->getLocation()->getLatitude() : 0;
             $endLon = $endStation->getLocation() ? $endStation->getLocation()->getLongitude() : 0;
             
-            // Calculate distance between stations using their locations
-            $distance = $this->calculateDistance(
+            // Use the new GeoRoutingService to calculate real-world distance
+            $routeData = $this->geoRoutingService->calculateRouteDistance(
                 $startLat,
                 $startLon,
                 $endLat,
                 $endLon
             );
             
-            $this->logger->info('Starting AI prediction', [
+            // Get the calculated distance
+            $distance = $routeData['distance'];
+            
+            // Try to get elevation data for more accurate predictions
+            $elevationData = $this->geoRoutingService->getElevationData(
+                $startLat,
+                $startLon,
+                $endLat,
+                $endLon
+            );
+            
+            // Determine terrain type based on elevation data
+            $terrainType = $elevationData['route_type'];
+            
+            $this->logger->info('Starting AI prediction with enhanced geo data', [
                 'from' => $startStation->getName(),
                 'to' => $endStation->getName(),
                 'distance' => $distance,
+                'routing_provider' => $routeData['provider'],
+                'terrain' => $terrainType,
                 'bicycle_id' => $bicycle->getIdBike()
             ]);
             
-            // Call the AI prediction service
+            // Call the AI prediction service with enhanced data
             $prediction = $this->getPredictionFromAI(
                 $startStation,
                 $endStation,
                 $bicycle,
                 $distance,
-                $hourlyRate
+                $hourlyRate,
+                $routeData,
+                $elevationData
             );
             
             // Check if this is a default prediction (error case)
@@ -481,6 +501,34 @@ class BicycleRentalsController extends AbstractController
                 
                 // Still return the prediction but with an informative message
                 $prediction['_message'] = "We've provided an estimated prediction as we couldn't generate a precise one. Reason: {$errorReason}";
+            }
+            
+            // Add nearby points of interest along the route
+            try {
+                $midpointLat = ($startLat + $endLat) / 2;
+                $midpointLon = ($startLon + $endLon) / 2;
+                
+                // Calculate search radius based on distance
+                $searchRadius = max(0.5, min(2, $distance / 3));
+                
+                // Find POIs near route
+                $pois = $this->geoRoutingService->findNearbyPointsOfInterest(
+                    $midpointLat, 
+                    $midpointLon,
+                    $searchRadius
+                );
+                
+                // Add up to 3 POIs to the prediction
+                if (!empty($pois)) {
+                    $poiNames = [];
+                    foreach (array_slice($pois, 0, 3) as $poi) {
+                        $poiNames[] = $poi['name'];
+                    }
+                    $prediction['pointsOfInterest'] = implode(', ', $poiNames);
+                }
+            } catch (\Exception $e) {
+                $this->logger->warning('Failed to fetch POIs', ['error' => $e->getMessage()]);
+                // Don't fail the whole request if POI search fails
             }
             
             return new JsonResponse($prediction);
@@ -511,21 +559,14 @@ class BicycleRentalsController extends AbstractController
     }
     
     /**
-     * Helper method to calculate distance between two points
+     * Helper method to calculate distance between two points is now deprecated
+     * Use GeoRoutingService->calculateRouteDistance instead
+     * 
+     * @deprecated
      */
     private function calculateDistance(float $lat1, float $lon1, float $lat2, float $lon2): float
     {
-        // Haversine formula to calculate distance between two points
-        $earthRadius = 6371; // in kilometers
-        
-        $dLat = deg2rad($lat2 - $lat1);
-        $dLon = deg2rad($lon2 - $lon1);
-        
-        $a = sin($dLat/2) * sin($dLat/2) + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLon/2) * sin($dLon/2);
-        $c = 2 * atan2(sqrt($a), sqrt(1-$a));
-        $distance = $earthRadius * $c;
-        
-        return round($distance, 2);
+        return $this->geoRoutingService->calculateHaversineDistance($lat1, $lon1, $lat2, $lon2);
     }
     
     /**
@@ -536,7 +577,9 @@ class BicycleRentalsController extends AbstractController
         BicycleStation $endStation,
         Bicycle $bicycle,
         float $distance,
-        float $hourlyRate
+        float $hourlyRate,
+        array $routeData = [],
+        array $elevationData = []
     ): array {
         // Get weather information - in a real application you would use your weather service
         $weatherInfo = "Sunny with light breeze"; // This would normally come from your weather API
@@ -548,7 +591,9 @@ class BicycleRentalsController extends AbstractController
             $bicycle,
             $distance,
             $hourlyRate,
-            $weatherInfo
+            $weatherInfo,
+            $routeData,
+            $elevationData
         );
         
         // Call Gemini API
@@ -564,7 +609,7 @@ class BicycleRentalsController extends AbstractController
         
         // If we couldn't parse the response properly, use fallback logic
         if (empty($prediction) || !isset($prediction['estimatedDuration'])) {
-            return $this->getFallbackPrediction($distance, $bicycle, $hourlyRate);
+            return $this->getFallbackPrediction($distance, $bicycle, $hourlyRate, $routeData);
         }
         
         return $prediction;
@@ -579,7 +624,9 @@ class BicycleRentalsController extends AbstractController
         Bicycle $bicycle,
         float $distance,
         float $hourlyRate,
-        string $weatherInfo
+        string $weatherInfo,
+        array $routeData = [],
+        array $elevationData = []
     ): string {
         // Get location coordinates for more accurate calculations
         $startLat = $startStation->getLocation() ? $startStation->getLocation()->getLatitude() : 0;
@@ -587,13 +634,27 @@ class BicycleRentalsController extends AbstractController
         $endLat = $endStation->getLocation() ? $endStation->getLocation()->getLatitude() : 0;
         $endLon = $endStation->getLocation() ? $endStation->getLocation()->getLongitude() : 0;
         
+        // Add enhanced routing data if available
+        $routeType = $routeData['route_type'] ?? 'cycling';
+        $routeProvider = $routeData['provider'] ?? 'estimated';
+        $estimatedDuration = $routeData['duration'] ?? 'calculating';
+        
+        // Add terrain details from elevation data
+        $terrainInfo = "";
+        if (!empty($elevationData) && isset($elevationData['route_type']) && $elevationData['route_type'] !== 'unknown') {
+            $elevDiff = abs($elevationData['elevation_difference']);
+            $terrainInfo = "Terrain is primarily {$elevationData['route_type']} with an elevation change of {$elevDiff} meters.";
+        }
+        
         return <<<EOT
 Act as a bicycle rental prediction system for an electric bicycle service.
 Please predict and analyze a rental trip with these accurate details:
 
 Starting point: {$startStation->getName()} (coordinates: {$startLat}, {$startLon})
 Destination: {$endStation->getName()} (coordinates: {$endLat}, {$endLon})
-Calculated straight-line distance: approximately {$distance} km
+Calculated route distance: {$distance} km (using {$routeProvider} routing)
+Estimated cycling time: approximately {$estimatedDuration} minutes
+{$terrainInfo}
 Electric bicycle battery level: {$bicycle->getBatteryLevel()}%
 Current range: {$bicycle->getRangeKm()} km
 Weather conditions: {$weatherInfo}
@@ -602,13 +663,11 @@ Hourly rental rate: {$hourlyRate} TND
 Important information:
 - Batteries can be recharged at any bicycle station if needed during the trip.
 - The average cycling speed is about 15km/h in good conditions.
-- Road conditions typically make the actual cycling distance 15-30% longer than the straight-line distance.
 - Battery consumption is roughly 5-8% per kilometer.
-- For accurate prediction, calculate your own estimated road distance between the coordinates.
-- Factor in traffic,distance, terrain, and weather conditions for a realistic price estimate.
+- Factor in traffic, terrain, and weather conditions for a realistic price estimate.
 
 Provide a comprehensive analysis including all of the following (leave no field empty):
-1. Your own calculated distance estimate in kilometers based on the coordinates
+1. Refined distance estimate in kilometers based on the routing data provided
 2. Estimated duration in minutes considering traffic, terrain, and weather
 3. Estimated cost based on the hourly rate and predicted duration
 4. Detailed weather impact analysis (how specific weather conditions will affect the ride)
@@ -618,9 +677,9 @@ Provide a comprehensive analysis including all of the following (leave no field 
 8. Safety tips specific to this route and current conditions
 9. Health benefits estimate (calories burned, exercise intensity)
 10. If battery might be insufficient, suggest recharging options at stations along the route
-11. Points of interest along the route that the rider might want to visit yuo can get this from google maps or make a search on the route
-12. Traffic conditions that might affect the journey search this if avaialble 
-13. Potential rest stops or cafés along the way you get this from google maps or make a search on the route
+11. Points of interest along the route that the rider might want to visit
+12. Traffic conditions that might affect the journey
+13. Potential rest stops or cafés along the way
 14. Terrain description (flat, hilly, etc.) and how it affects the journey
 15. Expected environmental impact (CO2 emissions saved compared to car travel)
 
@@ -646,128 +705,19 @@ Return your analysis in this exact JSON format with values for ALL fields (no em
 }
 EOT;
     }
-    
-    /**
-     * Parse the Gemini API response to extract the prediction data
-     */
-    private function parseGeminiResponse(array $response): array
-    {
-        try {
-            // Extract text from Gemini response
-            $text = $response['candidates'][0]['content']['parts'][0]['text'] ?? '';
-            
-            if (empty($text)) {
-                $this->logger->warning('Gemini API returned empty text content');
-                return $this->createDefaultPrediction('Empty API response text');
-            }
 
-            $this->logger->info('Raw Gemini response text', ['text' => substr($text, 0, 1000)]);
-            
-            // Extract JSON from the text (might be surrounded by markdown code blocks)
-            $jsonText = '';
-            if (preg_match('/```(?:json)?\s*(.*?)\s*```/s', $text, $matches)) {
-                $jsonText = trim($matches[1]);
-                $this->logger->info('Successfully extracted JSON from markdown code block');
-            } else if (preg_match('/({[\s\S]*})/s', $text, $matches)) {
-                $jsonText = trim($matches[1]);
-                $this->logger->info('Successfully extracted JSON directly from text');
-            } else {
-                $this->logger->warning('Could not extract JSON from Gemini response', ['text' => substr($text, 0, 500)]);
-                return $this->createDefaultPrediction('JSON extraction failed');
-            }
-            
-            $this->logger->info('Extracted JSON text', ['json' => $jsonText]);
-            
-            // Parse JSON
-            $data = json_decode($jsonText, true);
-            
-            // Check if JSON parsing was successful
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                $this->logger->error('JSON parsing failed', [
-                    'error' => json_last_error_msg(),
-                    'jsonText' => $jsonText
-                ]);
-                return $this->createDefaultPrediction('JSON parsing error: ' . json_last_error_msg());
-            }
-            
-            if (!is_array($data)) {
-                $this->logger->error('Parsed JSON is not an array', ['data' => var_export($data, true)]);
-                return $this->createDefaultPrediction('Invalid JSON structure');
-            }
-            
-            $this->logger->info('Successfully parsed JSON data', ['data' => $data]);
-            
-            // Normalize data to handle arrays returned by Gemini
-            $data = $this->normalizeGeminiData($data);
-            
-            // Calculate realistic values based on actual distance between stations
-            // If AI didn't provide a distance, calculate it ourselves
-            $calculatedDistance = $this->parseDistanceFromResponse($data, $text);
-            $this->logger->info('Calculated distance', ['distance' => $calculatedDistance]);
-            
-            // Use AI's duration if provided and reasonable, otherwise calculate based on distance
-            $estimatedDuration = $this->parseDurationFromResponse($data, $calculatedDistance);
-            $this->logger->info('Estimated duration', ['duration' => $estimatedDuration]);
-            
-            // Calculate cost based on duration
-            $estimatedCost = $this->parseCostFromResponse($data, $estimatedDuration);
-            $this->logger->info('Estimated cost', ['cost' => $estimatedCost]);
-            
-            // Battery consumption based on distance
-            $batteryConsumption = $this->parseBatteryConsumptionFromResponse($data, $calculatedDistance);
-            
-            // Remaining range after trip
-            $rangeAfterTrip = $this->parseRangeAfterTripFromResponse($data, $calculatedDistance);
-            
-            // Prepare the response with all required fields
-            $prediction = [
-                'distance' => $calculatedDistance,
-                'estimatedDuration' => $estimatedDuration, 
-                'estimatedCost' => $estimatedCost,
-                'weatherImpact' => $data['weatherImpact'] ?? 'Mixed conditions that may affect cycling speed slightly.',
-                'batteryConsumption' => $batteryConsumption,
-                'rangeAfterTrip' => $rangeAfterTrip
-            ];
-            
-            // Enhanced fields with defaults if missing
-            $prediction['routeSuggestion'] = $data['routeSuggestion'] ?? 'Take the main bike path connecting the stations, following the safest urban route.';
-            $prediction['safetyTips'] = $data['safetyTips'] ?? 'Wear a helmet and use bike lanes where available. Stay visible to traffic.';
-            $prediction['healthBenefits'] = $data['healthBenefits'] ?? "Burns approximately " . $this->calculateCalories($calculatedDistance) . " calories, providing good cardiovascular exercise.";
-            $prediction['difficultyLevel'] = $data['difficultyLevel'] ?? $this->calculateDifficultyLevel($calculatedDistance);
-            
-            // Recharging guidance
-            $prediction['rechargingNeeded'] = isset($data['rechargingNeeded']) ? 
-                (bool) $data['rechargingNeeded'] : 
-                ($batteryConsumption > 75);
-                
-            $prediction['rechargingSuggestion'] = $data['rechargingSuggestion'] ?? 
-                ($prediction['rechargingNeeded'] ? 
-                'Consider stopping at a station halfway through your journey to recharge.' : 
-                'No recharging needed for this trip.');
-            
-            $this->logger->info('Final prediction data', ['prediction' => $prediction]);
-            return $prediction;
-        } catch (\Exception $e) {
-            $this->logger->error('Exception in parseGeminiResponse', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return $this->createDefaultPrediction('Exception: ' . $e->getMessage());
-        }
-    }
-    
     /**
      * Create a default prediction when JSON parsing fails
      */
-    private function createDefaultPrediction(string $reason): array
+    private function createDefaultPrediction(string $reason, array $routeData = []): array
     {
         $this->logger->warning('Using default prediction', ['reason' => $reason]);
         
-        // Default distance for calculations
-        $defaultDistance = 3.0;
+        // Use route data if available, otherwise default distance
+        $defaultDistance = $routeData['distance'] ?? 3.0;
         
         // Calculate realistic values
-        $duration = $this->parseDurationFromResponse([], $defaultDistance);
+        $duration = $routeData['duration'] ?? $this->geoRoutingService->estimateCyclingDuration($defaultDistance);
         $cost = $this->parseCostFromResponse([], $duration);
         $batteryConsumption = $this->parseBatteryConsumptionFromResponse([], $defaultDistance);
         $rangeAfterTrip = $this->parseRangeAfterTripFromResponse([], $defaultDistance);
@@ -795,8 +745,13 @@ EOT;
     /**
      * Parse distance from API response with sanity checks
      */
-    private function parseDistanceFromResponse(array $data, string $text): float
+    private function parseDistanceFromResponse(array $data, string $text, array $routeData = []): float
     {
+        // If we have route data from our geo service, use that as the primary source
+        if (!empty($routeData) && isset($routeData['distance'])) {
+            return (float) $routeData['distance'];
+        }
+        
         // First try to get a valid distance from the parsed JSON
         if (isset($data['distance']) && is_numeric($data['distance'])) {
             $distance = (float) $data['distance'];
@@ -813,10 +768,10 @@ EOT;
             }
         }
         
-        // If we get here, use the calculated distance or a default
+        // If we get here, use a default
         return 3.0; // More realistic default than 2.0
     }
-    
+
     /**
      * Parse duration with sanity checks
      */
@@ -883,7 +838,6 @@ EOT;
             
             // Sanity check: consumption should be proportional to distance
             $expectedConsumption = $distance * 6.5; // About 6.5% per km
-            
             // If AI's consumption is within 30% of calculated consumption, use it
             if ($consumption >= max(5, $expectedConsumption * 0.7) && 
                 $consumption <= min(95, $expectedConsumption * 1.3)) {
@@ -1134,5 +1088,131 @@ EOT;
         ]);
         
         return $normalized;
+    }
+    
+    /**
+     * Parse and normalize the response from the Gemini API
+     * 
+     * @param array $response Raw response from Gemini API
+     * @return array Parsed and normalized prediction data
+     */
+    private function parseGeminiResponse(array $response): array
+    {
+        $this->logger->info('Parsing Gemini response', [
+            'has_content' => isset($response['candidates'][0]['content']),
+        ]);
+        
+        // Check if we have content in the response
+        if (!isset($response['candidates'][0]['content']['parts'][0]['text'])) {
+            $this->logger->error('Invalid Gemini API response structure', [
+                'response' => $response
+            ]);
+            return $this->createDefaultPrediction('Invalid API response structure');
+        }
+        
+        $text = $response['candidates'][0]['content']['parts'][0]['text'];
+        
+        // Try to extract JSON from text (gemini sometimes includes text outside the JSON block)
+        if (preg_match('/\{.*\}/s', $text, $matches)) {
+            $jsonText = $matches[0];
+            
+            // Additional cleaning to handle common formatting issues
+            $jsonText = str_replace(["\n", "\r"], '', $jsonText);
+            $jsonText = preg_replace('/,\s*\}/', '}', $jsonText);
+            
+            // Try to parse the JSON
+            try {
+                $data = json_decode($jsonText, true, 512, JSON_THROW_ON_ERROR);
+                
+                // If we get here, we have valid JSON
+                $this->logger->info('Successfully parsed Gemini JSON response');
+                
+                // Normalize the data to ensure consistent types and handle potential missing fields
+                return $this->normalizeGeminiData($data);
+                
+            } catch (\JsonException $e) {
+                $this->logger->error('JSON parsing error in Gemini response', [
+                    'error' => $e->getMessage(),
+                    'text' => $jsonText
+                ]);
+            }
+        }
+        
+        // If we get here, either no JSON was found or it couldn't be parsed
+        // Let's try to extract key information from the text and create a structured response
+        $this->logger->warning('Falling back to text extraction for Gemini response');
+        
+        $routeData = [];  // This would be passed in from the calling method
+        return $this->getFallbackPrediction(
+            $this->parseDistanceFromResponse([], $text, $routeData),
+            null,
+            0.0,
+            $routeData
+        );
+    }
+    
+    /**
+     * Create a fallback prediction when AI service fails to provide structured data
+     * 
+     * @param float $distance Distance in km
+     * @param Bicycle|null $bicycle Bicycle entity
+     * @param float $hourlyRate Hourly rental rate
+     * @param array $routeData Route data from GeoRoutingService
+     * @return array Standardized prediction data
+     */
+    private function getFallbackPrediction(
+        float $distance, 
+        ?Bicycle $bicycle = null, 
+        float $hourlyRate = 0.0,
+        array $routeData = []
+    ): array {
+        $this->logger->info('Using fallback prediction', [
+            'distance' => $distance,
+            'has_bicycle' => $bicycle !== null
+        ]);
+        
+        // Use route data duration if available
+        $duration = isset($routeData['duration']) ? $routeData['duration'] : 
+            $this->geoRoutingService->estimateCyclingDuration($distance);
+        
+        // Get battery level if bicycle is provided
+        $batteryLevel = $bicycle ? $bicycle->getBatteryLevel() : 80;
+        $rangeKm = $bicycle ? $bicycle->getRangeKm() : 30;
+        
+        // Calculate battery consumption based on distance
+        $batteryConsumption = min(90, max(1, round($distance * 6)));
+        
+        // Calculate remaining range
+        $remainingRange = max(0, $rangeKm - $distance);
+        
+        // Calculate cost based on duration and rate
+        $cost = $hourlyRate > 0 ? round(($duration / 60) * $hourlyRate, 2) : round($distance * 1.5, 2);
+        
+        // Determine if recharging is needed based on consumption
+        $rechargingNeeded = $batteryConsumption > $batteryLevel * 0.75;
+        
+        return [
+            'distance' => $distance,
+            'estimatedDuration' => $duration,
+            'estimatedCost' => $cost,
+            'weatherImpact' => 'Weather conditions are favorable for cycling.',
+            'batteryConsumption' => $batteryConsumption,
+            'rangeAfterTrip' => $remainingRange,
+            'routeSuggestion' => 'Take the most direct route between stations.',
+            'safetyTips' => 'Wear a helmet and follow traffic rules. Watch for pedestrians.',
+            'healthBenefits' => 'This ride will burn approximately ' . $this->calculateCalories($distance) . ' calories.',
+            'difficultyLevel' => $this->calculateDifficultyLevel($distance),
+            'rechargingNeeded' => $rechargingNeeded,
+            'rechargingSuggestion' => $rechargingNeeded ? 
+                'Recharging is recommended during your trip due to the distance.' : 
+                'No recharging needed for this trip.',
+            'pointsOfInterest' => 'Explore the area around the station.',
+            'trafficConditions' => 'Normal traffic conditions expected.',
+            'restStops' => 'There are cafes and shops near the stations.',
+            'terrainDescription' => 'The route has a typical urban terrain with some gentle slopes.',
+            'environmentalImpact' => 'By choosing a bicycle, you\'re saving approximately ' . 
+                round($distance * 0.2, 1) . ' kg of CO2 compared to car travel.',
+            'is_fallback' => true
+        ];
     }
 }
