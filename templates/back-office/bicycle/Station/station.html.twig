@@ -203,7 +203,23 @@
             padding: 1.25rem;
         }
         
-        /* Pagination - Purple Theme */
+        /* Ensure pagination visibility */
+        .ajax-pagination {
+            display: block !important;
+            visibility: visible !important;
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            z-index: 10;
+            position: relative;
+        }
+        
+        /* Make sure the pagination container stays visible */
+        .d-flex.justify-content-center.mt-4 {
+            display: flex !important;
+            visibility: visible !important;
+        }
+        
+        /* Pagination - Purple Theme - Enhanced to ensure visibility */
         .pagination-purple .page-item .page-link {
             color: #8540f5;
         }
@@ -540,8 +556,8 @@
                 </div>
             </div>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
+        <div class="card-body">
+            <div class="table-responsive" style="overflow-x: auto; min-height: 300px;">
                 <table class="table table-hover table-striped align-middle mb-0 station-table">
                     <thead class="bg-light">
                         <tr>
@@ -639,10 +655,10 @@
                                             </a>
                                         </li>
                                         <li>
-    <a class="dropdown-item d-flex align-items-center station-edit-btn" href="#" data-station-id="{{ station.idStation }}">
-        <i class="fas fa-edit me-2"></i> Edit Station
-    </a>
-</li>
+                                            <a class="dropdown-item d-flex align-items-center station-edit-btn" href="#" data-station-id="{{ station.idStation }}">
+                                                <i class="fas fa-edit me-2"></i> Edit Station
+                                            </a>
+                                        </li>
                                         <li>
                                             <hr class="dropdown-divider">
                                         </li>
@@ -659,9 +675,11 @@
                     </tbody>
                 </table>
             </div>
-            
-            <!-- Pagination -->
-            <div class="d-flex justify-content-center mt-4">
+        </div>
+        
+        <!-- Pagination container outside table-responsive -->
+        <div class="pagination-container py-3 bg-light border-top" style="position: relative; z-index: 100;">
+            <div class="d-flex justify-content-center">
                 {{ knp_pagination_render(stations, 'back-office/bicycle/ajax-pagination.html.twig') }}
             </div>
         </div>

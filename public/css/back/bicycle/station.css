@@ -243,6 +243,7 @@
 
 /* Media queries for responsive map */
 @media (max-width: 992px) {
+
     #stationsMap,
     .station-map {
         height: 350px !important;
@@ -250,20 +251,23 @@
 }
 
 @media (max-width: 576px) {
+
     #stationsMap,
     .station-map {
         height: 300px !important;
     }
-    
+
     .map-controls .btn {
         padding: 0.4rem 0.5rem;
         font-size: 0.85rem;
     }
-    
-    .stat-value {   0.4rem 0.5rem;
+
+    .stat-value {
+        0.4rem 0.5rem;
         font-size: 1.1em;
     }
 }
+
 color: #0056b3 !important;
 box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
 border: 1px solid #007bff !important;

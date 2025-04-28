@@ -385,6 +385,7 @@
 
 {% block javascripts %}
 {{ parent() }}
+<script src="{{ asset('js/back/bicycle/station-pagination.js?v=' ~ date().format('YmdHi')) }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     initAjaxTabs();

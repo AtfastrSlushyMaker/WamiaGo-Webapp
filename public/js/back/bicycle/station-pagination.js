@@ -1,91 +1,166 @@
 /**
  * WamiaGo - Station Pagination Handler
- * Handles AJAX pagination for station listings
+ * Handles AJAX pagination for bicycle stations list
  */
 
-// Initialize pagination when DOM is loaded
 document.addEventListener('DOMContentLoaded', function () {
-    setupAjaxPagination();
-    setupPerPageSelect();
+    // Initialize pagination when the document is loaded
+    initPagination();
+
+    // Special handling: force check for missing pagination after map loads
+    setTimeout(checkForMissingPagination, 1000);
 });
 
 /**
- * Set up AJAX pagination for station listings
+ * Initialize pagination functionality
  */
-function setupAjaxPagination() {
-    // Select all pagination links with the ajax-page-link class
-    document.querySelectorAll('.ajax-page-link').forEach(link => {
-        link.addEventListener('click', function (e) {
-            e.preventDefault();
-
-            // Get the URL from the href attribute
-            const url = this.getAttribute('href');
-
-            // Show a loading indicator
-            showLoadingIndicator();
-
-            // Fetch the content from the URL with AJAX
-            fetchPageContent(url);
-        });
-    });
+function initPagination() {
+    setupAjaxPagination();
+    setupPerPageSelect();
 }
 
 /**
- * Set up per-page dropdown selector
+ * Setup Ajax pagination links
+ */
+function setupAjaxPagination() {
+    // Target all pagination links with the ajax-page-link class
+    document.querySelectorAll('.ajax-page-link').forEach(function (link) {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            const url = this.getAttribute('href');
+            const page = this.getAttribute('data-page');
+            fetchPageContent(url, { page });
+        });
+    });
+
+    console.log('AJAX pagination links setup complete');
+}
+
+/**
+ * Setup items per page selector
  */
 function setupPerPageSelect() {
     const perPageSelect = document.getElementById('perPageSelect');
+
     if (perPageSelect) {
         perPageSelect.addEventListener('change', function () {
-            // Construct URL with the new per-page value
-            const url = new URL(window.location.href);
-            url.searchParams.set('perPage', this.value);
-            url.searchParams.set('page', '1'); // Reset to first page
+            const currentPath = window.location.pathname;
+            const currentParams = new URLSearchParams(window.location.search);
 
-            // Show loading indicator
-            showLoadingIndicator();
+            // Update perPage parameter
+            currentParams.set('perPage', this.value);
 
-            // Fetch content using the new URL
-            fetchPageContent(url.toString());
+            // Reset to first page when changing items per page
+            currentParams.set('page', '1');
+
+            const newUrl = `${currentPath}?${currentParams.toString()}`;
+            fetchPageContent(newUrl, { perPage: this.value, page: 1 });
         });
+
+        console.log('Per page select setup complete');
     }
 }
 
 /**
- * Show loading indicator while content is being loaded
+ * Check if pagination is missing and restore it if needed
+ * This is particularly needed for the stations tab where the map might
+ * have accidentally removed the pagination element
  */
-function showLoadingIndicator() {
-    const contentContainer = document.querySelector('.container-fluid.px-4');
-    if (contentContainer) {
-        // Create a loading overlay
-        const overlay = document.createElement('div');
-        overlay.className = 'position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center';
-        overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
-        overlay.style.zIndex = '999';
-        overlay.innerHTML = `
-            <div class="text-center">
+function checkForMissingPagination() {
+    // Check if we're on the stations tab and pagination might be missing
+    const isStationsTab = window.location.search.includes('tab=stations');
+    const stationsTab = document.getElementById('stationsTab');
+
+    if (isStationsTab && stationsTab && stationsTab.classList.contains('active')) {
+        const existingPagination = stationsTab.querySelector('.ajax-pagination');
+
+        // If pagination is missing from the stations tab, we need to recreate it
+        if (!existingPagination) {
+            console.log('Pagination missing from stations tab, attempting to restore it');
+
+            // Get the current URL to fetch pagination data
+            const currentUrl = window.location.href;
+
+            // Fetch the current page to extract pagination data
+            fetch(currentUrl, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    // Try to find pagination in the response
+                    const paginationInResponse = doc.querySelector('.ajax-pagination');
+
+                    if (paginationInResponse) {
+                        // Find where to insert the pagination
+                        const stationsContent = stationsTab.querySelector('.card-body') ||
+                            stationsTab.querySelector('.tab-content') ||
+                            stationsTab;
+
+                        // Create a container for the pagination if needed
+                        const paginationContainer = document.createElement('div');
+                        paginationContainer.className = 'mt-4';
+                        paginationContainer.innerHTML = paginationInResponse.outerHTML;
+
+                        // Add the pagination to the bottom of the tab content
+                        stationsContent.appendChild(paginationContainer);
+
+                        // Reinitialize the pagination links
+                        setupAjaxPagination();
+                        setupPerPageSelect();
+
+                        console.log('Successfully restored pagination for stations tab');
+                    }
+                })
+                .catch(error => console.error('Error restoring pagination:', error));
+        }
+    }
+}
+
+/**
+ * Fetch page content via AJAX
+ */
+function fetchPageContent(url, params = {}) {
+    // Show loading indicator
+    const contentArea = document.querySelector('#stationContentArea') ||
+        document.querySelector('#bicycleContentArea') ||
+        document.querySelector('#rentalContentArea') ||
+        document.querySelector('.tab-content .active');
+
+    if (contentArea) {
+        // Create and show loading overlay
+        const loadingOverlay = document.createElement('div');
+        loadingOverlay.className = 'loading-overlay';
+        loadingOverlay.innerHTML = `
+            <div class="d-flex justify-content-center align-items-center h-100">
                 <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
                 </div>
-                <p class="mt-3">Loading stations...</p>
             </div>
         `;
-
-        // Add positioning to container if not already set
-        const currentPosition = window.getComputedStyle(contentContainer).position;
-        if (currentPosition === 'static') {
-            contentContainer.style.position = 'relative';
-        }
-
-        // Add overlay to container
-        contentContainer.appendChild(overlay);
+        loadingOverlay.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        `;
+        contentArea.style.position = 'relative';
+        contentArea.appendChild(loadingOverlay);
     }
-}
 
-/**
- * Fetch page content using AJAX
- */
-function fetchPageContent(url) {
+    console.log('Fetching page content:', url, params);
+
+    // Make AJAX request
     fetch(url, {
         headers: {
             'X-Requested-With': 'XMLHttpRequest'
@@ -93,119 +168,138 @@ function fetchPageContent(url) {
     })
         .then(response => {
             if (!response.ok) {
-                throw new Error(`Server responded with ${response.status}`);
+                throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
             }
             return response.text();
         })
         .then(html => {
-            // Update browser history
+            // Update URL in browser history
             window.history.pushState({}, '', url);
 
-            // Parse the HTML
+            // Find the content to replace - this depends on your page structure
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
 
-            // Find the main content container from the response
-            const newContent = doc.querySelector('.container-fluid.px-4');
+            // Find which tab is active
+            const tabParam = new URLSearchParams(window.location.search).get('tab') || 'rentals';
+            const tabContentSelector = `#${tabParam}TabContent`;
+            const tabContent = doc.querySelector(tabContentSelector);
 
-            // Update the content in the current page
-            if (newContent && document.querySelector('.container-fluid.px-4')) {
-                document.querySelector('.container-fluid.px-4').innerHTML = newContent.innerHTML;
-
-                // Reinitialize components after content change
-                reinitializeComponents();
+            if (tabContent) {
+                // Update just the tab content
+                document.querySelector(tabContentSelector).innerHTML = tabContent.innerHTML;
             } else {
-                // If we couldn't find the right containers, reload the page
-                console.error('Could not find expected content containers for AJAX update');
-                window.location.href = url;
+                // Fallback: try to find any content area to update
+                const contentArea = document.querySelector('#stationContentArea') ||
+                    document.querySelector('#bicycleContentArea') ||
+                    document.querySelector('#rentalContentArea') ||
+                    document.querySelector('.tab-content .active');
+
+                if (contentArea) {
+                    // Try to find corresponding content in the fetched page
+                    const newContent = doc.querySelector('.tab-content .active') ||
+                        doc.querySelector('#stationContentArea') ||
+                        doc.querySelector('#bicycleContentArea') ||
+                        doc.querySelector('#rentalContentArea');
+
+                    if (newContent) {
+                        contentArea.innerHTML = newContent.innerHTML;
+                    } else {
+                        console.error('Could not find content to update in the fetched page.');
+                    }
+                } else {
+                    console.error('Could not find content area to update on the current page.');
+                }
             }
+
+            // Reinitialize components on the refreshed content
+            reinitializeComponents();
         })
         .catch(error => {
-            console.error('Error loading page via AJAX:', error);
-            // Fallback to regular navigation
-            window.location.href = url;
+            console.error('Error fetching page content:', error);
+            // Show error message
+            if (contentArea) {
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'alert alert-danger m-3';
+                errorMessage.innerHTML = `
+                <h4><i class="fas fa-exclamation-circle me-2"></i> Error Loading Content</h4>
+                <p>${error.message}</p>
+                <button class="btn btn-sm btn-outline-danger" onclick="window.location.reload()">
+                    <i class="fas fa-sync-alt me-1"></i> Reload Page
+                </button>
+            `;
+                contentArea.appendChild(errorMessage);
+            }
+        })
+        .finally(() => {
+            // Remove loading overlay
+            if (contentArea) {
+                const overlay = contentArea.querySelector('.loading-overlay');
+                if (overlay) {
+                    overlay.remove();
+                }
+            }
         });
 }
 
 /**
- * Reinitialize all components after content change
+ * Reinitialize components after AJAX content load
  */
 function reinitializeComponents() {
-    console.log('Reinitializing components after AJAX content update');
-
-    // Re-initialize the map if available
-    if (window.stationMap && typeof window.stationMap.initializeMap === 'function') {
-        window.stationMap.initializeMap();
-    }
-
-    // Re-setup pagination after content update
+    // Re-setup pagination on the new content
     setupAjaxPagination();
     setupPerPageSelect();
 
-    // Re-attach event listeners to table search
-    setupTableSearch();
+    // Check if pagination is missing and restore it if needed
+    setTimeout(checkForMissingPagination, 500);
 
-    // Re-setup edit buttons
+    // Reinitialize station map if it exists
+    if (typeof window.stationMap !== 'undefined' && typeof window.stationMap.initializeMap === 'function') {
+        console.log('Reinitializing station map after pagination');
+        window.stationMap.initializeMap();
+    }
+
+    // Reinitialize modals
+    setupLocateButtons();
     setupEditButtons();
 
-    // Emit custom event for other components to respond to
-    window.dispatchEvent(new CustomEvent('stationContentUpdated'));
-}
+    // Reinitialize tooltips and popovers if Bootstrap is used
+    if (typeof bootstrap !== 'undefined') {
+        const tooltips = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltips.map(function (tooltip) {
+            return new bootstrap.Tooltip(tooltip);
+        });
 
-/**
- * Set up table search functionality
- */
-function setupTableSearch() {
-    const stationSearch = document.getElementById('stationSearch');
-    const quickStationSearch = document.getElementById('quickStationSearch');
-
-    if (stationSearch) {
-        stationSearch.addEventListener('input', function () {
-            filterTableRows(this.value.toLowerCase());
+        const popovers = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+        popovers.map(function (popover) {
+            return new bootstrap.Popover(popover);
         });
     }
 
-    if (quickStationSearch) {
-        quickStationSearch.addEventListener('input', function () {
-            filterListItems(this.value.toLowerCase());
-        });
-    }
+    console.log('Components reinitialized after content load');
 }
 
 /**
- * Filter table rows based on search term
+ * Setup station locate buttons
  */
-function filterTableRows(searchTerm) {
-    document.querySelectorAll('.station-row').forEach(row => {
-        const stationName = row.querySelector('.fw-medium')?.textContent.toLowerCase() || '';
-        const stationAddress = row.querySelector('.text-muted')?.textContent.toLowerCase() || '';
-        const match = stationName.includes(searchTerm) || stationAddress.includes(searchTerm);
-
-        row.style.display = match ? '' : 'none';
+function setupLocateButtons() {
+    document.querySelectorAll('.station-locate-btn, .view-on-map-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const stationId = parseInt(this.getAttribute('data-station-id'), 10);
+            if (window.stationMap && typeof window.stationMap.locateStation === 'function') {
+                window.stationMap.locateStation(stationId);
+            }
+        });
     });
 }
 
 /**
- * Filter list items based on search term
- */
-function filterListItems(searchTerm) {
-    document.querySelectorAll('.station-list-item').forEach(item => {
-        const stationName = item.querySelector('.station-name')?.textContent.toLowerCase() || '';
-        const stationAddress = item.querySelector('.station-address')?.textContent.toLowerCase() || '';
-        const match = stationName.includes(searchTerm) || stationAddress.includes(searchTerm);
-
-        item.style.display = match ? '' : 'none';
-    });
-}
-
-/**
- * Set up edit buttons
+ * Setup station edit buttons
  */
 function setupEditButtons() {
     document.querySelectorAll('.station-edit-btn').forEach(button => {
-        button.addEventListener('click', function (e) {
-            e.preventDefault();
-            const stationId = this.getAttribute('data-station-id');
+        button.addEventListener('click', function () {
+            const stationId = parseInt(this.getAttribute('data-station-id'), 10);
             if (typeof window.initEditStationModal === 'function') {
                 window.initEditStationModal(stationId);
             }
@@ -213,9 +307,9 @@ function setupEditButtons() {
     });
 }
 
-// Export functions for global use
-window.stationPagination = {
-    setupAjaxPagination,
-    setupPerPageSelect,
-    reinitializeComponents
+// Export function for global access
+window.bicyclePagination = {
+    init: initPagination,
+    fetchPage: fetchPageContent,
+    reinitializeComponents: reinitializeComponents
 };

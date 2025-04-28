@@ -231,13 +231,20 @@ function addStationMarkersToMap(stations) {
         return;
     }
 
+    // IMPORTANT: Preserve pagination element before modifying map container
+    const paginationElement = document.querySelector('.ajax-pagination');
+    if (paginationElement) {
+        // Store pagination for restoration if needed
+        window.stationMap.savedPagination = paginationElement.outerHTML;
+    }
+
     // Add markers for each station
     stations.forEach(station => {
         if (!station.lat || !station.lng) return;
 
         // Get the proper color based on status
         const getStatusColor = (status) => {
-            switch(status) {
+            switch (status) {
                 case 'active': return { bg: '#4caf50', border: '#2e7d32' }; // Green
                 case 'maintenance': return { bg: '#ff9800', border: '#e65100' }; // Orange
                 case 'inactive': return { bg: '#9e9e9e', border: '#616161' }; // Grey
@@ -247,7 +254,7 @@ function addStationMarkersToMap(stations) {
         };
 
         const color = getStatusColor(station.status);
-        
+
         // Create marker with enhanced custom icon
         const marker = L.marker([station.lat, station.lng], {
             title: station.name,
@@ -304,20 +311,18 @@ function addStationMarkersToMap(stations) {
                 </p>
                 
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="badge ${
-                        station.status === 'active' ? 'bg-success' :
-                        station.status === 'maintenance' ? 'bg-warning' :
-                        station.status === 'inactive' ? 'bg-secondary' :
-                        station.status === 'disabled' ? 'bg-danger' : 
-                        'bg-secondary'
-                    } px-2 py-1">
-                        <i class="ti ${
-                            station.status === 'active' ? 'ti-circle-check-filled' :
-                            station.status === 'maintenance' ? 'ti-tools' :
-                            station.status === 'inactive' ? 'ti-circle-x' :
-                            station.status === 'disabled' ? 'ti-alert-triangle' : 
+                    <span class="badge ${station.status === 'active' ? 'bg-success' :
+                station.status === 'maintenance' ? 'bg-warning' :
+                    station.status === 'inactive' ? 'bg-secondary' :
+                        station.status === 'disabled' ? 'bg-danger' :
+                            'bg-secondary'
+            } px-2 py-1">
+                        <i class="ti ${station.status === 'active' ? 'ti-circle-check-filled' :
+                station.status === 'maintenance' ? 'ti-tools' :
+                    station.status === 'inactive' ? 'ti-circle-x' :
+                        station.status === 'disabled' ? 'ti-alert-triangle' :
                             'ti-circle-x'
-                        } me-1"></i>
+            } me-1"></i>
                         ${station.status.charAt(0).toUpperCase() + station.status.slice(1)}
                     </span>
                     <span class="text-muted small">
@@ -349,7 +354,7 @@ function addStationMarkersToMap(stations) {
                     </button>
                 </div>
             </div>
-        `, { 
+        `, {
             className: 'station-popup',
             maxWidth: 300,
             minWidth: 280,
@@ -372,13 +377,13 @@ function addStationMarkersToMap(stations) {
                 }
             }
         });
-        
+
         // Add hover effect for markers
-        marker.on('mouseover', function() {
+        marker.on('mouseover', function () {
             this._icon.classList.add('marker-hover');
         });
-        
-        marker.on('mouseout', function() {
+
+        marker.on('mouseout', function () {
             this._icon.classList.remove('marker-hover');
         });
     });
@@ -388,7 +393,7 @@ function addStationMarkersToMap(stations) {
         const bounds = stations
             .filter(station => station.lat && station.lng)
             .map(station => [station.lat, station.lng]);
-            
+
         if (bounds.length > 0) {
             map.fitBounds(bounds, {
                 padding: [30, 30],
