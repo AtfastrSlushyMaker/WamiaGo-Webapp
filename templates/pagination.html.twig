@@ -5,7 +5,8 @@
             {# Previous page link #}
             {% if previous is defined %}
                 <li class="page-item">
-                    <a class="page-link" href="{{ path(route, query|merge({(pageParameterName): previous})) }}" aria-label="Précédent">
+                    <a class="page-link ajax-pagination-link" href="{{ path(route, query|merge({(pageParameterName): previous})) }}" 
+                       data-page="{{ previous }}" aria-label="Précédent">
                         <span aria-hidden="true">&laquo;</span>
                         <span class="sr-only">Précédent</span>
                     </a>
@@ -23,7 +24,8 @@
             {% for page in pagesInRange %}
                 {% if page != current %}
                     <li class="page-item">
-                        <a class="page-link" href="{{ path(route, query|merge({(pageParameterName): page})) }}">{{ page }}</a>
+                        <a class="page-link ajax-pagination-link" href="{{ path(route, query|merge({(pageParameterName): page})) }}" 
+                           data-page="{{ page }}">{{ page }}</a>
                     </li>
                 {% else %}
                     <li class="page-item active" aria-current="page">
@@ -35,7 +37,8 @@
             {# Next page link #}
             {% if next is defined %}
                 <li class="page-item">
-                    <a class="page-link" href="{{ path(route, query|merge({(pageParameterName): next})) }}" aria-label="Suivant">
+                    <a class="page-link ajax-pagination-link" href="{{ path(route, query|merge({(pageParameterName): next})) }}" 
+                       data-page="{{ next }}" aria-label="Suivant">
                         <span aria-hidden="true">&raquo;</span>
                         <span class="sr-only">Suivant</span>
                     </a>

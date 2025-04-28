@@ -16,17 +16,6 @@ use Knp\Component\Pager\PaginatorInterface;
 #[Route('/reclamation')]
 final class ReclamationController extends AbstractController
 {
-    #[Route('/{id_reclamation}', name: 'app_reclamation_delete', methods: ['POST'])]
-    public function deleteRec(Request $request, Reclamation $reclamation, EntityManagerInterface $entityManager): Response
-    {
-        if ($this->isCsrfTokenValid('delete'.$reclamation->getId_reclamation(), $request->getPayload()->getString('_token'))) {
-            $entityManager->remove($reclamation);
-            $entityManager->flush();
-        }
-    
-        return $this->redirectToRoute('app_reclamation_index', [], Response::HTTP_SEE_OTHER);
-    }
-
     #[Route('/{id_reclamation}/detail', name: 'app_reclamation_detail', methods: ['GET'])]
     public function detail(Reclamation $reclamation): Response
     {
@@ -35,8 +24,7 @@ final class ReclamationController extends AbstractController
         ]);
     }
     
-    
-    #[Route('/getAllReclamation', name: 'app_reclamation_list', methods: ['GET'])]
+    #[Route('/list', name: 'app_reclamation_list', methods: ['GET'])]
     public function getAllReclamation(Request $request, ReclamationRepository $reclamationRepository, PaginatorInterface $paginator): Response
     {
         $query = $reclamationRepository->createQueryBuilder('r')
@@ -49,9 +37,24 @@ final class ReclamationController extends AbstractController
             10 // Number of items per page
         );
         
+        // Handle AJAX request for pagination
+        if ($request->isXmlHttpRequest()) {
+            return $this->render('reclamation/reclamation_list_content.html.twig', [
+                'reclamations' => $pagination,
+            ]);
+        }
+        
         return $this->render('reclamation/index.html.twig', [
             'reclamations' => $pagination,
         ]);
+    }
+
+    // Add a compatibility route for the old URL pattern
+    #[Route('/getAllReclamation', name: 'app_reclamation_list_old', methods: ['GET'])]
+    public function getAllReclamationOld(Request $request): Response
+    {
+        // Redirect to the new route
+        return $this->redirectToRoute('app_reclamation_list', $request->query->all());
     }
 
     #[Route('/', name: 'app_reclamation_index', methods: ['GET'])]
@@ -170,7 +173,7 @@ final class ReclamationController extends AbstractController
         
         // Table of reclamations
         $html .= '<table>';
-        $html .= '<thead><tr><th>ID</th><th>Utilisateur</th><th>Titre</th><th>Date</th><th>Statut</th></tr></thead>';
+        $html .= '<thead><tr><th>ID</th><th>Utilisateur</th><th>Titre</th><th>Date</th><th>Statut</th></thead>';
         $html .= '<tbody>';
         
         foreach ($reclamations as $reclamation) {
