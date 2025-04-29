@@ -25,24 +25,73 @@ class ClientReservationController extends AbstractController
 
     public function __construct(
         private ReservationService $reservationService,
-        private EntityManagerInterface $em
+        private EntityManagerInterface $em,
+        private readonly ReservationRepository $reservationRepository
     ) {}
 
     #[Route('/', name: 'app_client_reservation_list', methods: ['GET'])]
-    public function list(UserRepository $userRepository): Response
-    {
-        $client = $userRepository->find(self::HARDCODED_CLIENT_ID);
-        
-        if (!$client) {
-            throw $this->createNotFoundException('Client not found');
+public function list(Request $request, UserRepository $userRepository, PaginatorInterface $paginator): Response
+{
+    $client = $userRepository->find(self::HARDCODED_CLIENT_ID);
+    
+    // Récupération et validation des paramètres
+    $keyword = trim($request->query->get('keyword', ''));
+    $status = $request->query->get('status');
+    $date = $request->query->get('date');
+
+    // Validation du statut
+    if ($status && !ReservationStatus::tryFrom($status)) {
+        if ($request->isXmlHttpRequest()) {
+            return new JsonResponse(['error' => 'Invalid status value'], 400);
         }
+        throw $this->createNotFoundException('Invalid status');
+    }
 
-        $reservations = $this->reservationService->getReservationsByUser($client);
+    // Validation de la date
+if ($request->query->has('date')) {
+    $date = $request->query->get('date');
+    try {
+        $dateObj = new \DateTime($date);
+        $dateParam = $dateObj->format('Y-m-d');
+    } catch (\Exception $e) {
+        
+    }
+}
 
-        return $this->render('front/reservation/client/list.html.twig', [
+// Appel au repository
+$query = $this->reservationRepository->findWithFilters_client(
+    $keyword,
+    $status,
+    $dateParam ?? null
+);
+
+   
+
+    try {
+        $reservations = $paginator->paginate(
+            $query,
+            $request->query->getInt('page', 1),
+            6
+        );
+    } catch (\Exception $e) {
+        // Gestion d'erreur améliorée
+        if ($request->isXmlHttpRequest()) {
+            return new JsonResponse(['error' => 'Invalid pagination request'], 400);
+        }
+        throw $this->createNotFoundException('Page not found');
+    }
+
+    // Réponse AJAX
+    if ($request->isXmlHttpRequest()) {
+        return $this->render('front/reservation/client/_reservation_list.html.twig', [
             'reservations' => $reservations
         ]);
     }
+
+    return $this->render('front/reservation/client/list.html.twig', [
+        'reservations' => $reservations
+    ]);
+}
 
     #[Route('/{id}/details', name: 'app_client_reservation_details', methods: ['GET'])]
     public function details(Reservation $reservation): JsonResponse

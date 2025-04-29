@@ -63,7 +63,58 @@
         </a>
                 </div>
 
+                
+<!-- Search Filters Section -->
+<div class="filters-section mb-5">
+    <div class="advanced-search-container bg-light p-4 rounded-3 shadow-sm">
+        <div class="search-filter mb-3">
+            <input type="text" 
+                   id="reservationKeywordSearch" 
+                   placeholder="Search reservations..." 
+                   class="form-control form-control-lg"
+                   value="{{ app.request.query.get('keyword') }}">
+        </div>
+
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="reservationStatusFilter" class="form-label">
+                    <i class="fas fa-filter me-2"></i>Status
+                </label>
+                <select id="reservationStatusFilter" class="form-select">
+                    <option value="">All Statuses</option>
+                    {% for status in enum('App\\Enum\\ReservationStatus').cases() %}
+                        <option value="{{ status.value }}" 
+                            {{ app.request.query.get('status') == status.value ? 'selected' }}>
+                            {{ status.value|title }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label for="reservationDateFilter" class="form-label">
+                    <i class="fas fa-calendar-alt me-2"></i>Date
+                </label>
+                <input type="date" 
+                       id="reservationDateFilter" 
+                       class="form-control"
+                       value="{{ app.request.query.get('date') }}">
+            </div>
+
+            <div class="col-md-4">
+                <button class="btn btn-outline-danger w-100" id="reservationClearFilters">
+                    <i class="fas fa-eraser me-2"></i>Clear Filters
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
     <!-- Reservations Grid -->
+    {# ... après le header #}
+
+
+<div id="reservationsList">
     {% if reservations is empty %}
         <div class="empty-state">
             <img src="{{ asset('images/front/reservation/empty-state.png') }}" alt="No reservations" class="mb-3">
@@ -127,10 +178,12 @@
         </div>
     {% endif %}
 </div>
+</div>
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.all.min.js"></script>
     <script src="{{ asset('js/front/reservation/client-reservation.js') }}"></script>
+    <script src="{{ asset('js/front/reservation/client-reservation-search.js') }}"></script>
 {% endblock %}

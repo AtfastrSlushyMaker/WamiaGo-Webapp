@@ -675,3 +675,24 @@ body.swal2-shown {
     z-index: 9999 !important;
 }
 
+
+.filters-section {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.status-filter .form-select {
+    background-image: url("data:image/svg+xml,%3csvg...");
+    background-position: right 1rem center;
+    background-size: 16px 12px;
+}

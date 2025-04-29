@@ -8,6 +8,7 @@ use App\Enum\ReservationStatus;
 use App\Entity\User;
 use App\Repository\ReservationRepository;
 use App\Entity\Relocation;
+use Doctrine\ORM\QueryBuilder;
 
 class ReservationService
 {
@@ -100,6 +101,9 @@ class ReservationService
             'endLocation' => $reservation->getEndLocation()->getAddress()
         ];
     }
+
+    
+    
 
     
 }

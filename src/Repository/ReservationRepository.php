@@ -191,5 +191,51 @@ public function findWithFilters(?string $keyword = null, ?string $status = null,
     
     return $qb;
 }
+
+public function findWithFilters_client(
+    ?string $keyword = null,
+    ?string $status = null,
+    ?string $date = null
+): QueryBuilder {
+    $qb = $this->createQueryBuilder('r')
+        ->leftJoin('r.announcement', 'a')
+        ->leftJoin('r.user', 'u')
+        ->leftJoin('r.startLocation', 'sl')
+        ->leftJoin('r.endLocation', 'el')
+        ->orderBy('r.date', 'DESC');
+
+    // Filtre mot-clé
+    if ($keyword) {
+        $qb->andWhere('
+            a.title LIKE :keyword OR 
+            u.name LIKE :keyword OR 
+            sl.address LIKE :keyword OR 
+            el.address LIKE :keyword
+        ')
+        ->setParameter('keyword', '%' . $keyword . '%');
+    }
+
+    // Filtre statut
+    if ($status) {
+        $qb->andWhere('r.status = :status')
+            ->setParameter('status', $status);
+    }
+
+    // Filtre date
+    if ($date) {
+        $dateObj = \DateTime::createFromFormat('Y-m-d', $date);
+        if ($dateObj instanceof \DateTime) {
+            // Création des dates de début et fin
+            $start = (clone $dateObj)->setTime(0, 0, 0);
+            $end = (clone $dateObj)->modify('+1 day')->setTime(0, 0, 0);
+
+            $qb->andWhere('r.date >= :start AND r.date < :end')
+               ->setParameter('start', $start->format('Y-m-d H:i:s'))
+               ->setParameter('end', $end->format('Y-m-d H:i:s'));
+        }
+    }
+
+    return $qb;
+}
     
 }
