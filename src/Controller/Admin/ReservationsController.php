@@ -18,40 +18,47 @@ use Knp\Component\Pager\PaginatorInterface;
 #[Route('/admin/reservations')]
 class ReservationsController extends AbstractController
 {
+
+    private ReservationRepository $reservationRepository;
+    
+    public function __construct(ReservationRepository $reservationRepository)
+    {
+        $this->reservationRepository = $reservationRepository;
+    }
     #[Route('/', name: 'admin_reservations_index', methods: ['GET'])]
-    public function index(
-        Request $request, 
-        ReservationRepository $reservationRepo,
-        PaginatorInterface $paginator
-    ): Response {
-        // Get filter parameters
-        $filters = [];
-        
-        // Status filter
-        if ($request->query->has('status')) {
-            $filters['status'] = $request->query->get('status');
+public function index(Request $request, PaginatorInterface $paginator): Response
+{
+    // Récupération des filtres sous forme de tableau
+    $searchParams = [
+        'keyword' => $request->query->get('keyword'),
+        'status' => $request->query->get('status'),
+        'date' => $request->query->get('date')
+    ];
+
+    // Utiliser la nouvelle méthode de query builder
+    $query = $this->reservationRepository->createSearchQueryBuilder($searchParams);
+
+    // Pagination
+    $reservations = $paginator->paginate(
+        $query,
+        $request->query->getInt('page', 1),
+        10
+    );
+
+   // Si c'est une requête AJAX, renvoyer seulement la liste partielle
+        if ($request->isXmlHttpRequest()) {
+            return $this->render('back-office/Reservations/_partials/_list.html.twig', [
+                'reservations' => $reservations
+            ]);
         }
         
-        // Get query
-        $query = !empty($filters) 
-            ? $reservationRepo->createQueryByFilters($filters)
-            : $reservationRepo->createQueryBuilder('r')
-                ->orderBy('r.date', 'DESC')
-                ->getQuery();
-        
-        // Paginate results
-        $reservations = $paginator->paginate(
-            $query,
-            $request->query->getInt('page', 1),
-            10 // Items per page
-        );
-        
+        // Sinon, renvoyer toute la page
         return $this->render('back-office/Reservations/index.html.twig', [
-            'reservations' => $reservations,
-            'filters' => $filters
+            'reservations' => $reservations
         ]);
-    }
-
+}
+    
+    
     #[Route('/{id}', name: 'admin_reservations_show', methods: ['GET'])]
     public function show(Reservation $reservation): Response
     {
@@ -132,7 +139,7 @@ public function generatePdf(
         );
         
     } catch (\Exception $e) {
-        $this->addFlash('error', 'Failed to generate PDF: ' . $e->getMessage());
+        //$this->addFlash('error', 'Failed to generate PDF: ' . $e->getMessage());
         return $this->redirectToRoute('admin_reservations_show', ['id' => $reservation->getIdReservation()]);
     }
 }
@@ -165,7 +172,7 @@ public function exportAllToPdf(
         );
         
     } catch (\Exception $e) {
-        $this->addFlash('error', 'Failed to generate PDF: ' . $e->getMessage());
+        //$this->addFlash('error', 'Failed to generate PDF: ' . $e->getMessage());
         return $this->redirectToRoute('admin_reservations_index');
     }
 }
