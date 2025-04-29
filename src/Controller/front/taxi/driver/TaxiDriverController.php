@@ -16,6 +16,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use App\Service\GeminiService;
 
 #[Route('/driver')]
 class TaxiDriverController extends AbstractController
@@ -70,6 +74,7 @@ class TaxiDriverController extends AbstractController
         return $this->render('front/taxi/driver/taxi-management-driver.html.twig', [
             'availableRequests' => $requestsWithDetails,
             'activeRides' => $ridesWithDetails,
+            'chatMessages' => [],
         ]);
     }
 
@@ -190,4 +195,73 @@ public function updateRideDuration(int $id, \Symfony\Component\HttpFoundation\Re
         ], 400);
     }
 }
+
+
+
+#[Route('/chat', name: 'app_taxi_driver_chat', methods: ['POST'])]
+public function chat(\Symfony\Component\HttpFoundation\Request $request, GeminiService $geminiService): JsonResponse
+{
+    try {
+        // Get the user's message from the request
+        $data = json_decode($request->getContent(), true);
+        $userMessage = $data['message'] ?? '';
+
+        if (empty($userMessage)) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'No message provided.',
+            ], 400);
+        }
+
+        // Send the message to the Gemini chatbot and get the response
+        $botResponse = $geminiService->sendMessage($userMessage);
+
+        // Return the bot's response as a JSON response
+        return new JsonResponse([
+            'success' => true,
+            'botMessage' => $botResponse, // Send back the bot's response
+        ]);
+    } catch (ClientExceptionInterface $e) {
+        $this->logger->error("Client error: " . $e->getMessage());
+        return new JsonResponse([
+            'success' => false,
+            'message' => 'Client error: ' . $e->getMessage(),
+        ], 400);
+    } catch (ServerExceptionInterface $e) {
+        $this->logger->error("Server error: " . $e->getMessage());
+        return new JsonResponse([
+            'success' => false,
+            'message' => 'Server error: ' . $e->getMessage(),
+        ], 500);
+    } catch (TransportExceptionInterface $e) {
+        $this->logger->error("Transport error: " . $e->getMessage());
+        return new JsonResponse([
+            'success' => false,
+            'message' => 'Transport error: ' . $e->getMessage(),
+        ], 503);
+    } catch (\Exception $e) {
+        $this->logger->error("General error: " . $e->getMessage());
+        return new JsonResponse([
+            'success' => false,
+            'message' => 'An error occurred: ' . $e->getMessage(),
+        ], 500);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
