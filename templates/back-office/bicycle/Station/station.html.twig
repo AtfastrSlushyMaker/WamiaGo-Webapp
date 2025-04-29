@@ -300,6 +300,56 @@
             flex: 1 1 auto;
             overflow-y: auto;
         }
+
+        /* Station Search Box - Purple Theme */
+        .search-box {
+            position: relative;
+        }
+
+        .search-box .input-group {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .search-box .input-group-text {
+            background: linear-gradient(135deg, #8540f5 0%, #6f42c1 100%);
+            border: none;
+            color: white;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .search-box input.form-control {
+            border: 1px solid #e9ecef;
+            border-left: none;
+            padding-left: 0.75rem;
+            padding-right: 2.5rem;
+            height: 38px;
+        }
+
+        .search-box input.form-control:focus {
+            box-shadow: none;
+            border-color: #8540f5;
+        }
+
+        .search-box #stationSearchClearBtn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            border: none;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            padding: 0 0.75rem;
+            color: #6c757d;
+            z-index: 5;
+        }
+
+        .search-box #stationSearchClearBtn:hover {
+            color: #dc3545;
+        }
     </style>
 
 
@@ -543,16 +593,17 @@
     
     <!-- Enhanced stations data table with actions -->
     <div class="card border-0 shadow-sm">
-        <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
-                <i class="fas fa-table me-2"></i> Stations Management
-            </h5>
+        <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0"><i class="fas fa-table me-2"></i>Stations Management</h5>
             <div class="actions">
-                <div class="input-group input-group-sm" style="width: 250px;">
-                    <span class="input-group-text border-end-0 bg-transparent">
-                        <i class="fas fa-search text-muted"></i>
-                    </span>
-                    <input type="text" id="stationSearch" class="form-control border-start-0" placeholder="Search stations...">
+                <div class="search-box">
+                    <div class="input-group" style="width: 300px;">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" id="stationSearchInput" class="form-control" placeholder="Search by ID, name, or location...">
+                        <button type="button" id="stationSearchClearBtn" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1076,27 +1127,164 @@ document.addEventListener('DOMContentLoaded', function() {
     const stationSearchClearBtn = document.getElementById('stationSearchClearBtn');
     
     if (stationSearchInput) {
-        stationSearchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase().trim();
-            filterStationsTable(searchTerm);
+        // Only trigger search when user presses Enter or changes focus (onblur)
+        stationSearchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const searchTerm = this.value.toLowerCase().trim();
+                performSearch(searchTerm);
+            }
         });
         
-        // Clear search button
+        // Also trigger search on blur (when focus leaves the input)
+        stationSearchInput.addEventListener('blur', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            if (searchTerm.length >= 1) { // Only search if there's something to search for
+                performSearch(searchTerm);
+            }
+        });
+        
+        // Clear search button functionality
         if (stationSearchClearBtn) {
             stationSearchClearBtn.addEventListener('click', function() {
                 stationSearchInput.value = '';
-                filterStationsTable(''); // Reset filter
+                clearSearch();
+                stationSearchInput.focus();
             });
         }
     }
     
-    // Function to filter stations table based on search term
-    function filterStationsTable(searchTerm) {
-        const tableRows = document.querySelectorAll('.station-table tbody tr');
-        let hasResults = false;
+    // Function to perform the search
+    function performSearch(searchTerm) {
+        // Show loading indicator
+        document.querySelector('.card-body').classList.add('loading');
         
-        // Add loading effect
-        document.querySelector('.station-table').classList.add('opacity-50');
+        // Store the search term in a data attribute on the search input
+        // This prevents other scripts from clearing the search
+        stationSearchInput.setAttribute('data-current-search', searchTerm);
+        
+        if (searchTerm && searchTerm.length >= 1) {
+            // Create URL with search parameter
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set('search', searchTerm);
+            
+            // Fetch filtered results
+            fetch(currentUrl.toString(), {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                processSearchResults(html, searchTerm, currentUrl);
+            })
+            .catch(error => {
+                console.error('Error during search:', error);
+                fallbackToClientSideSearch(searchTerm);
+            });
+        } else {
+            clearSearch();
+        }
+    }
+    
+    // Function to process search results from server
+    function processSearchResults(html, searchTerm, currentUrl) {
+        // Parse the response HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // Replace the table content
+        const newTableBody = doc.querySelector('.station-table tbody');
+        if (newTableBody) {
+            document.querySelector('.station-table tbody').innerHTML = newTableBody.innerHTML;
+        }
+        
+        // Update pagination if needed
+        const newPagination = doc.querySelector('.pagination-container');
+        if (newPagination) {
+            document.querySelector('.pagination-container').innerHTML = newPagination.innerHTML;
+        }
+        
+        // Check if there are any results
+        const rows = document.querySelectorAll('.station-table tbody tr:not(.empty-search-stations)');
+        const hasResults = rows.length > 0;
+        
+        // Update URL to preserve search on page refresh
+        window.history.replaceState({}, '', currentUrl.toString());
+        
+        if (!hasResults) {
+            showEmptySearchMessage();
+        }
+        
+        // Reattach event listeners to new pagination links
+        reattachPaginationEventListeners(searchTerm);
+        
+        // Remove loading indicator
+        document.querySelector('.card-body').classList.remove('loading');
+    }
+    
+    // Function to clear search
+    function clearSearch() {
+        // Remove the stored search term
+        stationSearchInput.removeAttribute('data-current-search');
+        
+        // Reset URL to remove search parameter
+        const currentUrl = new URL(window.location.href);
+        if (currentUrl.searchParams.has('search')) {
+            currentUrl.searchParams.delete('search');
+            window.history.replaceState({}, '', currentUrl.toString());
+        }
+        
+        // Show loading indicator
+        document.querySelector('.card-body').classList.add('loading');
+        
+        // Reload the page content without the search parameter
+        fetch(currentUrl.toString(), {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Parse the response HTML
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Replace the table content
+            const newTableBody = doc.querySelector('.station-table tbody');
+            if (newTableBody) {
+                document.querySelector('.station-table tbody').innerHTML = newTableBody.innerHTML;
+            }
+            
+            // Update pagination if needed
+            const newPagination = doc.querySelector('.pagination-container');
+            if (newPagination) {
+                document.querySelector('.pagination-container').innerHTML = newPagination.innerHTML;
+            }
+            
+            // Reattach event listeners
+            reattachPaginationEventListeners('');
+            
+            // Remove empty state if it exists
+            const emptyStateRow = document.querySelector('.empty-search-stations');
+            if (emptyStateRow) {
+                emptyStateRow.remove();
+            }
+            
+            // Remove loading indicator
+            document.querySelector('.card-body').classList.remove('loading');
+        })
+        .catch(error => {
+            console.error('Error clearing search:', error);
+            // Remove loading indicator on error
+            document.querySelector('.card-body').classList.remove('loading');
+        });
+    }
+    
+    // Fallback to client-side search if server search fails
+    function fallbackToClientSideSearch(searchTerm) {
+        const tableRows = document.querySelectorAll('.station-table tbody tr:not(.empty-search-stations)');
+        let hasResults = false;
         
         tableRows.forEach(row => {
             if (!searchTerm) {
@@ -1126,86 +1314,135 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Show empty state if no results
-        const emptyStateRow = document.querySelector('.empty-station-search-results');
         if (!hasResults) {
-            if (!emptyStateRow) {
-                const tbody = document.querySelector('.station-table tbody');
-                const newRow = document.createElement('tr');
-                newRow.className = 'empty-station-search-results';
-                newRow.innerHTML = `
-                    <td colspan="7">
-                        <div class="text-center py-4">
-                            <div class="mb-3">
-                                <i class="fas fa-search fa-3x text-muted opacity-50"></i>
-                            </div>
-                            <h5>No stations found</h5>
-                            <p class="text-muted mb-3">No station records match your search criteria</p>
-                            <button type="button" class="btn btn-primary clear-station-search-btn">
-                                <i class="fas fa-times-circle me-2"></i>Clear Search
-                            </button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(newRow);
-                
-                // Add event listener to clear search button
-                newRow.querySelector('.clear-station-search-btn').addEventListener('click', function() {
-                    stationSearchInput.value = '';
-                    filterStationsTable('');
-                });
+            showEmptySearchMessage();
+        } else {
+            // Remove empty state if it exists
+            const emptyStateRow = document.querySelector('.empty-search-stations');
+            if (emptyStateRow) {
+                emptyStateRow.remove();
             }
-        } else if (emptyStateRow) {
-            emptyStateRow.remove();
         }
         
-        // Remove loading effect with small delay for visual feedback
+        // Remove loading indicator
         setTimeout(() => {
-            document.querySelector('.station-table').classList.remove('opacity-50');
-        }, 200);
+            document.querySelector('.card-body').classList.remove('loading');
+        }, 300);
     }
     
-    // Also connect the existing quick search input
-    const quickStationSearch = document.getElementById('quickStationSearch');
-    if (quickStationSearch) {
-        quickStationSearch.addEventListener('input', function() {
-            // Filter the quick station list
-            const searchTerm = this.value.toLowerCase().trim();
-            const stationItems = document.querySelectorAll('.station-list-item');
+    // Function to reattach event listeners to pagination links after search
+    function reattachPaginationEventListeners(searchTerm) {
+        const paginationLinks = document.querySelectorAll('.pagination .page-link');
+        paginationLinks.forEach(link => {
+            // Remove old event listeners
+            const newLink = link.cloneNode(true);
+            link.parentNode.replaceChild(newLink, link);
             
-            let hasResults = false;
-            stationItems.forEach(item => {
-                const stationName = item.querySelector('.station-name').textContent.toLowerCase();
-                const stationAddress = item.querySelector('.station-address').textContent.toLowerCase();
+            // Add new event listener
+            newLink.addEventListener('click', function(e) {
+                e.preventDefault();
                 
-                if (stationName.includes(searchTerm) || stationAddress.includes(searchTerm)) {
-                    item.style.display = '';
-                    hasResults = true;
-                } else {
-                    item.style.display = 'none';
+                // Use the stored search term if available, otherwise use the parameter
+                const currentSearchTerm = stationSearchInput.getAttribute('data-current-search') || searchTerm;
+                
+                // Preserve search parameter when navigating pages
+                let targetUrl = new URL(this.href, window.location.href);
+                
+                if (currentSearchTerm) {
+                    targetUrl.searchParams.set('search', currentSearchTerm);
                 }
+                
+                // Show loading indicator
+                document.querySelector('.card-body').classList.add('loading');
+                
+                // Fetch the new page with search term preserved
+                fetch(targetUrl.toString(), {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    // Parse the response HTML
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    // Replace the table content
+                    const newTableBody = doc.querySelector('.station-table tbody');
+                    if (newTableBody) {
+                        document.querySelector('.station-table tbody').innerHTML = newTableBody.innerHTML;
+                    }
+                    
+                    // Update pagination links
+                    const newPagination = doc.querySelector('.pagination-container');
+                    if (newPagination) {
+                        document.querySelector('.pagination-container').innerHTML = newPagination.innerHTML;
+                    }
+                    
+                    // Update the URL to reflect the new page with search parameter
+                    window.history.pushState({}, '', targetUrl.toString());
+                    
+                    // Reattach event listeners to the new pagination links
+                    reattachPaginationEventListeners(currentSearchTerm);
+                    
+                    // Remove loading indicator
+                    document.querySelector('.card-body').classList.remove('loading');
+                })
+                .catch(error => {
+                    console.error('Error during pagination with search:', error);
+                    // Remove loading indicator
+                    document.querySelector('.card-body').classList.remove('loading');
+                });
             });
-            
-            // Show empty state message if no results
-            let emptyState = document.querySelector('.empty-quick-search');
-            if (!hasResults) {
-                if (!emptyState) {
-                    emptyState = document.createElement('li');
-                    emptyState.className = 'list-group-item empty-quick-search';
-                    emptyState.innerHTML = `
-                        <div class="text-center py-3">
-                            <div class="mb-2">
-                                <i class="fas fa-search text-muted"></i>
-                            </div>
-                            <p class="mb-0 small text-muted">No matching stations found</p>
-                        </div>
-                    `;
-                    document.querySelector('.station-quick-list ul').appendChild(emptyState);
-                }
-            } else if (emptyState) {
-                emptyState.remove();
+        });
+    }
+    
+    // Helper function to show empty search message
+    function showEmptySearchMessage() {
+        // Remove any existing message first
+        const existingEmptyState = document.querySelector('.empty-search-stations');
+        if (existingEmptyState) {
+            existingEmptyState.remove();
+        }
+        
+        const tbody = document.querySelector('.station-table tbody');
+        const newRow = document.createElement('tr');
+        newRow.className = 'empty-search-stations';
+        newRow.innerHTML = `
+            <td colspan="7" class="text-center py-4">
+                <div class="mb-3">
+                    <i class="fas fa-search fa-3x text-muted opacity-50"></i>
+                </div>
+                <h5>No stations found</h5>
+                <p class="text-muted mb-3">No station records match your search criteria</p>
+                <button type="button" class="btn btn-purple clear-search-btn">
+                    <i class="fas fa-times-circle me-2"></i>Clear Search
+                </button>
+            </td>
+        `;
+        tbody.appendChild(newRow);
+        
+        // Add event listener to clear search button
+        newRow.querySelector('.clear-search-btn').addEventListener('click', function() {
+            if (stationSearchInput) {
+                stationSearchInput.value = '';
+                clearSearch();
+                stationSearchInput.focus();
             }
         });
     }
+    
+    // Check for search param on page load and apply it
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchParam = urlParams.get('search');
+        
+        if (searchParam && stationSearchInput) {
+            stationSearchInput.value = searchParam;
+            stationSearchInput.setAttribute('data-current-search', searchParam);
+            // Don't need to perform search as the server should have already filtered the results
+        }
+    });
 });
 
 // Make a global reset function available to clear any stuck overlays
