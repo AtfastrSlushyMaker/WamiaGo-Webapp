@@ -1,11 +1,11 @@
 {% extends 'front/base.html.twig' %}
 
-{% block title %}Bicycle Unlock Code - WamiaGo{% endblock %}
+{% block title %}Bicycle Details - WamiaGo{% endblock %}
 
 {% block page_stylesheets %}
     <link href="{{ asset('css/front/Bicycle/bicycle-rental.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
     <style>
-        .unlock-container {
+        .rental-container {
             max-width: 600px;
             margin: 0 auto;
         }
@@ -29,6 +29,7 @@
             border-radius: 8px;
             display: inline-block;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
         }
         
         .bicycle-info {
@@ -38,94 +39,95 @@
             margin-top: 25px;
         }
         
-        .timer {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 20px 0;
+        .battery-indicator {
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 8px 0;
         }
         
-        .timer-expired {
-            color: #dc3545;
-        }
-        
-        .instruction-step {
-            margin-bottom: 15px;
-            padding-left: 30px;
-            position: relative;
-        }
-        
-        .instruction-step i {
-            position: absolute;
-            left: 0;
-            top: 5px;
-            color: var(--bicycle-primary);
+        .battery-level {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
         }
     </style>
 {% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <div class="unlock-container">
-        <h1 class="text-center mb-4">Bicycle Unlock Code</h1>
+    <div class="rental-container">
+        <h1 class="text-center mb-4">Bicycle Details</h1>
         
         <div class="card border-0 shadow-sm">
             <div class="card-body p-4 text-center">
-                <p class="lead mb-3">Use the code below to unlock bicycle #{{ rental.bicycle.idBike }}</p>
+                <p class="lead mb-3">Your reservation for bicycle #{{ rental.bicycle.idBike }}</p>
                 
-                <div class="code-display" id="unlockCode" title="Click to copy">
-                    {{ reservationCode }}
+                <div class="text-center">
+                    <div class="qr-container">
+                        <p class="mb-3">Bicycle Details QR Code:</p>
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={% set bicycleDetails = {
+                            'bicycle_id': rental.bicycle.idBike,
+                            'type': rental.bicycle.batteryLevel > 90 ? 'Premium E-Bike' : 'Standard E-Bike',
+                            'battery_level': rental.bicycle.batteryLevel,
+                            'range_km': rental.bicycle.rangeKm,
+                            'station': rental.startStation.name,
+                            'hourly_rate': rental.bicycle.batteryLevel > 90 ? '5.000' : '3.500'
+                        } %}{{ bicycleDetails|json_encode|url_encode }}" 
+                             alt="QR Code for bicycle details" class="img-fluid">
+                    </div>
+                    <p class="text-muted mb-4">Scan this QR code to view bicycle details</p>
                 </div>
                 
-                <div class="text-muted small mb-4">Click the code to copy it to clipboard</div>
-                
-                <div class="qr-container">
-    <p class="mb-3">Scan this QR code to unlock the bicycle:</p>
-    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ absolute_url(path('app_bicycle_verify_code', {'code': reservationCode})) }}" alt="QR Code for bicycle unlock">
-</div>
-                
-                <div class="timer mt-4" id="timer">
-                    Code valid for: <span id="countdown">30:00</span>
-                </div>
+                <a href="{{ path('app_rental_activate', {'id': rental.idUserRental}) }}" class="btn btn-success btn-lg mb-3">
+                    <i class="fas fa-unlock me-2"></i> Unlock Bicycle Now
+                </a>
             </div>
-            <a href="{{ path('app_bicycle_unlock_form') }}" class="nav-item nav-link">
-    <i class="fas fa-unlock-alt"></i> Unlock Bicycle
-</a>
         </div>
         
         <div class="bicycle-info">
-            <h4 class="mb-3">Bicycle Information</h4>
+            <h4 class="mb-3">Rental Details</h4>
             <div class="row">
                 <div class="col-md-6">
-                    <p><strong>Bicycle Type:</strong> {{ rental.bicycle.batteryLevel > 90 ? 'Premium' : 'Standard' }} E-Bike</p>
-                    <p><strong>Battery Level:</strong> {{ rental.bicycle.batteryLevel }}%</p>
-                    <p><strong>Estimated Range:</strong> {{ rental.bicycle.rangeKm }} km</p>
+                    <p><strong>Rental ID:</strong> #{{ rental.idUserRental }}</p>
+                    <p><strong>Reserved On:</strong> {{ rental.startTime ? rental.startTime|date('Y-m-d H:i') : 'Not started' }}</p>
+                    <p><strong>Estimated Cost:</strong> {{ rental.cost|number_format(3) }} TND</p>
+                    {% if rental.startTime %}
+                        <p><strong>Status:</strong> <span class="badge bg-success">Active</span></p>
+                    {% else %}
+                        <p><strong>Status:</strong> <span class="badge bg-warning text-dark">Reserved</span></p>
+                    {% endif %}
                 </div>
                 <div class="col-md-6">
-                    <p><strong>Station:</strong> {{ rental.startStation.name }}</p>
-                    <p><strong>Reserved On:</strong> {{ rental.startTime|date('Y-m-d H:i') }}</p>
-                    <p><strong>Estimated Cost:</strong> {{ rental.cost|number_format(3) }} TND</p>
+                    <p><strong>Pickup Station:</strong> {{ rental.startStation.name }}</p>
+                    <p><strong>Address:</strong> 
+                        {% if rental.startStation.location %}
+                            {{ rental.startStation.location.address }}
+                        {% else %}
+                            No address available
+                        {% endif %}
+                    </p>
+                    {% if rental.endTime %}
+                        <p><strong>Return Time:</strong> {{ rental.endTime|date('Y-m-d H:i') }}</p>
+                        <p><strong>Return Station:</strong> {{ rental.endStation ? rental.endStation.name : 'Not returned' }}</p>
+                    {% endif %}
                 </div>
             </div>
-        </div>
-        
-        <div class="card mt-4 border-0 shadow-sm">
-            <div class="card-body">
-                <h4>How to Use the Unlock Code:</h4>
-                <div class="instruction-step">
-                    <i class="fas fa-1"></i>
-                    <p>Approach your reserved bicycle at {{ rental.startStation.name }} station.</p>
+            
+            <h4 class="mt-4 mb-3">Bicycle Information</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Bicycle ID:</strong> #{{ rental.bicycle.idBike }}</p>
+                    <p><strong>Type:</strong> {{ rental.bicycle.batteryLevel > 90 ? 'Premium' : 'Standard' }} E-Bike</p>
+                    <p><strong>Battery Level:</strong> {{ rental.bicycle.batteryLevel }}%</p>
+                    <div class="battery-indicator">
+                        <div class="battery-level" style="width: {{ rental.bicycle.batteryLevel }}%"></div>
+                    </div>
                 </div>
-                <div class="instruction-step">
-                    <i class="fas fa-2"></i>
-                    <p>Either scan the QR code using the station's scanner or enter the 6-digit code on the bicycle's keypad.</p>
-                </div>
-                <div class="instruction-step">
-                    <i class="fas fa-3"></i>
-                    <p>The bicycle will unlock automatically. The green light indicates a successful unlock.</p>
-                </div>
-                <div class="instruction-step">
-                    <i class="fas fa-4"></i>
-                    <p>Adjust the seat height if necessary and check the bicycle before riding.</p>
+                <div class="col-md-6">
+                    <p><strong>Estimated Range:</strong> {{ rental.bicycle.rangeKm }} km</p>
+                    <p><strong>Hourly Rate:</strong> {{ rental.bicycle.batteryLevel > 90 ? '5.000' : '3.500' }} TND</p>
+                    <p><strong>Last Updated:</strong> {{ rental.bicycle.lastUpdated|date('Y-m-d H:i') }}</p>
                 </div>
             </div>
         </div>
@@ -134,7 +136,7 @@
             <a href="{{ path('app_front_my_reservations') }}" class="btn btn-outline-secondary me-2">
                 <i class="fas fa-arrow-left me-2"></i> Back to My Reservations
             </a>
-            <form method="post" action="{{ path('app_rental_cancel', {'id': rental.idUserRental}) }}" class="d-inline">
+            <form method="post" action="{{ path('app_front_cancel_rental', {'id': rental.idUserRental}) }}" class="d-inline">
                 <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ rental.idUserRental) }}">
                 <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to cancel this reservation?');">
                     <i class="fas fa-times me-2"></i> Cancel Reservation
@@ -143,55 +145,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block page_javascripts %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Copy unlock code to clipboard when clicked
-        const unlockCode = document.getElementById('unlockCode');
-        unlockCode.addEventListener('click', function() {
-            const code = this.innerText.trim();
-            navigator.clipboard.writeText(code).then(function() {
-                // Temporary feedback for clipboard copy
-                const originalText = unlockCode.innerText;
-                unlockCode.innerText = 'Copied!';
-                unlockCode.classList.add('bg-success', 'text-white');
-                
-                setTimeout(function() {
-                    unlockCode.innerText = originalText;
-                    unlockCode.classList.remove('bg-success', 'text-white');
-                }, 1000);
-            });
-        });
-        
-        // Countdown timer
-        const countdownEl = document.getElementById('countdown');
-        const timerEl = document.getElementById('timer');
-        
-        // Set the initial time (30 minutes)
-        let minutes = 30;
-        let seconds = 0;
-        
-        // Update countdown every second
-        const countdownInterval = setInterval(function() {
-            if (seconds === 0) {
-                if (minutes === 0) {
-                    // Timer expired
-                    clearInterval(countdownInterval);
-                    countdownEl.innerText = "Expired";
-                    timerEl.classList.add('timer-expired');
-                    return;
-                }
-                minutes--;
-                seconds = 59;
-            } else {
-                seconds--;
-            }
-            
-            // Format display
-            countdownEl.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }, 1000);
-    });
-</script>
 {% endblock %}
