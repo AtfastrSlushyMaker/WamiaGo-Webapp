@@ -12,7 +12,8 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Service\PdfGenerator;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use App\Service\PdfThemeService;
-
+use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Enum\Zone;
 
 use Knp\Component\Pager\PaginatorInterface;
 
@@ -25,37 +26,86 @@ class AnnouncementsController extends AbstractController
         AnnouncementRepository $announcementRepo,
         PaginatorInterface $paginator
     ): Response {
-        // Get filter parameters
-        $filters = [];
-        
-        // Zone filter
-        if ($request->query->has('zone')) {
-            $filters['zone'] = $request->query->get('zone');
+        try {
+            // Obtenir les paramètres de filtrage
+            $keyword = trim($request->query->get('keyword', ''));
+            $zone = $request->query->get('zone');
+            $date = $request->query->get('date');
+            
+            // Construire la requête en fonction des filtres
+            $qb = $announcementRepo->createQueryBuilder('a')
+                ->orderBy('a.date', 'DESC');
+            
+            // Ajouter le filtre de mot-clé (si présent)
+            if (!empty($keyword)) {
+                $qb->andWhere('a.title LIKE :keyword')
+                   ->setParameter('keyword', '%' . $keyword . '%');
+            }
+            
+            // Ajouter le filtre de zone (si présent)
+            if (!empty($zone)) {
+                $qb->andWhere('a.zone = :zone')
+                   ->setParameter('zone', $zone);
+            }
+            
+            // Ajouter le filtre de date (si présent)
+            if (!empty($date)) {
+                $qb->andWhere('DATE(a.date) = :date')
+                   ->setParameter('date', $date);
+            }
+            
+            // Paginer les résultats
+            $announcements = $paginator->paginate(
+                $qb->getQuery(),
+                $request->query->getInt('page', 1),
+                10
+            );
+            
+            // Traiter les requêtes AJAX
+            if ($request->isXmlHttpRequest()) {
+                return $this->json([
+                    'html' => $this->renderView('back-office/Announcements/_announcement_list.html.twig', [
+                        'announcements' => $announcements
+                    ]),
+                    'pagination' => $this->renderView('@KnpPaginator/Pagination/twitter_bootstrap_v4_pagination.html.twig', [
+                        'pagination' => $announcements
+                    ])
+                ]);
+            }
+            
+            // Afficher la page complète pour les requêtes normales
+            return $this->render('back-office/Announcements/index.html.twig', [
+                'announcements' => $announcements,
+                'filters' => [
+                    'keyword' => $keyword,
+                    'zone' => $zone,
+                    'date' => $date
+                ],
+                'zones' => Zone::cases()
+            ]);
+        } catch (\Exception $e) {
+            // Pour les requêtes AJAX, renvoyer une erreur JSON
+            if ($request->isXmlHttpRequest()) {
+                return $this->json([
+                    'error' => 'Une erreur est survenue: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            // Pour les requêtes normales, utiliser un message flash
+            $this->addFlash('error', 'Une erreur est survenue: ' . $e->getMessage());
+            
+            // Renvoyer un ensemble de résultats vide
+            $announcements = $paginator->paginate(
+                [],
+                $request->query->getInt('page', 1),
+                10
+            );
+            
+            return $this->render('back-office/Announcements/index.html.twig', [
+                'announcements' => $announcements,
+                'zones' => Zone::cases()
+            ]);
         }
-        
-        // Status filter
-        if ($request->query->has('status')) {
-            $filters['status'] = $request->query->getBoolean('status');
-        }
-        
-        // Get query
-        $query = !empty($filters) 
-            ? $announcementRepo->createQueryByFilters($filters)
-            : $announcementRepo->createQueryBuilder('a')
-                ->orderBy('a.date', 'DESC')
-                ->getQuery();
-        
-        // Paginate results
-        $announcements = $paginator->paginate(
-            $query,
-            $request->query->getInt('page', 1),
-            10 // Items per page
-        );
-        
-        return $this->render('back-office/Announcements/index.html.twig', [
-            'announcements' => $announcements,
-            'filters' => $filters
-        ]);
     }
 
     #[Route('/{id}', name: 'admin_announcements_show', methods: ['GET'])]
@@ -152,6 +202,47 @@ public function exportAllToPdf(
         
     } catch (\Exception $e) {
         $this->addFlash('error', 'Failed to generate PDF: ' . $e->getMessage());
+        return $this->redirectToRoute('admin_announcements_index');
+    }
+}
+
+#[Route('/search', name: 'admin_announcements_search', methods: ['GET'])]
+public function search(
+    Request $request, 
+    AnnouncementRepository $announcementRepo,
+    PaginatorInterface $paginator
+): Response {
+    $keyword = trim($request->query->get('keyword', ''));
+    $zone = $request->query->get('zone');
+    $date = $request->query->get('date');
+
+    try {
+        $qb = $announcementRepo->createSearchQueryBuilder($keyword, $zone, $date);
+        $announcements = $paginator->paginate($qb, $request->query->getInt('page', 1), 10);
+
+        if ($request->isXmlHttpRequest()) {
+            return $this->json([
+                'html' => $this->renderView('back-office/Announcements/_announcement_list.html.twig', [
+                    'announcements' => $announcements
+                ]),
+                'pagination' => $this->renderView('@KnpPaginator/Pagination/twitter_bootstrap_v4_pagination.html.twig', [
+                    'pagination' => $announcements
+                ])
+            ]);
+        }
+
+        return $this->render('back-office/Announcements/index.html.twig', [
+            'announcements' => $announcements,
+            'zones' => Zone::cases()
+        ]);
+    } catch (\Exception $e) {
+        if ($request->isXmlHttpRequest()) {
+            return $this->json([
+                'error' => 'An error occurred: ' . $e->getMessage()
+            ], 500);
+        }
+        
+        $this->addFlash('error', 'Search error: ' . $e->getMessage());
         return $this->redirectToRoute('admin_announcements_index');
     }
 }

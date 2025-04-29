@@ -250,4 +250,18 @@ public function getFilteredQueryBuilder(?string $keyword = null, ?string $zone =
 
     return $qb->orderBy('a.date', 'DESC');
 }
+
+public function searchAnnouncementsByDriver(Driver $driver, string $searchQuery): Query
+    {
+        $queryBuilder = $this->entityManager->createQueryBuilder();
+
+        return $queryBuilder
+            ->select('a')
+            ->from(Announcement::class, 'a')
+            ->where('a.driver = :driver')
+            ->andWhere('a.title LIKE :searchQuery OR a.content LIKE :searchQuery')
+            ->setParameter('driver', $driver)
+            ->setParameter('searchQuery', '%' . $searchQuery . '%')
+            ->getQuery();
+    }
 }

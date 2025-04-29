@@ -153,4 +153,111 @@ public function findWithDetails(int $id): ?Announcement
 
         return $qb;
     }
+   /*ublic function createSearchQueryBuilder(?string $keyword, ?string $zone, ?string $date): QueryBuilder
+{
+    $qb = $this->createQueryBuilder('a')
+        ->leftJoin('a.driver', 'd');
+
+    if ($keyword) {
+        $qb->andWhere('a.title LIKE :keyword OR a.content LIKE :keyword')
+           ->setParameter('keyword', '%'.$keyword.'%');
+    }
+
+    if ($zone) {
+        $qb->andWhere('a.zone = :zone')
+           ->setParameter('zone', $zone);
+    }
+
+    if ($date) {
+        $qb->andWhere('DATE(a.date) = :date')
+           ->setParameter('date', new \DateTime($date));
+    }
+
+    return $qb->orderBy('a.date', 'DESC');
+}*/
+
+public function createQueryByFilters(array $filters)
+{
+    $qb = $this->createQueryBuilder('a')
+        ->orderBy('a.date', 'DESC');
+    
+    if (isset($filters['zone']) && !empty($filters['zone'])) {
+        $qb->andWhere('a.zone = :zone')
+           ->setParameter('zone', $filters['zone']);
+    }
+    
+    if (isset($filters['status'])) {
+        $qb->andWhere('a.status = :status')
+           ->setParameter('status', $filters['status']);
+    }
+    
+    if (isset($filters['keyword']) && !empty($filters['keyword'])) {
+        $qb->andWhere('a.title LIKE :keyword')
+           ->setParameter('keyword', '%' . $filters['keyword'] . '%');
+    }
+    
+    if (isset($filters['date']) && !empty($filters['date'])) {
+        $qb->andWhere('DATE(a.date) = :date')
+           ->setParameter('date', $filters['date']);
+    }
+    
+    return $qb->getQuery();
+}
+
+public function createSearchQueryBuilder(?string $keyword = null, ?string $zone = null, ?string $date = null)
+{
+    $qb = $this->createQueryBuilder('a')
+        ->orderBy('a.date', 'DESC');
+    
+    if ($keyword && trim($keyword) !== '') {
+        $qb->andWhere('a.title LIKE :keyword')
+           ->setParameter('keyword', '%' . trim($keyword) . '%');
+    }
+    
+    if ($zone && trim($zone) !== '') {
+        $qb->andWhere('a.zone = :zone')
+           ->setParameter('zone', $zone);
+    }
+    
+    if ($date && trim($date) !== '') {
+        $qb->andWhere('DATE(a.date) = :date')
+           ->setParameter('date', $date);
+    }
+    
+    return $qb;
+}
+
+
+
+/*
+
+
+public function createSearchQueryBuilder(?string $keyword = null, ?string $zone = null, ?string $date = null)
+{
+    $qb = $this->createQueryBuilder('a')
+        ->orderBy('a.date', 'DESC');
+    
+    if ($keyword && trim($keyword) !== '') {
+        $qb->andWhere('a.title LIKE :keyword OR a.description LIKE :keyword')
+           ->setParameter('keyword', '%' . trim($keyword) . '%');
+    }
+    
+    if ($zone && trim($zone) !== '') {
+        $qb->andWhere('a.zone = :zone')
+           ->setParameter('zone', $zone);
+    }
+    
+    if ($date && trim($date) !== '') {
+        $qb->andWhere('DATE(a.date) = :date')
+           ->setParameter('date', $date);
+    }
+    
+    return $qb;
+}
+*/
+
+
+/*
+
+*/
 }

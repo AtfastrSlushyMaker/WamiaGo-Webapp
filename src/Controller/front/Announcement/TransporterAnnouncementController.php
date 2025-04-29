@@ -18,6 +18,7 @@ use App\Repository\AnnouncementRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\OpenAIService;
 use App\Utils\BadWordFilter; // Adjust the namespace to the actual location of BadWordFilter
+use App\Enum\Zone; // Adjust 'App\Enum\Zone' to the correct namespace of the Zone class or enum
 
 use function PHPUnit\Framework\throwException;
 
@@ -141,25 +142,56 @@ public function new(Request $request): Response
     }
 
     #[Route('/', name: 'app_transporter_announcement_list', methods: ['GET'])]
-public function list(Request $request, PaginatorInterface $paginator): Response
-{
-    $driver = $this->driverRepository->find(self::HARDCODED_DRIVER_ID);
-    if (!$driver) {
-        throw $this->createNotFoundException('Driver not found');
+    public function list(Request $request, PaginatorInterface $paginator): Response
+    {
+        $driver = $this->driverRepository->find(self::HARDCODED_DRIVER_ID);
+        
+        // Récupérer les paramètres de filtrage
+        $keyword = trim($request->query->get('keyword', ''));
+        $zone = $request->query->get('zone');
+        $date = $request->query->get('date');
+
+        // Construire la requête de base
+        $qb = $this->announcementRepository->createQueryBuilder('a')
+            ->where('a.driver = :driver')
+            ->setParameter('driver', $driver);
+
+        // Appliquer les filtres
+        if ($keyword) {
+            $qb->andWhere('a.title LIKE :keyword OR a.content LIKE :keyword')
+               ->setParameter('keyword', '%'.$keyword.'%');
+        }
+
+        if ($zone) {
+            $qb->andWhere('a.zone = :zone')
+               ->setParameter('zone', $zone);
+        }
+
+        if ($date) {
+            $qb->andWhere('DATE(a.date) = :date')
+               ->setParameter('date', new \DateTime($date));
+        }
+
+        $query = $qb->orderBy('a.date', 'DESC')->getQuery();
+        
+        $announcements = $paginator->paginate(
+            $query,
+            $request->query->getInt('page', 1),
+            6
+        );
+
+        // Pour les requêtes AJAX
+        if ($request->isXmlHttpRequest()) {
+            return $this->render('front/announcement/transporter/_announcement_list.html.twig', [
+                'announcements' => $announcements
+            ]);
+        }
+
+        return $this->render('front/announcement/transporter/list.html.twig', [
+            'announcements' => $announcements,
+            'zones' => Zone::cases()
+        ]);
     }
-
-    $query = $this->announcementService->getAnnouncementsQueryByDriver($driver);
-    
-    $announcements = $paginator->paginate(
-        $query,
-        $request->query->getInt('page', 1),
-        8 // Items per page
-    );
-
-    return $this->render('front/announcement/transporter/list.html.twig', [
-        'announcements' => $announcements
-    ]);
-}
 
 #[Route('/{id}/delete', name: 'app_transporter_announcement_delete', methods: ['POST'])]
 public function delete(Request $request, Announcement $announcement): Response
@@ -338,6 +370,64 @@ public function generateTitles(Request $request, OpenAIService $openAIService): 
             'error' => $e->getMessage()
         ], 500);
     }
+}
+
+
+
+#[Route('/search', name: 'app_transporter_announcement_search', methods: ['GET'])]
+public function search(Request $request, PaginatorInterface $paginator): Response
+{
+    // 1. Récupération du transporteur
+    $driver = $this->driverRepository->find(self::HARDCODED_DRIVER_ID);
+    if (!$driver) {
+        throw $this->createNotFoundException('Driver not found');
+    }
+
+    // 2. Récupération des paramètres
+    $keyword = trim($request->query->get('keyword', ''));
+    $zone = $request->query->get('zone');
+    $date = $request->query->get('date');
+
+    // 3. Validation de la date
+    $dateObj = null;
+    if ($date) {
+        try {
+            $dateObj = new \DateTime($date);
+        } catch (\Exception $e) {
+            $dateObj = null;
+        }
+    }
+
+    // 4. Construction de la requête AVEC filtre transporteur
+    $query = $this->announcementService->getFilteredQueryBuilder($keyword, $zone, $dateObj)
+        ->andWhere('a.driver = :driver')
+        ->setParameter('driver', $driver);
+
+    // 5. Pagination
+    $announcements = $paginator->paginate(
+        $query,
+        $request->query->getInt('page', 1),
+        6// Items par page pour transporteur
+    );
+
+    // 6. Gestion réponse AJAX
+    if ($request->isXmlHttpRequest()) {
+        $html = $this->renderView('front/announcement/transporter/_announcement_list.html.twig', [
+            'announcements' => $announcements
+        ]);
+        return new JsonResponse(['html' => $html]);
+    }
+
+    // 7. Retour normal
+    return $this->render('front/announcement/transporter/list.html.twig', [
+        'announcements' => $announcements,
+        'zones' => Zone::cases(), 
+        'filters' => [
+            'keyword' => $keyword,
+            'zone' => $zone,
+            'date' => $date
+        ]
+    ]);
 }
     
 }
