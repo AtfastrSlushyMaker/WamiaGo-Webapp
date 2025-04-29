@@ -31,24 +31,28 @@ public function list(Request $request, PaginatorInterface $paginator, DriverRepo
 {
     $driver = $driverRepo->find(self::HARDCODED_DRIVER_ID);
     
-    if (!$driver) {
-        throw $this->createNotFoundException('Driver not found');
-    }
+    $filters = [
+        'keyword' => $request->query->get('keyword'),
+        'status' => $request->query->get('status'),
+        'date' => $request->query->get('date')
+    ];
 
-    // Requête optimisée qui respecte strictement votre structure
-    $query = $this->relocationRepo->createQueryBuilder('r')
-        ->join('r.reservation', 'res')
-        ->join('res.announcement', 'a')
-        ->where('a.driver = :driver')
+    $query = $this->relocationRepo->createSearchQueryBuilder($filters)
+        ->andWhere('a.driver = :driver')
         ->setParameter('driver', $driver)
-        ->orderBy('r.date', 'DESC')
         ->getQuery();
 
     $relocations = $paginator->paginate(
         $query,
         $request->query->getInt('page', 1),
-        6 // Items par page
+        6
     );
+
+    if ($request->isXmlHttpRequest()) {
+        return $this->render('front/relocation/transporter/_relocation_list.html.twig', [
+            'relocations' => $relocations
+        ]);
+    }
 
     return $this->render('front/relocation/transporter/list.html.twig', [
         'relocations' => $relocations

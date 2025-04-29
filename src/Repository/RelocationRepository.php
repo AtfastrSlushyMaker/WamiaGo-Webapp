@@ -181,20 +181,20 @@ public function getQueryByDriver(Driver $driver): QueryBuilder
         ->addSelect('res', 'a');
 
     if (!empty($filters['keyword'])) {
-        $qb->andWhere('r.id_relocation LIKE :keyword OR a.title LIKE :keyword')
-           ->setParameter('keyword', '%'.$filters['keyword'].'%');
+        $qb->andWhere('a.title LIKE :keyword OR res.description LIKE :keyword')
+           ->setParameter('keyword', '%' . $filters['keyword'] . '%');
     }
 
-    if (!empty($filters['status']) && in_array($filters['status'], ['0', '1'])) {
+    if (isset($filters['status']) && $filters['status'] !== '') {
         $qb->andWhere('r.status = :status')
            ->setParameter('status', (bool)$filters['status']);
     }
 
     if (!empty($filters['date'])) {
         $date = \DateTime::createFromFormat('Y-m-d', $filters['date']);
-        $qb->andWhere('r.date >= :start AND r.date < :end')
+        $qb->andWhere('r.date BETWEEN :start AND :end')
            ->setParameter('start', $date->format('Y-m-d 00:00:00'))
-           ->setParameter('end', $date->modify('+1 day')->format('Y-m-d 00:00:00'));
+           ->setParameter('end', $date->format('Y-m-d 23:59:59'));
     }
 
     return $qb->orderBy('r.date', 'DESC');
