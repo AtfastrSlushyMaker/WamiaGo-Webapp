@@ -498,7 +498,7 @@
         <div class="col-lg-8">
             <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
-                    <h5 class="mb-0"><i class="fas fa-sliders-h me-2"></i>Smart Filters</h5>
+                    <h5 class="mb-0"><i class="fas fa-sliders-h me-2"></i>Search</h5>
                     <span class="badge bg-primary bg-opacity-10 text-primary">Find Bicycles Fast</span>
                 </div>
                 <div class="card-body">
@@ -516,97 +516,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="row g-3">
-                            <div class="col-md-4">
-                                <div class="form-floating">
-                                    <select class="form-select" id="bicycleStatus" name="status">
-                                        <option value="">All Statuses</option>
-                                        <option value="available" {% if app.request.query.get('status') == 'available' %}selected{% endif %}>Available</option>
-                                        <option value="in_use" {% if app.request.query.get('status') == 'in_use' %}selected{% endif %}>In Use</option>
-                                        <option value="maintenance" {% if app.request.query.get('status') == 'maintenance' %}selected{% endif %}>Maintenance</option>
-                                        <option value="charging" {% if app.request.query.get('status') == 'charging' %}selected{% endif %}>Charging</option>
-                                        <option value="reserved" {% if app.request.query.get('status') == 'reserved' %}selected{% endif %}>Reserved</option>
-                                    </select>
-                                    <label for="bicycleStatus"><i class="fas fa-heartbeat me-1"></i>Status</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-floating">
-                                    <select class="form-select" id="bicycleStation" name="station">
-                                        <option value="">All Stations</option>
-                                        {% for station in stations %}
-                                            <option value="{{ station.idStation }}" {% if app.request.query.get('station') == station.idStation %}selected{% endif %}>
-                                                {{ station.name }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                    <label for="bicycleStation"><i class="fas fa-map-marker-alt me-1"></i>Station</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-floating">
-                                    <select class="form-select" id="bicycleBattery" name="battery">
-                                        <option value="">Any Level</option>
-                                        <option value="90" {% if app.request.query.get('battery') == '90' %}selected{% endif %}>90%+ (Premium)</option>
-                                        <option value="50" {% if app.request.query.get('battery') == '50' %}selected{% endif %}>50%+</option>
-                                        <option value="25" {% if app.request.query.get('battery') == '25' %}selected{% endif %}>25%+</option>
-                                        <option value="low" {% if app.request.query.get('battery') == 'low' %}selected{% endif %}>Low (< 25%)</option>
-                                    </select>
-                                    <label for="bicycleBattery"><i class="fas fa-battery-half me-1"></i>Battery Level</label>
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="d-flex">
-                                    <button type="submit" class="btn btn-primary btn-lg me-2">
-                                        <i class="fas fa-filter me-2"></i>Apply Filters
-                                    </button>
-                                    <a href="{{ path('admin_bicycle_rentals', {'tab': 'bicycles'}) }}" class="btn btn-outline-secondary btn-lg">
-                                        <i class="fas fa-sync me-2"></i>Reset
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="card shadow-sm border-0 rounded-3 overflow-hidden h-100">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
-                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
-                    <span class="badge bg-primary bg-opacity-10 text-primary">Management Tools</span>
-                </div>
-                  <div class="card-body d-flex flex-column">
-                    <div class="quick-action-buttons mt-2">
-                        <button class="quick-action-btn btn-add" data-bs-toggle="modal" data-bs-target="#addBicycleModal">
-                            <div class="icon-wrapper">
-                                <i class="fas fa-plus"></i>
-                            </div>
-                            <span>Add New Bicycle</span>
-                        </button>
-
-                        <button class="quick-action-btn btn-assign" data-bs-toggle="modal" data-bs-target="#stationAssignModal">
-                            <div class="icon-wrapper">
-                                <i class="fas fa-map-pin"></i>
-                            </div>
-                            <span>Assign to Stations</span>
-                        </button>
-
-                        <button class="quick-action-btn btn-maintenance" data-bs-toggle="modal" data-bs-target="#scheduleMaintenance">
-                            <div class="icon-wrapper">
-                                <i class="fas fa-tools"></i>
-                            </div>
-                            <span>Schedule Maintenance</span>
-                        </button>
-
-                        <a href="{{ path('admin_bicycle_rentals', {'tab': 'bicycles', 'battery': 'low'}) }}" class="quick-action-btn btn-battery">
-                            <div class="icon-wrapper">
-                                <i class="fas fa-battery-quarter"></i>
-                            </div>
-                            <span>Low Battery Report</span>
-                        </a>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -615,20 +524,16 @@
     {% if bicycles|length > 0 %}
         <div class="table-responsive">
             <table class="table table-hover align-middle bicycle-table" id="bicyclesTable">
-                <thead>
+                <thead class="bg-light">
                     <tr>
-                        <th scope="col" class="text-center">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="selectAllBicycles">
-                            </div>
-                        </th>
-                        <th scope="col">ID</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Battery</th>
-                        <th scope="col">Range</th>
-                        <th scope="col">Station</th>
-                        <th scope="col">Last Updated</th>
-                        <th scope="col" class="text-center">Actions</th>
+                        <th class="text-center" style="width: 40px;">&nbsp;</th>
+                        <th class="sortable" data-sort="id">ID</th>
+                        <th class="sortable" data-sort="status">Status</th>
+                        <th class="sortable" data-sort="battery">Battery</th>
+                        <th class="sortable" data-sort="range">Range</th>
+                        <th class="sortable" data-sort="location">Location</th>
+                        <th class="sortable" data-sort="lastUpdate">Last Updated</th>
+                        <th class="text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody>

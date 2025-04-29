@@ -260,6 +260,54 @@
         color: white;
         box-shadow: 0 5px 15px rgba(133, 64, 245, 0.25);
     }
+
+    /* Sortable Table Headers */
+    .sortable {
+        cursor: pointer;
+        position: relative;
+        padding-right: 20px !important;
+        transition: all 0.2s ease;
+    }
+
+    .sortable:hover {
+        background-color: rgba(0, 0, 0, 0.03);
+    }
+
+    .sortable::after {
+        content: '↕';
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #aaa;
+        font-size: 0.8em;
+    }
+
+    .sortable.asc::after {
+        content: '↑';
+        color: #333;
+    }
+
+    .sortable.desc::after {
+        content: '↓';
+        color: #333;
+    }
+
+    /* Theme-specific sort colors */
+    .rentals-tab .sortable.asc::after,
+    .rentals-tab .sortable.desc::after {
+        color: #0d6efd;
+    }
+
+    .bicycles-tab .sortable.asc::after,
+    .bicycles-tab .sortable.desc::after {
+        color: #28a745;
+    }
+    
+    .stations-tab .sortable.asc::after,
+    .stations-tab .sortable.desc::after {
+        color: #8540f5;
+    }
     
     /* Pagination Loading Spinner */
     .pagination-loading {
@@ -666,6 +714,214 @@ function initAjaxPagination() {
         });
     });
 }
+
+const sortableTable = {
+    initialize: function() {
+        // Apply sortable functionality to all tables with sortable headers
+        document.querySelectorAll('.sortable').forEach(header => {
+            header.addEventListener('click', function() {
+                const table = this.closest('table');
+                const sortKey = this.dataset.sort;
+                const isAsc = !this.classList.contains('asc');
+                
+                // Remove sorting indicators from all headers
+                table.querySelectorAll('.sortable').forEach(h => {
+                    h.classList.remove('asc', 'desc');
+                });
+                
+                // Add the appropriate sorting indicator to the clicked header
+                this.classList.add(isAsc ? 'asc' : 'desc');
+                
+                // Sort the table
+                sortableTable.sortTable(table, sortKey, isAsc);
+                
+                // Save sorting preference to local storage
+                const tabElement = this.closest('.tab-pane');
+                if (tabElement) {
+                    const tabId = tabElement.id;
+                    localStorage.setItem(`${tabId}_sortKey`, sortKey);
+                    localStorage.setItem(`${tabId}_sortDirection`, isAsc ? 'asc' : 'desc');
+                    console.log(`Saved sorting: ${tabId}, ${sortKey}, ${isAsc ? 'asc' : 'desc'}`);
+                }
+            });
+        });
+        
+        // Apply initial sorting based on saved preferences
+        document.querySelectorAll('.tab-pane').forEach(tabPane => {
+            const tabId = tabPane.id;
+            const sortKey = localStorage.getItem(`${tabId}_sortKey`);
+            const sortDirection = localStorage.getItem(`${tabId}_sortDirection`);
+            
+            if (sortKey && sortDirection) {
+                console.log(`Restoring sorting: ${tabId}, ${sortKey}, ${sortDirection}`);
+                const header = tabPane.querySelector(`.sortable[data-sort="${sortKey}"]`);
+                if (header) {
+                    // Apply the saved sort direction class
+                    header.classList.add(sortDirection);
+                    
+                    // Perform the actual sorting
+                    const table = header.closest('table');
+                    if (table) {
+                        sortableTable.sortTable(table, sortKey, sortDirection === 'asc');
+                    }
+                }
+            }
+        });
+    },
+    
+    sortTable: function(table, sortKey, isAsc) {
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        
+        // Skip empty state rows and special rows
+        const dataRows = rows.filter(row => !row.classList.contains('empty-search-stations') && 
+                                          !row.classList.contains('empty-search-results') &&
+                                          !row.classList.contains('empty-bicycle-search-results'));
+        
+        // Sort the rows
+        dataRows.sort((rowA, rowB) => {
+            // Find the correct cells based on the sortKey
+            const cellIndexMap = {
+                // Rental tab
+                'id': 0,
+                'customer': 1,
+                'bicycle': 2,
+                'pickupStation': 3,
+                'startTime': 4,
+                'returnStation': 5,
+                'endTime': 6,
+                'duration': 7,
+                'cost': 8,
+                'status': 9,
+                
+                // Bicycles tab (correct columns from table)
+                'range': 4,      // Correctly map Range column
+                'battery': 3,    // Correctly map Battery column
+                'location': 5,   // Correctly map Location column
+                'lastUpdate': 6, // Correctly map Last Updated column
+                
+                // Station tab
+                'name': 1,
+                'capacity': 3,
+                'utilization': 5
+            };
+            
+            // If Bicycles tab and sortKey is 'id', handle the first column (after the checkbox column)
+            let cellIndex;
+            const isBicyclesTable = table.id === 'bicyclesTable';
+            
+            if (isBicyclesTable && sortKey === 'id') {
+                cellIndex = 1; // ID is in the second column (index 1) in bicycles table (after checkbox)
+            } else {
+                // Default to first column if sortKey not found
+                cellIndex = cellIndexMap[sortKey] !== undefined ? cellIndexMap[sortKey] : 0;
+            }
+            
+            const cellA = rowA.cells[cellIndex];
+            const cellB = rowB.cells[cellIndex];
+            
+            if (!cellA || !cellB) return 0;
+            
+            // Get text content for comparison
+            let valueA = cellA.textContent.trim();
+            let valueB = cellB.textContent.trim();
+            
+            // Special handling for ID fields that may contain prefixes like 'ST-' or 'BIKE-'
+            if (sortKey === 'id') {
+                valueA = valueA.replace(/[^\d]/g, ''); // Extract only numbers
+                valueB = valueB.replace(/[^\d]/g, '');
+                return isAsc ? 
+                    parseInt(valueA || 0) - parseInt(valueB || 0) : 
+                    parseInt(valueB || 0) - parseInt(valueA || 0);
+            }
+            
+            // Special handling for battery percentages
+            if (sortKey === 'battery') {
+                const numA = parseFloat(valueA.match(/\d+(\.\d+)?/)?.[0] || 0);
+                const numB = parseFloat(valueB.match(/\d+(\.\d+)?/)?.[0] || 0);
+                return isAsc ? numA - numB : numB - numA;
+            }
+            
+            // Special handling for range (extract numbers followed by km)
+            if (sortKey === 'range') {
+                const numA = parseFloat(valueA.match(/\d+(\.\d+)?/)?.[0] || 0);
+                const numB = parseFloat(valueB.match(/\d+(\.\d+)?/)?.[0] || 0);
+                return isAsc ? numA - numB : numB - numA;
+            }
+            
+            // Special handling for capacity/utilization (extract numbers)
+            if (sortKey === 'capacity' || sortKey === 'utilization') {
+                const numA = parseFloat(valueA.match(/\d+(\.\d+)?/)?.[0] || 0);
+                const numB = parseFloat(valueB.match(/\d+(\.\d+)?/)?.[0] || 0);
+                return isAsc ? numA - numB : numB - numA;
+            }
+            
+            // Handle date strings for Last Updated columns
+            if (sortKey === 'lastUpdate' || sortKey.includes('Time')) {
+                // Try to extract dates in format "Jan 1, 2023" or "2023-01-01" or "Jan 1, 2023 HH:MM"
+                const dateA = this.extractDate(valueA);
+                const dateB = this.extractDate(valueB);
+                
+                if (dateA && dateB) {
+                    return isAsc ? dateA - dateB : dateB - dateA;
+                }
+            }
+            
+            // Default string comparison
+            return isAsc ? 
+                valueA.localeCompare(valueB) : 
+                valueB.localeCompare(valueA);
+        });
+        
+        // Reorder the rows in the table
+        dataRows.forEach(row => tbody.appendChild(row));
+        
+        // Move any special rows (like empty states) to the end
+        rows.filter(row => !dataRows.includes(row)).forEach(row => {
+            tbody.appendChild(row);
+        });
+    },
+    
+    extractDate: function(text) {
+        // Enhanced date extraction - looks for date formats like:
+        // "Jan 1, 2023", "2023-01-01", "Jan 1, 2023 12:34" or "Jan 1, 2023 12:34:56"
+        const dateMatch = text.match(/(\d{4}-\d{2}-\d{2}( \d{2}:\d{2}(:\d{2})?)?)|([A-Za-z]{3}\s+\d{1,2},\s+\d{4}( \d{2}:\d{2}(:\d{2})?)?)/);
+        
+        if (dateMatch) {
+            return new Date(dateMatch[0]);
+        }
+        return null;
+    }
+};
+
+// Initialize the sorting functionality when the document is ready
+document.addEventListener('DOMContentLoaded', function() {
+    sortableTable.initialize();
+    
+    // Re-initialize sorting functionality when tab content changes
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList' && mutation.addedNodes.length) {
+                // Check if any sortable tables were added
+                const hasSortableTable = Array.from(mutation.addedNodes).some(node => {
+                    return node.nodeType === 1 && (
+                        node.querySelector('.sortable') || 
+                        node.classList && node.classList.contains('sortable')
+                    );
+                });
+                
+                if (hasSortableTable) {
+                    setTimeout(sortableTable.initialize, 100);
+                }
+            }
+        });
+    });
+    
+    // Watch for changes in all tab panes
+    document.querySelectorAll('.tab-pane').forEach(tabPane => {
+        observer.observe(tabPane, { childList: true, subtree: true });
+    });
+});
 
 // Add a global emergency reset function that can be called from console if needed
 window.resetAllOverlays = function() {
