@@ -151,37 +151,45 @@ public function createSearchQueryBuilder(array $filters)
 }
 
 public function findWithFilters(?string $keyword = null, ?string $status = null, ?string $date = null): QueryBuilder
-    {
-        $qb = $this->createQueryBuilder('r')
-            ->leftJoin('r.announcement', 'a')
-            ->leftJoin('r.user', 'u')
-            ->leftJoin('r.startLocation', 'sl')
-            ->leftJoin('r.endLocation', 'el')
-            ->orderBy('r.date', 'DESC');
-        
-        // Appliquer le filtre par mot-clé
-        if ($keyword) {
-            $qb->andWhere('
-                a.title LIKE :keyword OR 
-                u.name LIKE :keyword OR 
-                sl.address LIKE :keyword OR 
-                el.address LIKE :keyword
-            ')
-            ->setParameter('keyword', '%' . $keyword . '%');
-        }
-        
-        // Appliquer le filtre par statut
-        if ($status) {
-            $qb->andWhere('r.status = :status')
-                ->setParameter('status', $status);
-        }
-        
-        // Appliquer le filtre par date
-        if ($date) {
-            $qb->andWhere('DATE(r.date) = :date')
-                ->setParameter('date', $date);
-        }
-        
-        return $qb;
+{
+    $qb = $this->createQueryBuilder('r')
+        ->leftJoin('r.announcement', 'a')
+        ->leftJoin('r.user', 'u')
+        ->leftJoin('r.startLocation', 'sl')
+        ->leftJoin('r.endLocation', 'el')
+        ->orderBy('r.date', 'DESC');
+    
+    // Filtre mot-clé
+    if ($keyword) {
+        $qb->andWhere('
+            a.title LIKE :keyword OR 
+            u.name LIKE :keyword OR 
+            sl.address LIKE :keyword OR 
+            el.address LIKE :keyword
+        ')
+        ->setParameter('keyword', '%' . $keyword . '%');
     }
+    
+    // Filtre statut
+    if ($status) {
+        $qb->andWhere('r.status = :status')
+            ->setParameter('status', $status);
+    }
+    
+    // Filtre date corrigé
+    if ($date) {
+        $dateObj = \DateTime::createFromFormat('Y-m-d', $date);
+        if ($dateObj) {
+            $start = $dateObj->format('Y-m-d 00:00:00');
+            $end = (clone $dateObj)->modify('+1 day')->format('Y-m-d 00:00:00');
+            
+            $qb->andWhere('r.date >= :start AND r.date < :end')
+               ->setParameter('start', $start)
+               ->setParameter('end', $end);
+        }
+    }
+    
+    return $qb;
+}
+    
 }

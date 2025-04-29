@@ -27,40 +27,50 @@ class TransporterReservationController extends AbstractController
         private ReservationService $reservationService,
         private RelocationService $relocationService,
         private DriverRepository $driverRepository,
-        private EntityManagerInterface $em
+        private EntityManagerInterface $em,
+        private readonly ReservationRepository $reservationRepository,
     ) {}
 
     #[Route('/', name: 'app_transporter_reservation_list', methods: ['GET'])]
-    public function list(Request $request, PaginatorInterface $paginator): Response
-    {
-        $driver = $this->driverRepository->find(self::HARDCODED_DRIVER_ID);
-        
-        if (!$driver) {
-            throw $this->createNotFoundException('Driver not found');
-        }
+public function list(Request $request, PaginatorInterface $paginator): Response
+{
+    $driver = $this->driverRepository->find(self::HARDCODED_DRIVER_ID);
+    
+    // Récupération des paramètres
+    $keyword = trim($request->query->get('keyword', ''));
+    $status = $request->query->get('status');
+    $date = $request->query->get('date');
 
-        // Créez la requête directement dans le controller pour plus de clarté
-        $query = $this->em->createQueryBuilder()
-            ->select('r', 'a', 'u')
-            ->from(Reservation::class, 'r')
-            ->join('r.announcement', 'a')
-            ->join('a.driver', 'd')
-            ->leftJoin('r.user', 'u')
-            ->where('d.id_driver = :driverId')
-            ->setParameter('driverId', $driver->getIdDriver())
-            ->orderBy('r.date', 'DESC')
-            ->getQuery();
+    // Validation du statut
+    if ($status && !ReservationStatus::tryFrom($status)) {
+        throw $this->createNotFoundException('Invalid status');
+    }
 
-        $reservations = $paginator->paginate(
-            $query,
-            $request->query->getInt('page', 1),
-            6
-        );
+    // Construction de la requête en utilisant le repository existant
+    $query = $this->reservationRepository->findWithFilters($keyword, $status, $date)
+        ->andWhere('a.driver = :driver')
+        ->setParameter('driver', $driver);
 
-        return $this->render('front/reservation/transporter/list.html.twig', [
+    $reservations = $paginator->paginate(
+        $query->getQuery(),
+        $request->query->getInt('page', 1),
+        6
+    );
+
+    // Gestion réponse AJAX
+    if ($request->isXmlHttpRequest()) {
+        $html = $this->renderView('front/reservation/transporter/_reservation_list.html.twig', [
             'reservations' => $reservations
         ]);
+        return new JsonResponse(['html' => $html]);
     }
+
+    // Réponse normale pour l'affichage initial
+    return $this->render('front/reservation/transporter/list.html.twig', [
+        'reservations' => $reservations,
+        'reservation_statuses' => ReservationStatus::cases()
+    ]);
+}
 
     #[Route('/{id}/details', name: 'app_transporter_reservation_details', methods: ['GET'])]
     public function details(Reservation $reservation): JsonResponse
@@ -216,4 +226,38 @@ public function refuse(Reservation $reservation): JsonResponse
             'errors' => $errors
         ], 400);
     }
+
+    #[Route('/search', name: 'app_transporter_reservation_search', methods: ['GET'])]
+public function search(Request $request, PaginatorInterface $paginator): Response
+{
+    $driver = $this->driverRepository->find(self::HARDCODED_DRIVER_ID);
+    
+    $keyword = trim($request->query->get('keyword', ''));
+    $status = $request->query->get('status');
+    $date = $request->query->get('date');
+
+    $query = $this->reservationRepository
+        ->findWithFilters($keyword, $status, $date)
+        ->andWhere('a.driver = :driver')
+        ->setParameter('driver', $driver)
+        ->getQuery();
+
+    $reservations = $paginator->paginate(
+        $query,
+        $request->query->getInt('page', 1),
+        6
+    );
+
+    if ($request->isXmlHttpRequest()) {
+        $html = $this->renderView('front/reservation/transporter/_reservation_list.html.twig', [
+            'reservations' => $reservations
+        ]);
+        return new JsonResponse(['html' => $html]);
+    }
+
+    return $this->render('front/reservation/transporter/list.html.twig', [
+        'reservations' => $reservations,
+        'reservation_statuses' => ReservationStatus::cases()
+    ]);
+}
 }

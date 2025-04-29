@@ -174,14 +174,20 @@ async function handleReservationAction(reservationId, action) {
                 showCancelButton: true,
                 confirmButtonText: 'Confirm',
                 focusConfirm: false,
-                position: 'top', 
-                customClass: {
-                    container: 'my-swal-container',
-                    popup: 'my-swal-popup'
-                },
-                allowOutsideClick: false, // Prevent clicking outside
-                scrollbarPadding: false, // Prevent layout shift
-                heightAuto: false, // Prevent height issues
+                preConfirm: () => {
+                    const date = document.getElementById('date').value;
+                    const cost = document.getElementById('cost').value;
+                    
+                    if (!date || !cost) {
+                        Swal.showValidationMessage('Please fill all fields');
+                        return false;
+                    }
+                    
+                    return {
+                        date: date,
+                        cost: parseFloat(cost)
+                    };
+                }
             });
 
             if (!formValues) return;

@@ -8,18 +8,6 @@
     <link rel="stylesheet" href="{{ asset('css/front/reservation/modal-details.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.min.css" rel="stylesheet">
   <style>
-  .swal2-container {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    z-index: 1060 !important;
-    padding: 10px !important;
-}
         /* Style pour les modales SweetAlert */
         .reservation-modal-container {
             z-index: 1500 !important;
@@ -152,6 +140,46 @@
             color: #2D3748 !important;
             font-size: 0.95rem !important;
         }
+
+        /* Ajouts CSS pour les filtres */
+        .filters-section {
+            margin: 2rem 0;
+        }
+
+        .advanced-search-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+        }
+
+        .search-filter input {
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .search-filter input:focus {
+            border-color: #4299E1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .reservations-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters-section .col-md-4 {
+                margin-bottom: 1rem;
+            }
+        }
     </style>
 {% endblock %}
 
@@ -160,16 +188,62 @@
 
 <div class="reservations-header text-center">
     <h1><i class="fas fa-calendar-check"></i> My Transport Reservations</h1>
-    
-    <div class="action-buttons d-flex justify-content-center gap-3">
-        <a href="{{ path('app_transporter_announcement_list') }}" class="btn btn-outline-primary">
-            <i class="fas fa-truck me-2"></i> My Announcements
-        </a>
-        <a href="{{ path('app_transporter_relocation_list') }}" class="btn btn-primary">
-            <i class="fas fa-truck-moving me-2"></i> My Relocations
-        </a>
-    </div>
+        
+        <div class="action-buttons d-flex justify-content-center gap-3">
+            <a href="{{ path('app_transporter_announcement_list') }}" class="btn btn-outline-primary">
+                <i class="fas fa-truck me-2"></i> My Announcements
+            </a>
+            <a href="{{ path('app_transporter_relocation_calendar') }}" class="btn btn-primary">
+                <i class="fas fa-truck-moving me-2"></i> My Relocations
+            </a>
+        </div>
 </div>
+
+<!-- Search Filters Section -->
+    <div class="filters-section mb-5">
+        <div class="advanced-search-container bg-light p-4 rounded-3 shadow-sm">
+            <div class="search-filter mb-3">
+                <input type="text" 
+                       id="reservationKeywordSearch" 
+                       placeholder="Search reservations..." 
+                       class="form-control form-control-lg"
+                       value="{{ app.request.query.get('keyword') }}">
+            </div>
+
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="reservationStatusFilter" class="form-label">
+                        <i class="fas fa-filter me-2"></i>Status
+                    </label>
+                    <select id="reservationStatusFilter" class="form-select">
+                        <option value="">All Statuses</option>
+                         {% for status in enum('App\\Enum\\ReservationStatus').cases() %}
+                            <option value="{{ status.value }}" 
+                                {{ app.request.query.get('status') == status.value ? 'selected' }}>
+                                {{ status.value|title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="reservationDateFilter" class="form-label">
+                        <i class="fas fa-calendar-alt me-2"></i>Date
+                    </label>
+                    <input type="date" 
+                           id="reservationDateFilter" 
+                           class="form-control"
+                           value="{{ app.request.query.get('date') }}">
+                </div>
+
+                <div class="col-md-4">
+                    <button class="btn btn-outline-danger w-100" id="reservationClearFilters">
+                        <i class="fas fa-eraser me-2"></i>Clear Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
 
@@ -243,10 +317,7 @@
                 </div>
             {% endfor %}
         </div>
-<!-- Pagination -->
-    <div class="pagination-container mt-4">
-        {{ knp_pagination_render(reservations, '@KnpPaginator/Pagination/twitter_bootstrap_v4_pagination.html.twig') }}
-    </div>
+
     {% endif %}
 </div>
 
@@ -256,6 +327,7 @@
     {{ parent() }}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.all.min.js"></script>
     <script src="{{ asset('js/front/reservation/transporter-reservation.js') }}"></script>
+    <script src="{{ asset('js/front/reservation/transporter-reservation-search.js') }}"></script>
         <script>
         // Gestionnaire global pour les fermetures de modales
         document.addEventListener('click', function(e) {
