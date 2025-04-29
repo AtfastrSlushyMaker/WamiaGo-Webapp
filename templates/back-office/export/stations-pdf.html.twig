@@ -1,0 +1,97 @@
+{% extends 'back-office/export/base-pdf.html.twig' %}
+
+{% block title %}WamiaGo Bicycle Station Network Export{% endblock %}
+{% block report_title %}{{ title }}{% endblock %}
+{% block subtitle %}Bicycle Station Network{% endblock %}
+{% block body_class %}stations{% endblock %}
+
+{% block content %}
+    <div class="stats-section">
+        <h3>Station Network Statistics</h3>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value">{{ stats.totalStations }}</div>
+                <div class="stat-label">Total Stations</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ stats.activeStations }}</div>
+                <div class="stat-label">Active Stations</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ stats.totalCapacity }}</div>
+                <div class="stat-label">Total Capacity</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ stats.totalChargingDocks }}</div>
+                <div class="stat-label">Charging Docks</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ stats.avgOccupancy|round(1) }}%</div>
+                <div class="stat-label">Avg Occupancy</div>
+            </div>
+        </div>
+    </div>
+
+    {% if stationActivity|length > 0 %}
+        <h3>Most Active Stations</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Station Name</th>
+                    <th>Rentals Started</th>
+                    <th>Rentals Ended</th>
+                    <th>Total Activity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for station in stationActivity|slice(0, 5) %}
+                    <tr>
+                        <td>{{ station.name }}</td>
+                        <td>{{ station.rentalsStarted }}</td>
+                        <td>{{ station.rentalsEnded }}</td>
+                        <td>{{ station.rentalsStarted + station.rentalsEnded }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    <h3>Station Inventory</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Station Name</th>
+                <th>Status</th>
+                <th>Available Bikes</th>
+                <th>Available Docks</th>
+                <th>Total Docks</th>
+                <th>Occupancy</th>
+                <th>Location</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for station in stations %}
+                <tr>
+                    <td>{{ station.getIdStation() }}</td>
+                    <td>{{ station.getName() }}</td>
+                    <td>
+                        {% set status = station.getStatus().value %}
+                        {{ status|capitalize }}
+                    </td>
+                    <td>{{ station.getAvailableBikes() }}</td>
+                    <td>{{ station.getAvailableDocks() }}</td>
+                    <td>{{ station.getTotalDocks() }}</td>
+                    <td>
+                        {% if station.getTotalDocks() > 0 %}
+                            {{ ((station.getAvailableBikes() / station.getTotalDocks()) * 100)|round(1) }}%
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>{{ station.getLocation() ? station.getLocation().getAddress() : '-' }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

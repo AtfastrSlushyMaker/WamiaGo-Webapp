@@ -2,8 +2,10 @@
 # Files in the packages/ subdirectory configure your dependencies.
 
 # Put parameters here that don't need to change on each machine where the app is deployed
-# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+# https://symfony.com/doc/current/best-practices.html#use-parameters-for-application-configuration
 parameters:
+    app.openweather_api_key: '%env(OPENWEATHER_API_KEY)%'
+    app.gemini_api_key: '%env(GEMINI_API_KEY)%'
 
 services:
     # default configuration for services in *this* file
@@ -26,3 +28,13 @@ services:
     # Add UserRepository as a global Twig variable
     App\Repository\UserRepository:
         public: true
+    
+    # Geo-routing service for bicycle module
+    App\Service\Geo\GeoRoutingService:
+        arguments:
+            $logger: '@logger'
+# Configure Gemini API Service with API key
+    App\Service\GeminiApiService:
+        arguments:
+            $httpClient: '@http_client'
+            $apiKey: '%app.gemini_api_key%'
