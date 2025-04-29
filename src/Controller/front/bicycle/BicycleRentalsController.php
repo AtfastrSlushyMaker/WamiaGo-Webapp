@@ -55,7 +55,7 @@ class BicycleRentalsController extends AbstractController
 
         // Get user's active rentals
         $activeRentals = [];
-        $user = $this->entityManager->getRepository(User::class)->find(1);
+        $user = $this->security->getUser();
         if ($user) {
             $activeRentals = $this->rentalService->getActiveRentalsForUser($user);
         }
@@ -147,9 +147,14 @@ class BicycleRentalsController extends AbstractController
                 }
             } else {
                 try {
+                    $user = $this->security->getUser();
+                    if (!$user) {
+                        throw $this->createAccessDeniedException('You must be logged in to reserve a bicycle');
+                    }
+                
                     // Create reservation
                     $rental = $this->rentalService->reserveBicycle(
-                        $this->entityManager->getRepository(User::class)->find(1),
+                        $user,
                         $bicycle,
                         $estimatedCost
                     );
@@ -178,9 +183,9 @@ class BicycleRentalsController extends AbstractController
     public function rentalConfirmation(int $id): Response
     {
         $rental = $this->entityManager->getRepository(BicycleRental::class)->find($id);
-        $user = $this->entityManager->getRepository(User::class)->find(1);
+        $user = $this->security->getUser();
 
-        if (!$rental || $rental->getUser() !== $user) {
+        if (!$rental || !$user || $rental->getUser() !== $user) {
             throw $this->createNotFoundException('Rental not found');
         }
 
@@ -197,9 +202,9 @@ class BicycleRentalsController extends AbstractController
     public function showRentalCode(int $id): Response
     {
         $rental = $this->entityManager->getRepository(BicycleRental::class)->find($id);
-        $user = $this->entityManager->getRepository(User::class)->find(1);
+        $user = $this->security->getUser();
 
-        if (!$rental || $rental->getUser() !== $user) {
+        if (!$rental || !$user || $rental->getUser() !== $user) {
             throw $this->createNotFoundException('Rental not found');
         }
 
@@ -216,9 +221,9 @@ class BicycleRentalsController extends AbstractController
     public function cancelRental(Request $request, int $id): Response
     {
         $rental = $this->entityManager->getRepository(BicycleRental::class)->find($id);
-        $user = $this->entityManager->getRepository(User::class)->find(1);
+        $user = $this->security->getUser();
 
-        if (!$rental || $rental->getUser() !== $user) {
+        if (!$rental || !$user || $rental->getUser() !== $user) {
             throw $this->createNotFoundException('Rental not found');
         }
 
@@ -239,7 +244,11 @@ class BicycleRentalsController extends AbstractController
     #[Route('/my-reservations', name: 'app_front_my_reservations')]
     public function myReservations(): Response
     {
-        $user = $this->entityManager->getRepository(User::class)->find(1);
+        $user = $this->security->getUser();
+        if (!$user) {
+            throw $this->createAccessDeniedException('You must be logged in to view your reservations');
+        }
+        
         $activeRentals = $this->rentalService->getActiveRentalsForUser($user);
         $pastRentals = $this->rentalService->getPastRentalsForUser($user);
 

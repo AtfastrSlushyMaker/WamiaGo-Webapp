@@ -11,6 +11,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Security\Core\Security;
 use App\Enum\BICYCLE_STATUS;
 
 #[Route('/my-reservations')]
@@ -21,8 +23,11 @@ class MyReservationsController extends AbstractController
 
     public function __construct(
         EntityManagerInterface $entityManager,
+        private readonly Security $security,
         BicycleRentalService $rentalService
+        
     ) {
+
         $this->entityManager = $entityManager;
         $this->rentalService = $rentalService;
     }
@@ -31,7 +36,7 @@ class MyReservationsController extends AbstractController
     public function index(): Response
     {
         // Use static user with ID 1 until authentication is implemented
-        $user = $this->entityManager->getRepository(User::class)->find(1);
+        $user = $this->security->getUser(); 
 
         if (!$user) {
             throw $this->createNotFoundException('User not found');
