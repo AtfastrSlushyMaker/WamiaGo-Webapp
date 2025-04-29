@@ -502,8 +502,21 @@
                     <span class="badge bg-primary bg-opacity-10 text-primary">Find Bicycles Fast</span>
                 </div>
                 <div class="card-body">
-                    <form method="get" action="{{ path('admin_bicycle_rentals', {'tab': 'bicycles'}) }}" class="filter-form">
-                        <div class="row g-3">
+                    <form action="{{ path('admin_bicycle_rentals', {'tab': 'bicycles'}) }}" method="GET" id="bicycleFilterForm">
+                <div class="row g-3 mb-3">
+                    <div class="col-lg-12">
+                        <div class="search-box">
+                            <div class="input-group">
+                                <span class="input-group-text bg-primary text-white"><i class="fas fa-search"></i></span>
+                                <input type="text" id="bicycleSearchInput" class="form-control" placeholder="Search by ID, model, status, or station..." value="{{ app.request.query.get('search') }}">
+                                <button type="button" id="bicycleSearchClearBtn" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3">
                             <div class="col-md-4">
                                 <div class="form-floating">
                                     <select class="form-select" id="bicycleStatus" name="status">
@@ -845,98 +858,85 @@
     </div>
 </div>
 
-<!-- Edit Bicycle Modal -->
-<div class="modal fade" id="editBicycleModal" data-bs-backdrop="false" tabindex="-1" aria-labelledby="editBicycleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-gradient-primary-to-secondary text-white">
-                <h5 class="modal-title" id="editBicycleModalLabel">
-                    <i class="fas fa-edit me-2"></i>Edit Bicycle
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- Hidden template for edit form -->
+<template id="editBicycleFormTemplate">
+    {{ form_start(editBicycleForm, { 'attr': { 'novalidate': 'novalidate', 'id': 'editBicycleForm', 'data-action-url': path('admin_bicycle_edit', {'id': '__bicycleId__'}) } }) }}
+        <input type="hidden" name="bicycleId" class="bicycle-id-field">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    {{ form_label(editBicycleForm.battery_level, 'Battery Level (%)', {'label_attr': {'class': 'form-label'}}) }}
+                    <div class="input-group">
+                        {{ form_widget(editBicycleForm.battery_level, {
+                            'attr': {
+                                'class': 'form-control' ~ (editBicycleForm.battery_level.vars.valid ? '' : ' is-invalid'),
+                                'min': '0',
+                                'max': '100'
+                            }
+                        }) }}
+                        <span class="input-group-text"><i class="fas fa-battery-half"></i></span>
+                        {{ form_errors(editBicycleForm.battery_level, {'attr': {'class': 'invalid-feedback'}}) }}
+                    </div>
+                </div>
             </div>
-            <div class="modal-body">
-                {{ form_start(editBicycleForm, { 'attr': { 'novalidate': 'novalidate', 'id': 'editBicycleForm', 'data-action-url': path('admin_bicycle_edit', {'id': '__bicycleId__'}) } }) }}
-
-                    <input type="hidden" name="bicycleId" class="bicycle-id-field">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                {{ form_label(editBicycleForm.battery_level, 'Battery Level (%)', {'label_attr': {'class': 'form-label'}}) }}
-                                <div class="input-group">
-                                    {{ form_widget(editBicycleForm.battery_level, {
-                                        'attr': {
-                                            'class': 'form-control' ~ (editBicycleForm.battery_level.vars.valid ? '' : ' is-invalid'),
-                                            'min': '0',
-                                            'max': '100'
-                                        }
-                                    }) }}
-                                    <span class="input-group-text"><i class="fas fa-battery-half"></i></span>
-                                    {{ form_errors(editBicycleForm.battery_level, {'attr': {'class': 'invalid-feedback'}}) }}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                {{ form_label(editBicycleForm.range_km, 'Range (km)', {'label_attr': {'class': 'form-label'}}) }}
-                                <div class="input-group">
-                                    {{ form_widget(editBicycleForm.range_km, {
-                                        'attr': {
-                                            'class': 'form-control' ~ (editBicycleForm.range_km.vars.valid ? '' : ' is-invalid')
-                                        }
-                                    }) }}
-                                    <span class="input-group-text"><i class="fas fa-route"></i></span>
-                                    {{ form_errors(editBicycleForm.range_km, {'attr': {'class': 'invalid-feedback'}}) }}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                {{ form_label(editBicycleForm.status, 'Status', {'label_attr': {'class': 'form-label'}}) }}
-                                {{ form_widget(editBicycleForm.status, {
-                                    'attr': {
-                                        'class': 'form-select' ~ (editBicycleForm.status.vars.valid ? '' : ' is-invalid')
-                                    }
-                                }) }}
-                                {{ form_errors(editBicycleForm.status, {'attr': {'class': 'invalid-feedback'}}) }}
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                {{ form_label(editBicycleForm.bicycleStation, 'Station', {'label_attr': {'class': 'form-label'}}) }}
-                                {{ form_widget(editBicycleForm.bicycleStation, {
-                                    'attr': {
-                                        'class': 'form-select' ~ (editBicycleForm.bicycleStation.vars.valid ? '' : ' is-invalid')
-                                    }
-                                }) }}
-                                {{ form_errors(editBicycleForm.bicycleStation, {'attr': {'class': 'invalid-feedback'}}) }}
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="form-group">
-                                {{ form_label(editBicycleForm.last_updated, 'Last Updated', {'label_attr': {'class': 'form-label'}}) }}
-                                {{ form_widget(editBicycleForm.last_updated, {
-                                    'attr': {
-                                        'class': 'form-control' ~ (editBicycleForm.last_updated.vars.valid ? '' : ' is-invalid')
-                                    }
-                                }) }}
-                                {{ form_errors(editBicycleForm.last_updated, {'attr': {'class': 'invalid-feedback'}}) }}
-                            </div>
-                        </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    {{ form_label(editBicycleForm.range_km, 'Range (km)', {'label_attr': {'class': 'form-label'}}) }}
+                    <div class="input-group">
+                        {{ form_widget(editBicycleForm.range_km, {
+                            'attr': {
+                                'class': 'form-control' ~ (editBicycleForm.range_km.vars.valid ? '' : ' is-invalid')
+                            }
+                        }) }}
+                        <span class="input-group-text"><i class="fas fa-route"></i></span>
+                        {{ form_errors(editBicycleForm.range_km, {'attr': {'class': 'invalid-feedback'}}) }}
                     </div>
-                    <div class="mt-4">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-1"></i> Update Bicycle
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                            <i class="fas fa-times me-1"></i> Cancel
-                        </button>
-                    </div>
-                {{ form_end(editBicycleForm) }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    {{ form_label(editBicycleForm.status, 'Status', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(editBicycleForm.status, {
+                        'attr': {
+                            'class': 'form-select' ~ (editBicycleForm.status.vars.valid ? '' : ' is-invalid')
+                        }
+                    }) }}
+                    {{ form_errors(editBicycleForm.status, {'attr': {'class': 'invalid-feedback'}}) }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    {{ form_label(editBicycleForm.bicycleStation, 'Station', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(editBicycleForm.bicycleStation, {
+                        'attr': {
+                            'class': 'form-select' ~ (editBicycleForm.bicycleStation.vars.valid ? '' : ' is-invalid')
+                        }
+                    }) }}
+                    {{ form_errors(editBicycleForm.bicycleStation, {'attr': {'class': 'invalid-feedback'}}) }}
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="form-group">
+                    {{ form_label(editBicycleForm.last_updated, 'Last Updated', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(editBicycleForm.last_updated, {
+                        'attr': {
+                            'class': 'form-control' ~ (editBicycleForm.last_updated.vars.valid ? '' : ' is-invalid')
+                        }
+                    }) }}
+                    {{ form_errors(editBicycleForm.last_updated, {'attr': {'class': 'invalid-feedback'}}) }}
+                </div>
             </div>
         </div>
-    </div>
-</div>
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-1"></i> Update Bicycle
+            </button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                <i class="fas fa-times me-1"></i> Cancel
+            </button>
+        </div>
+    {{ form_end(editBicycleForm) }}
+</template>
 
 <!-- Delete Bicycle Modal -->
 <div class="modal fade" id="deleteBicycleModal" data-bs-backdrop="false" data-bs-keyboard="false" tabindex="-1" aria-labelledby="deleteBicycleModalLabel" aria-hidden="true">
@@ -1396,7 +1396,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Handle loading bicycle data for edit
+    // Handle loading bicycle data for edit with improved error handling
     document.querySelectorAll('.edit-bicycle').forEach(button => {
         button.addEventListener('click', function(e) {
             e.preventDefault();
@@ -1405,12 +1405,32 @@ document.addEventListener('DOMContentLoaded', function() {
             if (bicycleId) {
                 // Show loading state
                 const modal = new bootstrap.Modal(document.getElementById('editBicycleModal'));
+                const modalBody = document.getElementById('editBicycleModal').querySelector('.modal-body');
+                
+                // Add loading indicator
+                modalBody.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Loading bicycle data...</p>
+                    </div>
+                `;
+                
                 modal.show();
                 
-                // Fetch bicycle data
+                // Fetch bicycle data with improved error handling
                 fetch(`/admin/bicycle/bicycle/${bicycleId}/data`)
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                        }
+                        return response.json();
+                    })
                     .then(data => {
+                        // Restore the form content
+                        modalBody.innerHTML = document.getElementById('editBicycleFormTemplate').innerHTML;
+                        
                         // Set form hidden id field
                         const idField = document.querySelector('.bicycle-id-field');
                         if (idField) idField.value = bicycleId;
@@ -1449,11 +1469,125 @@ document.addEventListener('DOMContentLoaded', function() {
                     })
                     .catch(error => {
                         console.error('Error loading bicycle data:', error);
-                        modal.hide();
-                        alert('Error loading bicycle data. Please try again.');
+                        modalBody.innerHTML = `
+                            <div class="alert alert-danger">
+                                <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Error Loading Data</h5>
+                                <p>There was a problem loading the bicycle data: ${error.message}</p>
+                                <hr>
+                                <p class="mb-0">Please try again or refresh the page.</p>
+                            </div>
+                            <div class="text-center mt-3">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary reload-form-btn">
+                                    <i class="fas fa-sync-alt me-2"></i>Try Again
+                                </button>
+                            </div>
+                        `;
+                        
+                        // Add event listener for the reload button
+                        const reloadBtn = modalBody.querySelector('.reload-form-btn');
+                        if (reloadBtn) {
+                            reloadBtn.addEventListener('click', function() {
+                                // Trigger the edit button click event again
+                                button.click();
+                            });
+                        }
                     });
             }
         });
     });
+    
+    // Client-side search functionality for bicycles
+    const bicycleSearchInput = document.getElementById('bicycleSearchInput');
+    const bicycleSearchClearBtn = document.getElementById('bicycleSearchClearBtn');
+    
+    if (bicycleSearchInput) {
+        bicycleSearchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            filterBicyclesTable(searchTerm);
+        });
+        
+        // Clear search button
+        if (bicycleSearchClearBtn) {
+            bicycleSearchClearBtn.addEventListener('click', function() {
+                bicycleSearchInput.value = '';
+                filterBicyclesTable(''); // Reset filter
+            });
+        }
+    }
+    
+    // Function to filter bicycles table based on search term
+    function filterBicyclesTable(searchTerm) {
+        const tableRows = document.querySelectorAll('#bicyclesTable tbody tr');
+        let hasResults = false;
+        
+        // Add loading effect
+        document.querySelector('#bicyclesTable').classList.add('opacity-50');
+        
+        tableRows.forEach(row => {
+            if (!searchTerm) {
+                // If search is empty, show all rows
+                row.style.display = '';
+                hasResults = true;
+            } else {
+                const cells = row.querySelectorAll('td');
+                let rowMatches = false;
+                
+                // Check each cell for match
+                cells.forEach(cell => {
+                    const cellText = cell.textContent.toLowerCase();
+                    if (cellText.includes(searchTerm)) {
+                        rowMatches = true;
+                    }
+                });
+                
+                // Show or hide row based on match
+                if (rowMatches) {
+                    row.style.display = '';
+                    hasResults = true;
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+        
+        // Show empty state if no results
+        const emptyStateRow = document.querySelector('.empty-bicycle-search-results');
+        if (!hasResults) {
+            if (!emptyStateRow) {
+                const tbody = document.querySelector('#bicyclesTable tbody');
+                const newRow = document.createElement('tr');
+                newRow.className = 'empty-bicycle-search-results';
+                newRow.innerHTML = `
+                    <td colspan="8">
+                        <div class="text-center py-4">
+                            <div class="mb-3">
+                                <i class="fas fa-search fa-3x text-muted opacity-50"></i>
+                            </div>
+                            <h5>No bicycles found</h5>
+                            <p class="text-muted mb-3">No bicycle records match your search criteria</p>
+                            <button type="button" class="btn btn-primary clear-bicycle-search-btn">
+                                <i class="fas fa-times-circle me-2"></i>Clear Search
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(newRow);
+                
+                // Add event listener to clear search button
+                newRow.querySelector('.clear-bicycle-search-btn').addEventListener('click', function() {
+                    bicycleSearchInput.value = '';
+                    filterBicyclesTable('');
+                });
+            }
+        } else if (emptyStateRow) {
+            emptyStateRow.remove();
+        }
+        
+        // Remove loading effect with small delay for visual feedback
+        setTimeout(() => {
+            document.querySelector('#bicyclesTable').classList.remove('opacity-50');
+        }, 200);
+    }
 });
 </script>

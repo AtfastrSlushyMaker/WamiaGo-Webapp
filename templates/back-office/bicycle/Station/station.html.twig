@@ -1070,6 +1070,142 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         });
     });
+    
+    // Client-side search functionality for stations
+    const stationSearchInput = document.getElementById('stationSearchInput');
+    const stationSearchClearBtn = document.getElementById('stationSearchClearBtn');
+    
+    if (stationSearchInput) {
+        stationSearchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            filterStationsTable(searchTerm);
+        });
+        
+        // Clear search button
+        if (stationSearchClearBtn) {
+            stationSearchClearBtn.addEventListener('click', function() {
+                stationSearchInput.value = '';
+                filterStationsTable(''); // Reset filter
+            });
+        }
+    }
+    
+    // Function to filter stations table based on search term
+    function filterStationsTable(searchTerm) {
+        const tableRows = document.querySelectorAll('.station-table tbody tr');
+        let hasResults = false;
+        
+        // Add loading effect
+        document.querySelector('.station-table').classList.add('opacity-50');
+        
+        tableRows.forEach(row => {
+            if (!searchTerm) {
+                // If search is empty, show all rows
+                row.style.display = '';
+                hasResults = true;
+            } else {
+                const cells = row.querySelectorAll('td');
+                let rowMatches = false;
+                
+                // Check each cell for match
+                cells.forEach(cell => {
+                    const cellText = cell.textContent.toLowerCase();
+                    if (cellText.includes(searchTerm)) {
+                        rowMatches = true;
+                    }
+                });
+                
+                // Show or hide row based on match
+                if (rowMatches) {
+                    row.style.display = '';
+                    hasResults = true;
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+        
+        // Show empty state if no results
+        const emptyStateRow = document.querySelector('.empty-station-search-results');
+        if (!hasResults) {
+            if (!emptyStateRow) {
+                const tbody = document.querySelector('.station-table tbody');
+                const newRow = document.createElement('tr');
+                newRow.className = 'empty-station-search-results';
+                newRow.innerHTML = `
+                    <td colspan="7">
+                        <div class="text-center py-4">
+                            <div class="mb-3">
+                                <i class="fas fa-search fa-3x text-muted opacity-50"></i>
+                            </div>
+                            <h5>No stations found</h5>
+                            <p class="text-muted mb-3">No station records match your search criteria</p>
+                            <button type="button" class="btn btn-primary clear-station-search-btn">
+                                <i class="fas fa-times-circle me-2"></i>Clear Search
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(newRow);
+                
+                // Add event listener to clear search button
+                newRow.querySelector('.clear-station-search-btn').addEventListener('click', function() {
+                    stationSearchInput.value = '';
+                    filterStationsTable('');
+                });
+            }
+        } else if (emptyStateRow) {
+            emptyStateRow.remove();
+        }
+        
+        // Remove loading effect with small delay for visual feedback
+        setTimeout(() => {
+            document.querySelector('.station-table').classList.remove('opacity-50');
+        }, 200);
+    }
+    
+    // Also connect the existing quick search input
+    const quickStationSearch = document.getElementById('quickStationSearch');
+    if (quickStationSearch) {
+        quickStationSearch.addEventListener('input', function() {
+            // Filter the quick station list
+            const searchTerm = this.value.toLowerCase().trim();
+            const stationItems = document.querySelectorAll('.station-list-item');
+            
+            let hasResults = false;
+            stationItems.forEach(item => {
+                const stationName = item.querySelector('.station-name').textContent.toLowerCase();
+                const stationAddress = item.querySelector('.station-address').textContent.toLowerCase();
+                
+                if (stationName.includes(searchTerm) || stationAddress.includes(searchTerm)) {
+                    item.style.display = '';
+                    hasResults = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // Show empty state message if no results
+            let emptyState = document.querySelector('.empty-quick-search');
+            if (!hasResults) {
+                if (!emptyState) {
+                    emptyState = document.createElement('li');
+                    emptyState.className = 'list-group-item empty-quick-search';
+                    emptyState.innerHTML = `
+                        <div class="text-center py-3">
+                            <div class="mb-2">
+                                <i class="fas fa-search text-muted"></i>
+                            </div>
+                            <p class="mb-0 small text-muted">No matching stations found</p>
+                        </div>
+                    `;
+                    document.querySelector('.station-quick-list ul').appendChild(emptyState);
+                }
+            } else if (emptyState) {
+                emptyState.remove();
+            }
+        });
+    }
 });
 
 // Make a global reset function available to clear any stuck overlays

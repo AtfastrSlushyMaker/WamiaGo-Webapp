@@ -440,10 +440,23 @@
         </div>
         <div class="card-body">
             <form action="{{ path('admin_bicycle_rentals', {tab:"rentals"}) }}" method="GET" id="rentalFilterForm">
+                <div class="row g-3 mb-3">
+                    <div class="col-lg-12">
+                        <div class="search-box">
+                            <div class="input-group">
+                                <span class="input-group-text bg-primary text-white"><i class="fas fa-search"></i></span>
+                                <input type="text" id="rentalSearchInput" class="form-control" placeholder="Search by customer name, bicycle ID, rental ID, station..." value="{{ app.request.query.get('search') }}">
+                                <button type="button" id="searchClearBtn" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="row g-3">
                     <div class="col-lg-3 col-md-6">
                         <label class="form-label">Rental Status</label>
-                        <select name="status" class="form-select">
+                        <select name="status" class="form-select filter-select">
                             <option value="">All Statuses</option>
                             <option value="active" {{ app.request.query.get('status') == 'active' ? 'selected' : '' }}>Active</option>
                             <option value="completed" {{ app.request.query.get('status') == 'completed' ? 'selected' : '' }}>Completed</option>
@@ -452,7 +465,7 @@
                     </div>
                     <div class="col-lg-3 col-md-6">
                         <label class="form-label">Pickup Station</label>
-                        <select name="station" class="form-select">
+                        <select name="station" class="form-select filter-select">
                             <option value="">All Stations</option>
                             {% for station in stations %}
                                 <option value="{{ station.idStation }}" {% if app.request.query.get('station') == station.idStation|number_format(0) %}selected{% endif %}>
@@ -465,14 +478,14 @@
                         <label class="form-label">From Date</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-calendar"></i></span>
-                            <input type="date" name="dateFrom" class="form-control" value="{{ app.request.query.get('dateFrom') }}">
+                            <input type="date" name="dateFrom" class="form-control filter-date" value="{{ app.request.query.get('dateFrom') }}">
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
                         <label class="form-label">To Date</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-calendar"></i></span>
-                            <input type="date" name="dateTo" class="form-control" value="{{ app.request.query.get('dateTo') }}">
+                            <input type="date" name="dateTo" class="form-control filter-date" value="{{ app.request.query.get('dateTo') }}">
                         </div>
                     </div>
                 </div>
@@ -896,6 +909,202 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, 500);
     
+    // Client-side search functionality
+    const rentalSearchInput = document.getElementById('rentalSearchInput');
+    const searchClearBtn = document.getElementById('searchClearBtn');
+    
+    if (rentalSearchInput) {
+        rentalSearchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            filterRentalsTable(searchTerm);
+        });
+        
+        // Clear search button
+        if (searchClearBtn) {
+            searchClearBtn.addEventListener('click', function() {
+                rentalSearchInput.value = '';
+                filterRentalsTable(''); // Reset filter
+            });
+        }
+    }
+    
+    // Function to filter rentals table based on search term
+    function filterRentalsTable(searchTerm) {
+        const tableRows = document.querySelectorAll('.datatable tbody tr');
+        let hasResults = false;
+        
+        // Show loading indicator
+        document.querySelector('.data-card').classList.add('loading');
+        
+        tableRows.forEach(row => {
+            if (!searchTerm) {
+                // If search is empty, show all rows
+                row.style.display = '';
+                hasResults = true;
+            } else {
+                const cells = row.querySelectorAll('td');
+                let rowMatches = false;
+                
+                // Check each cell for match
+                cells.forEach(cell => {
+                    const cellText = cell.textContent.toLowerCase();
+                    if (cellText.includes(searchTerm)) {
+                        rowMatches = true;
+                    }
+                });
+                
+                // Show or hide row based on match
+                if (rowMatches) {
+                    row.style.display = '';
+                    hasResults = true;
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+        
+        // Show empty state if no results
+        const emptyStateRow = document.querySelector('.empty-search-results');
+        if (!hasResults) {
+            if (!emptyStateRow) {
+                const tbody = document.querySelector('.datatable tbody');
+                const newRow = document.createElement('tr');
+                newRow.className = 'empty-search-results';
+                newRow.innerHTML = `
+                    <td colspan="11">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <h5>No rentals found</h5>
+                            <p class="text-muted mb-3">No rental records match your search criteria</p>
+                            <button type="button" class="btn btn-primary clear-search-btn">
+                                <i class="fas fa-times-circle me-2"></i>Clear Search
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(newRow);
+                
+                // Add event listener to clear search button
+                newRow.querySelector('.clear-search-btn').addEventListener('click', function() {
+                    rentalSearchInput.value = '';
+                    filterRentalsTable('');
+                });
+            }
+        } else if (emptyStateRow) {
+            emptyStateRow.remove();
+        }
+        
+        // Remove loading indicator
+        setTimeout(() => {
+            document.querySelector('.data-card').classList.remove('loading');
+        }, 300);
+    }
+    
+    // AJAX functionality for form filters
+    function setupAjaxFilters() {
+        const filterForm = document.getElementById('rentalFilterForm');
+        if (!filterForm) return;
+        
+        const filterSelects = filterForm.querySelectorAll('.filter-select');
+        const filterDates = filterForm.querySelectorAll('.filter-date');
+        
+        // Handle filter changes
+        filterSelects.forEach(select => {
+            select.addEventListener('change', function() {
+                filterForm.submit();
+            });
+        });
+        
+        filterDates.forEach(date => {
+            date.addEventListener('change', function() {
+                filterForm.submit();
+            });
+        });
+    }
+    
+    // Handle pagination AJAX
+    function handlePaginationClick() {
+        document.addEventListener('click', function(e) {
+            const paginationLink = e.target.closest('.pagination-modern a');
+            if (paginationLink && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                
+                const url = paginationLink.getAttribute('href');
+                if (url) {
+                    // Update URL without page reload
+                    window.history.pushState({}, '', url);
+                    
+                    // Apply client-side filtering to newly visible items
+                    const searchTerm = document.getElementById('rentalSearchInput')?.value?.toLowerCase()?.trim() || '';
+                    if (searchTerm) {
+                        setTimeout(() => filterRentalsTable(searchTerm), 100);
+                    }
+                }
+            }
+        });
+    }
+    
+    // Setup event handlers for dynamic elements after AJAX updates
+    function setupButtonHandlers() {
+        // Reset tooltips for new elements
+        const newTooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        [...newTooltipTriggerList].forEach(tooltipTriggerEl => {
+            const tooltip = new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Set up action buttons for newly loaded rows
+        document.querySelectorAll('.activate-rental-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const rentalId = this.getAttribute('data-rental-id');
+                const activateForm = document.getElementById('activateRentalForm');
+                activateForm.setAttribute('action', `{{ path('admin_bicycle_rental_activate', {'id': '0'}) }}`.replace('/0', `/${rentalId}`));
+                const activateModal = new bootstrap.Modal(document.getElementById('activateRentalModal'));
+                activateModal.show();
+            });
+        });
+        
+        document.querySelectorAll('.cancel-rental-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const rentalId = this.getAttribute('data-rental-id');
+                const cancelForm = document.getElementById('cancelRentalForm');
+                cancelForm.setAttribute('action', `{{ path('admin_bicycle_rental_cancel', {'id': '0'}) }}`.replace('/0', `/${rentalId}`));
+                const cancelModal = new bootstrap.Modal(document.getElementById('cancelRentalModal'));
+                cancelModal.show();
+            });
+        });
+        
+        document.querySelectorAll('.delete-rental-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const rentalId = this.getAttribute('data-rental-id');
+                const deleteForm = document.getElementById('deleteRentalForm');
+                deleteForm.setAttribute('action', `{{ path('admin_bicycle_rental_delete', {'id': '0'}) }}`.replace('/0', `/${rentalId}`));
+                const deleteModal = new bootstrap.Modal(document.getElementById('deleteRentalModal'));
+                deleteModal.show();
+            });
+        });
+        
+        // Row hover effects
+        document.querySelectorAll('.datatable tr').forEach(row => {
+            row.addEventListener('mouseenter', function() {
+                this.querySelectorAll('.btn-action').forEach(btn => {
+                    btn.classList.add('visible');
+                });
+            });
+            
+            row.addEventListener('mouseleave', function() {
+                this.querySelectorAll('.btn-action').forEach(btn => {
+                    btn.classList.remove('visible');
+                });
+            });
+        });
+    }
+    
+    // Initialize AJAX filters and pagination
+    setupAjaxFilters();
+    handlePaginationClick();
+    
     // Per page selection
     const perPageSelect = document.getElementById('perPageSelect');
     if (perPageSelect) {
@@ -910,14 +1119,24 @@ document.addEventListener('DOMContentLoaded', function() {
             // Reset page to 1 when changing items per page
             params.set('page', '1');
             
-            // Redirect to the new URL with updated parameters
-            window.location.href = `${url.pathname}?${params.toString()}`;
+            // Use AJAX to load with new parameters
+            const newUrl = `${url.pathname}?${params.toString()}`;
+            loadFilteredData(newUrl);
         });
     }
     
     // Active filters highlighting
     const highlightActiveFilters = () => {
         const urlParams = new URLSearchParams(window.location.search);
+        
+        // Highlight search input
+        const searchTerm = urlParams.get('search');
+        if (searchTerm) {
+            const searchInput = document.querySelector('input[name="search"]');
+            if (searchInput) {
+                searchInput.classList.add('border-primary');
+            }
+        }
         
         // Highlight status filter
         const statusFilter = urlParams.get('status');
@@ -929,9 +1148,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Highlight station filter
-        const stationFilter = urlParams.get('stationId');
+        const stationFilter = urlParams.get('station');
         if (stationFilter) {
-            const stationSelect = document.querySelector('select[name="stationId"]');
+            const stationSelect = document.querySelector('select[name="station"]');
             if (stationSelect) {
                 stationSelect.classList.add('border-primary');
             }
@@ -979,6 +1198,122 @@ document.addEventListener('DOMContentLoaded', function() {
         updateActiveTimers();
         setInterval(updateActiveTimers, 60000);
     }
+    
+    // Helper function for AJAX loading
+    function loadFilteredData(url) {
+        // Show loading state
+        const tableSection = document.querySelector('.data-card');
+        if (tableSection) {
+            // Create and append loading overlay if it doesn't exist
+            let loadingOverlay = document.querySelector('.loading-overlay');
+            if (!loadingOverlay) {
+                loadingOverlay = document.createElement('div');
+                loadingOverlay.className = 'loading-overlay';
+                loadingOverlay.innerHTML = `
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                `;
+                document.body.appendChild(loadingOverlay);
+            }
+            loadingOverlay.style.display = 'flex';
+        }
+        
+        // Make AJAX request
+        fetch(url + (url.includes('?') ? '&' : '?') + 'ajax=1')
+            .then(response => response.text())
+            .then(html => {
+                // Parse the HTML response
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Update the table content
+                const newTableContent = doc.querySelector('.table-responsive');
+                const currentTable = document.querySelector('.table-responsive');
+                if (newTableContent && currentTable) {
+                    currentTable.innerHTML = newTableContent.innerHTML;
+                }
+                
+                // Update pagination if it exists
+                const newPagination = doc.querySelector('.pagination-wrapper');
+                const currentPagination = document.querySelector('.pagination-wrapper');
+                if (newPagination && currentPagination) {
+                    currentPagination.innerHTML = newPagination.innerHTML;
+                }
+                
+                // Update browser URL without page reload
+                window.history.pushState({path: url}, '', url);
+                
+                // Re-initialize event handlers
+                setupButtonHandlers();
+                
+                // Update active filters highlighting
+                highlightActiveFilters();
+                
+                // Hide loading overlay
+                const loadingOverlay = document.querySelector('.loading-overlay');
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading filtered data:', error);
+                
+                // Hide loading overlay on error
+                const loadingOverlay = document.querySelector('.loading-overlay');
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = 'none';
+                }
+            });
+    }
 });
 </script>
+
+<style>
+    /* Loading overlay for AJAX requests */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.7);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+    
+    /* Style for search box */
+    .search-box {
+        position: relative;
+    }
+    
+    .search-box .input-group-text {
+        border-radius: 0.5rem 0 0 0.5rem;
+    }
+    
+    .search-box input.form-control {
+        border-radius: 0 0.5rem 0.5rem 0;
+        padding-right: 2.5rem;
+    }
+    
+    .search-box #searchClearBtn {
+        position: absolute;
+        right: 0;
+        top: 0;
+        height: 100%;
+        border: none;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        padding: 0 0.75rem;
+        color: #6c757d;
+        z-index: 5;
+    }
+    
+    .search-box #searchClearBtn:hover {
+        color: #dc3545;
+    }
+</style>
 {% endblock %}
