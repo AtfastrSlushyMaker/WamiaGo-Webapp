@@ -173,6 +173,33 @@ public function getQueryByDriver(Driver $driver): QueryBuilder
             ->orderBy('r.date', 'DESC');
     }
 
+    public function createSearchQueryBuilder(array $filters): QueryBuilder
+{
+    $qb = $this->createQueryBuilder('r')
+        ->leftJoin('r.reservation', 'res')
+        ->leftJoin('res.announcement', 'a')
+        ->addSelect('res', 'a');
+
+    if (!empty($filters['keyword'])) {
+        $qb->andWhere('r.id_relocation LIKE :keyword OR a.title LIKE :keyword')
+           ->setParameter('keyword', '%'.$filters['keyword'].'%');
+    }
+
+    if (!empty($filters['status']) && in_array($filters['status'], ['0', '1'])) {
+        $qb->andWhere('r.status = :status')
+           ->setParameter('status', (bool)$filters['status']);
+    }
+
+    if (!empty($filters['date'])) {
+        $date = \DateTime::createFromFormat('Y-m-d', $filters['date']);
+        $qb->andWhere('r.date >= :start AND r.date < :end')
+           ->setParameter('start', $date->format('Y-m-d 00:00:00'))
+           ->setParameter('end', $date->modify('+1 day')->format('Y-m-d 00:00:00'));
+    }
+
+    return $qb->orderBy('r.date', 'DESC');
+}
+
     //    /**
     //     * @return Relocation[] Returns an array of Relocation objects
     //     */

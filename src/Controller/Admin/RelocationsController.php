@@ -16,26 +16,37 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 #[Route('/admin/relocations')]
 class RelocationsController extends AbstractController
 {
-    #[Route('/', name: 'admin_relocations_index', methods: ['GET'])]
-    public function index(
-        Request $request,
-        RelocationRepository $relocationRepo,
-        PaginatorInterface $paginator
-    ): Response {
-        $query = $relocationRepo->createQueryBuilder('r')
-            ->orderBy('r.date', 'DESC')
-            ->getQuery();
+   #[Route('/', name: 'admin_relocations_index', methods: ['GET'])]
+public function index(
+    Request $request,
+    RelocationRepository $relocationRepo,
+    PaginatorInterface $paginator
+): Response {
+    $searchParams = [
+        'keyword' => $request->query->get('keyword'),
+        'status' => $request->query->get('status'),
+        'date' => $request->query->get('date')
+    ];
 
-        $relocations = $paginator->paginate(
-            $query,
-            $request->query->getInt('page', 1),
-            10
-        );
+    $query = $relocationRepo->createSearchQueryBuilder($searchParams);
 
-        return $this->render('back-office/Relocations/index.html.twig', [
+    $relocations = $paginator->paginate(
+        $query,
+        $request->query->getInt('page', 1),
+        10,
+        ['pageParameterName' => 'page']
+    );
+
+    if ($request->isXmlHttpRequest()) {
+        return $this->render('back-office/Relocations/_partials/_list.html.twig', [
             'relocations' => $relocations
         ]);
     }
+
+    return $this->render('back-office/Relocations/index.html.twig', [
+        'relocations' => $relocations
+    ]);
+}
 
     #[Route('/{id}', name: 'admin_relocations_show', methods: ['GET'])]
     public function show(Relocation $relocation): Response
@@ -111,4 +122,6 @@ public function exportAllToPdf(
         return $this->redirectToRoute('admin_relocations_index');
     }
 }
+
+
 }
