@@ -47,7 +47,7 @@ class AnnouncementClientController extends AbstractController
     // Méthode helper pour obtenir l'utilisateur temporaire
     private function getTempUser(): ?User
     {
-        return $this->entityManager->getRepository(User::class)->find(115);
+        return $this->entityManager->getRepository(User::class)->find(122);
     }
 
     #[Route('/', name: 'app_front_announcements')]
@@ -131,9 +131,9 @@ public function createReservation(Request $request, Announcement $announcement, 
 {
     $data = json_decode($request->getContent(), true);
 
-    $user = $this->entityManager->getRepository(User::class)->find(115);
+    $user = $this->entityManager->getRepository(User::class)->find(122);
     if (!$user) {
-        return $this->json(['success' => false, 'message' => 'User with ID 115 not found.'], 404);
+        return $this->json(['success' => false, 'message' => 'User with ID 122 not found.'], 404);
     }
 
     $reservation = new Reservation();

@@ -21,7 +21,7 @@ use Knp\Component\Pager\PaginatorInterface;
 #[Route('/client/reservations')]
 class ClientReservationController extends AbstractController
 {
-    private const HARDCODED_CLIENT_ID = 115;
+    private const HARDCODED_CLIENT_ID = 122;
 
     public function __construct(
         private ReservationService $reservationService,

@@ -696,3 +696,135 @@ body.swal2-shown {
     background-position: right 1rem center;
     background-size: 16px 12px;
 }
+
+/* Custom styling for the relocation form modal */
+.relocation-modal-container {
+    z-index: 1500 !important;
+}
+
+.relocation-modal-popup {
+    border-radius: 12px !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2) !important;
+    animation: swal-popup-appear 0.3s !important;
+    border-left: 5px solid #5A6BE5 !important;
+}
+
+.relocation-form {
+    padding: 1rem 0.5rem;
+}
+
+.relocation-form .form-label {
+    font-weight: 500;
+    color: #2D3748;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    text-align: left;
+}
+
+.relocation-form .form-control {
+    padding: 0.75rem 1rem;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.relocation-form .form-control:focus {
+    border-color: #5A6BE5;
+    box-shadow: 0 0 0 3px rgba(90, 107, 229, 0.25);
+    outline: none;
+}
+
+/* SweetAlert customizations */
+.swal2-popup {
+    padding: 1.5rem !important;
+}
+
+.swal2-title {
+    font-size: 1.5rem !important;
+    margin-bottom: 1.5rem !important;
+    color: #2D3748 !important;
+}
+
+.swal2-html-container {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Custom buttons */
+.btn-primary {
+    background-color: #5A6BE5 !important;
+    border-color: #5A6BE5 !important;
+    padding: 0.5rem 1.25rem !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-primary:hover {
+    background-color: #4858D8 !important;
+    border-color: #4858D8 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(90, 107, 229, 0.3) !important;
+}
+
+.btn-outline-secondary {
+    color: #64748B !important;
+    border-color: #CBD5E0 !important;
+    padding: 0.5rem 1.25rem !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #F7FAFC !important;
+    color: #4A5568 !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Animation */
+@keyframes swal-popup-appear {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Input group styling */
+.input-group-text {
+    background-color: #F7FAFC;
+    border-color: #E2E8F0;
+    color: #4A5568;
+}
+
+/* Validation styling */
+.swal2-validation-message {
+    background-color: #FFF5F5 !important;
+    color: #E53E3E !important;
+    border-radius: 6px !important;
+    padding: 0.75rem !important;
+    margin-top: 1rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    border-left: 3px solid #E53E3E !important;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 576px) {
+    .relocation-modal-popup {
+        width: calc(100% - 2rem) !important;
+        margin: 1rem !important;
+    }
+    
+    .swal2-title {
+        font-size: 1.25rem !important;
+    }
+    
+    .relocation-form .form-label {
+        font-size: 0.875rem !important;
+    }
+}

@@ -70,46 +70,56 @@
         </div>
     </div>
 
-    <div class="filters-section">
+    <div class="filters-section mb-5">
     <div class="advanced-search-container bg-light p-4 rounded-3 shadow-sm">
-        <div class="search-filter mb-4">
-            <input type="text"
-                id="relocationKeywordSearch"
-                placeholder="Search relocations..."
-                class="form-control form-control-lg"
-                value="{{ app.request.query.get('keyword') }}">
+        <div class="search-filter mb-3">
+            <input type="text" 
+                   id="relocationKeywordSearch" 
+                   placeholder="Search relocations..." 
+                   class="form-control form-control-lg"
+                   value="{{ app.request.query.get('keyword') }}">
         </div>
-        
-        <div class="row g-3">
-            <div class="col-md-6">
+
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="relocationStatusFilter" class="form-label">
+                    <i class="fas fa-filter me-2"></i>Status
+                </label>
+                <select id="relocationStatusFilter" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="1" {{ app.request.query.get('status') == '1' ? 'selected' }}>Active</option>
+                    <option value="0" {{ app.request.query.get('status') == '0' ? 'selected' }}>Inactive</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
                 <label for="relocationDateFilter" class="form-label">
                     <i class="fas fa-calendar-alt me-2"></i>Date
                 </label>
-                <input type="date"
-                    id="relocationDateFilter"
-                    class="form-control"
-                    value="{{ app.request.query.get('date') }}">
+                <input type="date" 
+                       id="relocationDateFilter" 
+                       class="form-control"
+                       value="{{ app.request.query.get('date') }}">
             </div>
-            
-            <div class="col-md-6 d-flex align-items-end">
-                <button class="btn btn-outline-danger w-100 py-2" id="relocationClearFilters">
+
+            <div class="col-md-4">
+                <button class="btn btn-outline-danger w-100" id="relocationClearFilters">
                     <i class="fas fa-eraser me-2"></i>Clear Filters
                 </button>
             </div>
         </div>
     </div>
 </div>
-</div>
 
     <!-- Relocations Grid -->
     <div id="relocationsList">
     {% if relocations is empty %}
-    <div class="empty-state">
-        <img src="{{ asset('images/front/relocation/empty-state.png') }}" alt="No relocations">
-        <h3>No confirmed relocations</h3>
-        <p>Your confirmed transportations will appear here</p>
-    </div>
-{% else %}
+        <div class="empty-state">
+            <img src="{{ asset('images/front/relocation/empty-state.png') }}" alt="No relocations">
+            <h3>No relocations yet</h3>
+            <p>When your reservations are confirmed by transporters, they will appear here</p>
+        </div>
+    {% else %}
         <div class="announcements-grid">
             {% for relocation in relocations %}
                 <div class="announcement-card relocation-card" 
@@ -169,5 +179,4 @@
     {{ parent() }}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.all.min.js"></script>
     <script src="{{ asset('js/front/relocation/client-relocation.js') }}"></script>
-    <script src="{{ asset('js/front/relocation/client-relocation-search.js') }}"></script>
 {% endblock %}

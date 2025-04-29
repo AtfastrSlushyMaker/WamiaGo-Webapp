@@ -151,16 +151,52 @@ class RelocationRepository extends ServiceEntityRepository
         ->getResult();
 }
 
-    public function findByClient(User $client): array
+public function findByClient(User $client): array
 {
-    return $this->createQueryBuilder('r')
-        ->join('r.reservation', 'res')
-        ->where('res.user = :client')
+    return $this->createBaseQueryBuilder() // Using your base query builder to load all relations
+        ->andWhere('res.user = :client')
         ->setParameter('client', $client)
         ->orderBy('r.date', 'DESC')
         ->getQuery()
         ->getResult();
 }
+public function getQueryBuilderByClient(User $client): QueryBuilder
+{
+    return $this->createBaseQueryBuilder()
+        ->andWhere('res.user = :client')
+        ->setParameter('client', $client)
+        ->orderBy('r.date', 'DESC');
+}
+public function createClientSearchQueryBuilder(User $client, array $filters): QueryBuilder
+{
+    $qb = $this->createBaseQueryBuilder()
+        ->andWhere('res.user = :client')
+        ->setParameter('client', $client);
+
+    if (!empty($filters['keyword'])) {
+        $qb->andWhere('a.title LIKE :keyword OR res.description LIKE :keyword')
+           ->setParameter('keyword', '%' . $filters['keyword'] . '%');
+    }
+
+    if (isset($filters['status']) && $filters['status'] !== '') {
+        $qb->andWhere('r.status = :status')
+           ->setParameter('status', (bool)$filters['status']);
+    }
+
+    if (!empty($filters['date'])) {
+        $date = \DateTime::createFromFormat('Y-m-d', $filters['date']);
+        $qb->andWhere('r.date BETWEEN :start AND :end')
+           ->setParameter('start', $date->format('Y-m-d 00:00:00'))
+           ->setParameter('end', $date->format('Y-m-d 23:59:59'));
+    }
+
+    return $qb->orderBy('r.date', 'DESC');
+}
+
+
+
+
+
 
 public function getQueryByDriver(Driver $driver): QueryBuilder
     {
@@ -174,6 +210,33 @@ public function getQueryByDriver(Driver $driver): QueryBuilder
     }
 
     public function createSearchQueryBuilder(array $filters): QueryBuilder
+{
+    $qb = $this->createQueryBuilder('r')
+        ->leftJoin('r.reservation', 'res')
+        ->leftJoin('res.announcement', 'a')
+        ->addSelect('res', 'a');
+
+    if (!empty($filters['keyword'])) {
+        $qb->andWhere('a.title LIKE :keyword OR res.description LIKE :keyword')
+           ->setParameter('keyword', '%' . $filters['keyword'] . '%');
+    }
+
+    if (isset($filters['status']) && $filters['status'] !== '') {
+        $qb->andWhere('r.status = :status')
+           ->setParameter('status', (bool)$filters['status']);
+    }
+
+    if (!empty($filters['date'])) {
+        $date = \DateTime::createFromFormat('Y-m-d', $filters['date']);
+        $qb->andWhere('r.date BETWEEN :start AND :end')
+           ->setParameter('start', $date->format('Y-m-d 00:00:00'))
+           ->setParameter('end', $date->format('Y-m-d 23:59:59'));
+    }
+
+    return $qb->orderBy('r.date', 'DESC');
+}
+
+public function createSearchQueryBuilder_client(array $filters): QueryBuilder
 {
     $qb = $this->createQueryBuilder('r')
         ->leftJoin('r.reservation', 'res')

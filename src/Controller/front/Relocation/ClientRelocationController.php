@@ -11,6 +11,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use Knp\Component\Pager\PaginatorInterface;
+use App\Enum\ReservationStatus;
 
 #[Route('/client/relocations')]
 class ClientRelocationController extends AbstractController
@@ -19,19 +21,41 @@ class ClientRelocationController extends AbstractController
 
     public function __construct(
         private EntityManagerInterface $em,
-        private RelocationRepository $relocationRepo
+        private RelocationRepository $relocationRepo,
+        private UserRepository $userRepo
     ) {}
 
     #[Route('/', name: 'app_client_relocation_list', methods: ['GET'])]
-    public function list(UserRepository $userRepo): Response
+    public function list(Request $request, PaginatorInterface $paginator): Response
     {
-        $client = $userRepo->find(self::HARDCODED_CLIENT_ID);
+        // Get the client user - in a real app, you'd use $this->getUser() for the authenticated user
+        // But since you're using a hardcoded ID for now:
+        $client = $this->userRepo->find(self::HARDCODED_CLIENT_ID);
         
         if (!$client) {
-            throw $this->createNotFoundException('Client not found');
+            throw $this->createNotFoundException('User not found');
         }
+        
+        $filters = [
+            'keyword' => $request->query->get('keyword'),
+            'date' => $request->query->get('date')
+        ];
 
-        $relocations = $this->relocationRepo->findByClient($client);
+        // Use the repository method to get QueryBuilder with filters
+        $queryBuilder = $this->relocationRepo->createClientSearchQueryBuilder($client, $filters);
+        
+        $relocations = $paginator->paginate(
+            $queryBuilder->getQuery(),
+            $request->query->getInt('page', 1),
+            6
+        );
+
+        // Handle AJAX request
+        if ($request->isXmlHttpRequest()) {
+            return $this->render('front/relocation/client/_relocation_list.html.twig', [
+                'relocations' => $relocations
+            ]);
+        }
 
         return $this->render('front/relocation/client/list.html.twig', [
             'relocations' => $relocations
@@ -41,6 +65,12 @@ class ClientRelocationController extends AbstractController
     #[Route('/{id}/details', name: 'app_client_relocation_details', methods: ['GET'])]
     public function details(Relocation $relocation): JsonResponse
     {
+        // Verify that this relocation belongs to the current client
+        $clientId = self::HARDCODED_CLIENT_ID;
+        if ($relocation->getReservation()->getUser()->getIdUser() !== $clientId) {
+            throw $this->createAccessDeniedException('Access denied to this relocation');
+        }
+        
         $transporter = $relocation->getReservation()->getAnnouncement()->getDriver();
         
         return $this->json([
@@ -56,21 +86,27 @@ class ClientRelocationController extends AbstractController
     }
 
     #[Route('/{id}/delete', name: 'app_client_relocation_delete', methods: ['POST'])]
-public function delete(Relocation $relocation): JsonResponse
-{
-    try {
-        $this->em->remove($relocation);
-        $this->em->flush();
+    public function delete(Relocation $relocation): JsonResponse
+    {
+        // Verify that this relocation belongs to the current client
+        $clientId = self::HARDCODED_CLIENT_ID;
+        if ($relocation->getReservation()->getUser()->getIdUser() !== $clientId) {
+            throw $this->createAccessDeniedException('Access denied to this relocation');
+        }
+        
+        try {
+            $this->em->remove($relocation);
+            $this->em->flush();
 
-        return $this->json([
-            'success' => true,
-            'message' => 'Relocation deleted successfully'
-        ]);
-    } catch (\Exception $e) {
-        return $this->json([
-            'success' => false,
-            'message' => 'Error deleting relocation: ' . $e->getMessage()
-        ], 500);
+            return $this->json([
+                'success' => true,
+                'message' => 'Relocation deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error deleting relocation: ' . $e->getMessage()
+            ], 500);
+        }
     }
-}
 }

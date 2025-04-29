@@ -156,23 +156,38 @@ async function handleReservationAction(reservationId, action) {
     try {
         if (action === 'accept') {
             const { value: formValues } = await Swal.fire({
-                title: 'Accept Reservation',
+                title: '<strong>Accept Reservation</strong>',
                 html: `
-                    <form id="acceptForm">
-                        <div class="mb-3">
-                            <label for="date" class="form-label">Relocation Date</label>
+                    <div class="relocation-form p-2">
+                        <div class="mb-4">
+                            <label for="date" class="form-label text-start d-block">
+                                <i class="fas fa-calendar-alt me-2"></i>Relocation Date
+                            </label>
                             <input type="date" id="date" class="form-control" required 
                                    min="${new Date().toISOString().split('T')[0]}">
                         </div>
                         <div class="mb-3">
-                            <label for="cost" class="form-label">Cost (€)</label>
+                            <label for="cost" class="form-label text-start d-block">
+                                <i class="fas fa-euro-sign me-2"></i>Cost (€)
+                            </label>
                             <input type="number" id="cost" class="form-control" required 
                                    min="0.01" step="0.01" value="50.00">
                         </div>
-                    </form>
+                    </div>
                 `,
+                position: 'top',
+                width: '450px',
                 showCancelButton: true,
-                confirmButtonText: 'Confirm',
+                confirmButtonText: '<i class="fas fa-check me-2"></i>Confirm',
+                cancelButtonText: '<i class="fas fa-times me-2"></i>Cancel',
+                customClass: {
+                    container: 'relocation-modal-container',
+                    popup: 'relocation-modal-popup',
+                    title: 'text-primary fw-bold',
+                    confirmButton: 'btn btn-primary px-4',
+                    cancelButton: 'btn btn-outline-secondary px-4'
+                },
+                buttonsStyling: false,
                 focusConfirm: false,
                 preConfirm: () => {
                     const date = document.getElementById('date').value;

@@ -276,3 +276,22 @@
     25% { transform: translateX(-10px); }
     75% { transform: translateX(10px); }
 }
+
+.filters-section {
+    margin: 2rem 0;
+}
+
+.advanced-search-container {
+    background: #f8f9fa;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.search-filter input {
+    transition: all 0.3s ease;
+}
+
+.search-filter input:focus {
+    border-color: #4299E1;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+}
