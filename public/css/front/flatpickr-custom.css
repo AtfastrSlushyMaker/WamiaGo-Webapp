@@ -1,0 +1,146 @@
+/**
+ * Flatpickr Date Picker Styling
+ * 
+ * Custom styles for the flatpickr date picker to match the WamiaGo theme
+ */
+
+/* Make the date input look nicer */
+input.date-input,
+input.flatpickr-input {
+    cursor: pointer !important;
+    background-color: #f8f9fa !important;
+    padding-right: 40px !important; /* Space for calendar icon */
+}
+
+/* Position the calendar icon */
+.bxs-calendar {
+    pointer-events: none; /* Allow clicks to pass through to input */
+    z-index: 2;
+}
+
+/* Container styling */
+.flatpickr-calendar {
+    background-color: #fff;
+    border-radius: 8px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+    border: none !important;
+    padding: 10px;
+    font-family: 'Poppins', sans-serif;
+    z-index: 999999 !important; /* Ensure calendar appears above everything */
+}
+
+/* Month navigation */
+.flatpickr-months {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: #fff;
+    border-radius: 8px 8px 0 0;
+    padding: 10px 0;
+}
+
+.flatpickr-month {
+    color: #fff !important;
+}
+
+.flatpickr-current-month {
+    padding-top: 5px !important;
+}
+
+.flatpickr-current-month span.cur-month {
+    font-weight: 600;
+}
+
+.flatpickr-current-month .numInputWrapper {
+    margin-left: 5px;
+}
+
+/* Navigation arrows */
+.flatpickr-months .flatpickr-prev-month,
+.flatpickr-months .flatpickr-next-month {
+    color: rgba(255, 255, 255, 0.7) !important;
+    padding: 5px;
+}
+
+.flatpickr-months .flatpickr-prev-month:hover,
+.flatpickr-months .flatpickr-next-month:hover {
+    color: #fff !important;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+/* Weekday headers */
+.flatpickr-weekdays {
+    background: transparent;
+    margin-top: 8px;
+}
+
+.flatpickr-weekday {
+    color: var(--text-color) !important;
+    font-weight: 500;
+}
+
+/* Day cells */
+.flatpickr-day {
+    border-radius: 50% !important;
+    margin: 2px;
+    height: 36px;
+    line-height: 36px;
+    color: var(--text-color);
+    font-weight: 400;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 8px rgba(58, 123, 213, 0.3);
+}
+
+.flatpickr-day.today {
+    border-color: var(--accent-color) !important;
+    color: var(--accent-color) !important;
+    font-weight: 600;
+}
+
+.flatpickr-day:hover {
+    background-color: rgba(58, 123, 213, 0.1);
+}
+
+.flatpickr-day.inRange {
+    background-color: rgba(58, 123, 213, 0.2) !important;
+    border-color: transparent !important;
+}
+
+.flatpickr-day.disabled {
+    color: #ccc !important;
+}
+
+/* Animation */
+.date-picker-ready {
+    animation: datepicker-popup 0.3s ease;
+}
+
+@keyframes datepicker-popup {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile styles */
+@media (max-width: 576px) {
+    .flatpickr-calendar {
+        width: 100% !important;
+        max-width: 320px;
+    }
+}
+
+/* Input field focus effect */
+.input-box.focused {
+    z-index: 10;
+}

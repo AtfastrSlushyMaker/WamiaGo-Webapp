@@ -1,0 +1,367 @@
+/**
+ * Modern User Card Design
+ * A clean, elegant card design for user management interface
+ */
+
+/* Base card container */
+.modern-user-card {
+    position: relative;
+    border-radius: 16px;
+    background: #fff;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(226, 232, 240, 0.6);
+}
+
+.modern-user-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    border-color: rgba(191, 219, 254, 0.6);
+}
+
+/* Card header with background cover */
+.modern-card-header {
+    position: relative;
+    padding: 0;
+    height: 85px;
+    overflow: hidden;
+}
+
+/* Card header background */
+.header-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, #0f172a, #1e293b);
+    z-index: 1;
+}
+
+/* Admin cards get a different color */
+.modern-user-card.role-admin .header-bg {
+    background: linear-gradient(45deg, #312e81, #4f46e5);
+}
+
+/* Active user indicator dot */
+.status-indicator {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid white;
+    z-index: 2;
+}
+
+.status-active {
+    background-color: #10b981;
+}
+
+.status-suspended {
+    background-color: #f59e0b;
+}
+
+.status-banned {
+    background-color: #ef4444; 
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+}
+
+/* Avatar styling */
+.modern-avatar-container {
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background-color: white;
+    padding: 3px;
+    z-index: 2;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+}
+
+.modern-user-card:hover .modern-avatar-container {
+    transform: translateX(-50%) scale(1.05);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modern-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid white;
+}
+
+/* Card body */
+.modern-card-body {
+    padding: 55px 20px 20px;
+    text-align: center;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* User name */
+.modern-card-title {
+    margin: 0 0 3px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+/* User role */
+.modern-card-role {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+.role-admin-badge {
+    background-color: #e0e7ff;
+    color: #4f46e5;
+}
+
+.role-client-badge {
+    background-color: #dcfce7;
+    color: #16a34a;
+}
+
+/* Verification badge */
+.verification-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    width: fit-content;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.verified-true {
+    background-color: #ecfdf5;
+    color: #10b981;
+}
+
+.verified-false {
+    background-color: #f9fafb;
+    color: #9ca3af;
+}
+
+.verification-badge i {
+    margin-right: 4px;
+}
+
+/* User info section */
+.modern-user-info {
+    text-align: left;
+    background-color: #f8fafc;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    flex-grow: 1;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.info-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.info-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.info-icon.email {
+    color: #3b82f6;
+}
+
+.info-icon.phone {
+    color: #10b981;
+}
+
+.info-icon.gender {
+    color: #ec4899;
+}
+
+.info-icon.birthday {
+    color: #f59e0b;
+}
+
+.info-content {
+    font-size: 0.85rem;
+    color: #475569;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Card actions */
+.modern-card-actions {
+    padding: 15px 20px;
+    background-color: #f8fafc;
+    border-top: 1px solid rgba(226, 232, 240, 0.8);
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.action-button {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.action-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.action-button:active {
+    transform: translateY(0);
+}
+
+.action-view {
+    background-color: #3b82f6;
+}
+
+.action-edit {
+    background-color: #f59e0b;
+}
+
+.action-delete {
+    background-color: #ef4444;
+}
+
+.action-ban {
+    background: linear-gradient(135deg, #dc2626, #991b1b);
+}
+            
+.action-unban {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+/* Status badge overlay for banned users */
+.banned-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.03);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.banned-badge {
+    background-color: #ef4444;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    transform: rotate(-15deg) scale(1.2);
+}
+
+/* Banned user card styling */
+.modern-user-card.user-banned {
+    opacity: 0.85;
+}
+
+.modern-user-card.user-banned .modern-avatar {
+    filter: grayscale(0.7);
+}
+
+/* Ghost empty user card animation for loading states */
+@keyframes shimmer {
+    0% {
+        background-position: -468px 0;
+    }
+    100% {
+        background-position: 468px 0;
+    }
+}
+
+.ghost-card {
+    background: linear-gradient(to right, #f6f7f8 8%, #edeef1 18%, #f6f7f8 33%);
+    background-size: 800px 104px;
+    animation: shimmer 1.5s infinite linear;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .modern-avatar-container {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .modern-card-body {
+        padding-top: 50px;
+    }
+}
+
+@media (max-width: 576px) {
+    .modern-card-body {
+        padding: 45px 15px 15px;
+    }
+    
+    .modern-card-actions {
+        padding: 12px 15px;
+    }
+}

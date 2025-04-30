@@ -91,10 +91,20 @@ class RegistrationController extends AbstractController
 
             $field = $form->get($fieldName);
             $value = $field->getData();
-            
-            // Special handling for dateOfBirth field
+              // Special handling for date and gender fields
             if ($fieldName === 'dateOfBirth') {
                 $this->logger->info('Date of birth field details:', [
+                    'raw_value' => $value,
+                    'value_type' => is_object($value) ? get_class($value) : gettype($value),
+                    'view_data' => $field->getViewData(),
+                    'is_valid' => $field->isValid(),
+                    'errors' => $field->getErrors()->count()
+                ]);
+            }
+            
+            // Debug gender field
+            if ($fieldName === 'gender') {
+                $this->logger->info('Gender field details:', [
                     'raw_value' => $value,
                     'value_type' => is_object($value) ? get_class($value) : gettype($value),
                     'view_data' => $field->getViewData(),
@@ -135,7 +145,51 @@ class RegistrationController extends AbstractController
     }
 
     #[Route('/validate-step/{step}', name: 'app_validate_step', methods: ['POST'])]
-    public function validateRegistrationStep(Request $request, int $step): JsonResponse
+    /**
+     * @Route("/debug-form", name="app_debug_form")
+     */
+    public function debugForm(Request $request): Response
+    {
+        $user = new User();
+        $form = $this->createForm(RegistrationFormType::class, $user);
+        
+        try {
+            $form->handleRequest($request);
+            
+            // Get form data
+            $formData = $request->request->all();
+            
+            // Prepare debug output
+            $output = [
+                'form_submitted' => $form->isSubmitted(),
+                'form_valid' => $form->isValid(),
+                'request_data' => $formData,
+                'form_errors' => []
+            ];
+            
+            if ($form->isSubmitted()) {
+                // Get all form errors
+                foreach ($form->getErrors(true) as $error) {
+                    $output['form_errors'][] = [
+                        'field' => $error->getOrigin()->getName(),
+                        'message' => $error->getMessage()
+                    ];
+                }
+            }
+            
+            return new JsonResponse($output);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
+        }
+    }
+
+/**
+     * @Route("/validate-step/{step}", name="app_validate_registration_step", methods={"POST"})
+     */
+public function validateRegistrationStep(Request $request, int $step): JsonResponse
     {
         $user = new User();
         $form = $this->createForm(RegistrationFormType::class, $user);
@@ -165,6 +219,35 @@ class RegistrationController extends AbstractController
                     if ($plainPassword) {
                         $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
                         $user->setPassword($hashedPassword);
+                    }
+                }
+                  // Special handling for gender field in step 2
+                if ($step === 2) {
+                    try {
+                        $formData = $request->request->all();
+                        
+                        // Check if gender was submitted as a string
+                        if (isset($formData['registration_form']['gender']) && is_string($formData['registration_form']['gender'])) {
+                            $genderValue = $formData['registration_form']['gender'];
+                            
+                            // Try to convert the string to a GENDER enum
+                            try {
+                                $genderEnum = \App\Enum\GENDER::from($genderValue);
+                                $user->setGender($genderEnum);
+                                $this->logger->info('Successfully converted gender string {gender} to enum', [
+                                    'gender' => $genderValue
+                                ]);
+                            } catch (\ValueError $e) {
+                                $this->logger->error('Failed to convert gender string {gender} to enum: {error}', [
+                                    'gender' => $genderValue,
+                                    'error' => $e->getMessage()
+                                ]);
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        $this->logger->error('Error processing gender field: {error}', [
+                            'error' => $e->getMessage()
+                        ]);
                     }
                 }
                 

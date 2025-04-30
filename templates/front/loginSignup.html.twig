@@ -1,26 +1,26 @@
-    {% block body %}
+{% block body %}
     <div class="login-container">
         <div class="container {% if show_signup_panel is defined and show_signup_panel %}active{% endif %}">
             <!-- Login Form Box -->
             <div class="form-box login">
                 <form id="login-ajax-form" method="post" action="{{ path('app_login') }}" novalidate>
-                    <h1>Welcome Back</h1>
+                    <h1>Welcome Back</h1>                    
+                    {# Include flash messages #}
+                    {% include 'components/flash_messages.html.twig' %}
                     
                     {% if error %}
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="display: block;">
                             <i class="fas fa-exclamation-circle"></i>
                             <span>{{ error.messageKey|trans(error.messageData, 'security') }}</span>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
-                    {% endif %}
-
-                    <div id="login-error-container" class="alert alert-danger alert-dismissible fade show" style="display: none" role="alert">
+                    {% endif %}<div id="login-error-container" class="alert alert-danger alert-dismissible fade show" role="alert" style="display: none;">
                         <i class="fas fa-exclamation-circle"></i>
                         <span class="error-message"></span>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
 
-                    <div id="login-success-container" class="alert alert-success alert-dismissible fade show" style="display: none" role="alert">
+                    <div id="login-success-container" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
                         <i class="fas fa-check-circle"></i>
                         <span class="success-message"></span>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -40,7 +40,7 @@
                         <i class='bx bxs-envelope'></i>
                         <div class="invalid-feedback"></div>
                     </div>
-
+                    
                     <div class="input-box">
                         <label for="password" class="form-label">Password</label>
                         <div class="password-container">
@@ -52,7 +52,30 @@
                                    class="form-control {% if error %}is-invalid{% endif %}"
                                    data-validation="required|minLength:8"
                                    data-validation-message="Password must be at least 8 characters long" />
-                            <i class='bx bxs-lock-alt password-toggle' onclick="togglePasswordVisibility(this)"></i>
+                            <button type="button" class="toggle-password" aria-label="Reveal password" aria-pressed="false">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <defs>
+                                        <mask id="eye-open">
+                                            <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12V20H12H1V12Z" fill="#D9D9D9" stroke="black"
+                                                stroke-width="1.5" stroke-linejoin="round" />
+                                        </mask>
+                                        <mask id="eye-closed">
+                                            <path d="M1 12C1 12 5 20 12 20C19 20 23 12 23 12V20H12H1V12Z" fill="#D9D9D9" />
+                                        </mask>
+                                    </defs>
+                                    <path class="lid lid--upper" d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12" stroke="currentColor"
+                                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                    <path class="lid lid--lower" d="M1 12C1 12 5 20 12 20C19 20 23 12 23 12" stroke="currentColor"
+                                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                    <g mask="url(#eye-open)">
+                                        <g class="eye">
+                                            <circle cy="12" cx="12" r="4" fill="currentColor" />
+                                            <circle cy="11" cx="13" r="1" fill="black" />
+                                        </g>
+                                    </g>
+                                </svg>
+                                <span class="sr-only">Reveal</span>
+                            </button>
                             <div class="invalid-feedback"></div>
                         </div>
                     </div>
@@ -86,28 +109,23 @@
             <!-- Registration Form Box -->
             <div class="form-box register">
                 <div class="register-center-box">
-                    {{ form_start(registrationForm, {'attr': {'id': 'registration-form', 'action': path('app_register')}}) }}
-                        <h1>Join Us</h1>
-
-                        <div id="signup-success-message" class="success-message" style="display: none">
-                            <i class="fas fa-check-circle"></i>
+                    {{ form_start(registrationForm, {'attr': {'id': 'registration-form', 'action': path('app_register')}}) }}                        <h1>Join Us</h1>                        <div id="signup-success-message" class="success-message" style="display: none; background-color: rgba(76, 175, 80, 0.15); border: 1px solid rgba(76, 175, 80, 0.3); color: #4caf50; padding: 10px 15px; border-radius: 5px; margin: 10px 0; align-items: center; gap: 10px;">
+                            <i class="fas fa-check-circle" style="font-size: 18px;"></i>
                             <span>Account created successfully! Redirecting...</span>
                         </div>
 
-                        <div id="signup-error-message" class="error-message" style="display: none">
-                            <i class="fas fa-exclamation-circle"></i>
+                        <div id="signup-error-message" class="error-message" style="display: none; background-color: rgba(244, 67, 54, 0.15); border: 1px solid rgba(244, 67, 54, 0.3); color: #f44336; padding: 10px 15px; border-radius: 5px; margin: 10px 0; align-items: center; gap: 10px;">
+                            <i class="fas fa-exclamation-circle" style="font-size: 18px;"></i>
                             <span>There was a problem with your registration. Please try again.</span>
                         </div>
 
-                        {{ form_row(registrationForm._token) }}
-
-                        <!-- Step indicators -->
+                        {{ form_row(registrationForm._token) }}                        <!-- Step indicators -->
                         <div class="steps-container">
-                            <div class="step-indicator active" data-step="1">1</div>
+                            <div class="step-indicator active" data-step="1" title="Account Info">1</div>
                             <div class="step-line"></div>
-                            <div class="step-indicator" data-step="2">2</div>
+                            <div class="step-indicator" data-step="2" title="Personal Details">2</div>
                             <div class="step-line"></div>
-                            <div class="step-indicator" data-step="3">3</div>
+                            <div class="step-indicator" data-step="3" title="Password & Terms">3</div>
                         </div>
 
                         <!-- Step 1: Basic Information -->
@@ -132,9 +150,9 @@
                                 {{ form_errors(registrationForm.lastName, {'attr': {'class': 'form-error'}}) }}
                                 <i class='bx bxs-user'></i>
                             </div>
-
+                            
                             <div class="step-buttons">
-                                
+                                <button type="button" class="btn next-btn">Next</button>
                             </div>
                         </div>
 
@@ -145,13 +163,30 @@
                                 {{ form_widget(registrationForm.phone_number, {'attr': {'id': 'reg_phone', 'novalidate': 'novalidate'}}) }}
                                 {{ form_errors(registrationForm.phone_number, {'attr': {'class': 'form-error'}}) }}
                                 <i class='bx bxs-phone'></i>
-                            </div>
-
-                            <div class="input-box {% if registrationForm.dateOfBirth.vars.errors|length > 0 %}has-error{% endif %}">
-                                <label for="reg_date_of_birth" class="form-label">Date of Birth</label>
-                                {{ form_widget(registrationForm.dateOfBirth, {'attr': {'class': 'date-input', 'id': 'reg_date_of_birth', 'novalidate': 'novalidate'}}) }}
+                            </div>                            <div class="input-box {% if registrationForm.dateOfBirth.vars.errors|length > 0 %}has-error{% endif %}">                                <label for="reg_date_of_birth" class="form-label">Date of Birth</label>
+                                {{ form_widget(registrationForm.dateOfBirth, {'attr': {
+                                    'class': 'date-input', 
+                                    'id': 'reg_date_of_birth', 
+                                    'novalidate': 'novalidate',
+                                    'onclick': 'if(typeof flatpickr === "function" && this._flatpickr) { this._flatpickr.open(); }'
+                                }}) }}
                                 {{ form_errors(registrationForm.dateOfBirth, {'attr': {'class': 'form-error'}}) }}
-                                <i class='bx bxs-calendar'></i>
+                                <i class='bx bxs-calendar' onclick="document.getElementById('reg_date_of_birth').click()"></i>
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        setTimeout(function() {
+                                            if (typeof flatpickr === 'function' && document.getElementById('reg_date_of_birth')) {
+                                                flatpickr("#reg_date_of_birth", {
+                                                    dateFormat: "Y-m-d",
+                                                    maxDate: "today",
+                                                    allowInput: true,
+                                                    altInput: true,
+                                                    altFormat: "F j, Y"
+                                                });
+                                            }
+                                        }, 500); // Small delay to ensure the DOM is fully processed
+                                    });
+                                </script>
                             </div>
 
                             <div class="input-box {% if registrationForm.location.vars.errors|length > 0 %}has-error{% endif %}">
@@ -181,9 +216,10 @@
                                 </div>
                                 {{ form_errors(registrationForm.gender, {'attr': {'class': 'form-error'}}) }}
                             </div>
-
+                            
                             <div class="step-buttons">
-                                
+                                <button type="button" class="btn prev-btn">Previous</button>
+                                <button type="button" class="btn next-btn">Next</button>
                             </div>
                         </div>
 
@@ -191,29 +227,77 @@
                         <div class="step-content" data-step="3">
                             <div class="input-box {% if registrationForm.plainPassword.vars.errors|length > 0 %}has-error{% endif %}">
                                 <label for="reg_password" class="form-label">Password</label>
-                                {{ form_widget(registrationForm.plainPassword, {'attr': {'id': 'reg_password', 'novalidate': 'novalidate'}}) }}
+                                <div class="password-container">
+                                    {{ form_widget(registrationForm.plainPassword, {'attr': {'id': 'reg_password', 'novalidate': 'novalidate'}}) }}
+                                    <button type="button" class="toggle-password" aria-label="Reveal password" aria-pressed="false">
+                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <defs>
+                                                <mask id="eye-open-reg">
+                                                    <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12V20H12H1V12Z" fill="#D9D9D9" stroke="black"
+                                                        stroke-width="1.5" stroke-linejoin="round" />
+                                                </mask>
+                                                <mask id="eye-closed-reg">
+                                                    <path d="M1 12C1 12 5 20 12 20C19 20 23 12 23 12V20H12H1V12Z" fill="#D9D9D9" />
+                                                </mask>
+                                            </defs>
+                                            <path class="lid lid--upper" d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12" stroke="currentColor"
+                                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                            <path class="lid lid--lower" d="M1 12C1 12 5 20 12 20C19 20 23 12 23 12" stroke="currentColor"
+                                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                            <g mask="url(#eye-open-reg)">
+                                                <g class="eye">
+                                                    <circle cy="12" cx="12" r="4" fill="currentColor" />
+                                                    <circle cy="11" cx="13" r="1" fill="black" />
+                                                </g>
+                                            </g>
+                                        </svg>
+                                        <span class="sr-only">Reveal</span>
+                                    </button>
+                                </div>
                                 {{ form_errors(registrationForm.plainPassword, {'attr': {'class': 'form-error'}}) }}
-                                <i class='bx bxs-lock-alt'></i>
                             </div>
-
+                            
                             <div class="input-box">
                                 <label for="reg_confirm_password" class="form-label">Confirm Password</label>
-                                <input type="password" id="reg_confirm_password" novalidate />
-                                <i class='bx bxs-lock-alt password-toggle' data-target="reg_confirm_password"></i>
+                                <div class="password-container">
+                                    <input type="password" id="reg_confirm_password" novalidate />
+                                    <button type="button" class="toggle-password" aria-label="Reveal password" aria-pressed="false">
+                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <defs>
+                                                <mask id="eye-open-confirm">
+                                                    <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12V20H12H1V12Z" fill="#D9D9D9" stroke="black"
+                                                        stroke-width="1.5" stroke-linejoin="round" />
+                                                </mask>
+                                                <mask id="eye-closed-confirm">
+                                                    <path d="M1 12C1 12 5 20 12 20C19 20 23 12 23 12V20H12H1V12Z" fill="#D9D9D9" />
+                                                </mask>
+                                            </defs>
+                                            <path class="lid lid--upper" d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12" stroke="currentColor"
+                                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                            <path class="lid lid--lower" d="M1 12C1 12 5 20 12 20C19 20 23 12 23 12" stroke="currentColor"
+                                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                            <g mask="url(#eye-open-confirm)">
+                                                <g class="eye">
+                                                    <circle cy="12" cx="12" r="4" fill="currentColor" />
+                                                    <circle cy="11" cx="13" r="1" fill="black" />
+                                                </g>
+                                            </g>
+                                        </svg>
+                                        <span class="sr-only">Reveal</span>
+                                    </button>
+                                </div>
                                 <span class="form-error" id="confirm-password-error" style="display: none;">Passwords do not match</span>
-                            </div>
-
-                            <div class="terms {% if registrationForm.vars.errors|length > 0 %}has-error{% endif %}">
+                            </div>                            <div class="terms {% if registrationForm.vars.errors|length > 0 %}has-error{% endif %}">
                                 <input type="checkbox" id="terms" name="terms" required />
                                 <label for="terms">I agree to the <a href="#">Terms of Service</a> and
                                     <a href="#">Privacy Policy</a></label>
                                 <div class="form-error" id="terms-error" style="display: none;">You must accept the terms and conditions</div>
                             </div>
-
-                            <div class="step-buttons step-buttons-final">
                             
+                            <div class="step-buttons step-buttons-final">
+                                <button type="button" class="btn prev-btn">Previous</button>
+                                <button type="submit" class="btn create-account-btn">CREATE ACCOUNT</button>
                             </div>
-                            <button type="submit" class="btn">CREATE ACCOUNT</button>
                         </div>
                     {{ form_end(registrationForm, { render_rest: false }) }}
                     <div class="social-media-section">
@@ -229,8 +313,7 @@
             </div>
 
             <!-- Toggle Section with Animation and Logo -->
-            <div class="toggle-box">
-                <!-- Left toggle panel (visible when in login mode) -->
+            <div class="toggle-box">                <!-- Left toggle panel (visible when in login mode) -->
                 <div class="toggle-panel toggle-left">
                     <div class="logo-container">
                         <a href="{{ path('app_front_home') }}">
@@ -243,26 +326,22 @@
                             <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs"
                                 type="module"></script>
                             <dotlottie-player src="https://lottie.host/99262306-ffaf-4895-b278-aeb39ea76131/KdSeoyzVbI.lottie"
-                                background="transparent" speed="1" style="width: 250px; height: 250px" loop autoplay
+                                background="transparent" speed="1" loop autoplay
                                 class="animated-car"></dotlottie-player>
                         </div>
                     </div>
                     
                     <h1>Hello, Welcome!</h1>
                     <p id="toggle-message">New here? Create an account</p>
-                    <button class="btn register-btn">Sign Up</button>
-
-                    <!-- Particles for decorative effect -->
+                    <button class="btn register-btn">Sign Up</button>                    <!-- Particles for decorative effect -->
                     <div class="particles">
-                        <div class="particle small" style="top: 10%; left: 20%; animation-delay: 0s"></div>
-                        <div class="particle small" style="top: 40%; left: 85%; animation-delay: 1.5s"></div>
-                        <div class="particle small" style="top: 80%; left: 10%; animation-delay: 2.5s"></div>
-                        <div class="particle star" style="top: 25%; left: 75%; animation-delay: 13.5s"></div>
-                        <div class="particle ring" style="top: 45%; left: 65%; animation-delay: 15.2s"></div>
+                        <div class="particle small"></div>
+                        <div class="particle small"></div>
+                        <div class="particle small"></div>
+                        <div class="particle star"></div>
+                        <div class="particle ring"></div>
                     </div>
-                </div>
-
-                <!-- Right toggle panel (visible when in register mode) -->
+                </div>                <!-- Right toggle panel (visible when in register mode) -->
                 <div class="toggle-panel toggle-right">
                     <div class="logo-container">
                         <a href="{{ path('app_front_home') }}">
@@ -275,791 +354,81 @@
                             <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs"
                                 type="module"></script>
                             <dotlottie-player src="https://lottie.host/99262306-ffaf-4895-b278-aeb39ea76131/KdSeoyzVbI.lottie"
-                                background="transparent" speed="1" style="width: 250px; height: 250px" loop autoplay
+                                background="transparent" speed="1" loop autoplay
                                 class="animated-car"></dotlottie-player>
                         </div>
                     </div>
                     
                     <h1>Welcome Back!</h1>
                     <p>Already have an account?</p>
-                    <button class="btn login-btn">Login</button>
-
-                    <!-- Particles for decorative effect -->
+                    <button class="btn login-btn">Login</button>                    <!-- Particles for decorative effect -->
                     <div class="particles">
-                        <div class="particle medium" style="top: 20%; left: 40%; animation-delay: 5.2s"></div>
-                        <div class="particle medium" style="top: 60%; left: 70%; animation-delay: 6.1s"></div>
-                        <div class="particle large" style="top: 85%; left: 85%; animation-delay: 10.6s"></div>
-                        <div class="particle star" style="top: 65%; left: 25%; animation-delay: 14.8s"></div>
-                        <div class="particle ring" style="top: 15%; left: 25%; animation-delay: 16.4s"></div>
+                        <div class="particle medium"></div>
+                        <div class="particle medium"></div>
+                        <div class="particle large"></div>
+                        <div class="particle star"></div>
+                        <div class="particle ring"></div>
                     </div>
                 </div>
-            </div>
+            </div></div>
+            
         </div>
-    </div>{% endblock %} 
+    </div>
+{% endblock %}
 
-    {% block stylesheets %}
+{% block stylesheets %}
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@600&display=swap" rel="stylesheet" />
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link rel="stylesheet" href="{{ asset('css/front/loginSignup.css') }}" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <style>
-    /* Enhanced Step Indicators with Modern Design */
-    .steps-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 90%;
-        max-width: 450px;
-        margin: 30px auto;
-        position: relative;
-        padding: 18px 15px;
-        background: rgba(255, 255, 255, 0.85);
-        border-radius: 40px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-        transition: all 0.5s ease;
-        transform-origin: center;
-        animation: stepContainerPulse 1.5s ease-in-out;
-    }
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />    <link rel="stylesheet" href="{{ asset('css/front/loginSignup.css') }}" />    <link rel="stylesheet" href="{{ asset('css/front/enhanced-eye-animation.css') }}?v={{ random() }}" />
+    <link rel="stylesheet" href="{{ asset('css/front/step-indicators-fix.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/front/password-eye-final-fix.css') }}" /><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="{{ asset('css/front/flatpickr-custom.css') }}?v={{ random() }}">
+    <link rel="stylesheet" href="{{ asset('css/front/step-navigation-fix.css') }}?v={{ random() }}">
+    <link rel="stylesheet" href="{{ asset('css/front/message-styles.css') }}?v={{ random() }}">
+{% endblock %}
 
-    @keyframes stepContainerPulse {
-        0% { transform: scale(0.95); opacity: 0.7; }
-        50% { transform: scale(1.03); opacity: 1; }
-        100% { transform: scale(1); opacity: 1; }
-    }
-
-    .step-indicator {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        background: #fff;
-        border: 2px solid #e0e0e0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        font-size: 1.1rem;
-        color: #777;
-        position: relative;
-        z-index: 2;
-        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        cursor: pointer;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
-        flex-shrink: 0;
-        overflow: hidden;
-    }
-
-    .step-indicator:hover {
-        transform: translateY(-5px) scale(1.1);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-        border-color: #bbb;
-        color: #555;
-    }
-
-    .step-indicator.active {
-        border-color: var(--primary-color);
-        background: var(--primary-color);
-        color: white;
-        transform: scale(1.2);
-        box-shadow: 0 8px 25px rgba(var(--primary-color-rgb), 0.4);
-        animation: pulseActive 2s infinite;
-    }
-
-    @keyframes pulseActive {
-        0% { box-shadow: 0 0 0 0 rgba(var(--primary-color-rgb), 0.4); }
-        70% { box-shadow: 0 0 0 10px rgba(var(--primary-color-rgb), 0); }
-        100% { box-shadow: 0 0 0 0 rgba(var(--primary-color-rgb), 0); }
-    }
-
-    .step-line {
-        flex-grow: 1;
-        height: 4px;
-        background: #e5e5e5;
-        z-index: 1;
-        position: relative;
-        overflow: hidden;
-        margin: 0 -5px;
-        max-width: 70px;
-        border-radius: 4px;
-    }
-
-    .step-line::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        height: 100%;
-        width: 0;
-        background: linear-gradient(90deg, var(--primary-color), #28a745);
-        transition: width 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .step-line.active::after {
-        width: 100%;
-        animation: lineProgress 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    @keyframes lineProgress {
-        0% { width: 0; }
-        100% { width: 100%; }
-    }
-
-    /* Shake animation for invalid steps */
-    .step-indicator.shake {
-        animation: shakeStep 0.8s cubic-bezier(.36,.07,.19,.97) both;
-    }
-
-    @keyframes shakeStep {
-        10%, 90% { transform: translateX(-2px) scale(1.2); }
-        20%, 80% { transform: translateX(3px) scale(1.2); }
-        30%, 50%, 70% { transform: translateX(-5px) scale(1.2); }
-        40%, 60% { transform: translateX(5px) scale(1.2); }
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .steps-container {
-            width: 95%;
-            padding: 15px 10px;
-        }
-        
-        .step-indicator {
-            width: 40px;
-            height: 40px;
-            font-size: 1rem;
-        }
-        
-        .step-line {
-            max-width: 50px;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .steps-container {
-            width: 100%;
-            padding: 12px 8px;
-        }
-        
-        .step-indicator {
-            width: 35px;
-            height: 35px;
-            font-size: 0.9rem;
-        }
-        
-        .step-line {
-            max-width: 40px;
-            height: 3px;
-        }
-        
-        .step-indicator .checkmark-icon {
-            font-size: 1rem;
-        }
-    }
-
-    /* Validation Error Styles */
-    .validation-error {
-        color: var(--error-color);
-        font-size: 0.85rem;
-        margin-top: 5px;
-        display: block;
-        transition: all 0.5s ease;
-        opacity: 1;
-        position: absolute;
-        left: 0;
-        bottom: -25px;
-        width: 100%;
-        text-align: left;
-    }
-
-    .validation-error.fade-out {
-        opacity: 0;
-        visibility: hidden;
-    }
-
-    /* Highlight inputs with errors */
-    .input-box .is-invalid, 
-    .input-group .is-invalid {
-        border-color: var(--error-color) !important;
-        box-shadow: 0 0 0 1px var(--error-color) !important;
-    }
-    </style>
-    {% endblock %}
-
-    {% block javascripts %}
+{% block javascripts %}
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
     <script src="{{ asset('js/front/loginSignup.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="{{ asset('js/front/enhanced-eye-animation.js') }}?v={{ random() }}"></script>
+    <script src="{{ asset('js/front/password-validator.js') }}"></script>
+    <script src="{{ asset('js/front/flatpickr-init.js') }}?v={{ random() }}"></script>
+    <script src="{{ asset('js/user-status-manager.js') }}?v={{ random() }}"></script><script src="{{ asset('js/front/alert-handler.js') }}"></script>    <script src="{{ asset('js/front/direct-flatpickr.js') }}?v={{ random() }}"></script>
+    <script src="{{ asset('js/front/confetti-animation.js') }}?v={{ random() }}"></script>
+    <script src="{{ asset('js/front/step-navigation-fix.js') }}?v={{ random() }}"></script>
+    <script src="{{ asset('js/front/form-handler.js') }}?v={{ random() }}"></script>
+    <script src="{{ asset('js/front/direct-confetti.js') }}?v={{ random() }}"></script>
     <script>
-            document.addEventListener('DOMContentLoaded', function() {
-            // Get all step indicators and step content areas
-            const stepIndicators = document.querySelectorAll('.step-indicator');
-            const stepContents = document.querySelectorAll('.step-content');
-            const stepLines = document.querySelectorAll('.step-line');
-            const completedSteps = new Set([1]);  // Track completed steps (start with step 1 as default)
-            const maxStepReached = 1; // Track the maximum step that has been reached
-        
-            // Enable clicking on step indicators to navigate, but only to completed steps
-            stepIndicators.forEach(indicator => {
-                indicator.addEventListener('click', function() {
-                    const clickedStep = parseInt(this.getAttribute('data-step'));
-                    const currentStep = getCurrentStep();
-                    
-                    // Only allow navigation to completed steps or the current step
-                    if (completedSteps.has(clickedStep) || clickedStep === 1) {
-                        navigateToStep(clickedStep);
-                    }
-                });
-            });
-        
-            // Fix validation message timeout
-            function setupValidationMessageTimeout() {
-                // Set timeout to remove error messages after 5 seconds
-                const errorMessages = document.querySelectorAll('.validation-error');
-                errorMessages.forEach(message => {
-                    setTimeout(() => {
-                        message.classList.add('fade-out');
-                        setTimeout(() => {
-                            if (message.parentNode) {
-                                message.remove();
-                            }
-                        }, 500);
-                    }, 5000); // 5 seconds
-                });
-            }
-            
-            // Run initially
-            setupValidationMessageTimeout();
-            
-            // Add input event listeners to all required fields
-            const requiredInputs = document.querySelectorAll('input[required], select[required]');
-            requiredInputs.forEach(input => {
-                input.addEventListener('input', function() {
-                    const errorMessage = this.closest('.input-box')?.querySelector('.validation-error');
-                    if (errorMessage && this.value.trim() !== '') {
-                        errorMessage.classList.add('fade-out');
-                        setTimeout(() => {
-                            if (errorMessage.parentNode) {
-                                errorMessage.remove();
-                            }
-                        }, 500);
-                    }
-                });
-            });
-        
-            // Utility functions
-            function getCurrentStep() {
-                for (let i = 0; i < stepContents.length; i++) {
-                    if (stepContents[i].classList.contains('active')) {
-                        return parseInt(stepContents[i].getAttribute('data-step'));
-                    }
-                }
-                return 1; // Default to first step
-            }
-        
-            function navigateToStep(stepNumber) {
-                // Update step content visibility
-                stepContents.forEach(content => {
-                    if (parseInt(content.getAttribute('data-step')) === stepNumber) {
-                        content.classList.add('active');
-                    } else {
-                        content.classList.remove('active');
-                    }
-                });
-        
-            // Update step indicators
-            stepIndicators.forEach(indicator => {
-                const step = parseInt(indicator.getAttribute('data-step'));
-                
-                // Clear all active states first
-                indicator.classList.remove('active');
-                
-                // Mark as active if it's the current step
-                if (step === stepNumber) {
-                    indicator.classList.add('active');
-                }
-                
-                // First, ensure all indicators have their original number content
-                if (indicator.textContent === '') {
-                    indicator.textContent = step;
-                }
-                
-                // Mark as completed if it's a completed step AND not the current active step
-                if (completedSteps.has(step) && step < stepNumber) {
-                    indicator.classList.add('completed');
-                    
-                    // For completed steps, clear content to let CSS show checkmark
-                    indicator.innerHTML = '';
-                    
-                    // Create the checkmark element with explicit styling and SVG for better visibility
-                    const checkmark = document.createElement('div');
-                    checkmark.style.fontSize = '1.8rem';
-                    checkmark.style.color = '#ffffff';
-                    checkmark.style.display = 'flex';
-                    checkmark.style.alignItems = 'center';
-                    checkmark.style.justifyContent = 'center';
-                    checkmark.style.width = '100%';
-                    checkmark.style.height = '100%';
-                    checkmark.style.position = 'absolute';
-                    checkmark.style.top = '0';
-                    checkmark.style.left = '0';
-                    
-                    // Use SVG instead of icon font for better reliability
-                    checkmark.innerHTML = `
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                    `;
-                    indicator.appendChild(checkmark);
-                } else if (completedSteps.has(step) && step === stepNumber) {
-                    // Don't mark the current step as completed visually
-                    indicator.classList.remove('completed');
-                    
-                    // Restore the number for the current step
-                    if (!indicator.textContent || indicator.textContent === '') {
-                        indicator.textContent = step;
-                    }
-                } else {
-                    // Ensure non-completed steps show their number
-                    indicator.textContent = step;
-                    indicator.classList.remove('completed');
-                }
-            });
-                
-                // Update step lines
-                updateStepLines();
-            }
-            
-            // Update step lines based on current step
-            function updateStepLines() {
-                stepLines.forEach((line, index) => {
-                    const beforeStep = index + 1;
-                    const afterStep = index + 2;
-                    
-                    // Only mark line as active if the step before is truly completed
-                    if (completedSteps.has(beforeStep) && beforeStep < getCurrentStep()) {
-                        line.classList.add('active');
-                        // Animate the line fill
-                        const lineAfter = line.querySelector('::after') || line;
-                        if (lineAfter) {
-                            line.classList.add('active');
-                        }
-                    } else {
-                        line.classList.remove('active');
-                    }
-                });
-            }
-        
-            // Hook into existing next buttons to enforce validation
-            const nextButtons = document.querySelectorAll('.next-btn');
-            nextButtons.forEach(button => {
-                button.addEventListener('click', function(event) {
-                    event.preventDefault();
-                    const currentStep = getCurrentStep();
-                    const isStepValid = validateStep(currentStep);
-        
-                    if (isStepValid) {
-                        const nextStep = currentStep + 1;
-                        completedSteps.add(currentStep);
-                        navigateToStep(nextStep);
-                    } else {
-                        console.log("Validation failed. Cannot proceed to the next step.");
-                        // Add shake animation to indicate failure
-                        const stepIndicator = document.querySelector(`.step-indicator[data-step="${currentStep}"]`);
-                        stepIndicator.classList.add('shake');
-                        setTimeout(() => {
-                            stepIndicator.classList.remove('shake');
-                        }, 500);
-                    }
-                });
-            });
-        
-            // Function to validate a step before marking it as completed
-            function validateStep(stepNumber) {
-                const stepContent = document.querySelector(`.step-content[data-step="${stepNumber}"]`);
-                if (!stepContent) return false;
-        
-                // Reset previous error states
-                stepContent.querySelectorAll('.is-invalid').forEach(el => {
-                    el.classList.remove('is-invalid');
-                });
-                stepContent.querySelectorAll('.form-error').forEach(el => {
-                    el.style.display = 'none';
-                });
-        
-                let isValid = true;
-        
-                // Check for server errors only
-                const serverErrors = stepContent.querySelectorAll('.form-error');
-                serverErrors.forEach(error => {
-                    if (error.textContent.trim()) {
-                        error.style.display = 'block';
-                        const field = error.closest('.input-box, .input-group')?.querySelector('input, select, textarea');
-                        if (field) field.classList.add('is-invalid');
-                        isValid = false;
-                    }
-                });
-        
-                if (!isValid) {
-                    const firstInvalid = stepContent.querySelector('.is-invalid');
-                    if (firstInvalid) {
-                        setTimeout(() => {
-                            firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            firstInvalid.focus();
-                        }, 100);
-                    }
-                }
-        
-                return isValid;
-            }
-        
-            // Also handle previous button clicks correctly
-            const prevButtons = document.querySelectorAll('.prev-btn');
-            prevButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const currentStep = getCurrentStep();
-                    const prevStep = currentStep - 1;
-                    
-                    if (prevStep >= 1) {
-                        // Current step is no longer active
-                        stepIndicators.forEach(indicator => {
-                            const step = parseInt(indicator.getAttribute('data-step'));
-                            
-                            if (step === currentStep) {
-                                indicator.classList.remove('active');
-                            }
-                            
-                            if (step === prevStep) {
-                                indicator.classList.add('active');
-                                indicator.classList.remove('completed');
-                                indicator.textContent = step.toString(); // Restore number
-                            }
-                        });
-                        
-                        // Update step lines
-                        updateStepLines();
-                    }
-                });
-            });
-        
-            // Clean gender button initialization at the end of the page
-            
-        });
-    </script>
-    <!-- Single clean implementation for gender buttons -->
-    <script>
-        // Wait for window to fully load to ensure all elements are ready
-        window.addEventListener('load', function() {
-            console.log("*** GENDER BUTTON SETUP - WINDOW LOAD ***");
-            setupGenderButtons();
-        });
-        
-        // Also try on DOMContentLoaded as a fallback
+        // Ensure flatpickr is applied to date fields
         document.addEventListener('DOMContentLoaded', function() {
-            console.log("*** GENDER BUTTON SETUP - DOM CONTENT LOADED ***");
-            setupGenderButtons();
-        });
-        
-        function setupGenderButtons() {
-            console.log("Setting up gender buttons...");
-            const genderContainer = document.querySelector('.custom-radio-buttons');
-            if (!genderContainer) {
-                console.error("No gender container found!");
-                return;
-            }
-            
-            const inputs = genderContainer.querySelectorAll('input[type="radio"]');
-            console.log("Found", inputs.length, "gender radio inputs");
-            
-            // Apply direct styles to ensure they work
-            applyGenderButtonStyles();
-            
-            inputs.forEach(function(input) {
-                const id = input.id;
-                const label = document.querySelector(`label[for="${id}"]`);
+            // Wait a moment to ensure all DOM elements are ready
+            setTimeout(function() {
+                // Try to find the date input by various methods
+                const dateInput = document.getElementById('reg_date_of_birth') || 
+                                 document.querySelector('input[name="registration_form[dateOfBirth]"]');
                 
-                if (!label) {
-                    console.error("No label found for", id);
-                    return;
-                }
-                
-                console.log("Setting up", id, "with label:", label.textContent);
-                
-                // Force active state on already checked input
-                if (input.checked) {
-                    console.log("Input", id, "is checked, adding active class");
-                    label.classList.add('active');
-                    // Force style application
-                    if (id === "gender_male") {
-                        forceMaleStyles(label);
-                    } else if (id === "gender_female") {
-                        forceFemaleStyles(label);
-                    }
-                }
-                
-                // Direct styling on click - not relying just on CSS classes
-                label.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    console.log("Label clicked:", id);
+                if (dateInput && typeof flatpickr === 'function') {
+                    console.log('Directly initializing flatpickr on:', dateInput);
                     
-                    // Remove styling from all labels
-                    inputs.forEach(inp => {
-                        const l = document.querySelector(`label[for="${inp.id}"]`);
-                        if (l) {
-                            l.classList.remove('active');
-                            resetStyles(l);
-                        }
+                    // Force destroy any existing instance
+                    if (dateInput._flatpickr) {
+                        dateInput._flatpickr.destroy();
+                    }
+                    
+                    // Create new instance
+                    flatpickr(dateInput, {
+                        dateFormat: "Y-m-d",
+                        maxDate: "today",
+                        allowInput: true,
+                        altInput: true,
+                        altFormat: "F j, Y"
                     });
                     
-                    // Apply active class
-                    label.classList.add('active');
-                    
-                    // Check the input
-                    input.checked = true;
-                    
-                    // Apply direct styling based on gender
-                    if (id === "gender_male") {
-                        forceMaleStyles(label);
-                    } else if (id === "gender_female") {
-                        forceFemaleStyles(label);
-                    }
-                    
-                    // Dispatch change event
-                    input.dispatchEvent(new Event('change', { bubbles: true }));
-                });
-            });
-        }
-        
-        function applyGenderButtonStyles() {
-            // Add these styles directly to ensure they work
-            const css = `
-                label[for="gender_male"].active {
-                    border-color: #2196F3 !important;
-                    background-color: rgba(33, 150, 243, 0.1) !important;
-                    color: #2196F3 !important;
-                    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2) !important;
+                    // Make the input more obvious that it's clickable
+                    dateInput.style.cursor = 'pointer';
+                    dateInput.parentNode.querySelector('i').style.pointerEvents = 'none';
                 }
-                label[for="gender_female"].active {
-                    border-color: #FF4081 !important;
-                    background-color: rgba(255, 64, 129, 0.1) !important;
-                    color: #FF4081 !important;
-                    box-shadow: 0 4px 12px rgba(255, 64, 129, 0.2) !important;
-                }
-            `;
-            
-            const style = document.createElement('style');
-            style.textContent = css;
-            document.head.appendChild(style);
-        }
-        
-        function forceMaleStyles(label) {
-            label.style.borderColor = '#2196F3';
-            label.style.backgroundColor = 'rgba(33, 150, 243, 0.1)';
-            label.style.color = '#2196F3';
-            label.style.boxShadow = '0 4px 12px rgba(33, 150, 243, 0.2)';
-        }
-        
-        function forceFemaleStyles(label) {
-            label.style.borderColor = '#FF4081';
-            label.style.backgroundColor = 'rgba(255, 64, 129, 0.1)';
-            label.style.color = '#FF4081';
-            label.style.boxShadow = '0 4px 12px rgba(255, 64, 129, 0.2)';
-        }
-        
-        function resetStyles(label) {
-            label.style.borderColor = '#e0e0e0';
-            label.style.backgroundColor = '#fff';
-            label.style.color = '#555';
-            label.style.boxShadow = 'none';
-        }
-    </script>
-  <style>
-.custom-radio-buttons {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    margin: 15px 0;
-    width: 100%;
-}
-
-/* Hide the actual radio buttons */
-.custom-radio-buttons input[type="radio"] {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-/* Default styling for the labels */
-.custom-radio-buttons label {
-    display: flex;
-    flex: 1;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 15px;
-    border-radius: 8px;
-    border: 2px solid #e0e0e0;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background-color: #fff;
-    color: #555;
-    gap: 8px;
-}
-
-/* Gender Icons */
-.gender-icon {
-    font-size: 18px;
-    margin-right: 5px;
-}
-
-/* Hover effect */
-.custom-radio-buttons label:hover {
-    border-color: #ccc;
-    transform: translateY(-2px);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-}
-
-/* Active styling for male button */
-.custom-radio-buttons input[value="male"]:checked + label,
-label[for="gender_male"].active {
-    border-color: #2196F3 !important;
-    background-color: rgba(33, 150, 243, 0.1) !important;
-    color: #2196F3 !important;
-    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2) !important;
-}
-
-/* Active styling for female button */
-.custom-radio-buttons input[value="female"]:checked + label,
-label[for="gender_female"].active {
-    border-color: #FF4081 !important;
-    background-color: rgba(255, 64, 129, 0.1) !important;
-    color: #FF4081 !important;
-    box-shadow: 0 4px 12px rgba(255, 64, 129, 0.2) !important;
-}
-  </style>
-    {% endblock %}
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            flatpickr("#registration_form_dateOfBirth", {
-                dateFormat: "Y-m-d",
-                maxDate: "today",
-                minDate: "-120 years",
-                allowInput: true,
-                altInput: true,
-                altFormat: "F j, Y",
-                disableMobile: "true"
-            });
+            }, 1000);
         });
     </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const loginForm = document.getElementById('login-ajax-form');
-            const errorContainer = document.getElementById('login-error-container');
-            const successContainer = document.getElementById('login-success-container');
-            const errorMessage = errorContainer.querySelector('.error-message');
-            const successMessage = successContainer.querySelector('.success-message');
-
-            // Add client-side validation
-            function validateForm() {
-                const email = document.getElementById('email').value.trim();
-                const password = document.getElementById('password').value.trim();
-                let isValid = true;
-
-                // Clear previous error states
-                document.getElementById('email').classList.remove('is-invalid');
-                document.getElementById('password').classList.remove('is-invalid');
-
-                // Validate email
-                if (!email) {
-                    document.getElementById('email').classList.add('is-invalid');
-                    document.getElementById('email').nextElementSibling.textContent = 'Email is required';
-                    isValid = false;
-                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                    document.getElementById('email').classList.add('is-invalid');
-                    document.getElementById('email').nextElementSibling.textContent = 'Please enter a valid email address';
-                    isValid = false;
-                }
-
-                // Validate password
-                if (!password) {
-                    document.getElementById('password').classList.add('is-invalid');
-                    document.getElementById('password').nextElementSibling.textContent = 'Password is required';
-                    isValid = false;
-                } else if (password.length < 8) {
-                    document.getElementById('password').classList.add('is-invalid');
-                    document.getElementById('password').nextElementSibling.textContent = 'Password must be at least 8 characters long';
-                    isValid = false;
-                }
-
-                return isValid;
-            }
-
-            loginForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                // Hide any existing messages
-                errorContainer.style.display = 'none';
-                successContainer.style.display = 'none';
-                
-                // Validate form
-                if (!validateForm()) {
-                    return;
-                }
-                
-                const formData = new FormData(loginForm);
-                
-                // Show loading state
-                const submitButton = loginForm.querySelector('button[type="submit"]');
-                const buttonText = submitButton.querySelector('.button-text');
-                const spinner = submitButton.querySelector('.spinner-border');
-                buttonText.style.display = 'none';
-                spinner.classList.remove('d-none');
-                
-                fetch(loginForm.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => {
-                    if (response.redirected) {
-                        window.location.href = response.url;
-                        return;
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data && data.success) {
-                        successMessage.textContent = 'Login successful! Redirecting...';
-                        successContainer.style.display = 'block';
-                        setTimeout(() => {
-                            window.location.href = data.redirectUrl || '/';
-                        }, 1000);
-                    } else if (data) {
-                        errorMessage.textContent = data.message || 'An error occurred during login.';
-                        errorContainer.style.display = 'block';
-                        
-                        // Highlight invalid fields
-                        if (data.field === 'email') {
-                            document.getElementById('email').classList.add('is-invalid');
-                        } else if (data.field === 'password') {
-                            document.getElementById('password').classList.add('is-invalid');
-                        }
-                    }
-                })
-                .catch(error => {
-                    errorMessage.textContent = 'An error occurred. Please try again.';
-                    errorContainer.style.display = 'block';
-                    console.error('Error:', error);
-                })
-                .finally(() => {
-                    // Reset button state
-                    buttonText.style.display = 'block';
-                    spinner.classList.add('d-none');
-                });
-            });
-        });
-    </script>
+{% endblock %}

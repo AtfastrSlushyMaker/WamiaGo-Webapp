@@ -1,0 +1,108 @@
+{# templates/components/flash_messages.html.twig #}
+{% if app.session.flashBag.has('error') %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle me-3"></i>
+            <div>
+                {% for message in app.session.flashBag.get('error') %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{% endif %}
+
+{% if app.session.flashBag.has('warning') %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-circle me-3"></i>
+            <div>
+                {% for message in app.session.flashBag.get('warning') %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{% endif %}
+
+{% if app.session.flashBag.has('success') %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-check-circle me-3"></i>
+            <div>
+                {% for message in app.session.flashBag.get('success') %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{% endif %}
+
+{% if app.session.flashBag.has('info') %}
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-info-circle me-3"></i>
+            <div>
+                {% for message in app.session.flashBag.get('info') %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{% endif %}
+
+{% if app.session.flashBag.has('banned') %}
+    <div class="alert alert-danger banned-alert alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-ban me-3"></i>
+            <div>
+                {% for message in app.session.flashBag.get('banned') %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <style>
+        .banned-alert {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            border-color: #fecaca;
+            border-left: 5px solid #ef4444;
+        }
+        .banned-alert i {
+            font-size: 1.5rem;
+            color: #ef4444;
+        }
+    </style>
+{% endif %}
+
+{% if app.session.flashBag.has('suspended') %}
+    <div class="alert alert-warning suspended-alert alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-user-clock me-3"></i>
+            <div>
+                {% for message in app.session.flashBag.get('suspended') %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <style>
+        .suspended-alert {
+            background-color: #fef3c7;
+            color: #92400e;
+            border-color: #fde68a;
+            border-left: 5px solid #f59e0b;
+        }
+        .suspended-alert i {
+            font-size: 1.5rem;
+            color: #f59e0b;
+        }
+    </style>
+{% endif %}

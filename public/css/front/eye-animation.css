@@ -1,0 +1,65 @@
+/* Password Field Eye Animation - Complete Implementation */
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border: none;
+  background: none;
+  color: #555;
+  cursor: pointer;
+  padding: 0;
+}
+
+.toggle-password:focus {
+  outline: none;
+  color: #333;
+}
+
+.toggle-password svg {
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+}
+
+.toggle-password .lid {
+  transition: transform 0.2s ease;
+}
+
+.toggle-password .eye {
+  transition: transform 0.2s ease;
+  transform-origin: center;
+}
+
+.toggle-password[aria-pressed="true"] .lid--upper {
+  transform: translateY(3.5px);
+}
+
+/* Ensure the password container is set up correctly */
+.password-container {
+  position: relative;
+  width: 100%;
+}
+
+.password-container input {
+  width: 100%;
+  padding-right: 45px; /* Make space for the eye icon */
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}

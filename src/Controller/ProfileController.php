@@ -4,24 +4,19 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Security;
 use App\Repository\UserRepository;
 
 class ProfileController extends AbstractController
 {
-    private Security $security;
     private UserRepository $userRepository;
     
-    public function __construct(Security $security, UserRepository $userRepository) 
+    public function __construct(UserRepository $userRepository) 
     {
-        $this->security = $security;
         $this->userRepository = $userRepository;
-    }
-
-    #[Route('/profile', name: 'app_profile')]
+    }    #[Route('/profile', name: 'app_profile')]
     public function index(): Response
     {
-        $user = $this->security->getUser();
+        $user = $this->getUser();
         
         if (!$user) {
             return $this->redirectToRoute('app_login');
@@ -40,7 +35,7 @@ class ProfileController extends AbstractController
     {
         // You'll implement this method for profile editing
         return $this->render('front/profile_edit.html.twig', [
-            'user' => $this->security->getUser()
+            'user' => $this->getUser()
         ]);
     }
     

@@ -12,13 +12,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="{{ asset('css/front/base.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
     <link href="{{ asset('css/front/dark-mode.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
-    {% if app.request.attributes.get('_route') == 'app_front_home' %}
+    {% if app is defined and app.request is defined and app.request.attributes.get('_route') == 'app_front_home' %}
     <link href="{{ asset('css/front/index.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
     {% endif %}
-    {% if app.request.attributes.get('_route') starts with 'app_front_service' %}
+    {% if app is defined and app.request is defined and app.request.attributes.get('_route') starts with 'app_front_service' %}
     <link href="{{ asset('css/front/services.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
     {% endif %}
-    {% if app.request.attributes.get('_route') == 'app_front_contact' %}
+    {% if app is defined and app.request is defined and app.request.attributes.get('_route') == 'app_front_contact' %}
     <link href="{{ asset('css/front/contact.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
     {% endif %}
     <link rel="icon" type="image/x-icon" href="{{ asset('images/logo/logo.ico') }}">
@@ -97,13 +97,13 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link {% if app.request.attributes.get('_route') == 'app_front_home' %}active{% endif %}"
+                            <a class="nav-link {% if app is defined and app.request is defined and app.request.attributes.get('_route') == 'app_front_home' %}active{% endif %}"
                                href="{{ path('app_front_home') }}">
                                 <i class="fas fa-home me-1"></i> Home
                             </a>
                         </li>
                         <li class="nav-item dropdown">
-                            <button class="nav-link dropdown-toggle {% if app.request.attributes.get('_route') starts with 'app_front_service' %}active{% endif %}"
+                            <button class="nav-link dropdown-toggle {% if app is defined and app.request is defined and app.request.attributes.get('_route') starts with 'app_front_service' %}active{% endif %}"
                                     type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" onKeyDown="if(event.key === 'Enter') this.click();">
                                 <i class="fas fa-concierge-bell me-1"></i> Services <i class="fas fa-chevron-down ms-1 dropdown-toggle-arrow"></i>
                             </button>
@@ -119,13 +119,13 @@
                             </ul>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if app.request.attributes.get('_route') == 'app_front_about' %}active{% endif %}"
+                            <a class="nav-link {% if app is defined and app.request is defined and app.request.attributes.get('_route') == 'app_front_about' %}active{% endif %}"
                                href="{{ path('app_front_about') }}">
                                 <i class="fas fa-info-circle me-1"></i> About
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if app.request.attributes.get('_route') == 'app_front_contact' %}active{% endif %}"
+                            <a class="nav-link {% if app is defined and app.request is defined and app.request.attributes.get('_route') == 'app_front_contact' %}active{% endif %}"
                                href="{{ path('app_front_contact') }}">
                                 <i class="fas fa-envelope me-1"></i> Contact
                             </a>
@@ -134,26 +134,26 @@
 
                     <div class="navbar-nav ms-auto">
                         <li class="nav-item dropdown">
-                            {% if app.user %}
+                            {% if app is defined and app.user is defined and app.user %}
                                 <button class="btn btn-primary btn-sm dropdown-toggle mt-1"
                                         type="button"
                                         id="userDropdown"
                                         data-bs-toggle="dropdown"
                                         aria-expanded="false">
-                                    {% if app.user.profilePicture %}
-                                        <img src="{{ asset('uploads/profiles/' ~ app.user.profilePicture) }}" alt="{{ app.user.name }}" class="rounded-circle" style="width: 20px; height: 20px; margin-right: 5px;">
+                                    {% if app.user.profilePicture is defined and app.user.profilePicture %}
+                                        <img src="{{ app.user.profilePicture }}" alt="{{ app.user.name }}" class="rounded-circle" style="width: 20px; height: 20px; margin-right: 5px;">
                                     {% else %}
                                         <i class="fas fa-user-circle me-1"></i>
                                     {% endif %}
-                                    <span class="d-none d-md-inline">{{ app.user.name }}</span>
+                                    <span class="d-none d-md-inline">{{ app.user.name is defined ? app.user.name : 'User' }}</span>
                                 </button>
-                                {% if app.user and app.user.roles is defined and 'ROLE_ADMIN' in app.user.roles %}
-                                    <li><a class="dropdown-item" href="{{ path('admin_dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
-                                {% endif %}
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                     <li><h6 class="dropdown-header">Account</h6></li>
                                     <li><a class="dropdown-item" href="{{ path('app_profile') }}"><i class="fas fa-user me-2"></i>Profile</a></li>
-                                    {% if app.user and user_repository.isUserDriver(app.user) %}
+                                    {% if app.user is defined and app.user.roles is defined and 'ROLE_ADMIN' in app.user.roles %}
+                                        <li><a class="dropdown-item" href="{{ path('admin_dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+                                    {% endif %}
+                                    {% if app.user is defined and user_repository is defined and user_repository.isUserDriver(app.user) %}
                                         <li><a class="dropdown-item" href="{{ path('app_driver_space') }}"><i class="fas fa-car me-2"></i>Driver Space</a></li>
                                     {% endif %}
                                     <li><hr class="dropdown-divider"></li>

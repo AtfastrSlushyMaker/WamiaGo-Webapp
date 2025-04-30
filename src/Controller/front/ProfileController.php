@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Form\AvatarUploadType;
 use App\Form\ProfileEditType;
 use App\Form\ChangePasswordType;
+use App\Service\CloudinaryService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,57 +29,85 @@ class ProfileController extends AbstractController
     }
 
     #[Route('/change-avatar', name: 'change_avatar', methods: ['POST'])]
-    public function changeAvatar(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): JsonResponse
+    public function changeAvatar(Request $request, EntityManagerInterface $entityManager, CloudinaryService $cloudinaryService): JsonResponse
     {
         $user = $this->getUser();
         if (!$user instanceof User) {
             return new JsonResponse(['success' => false, 'message' => 'User not found'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $form = $this->createForm(AvatarUploadType::class);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $avatarFile = $form->get('avatar')->getData();
-
-            if ($avatarFile) {
-                $originalFilename = pathinfo($avatarFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename.'-'.uniqid().'.'.$avatarFile->guessExtension();
-
-                try {
-                    $avatarFile->move(
-                        $this->getParameter('profile_pictures_directory'),
-                        $newFilename
-                    );
-
-                    // Delete old profile picture if exists
-                    if ($user->getProfilePicture() && file_exists($this->getParameter('profile_pictures_directory').'/'.$user->getProfilePicture())) {
-                        unlink($this->getParameter('profile_pictures_directory').'/'.$user->getProfilePicture());
-                    }
-
-                    $user->setProfilePicture($newFilename);
-                    $entityManager->persist($user);
-                    $entityManager->flush();
-
-                    return new JsonResponse([
-                        'success' => true,
-                        'message' => 'Profile picture updated successfully',
-                        'newFilename' => $newFilename
-                    ]);
-                } catch (\Exception $e) {
-                    return new JsonResponse([
-                        'success' => false,
-                        'message' => 'Error uploading file: ' . $e->getMessage()
-                    ], Response::HTTP_INTERNAL_SERVER_ERROR);
-                }
-            }
+        if (!$request->files->has('avatar')) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'No file uploaded'
+            ], Response::HTTP_BAD_REQUEST);
         }
 
-        return new JsonResponse([
-            'success' => false,
-            'message' => 'Invalid file upload'
-        ], Response::HTTP_BAD_REQUEST);
+        $avatarFile = $request->files->get('avatar');
+        
+        // Validate the file
+        $validMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        $maxFileSize = 2 * 1024 * 1024; // 2MB
+        
+        if (!in_array($avatarFile->getMimeType(), $validMimeTypes)) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Invalid file type. Please upload a JPEG, PNG, or GIF image.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+        
+        if ($avatarFile->getSize() > $maxFileSize) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'File is too large. Maximum size is 2MB.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+        
+        // Generate a unique public ID for the image using user ID and timestamp
+        $publicId = 'user_' . $user->getId_user() . '_' . time();
+        
+        try {
+            // Upload the file to Cloudinary
+            $uploadResult = $cloudinaryService->uploadImage($avatarFile, $publicId);
+            
+            if ($uploadResult === null || !isset($uploadResult['secure_url'])) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Failed to upload image to cloud storage'
+                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+            
+            // Extract the secure URL for storage
+            $imageUrl = $uploadResult['secure_url'];
+            
+            // Delete the old profile picture from Cloudinary if it exists
+            $oldProfileUrl = $user->getProfilePicture();
+            if ($oldProfileUrl && strpos($oldProfileUrl, 'cloudinary.com') !== false) {
+                // Extract the public ID from the old URL
+                preg_match('/\/v\d+\/(.+?)\./', $oldProfileUrl, $matches);
+                if (isset($matches[1])) {
+                    $oldPublicId = $matches[1];
+                    // Delete the old image
+                    $cloudinaryService->deleteImage($oldPublicId);
+                }
+            }
+            
+            // Update the user's profile picture URL
+            $user->setProfilePicture($imageUrl);
+            $entityManager->persist($user);
+            $entityManager->flush();
+            
+            return new JsonResponse([
+                'success' => true,
+                'message' => 'Profile picture updated successfully',
+                'imageUrl' => $imageUrl
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Error uploading image: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     #[Route('/edit', name: 'edit', methods: ['POST'])]

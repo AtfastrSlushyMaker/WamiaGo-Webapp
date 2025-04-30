@@ -1,4 +1,3 @@
-
 {% extends 'front/base.html.twig' %}
 
 {% block title %}Bicycle Rentals - WamiaGo{% endblock %}
@@ -256,7 +255,7 @@
 </section>
 
 {# My Reservations Section (only for logged in users) - Direct from controller #}
-{% if app.user %}
+{% if app is defined and app.user is defined %}
     <section class="py-5">
         <div class="container">
 
@@ -381,7 +380,7 @@
     <div class="container">
         <h2 class="mb-3">Ready to Start Riding?</h2>
         <p class="lead mb-4">Join thousands of happy riders exploring the city on our eco-friendly bicycles.</p>
-        {% if not app.user %}
+        {% if not (app is defined and app.user is defined) %}
             <div class="d-flex justify-content-center">
                 <a href="#" class="btn btn-light btn-lg me-3">
                     <i class="fas fa-user-plus me-2"></i> Sign Up
@@ -483,100 +482,4 @@ function initializeMap() {
                         View Station Details
                     </a>
                 </div>
-            `);
-        {% endif %}
-    {% endfor %}
-    
-    // Fit map to bounds if we have stations
-    if(bounds.isValid()) {
-        map.fitBounds(bounds);
-    }
-    
-    console.log("Map initialized successfully");
-}
-
-function initializeFloatingButton() {
-    console.log("Initializing floating button...");
-    
-    const reservationsBtn = document.getElementById('reservationsButton');
-    if (!reservationsBtn) {
-        console.error("Floating button element not found");
-        return;
-    }
-    
-    // Apply direct styling for visibility
-    reservationsBtn.style.opacity = '0';
-    reservationsBtn.style.transform = 'translateY(20px)';
-    
-    // Add hover effect to button
-    const buttonLink = reservationsBtn.querySelector('a');
-    if (buttonLink) {
-        buttonLink.style.transition = 'transform 0.2s ease';
-        
-        buttonLink.addEventListener('mouseenter', function() {
-            this.style.transform = 'scale(1.1)';
-        });
-        
-        buttonLink.addEventListener('mouseleave', function() {
-            this.style.transform = 'scale(1.0)';
-        });
-    }
-    
-    // Function to update button visibility based on scroll position
-    function updateButtonVisibility() {
-        const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-        if (scrollPosition > 300) {
-            reservationsBtn.style.opacity = '1';
-            reservationsBtn.style.transform = 'translateY(0)';
-        } else {
-            reservationsBtn.style.opacity = '0';
-            reservationsBtn.style.transform = 'translateY(20px)';
-        }
-    }
-    
-    // Set initial state
-
-    
-    // Add scroll event listener
-    window.addEventListener('scroll', updateButtonVisibility);
-    
-    console.log("Floating button initialized successfully");
-    
-    // Force a refresh of the button state after a short delay
-    setTimeout(updateButtonVisibility, 200);
-}   
-</script>
-<script>
-// Force floating button to appear
-document.addEventListener('DOMContentLoaded', function() {
-    const forceButton = function() {
-        const btn = document.getElementById('reservationsButton');
-        if (btn) {
-            btn.style.position = 'fixed';
-            btn.style.bottom = '30px';
-            btn.style.right = '30px';
-            btn.style.zIndex = '100000';
-            btn.style.backgroundColor = '#28a745';
-            btn.style.borderRadius = '50%';
-            btn.style.width = '65px';
-            btn.style.height = '65px';
-            btn.style.display = 'flex';
-            btn.style.alignItems = 'center';
-            btn.style.justifyContent = 'center';
-            btn.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
-            btn.style.opacity = '1';
-            btn.style.transform = 'none';
-            
-            console.log('FORCE APPLIED TO BUTTON');
-        } else {
-            console.error('Button not found for force fix');
-        }
-    };
-    
-    setTimeout(forceButton, 1000);
-    document.addEventListener('scroll', function() {
-        forceButton();
-    });
-});
-</script>
-{% endblock %}
+            `

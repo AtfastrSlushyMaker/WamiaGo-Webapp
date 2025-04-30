@@ -121,15 +121,14 @@ class RegistrationFormType extends AbstractType
                         'message' => 'Please enter a valid date of birth'
                     ])
                 ]
-            ])
-            ->add('gender', EnumType::class, [
-                'class' => GENDER::class,
+            ])            ->add('gender', ChoiceType::class, [
                 'required' => true,
                 'expanded' => true,
                 'multiple' => false,
-                'choice_label' => function($choice, $key, $value) {
-                    return ucfirst(strtolower($value));
-                },
+                'choices' => [
+                    'Male' => 'MALE',
+                    'Female' => 'FEMALE'
+                ],
                 'constraints' => [
                     new NotNull(['message' => 'Please select your gender'])
                 ]
@@ -142,9 +141,7 @@ class RegistrationFormType extends AbstractType
                 'constraints' => [
                     new NotNull(['message' => 'Please select your location'])
                 ]
-            ]);
-
-        // Add the date transformer
+            ]);        // Add the date transformer
         $builder->get('dateOfBirth')
             ->addModelTransformer(new CallbackTransformer(
                 function ($date) {
@@ -162,6 +159,29 @@ class RegistrationFormType extends AbstractType
                     } catch (\Exception $e) {
                         return null;
                     }
+                }
+            ));
+            
+        // Add gender transformer
+        $builder->get('gender')
+            ->addModelTransformer(new CallbackTransformer(
+                function ($genderEnum) {
+                    // Transform from GENDER enum to string
+                    if ($genderEnum instanceof GENDER) {
+                        return $genderEnum->value;
+                    }
+                    return null;
+                },
+                function ($genderString) {
+                    // Transform from string to GENDER enum
+                    if (!empty($genderString)) {
+                        try {
+                            return GENDER::from($genderString);
+                        } catch (\ValueError $e) {
+                            return null;
+                        }
+                    }
+                    return null;
                 }
             ));
     }

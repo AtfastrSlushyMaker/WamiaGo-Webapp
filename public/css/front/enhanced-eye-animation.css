@@ -1,0 +1,155 @@
+/* Enhanced Eye Animation and Text Effect CSS */
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border: none;
+  background: none;
+  color: #555;
+  cursor: pointer;
+  padding: 0;
+}
+
+.toggle-password:focus {
+  outline: none;
+  color: #333;
+}
+
+.toggle-password:hover {
+  color: #333;
+}
+
+.toggle-password svg {
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+}
+
+/* Transition eye parts with improved timing */
+.toggle-password .lid {
+  transition: transform 0.2s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+.toggle-password .eye {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+}
+
+/* Blinking animation */
+@keyframes blink {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3.5px); }
+}
+
+/* When password is shown, make the upper lid drop */
+.toggle-password[aria-pressed="true"] .lid--upper {
+  transform: translateY(3.5px);
+}
+
+/* Hide the entire eye when closed */
+.toggle-password[aria-pressed="true"] .eye {
+  opacity: 0;
+}
+
+/* Password container styling */
+.password-container {
+  position: relative;
+  width: 100%;
+}
+
+.password-container input {
+  width: 100%;
+  padding-right: 45px; /* Space for the toggle button */
+  transition: all 0.3s ease;
+}
+
+/* Enhanced Text animations */
+@keyframes textReveal {
+  0% {
+    color: transparent;
+    text-shadow: 0 0 8px rgba(0,0,0,0.7);
+    letter-spacing: 2px;
+  }
+  30% {
+    letter-spacing: 1px;
+    text-shadow: 0 0 5px rgba(0,0,0,0.5);
+  }
+  100% {
+    color: inherit;
+    text-shadow: none;
+    letter-spacing: normal;
+  }
+}
+
+/* Character-by-character animation */
+@keyframes characterReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.password-container input[type="text"] {
+  animation: textReveal 0.7s ease-out forwards;
+}
+
+/* This class will be applied to create a character-by-character effect */
+.text-character-animation {
+  animation: textReveal 0.7s ease-out forwards;
+}
+
+/* Enhanced ripple effect for input */
+@keyframes ripple {
+  0% {
+    box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(66, 133, 244, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 0 15px rgba(66, 133, 244, 0);
+  }
+}
+
+.password-reveal-animation {
+  animation: ripple 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Blink animation class */
+.eye-blink .lid--upper {
+  animation: blink 0.2s ease-in-out forwards;
+}
+
+/* Screen reader only class */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Mobile responsiveness improvements */
+@media (max-width: 768px) {
+  .toggle-password {
+    right: 10px;
+  }
+  
+  .password-container input {
+    padding-right: 40px;
+  }
+}

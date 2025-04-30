@@ -16,8 +16,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Repository\BicycleStationRepository;
@@ -29,7 +27,6 @@ class BicycleRentalsController extends AbstractController
     private $bicycleService;
     private $stationService;
     private $rentalService;
-    private $security;
     private $validator;
 
     public function __construct(
@@ -37,18 +34,16 @@ class BicycleRentalsController extends AbstractController
         BicycleService $bicycleService,
         BicycleStationService $stationService,
         BicycleRentalService $rentalService,
-        Security $security,
         ValidatorInterface $validator
     ) {
         $this->entityManager = $entityManager;
         $this->bicycleService = $bicycleService;
         $this->stationService = $stationService;
         $this->rentalService = $rentalService;
-        $this->security = $security;
         $this->validator = $validator;
     }
 
-    #[Route('/', name: 'app_front_services_bicycle')]
+    #[Route('', name: 'app_front_services_bicycle')]
     public function index(): Response
     {
         // Refresh available bikes counts to ensure accuracy
@@ -89,7 +84,7 @@ class BicycleRentalsController extends AbstractController
         ]);
     }
 
-    #[Route('/bicycle/{id}', name: 'app_front_services_bicycle_details')]
+    #[Route('/details/{id}', name: 'app_front_services_bicycle_details')]
     public function bicycleDetails(int $id): Response
     {
         $bicycle = $this->bicycleService->getBicycle($id);
@@ -108,8 +103,8 @@ class BicycleRentalsController extends AbstractController
         ]);
     }
 
-    #[Route('/bicycle/{id}/reserve', name: 'app_front_reserve_bicycle', methods: ['GET', 'POST'])]
-    public function reserveBicycle(Request $request, int $id): Response
+    #[Route('/reserve/{id}', name: 'app_front_services_bicycle_reserve')]
+    public function reserveBicycle(int $id): Response
     {
         $bicycle = $this->bicycleService->getBicycle($id);
 
@@ -122,59 +117,41 @@ class BicycleRentalsController extends AbstractController
             return $this->redirectToRoute('app_front_services_bicycle_station', ['id' => $bicycle->getBicycleStation()->getIdStation()]);
         }
 
-        $isPremium = $bicycle->getBatteryLevel() > 90;
-        $hourlyRate = $isPremium ? 5.00 : 3.50;
-
-        // Process form submission
-        if ($request->isMethod('POST')) {
-            $duration = (int) $request->request->get('duration');
-            $estimatedCost = (float) $request->request->get('estimatedCost');
-
-            // Validate input
-            $constraints = new Assert\Collection([
-                'duration' => [
-                    new Assert\NotBlank(),
-                    new Assert\Type(['type' => 'numeric']),
-                    new Assert\Range(['min' => 1, 'max' => 24])
-                ],
-                'estimatedCost' => [
-                    new Assert\NotBlank(),
-                    new Assert\Type(['type' => 'numeric']),
-                    new Assert\Positive()
-                ]
-            ]);
-
-            $errors = $this->validator->validate([
-                'duration' => $duration,
-                'estimatedCost' => $estimatedCost
-            ], $constraints);
-
-            if (count($errors) > 0) {
-                foreach ($errors as $error) {
-                    $this->addFlash('error', $error->getMessage());
-                }
-            } else {
-                try {
-                    // Create reservation
-                    $rental = $this->rentalService->reserveBicycle(
-                        $this->entityManager->getRepository(User::class)->find(1),
-                        $bicycle,
-                        $estimatedCost
-                    );
-
-                    return $this->redirectToRoute('app_front_rental_confirmation', [
-                        'id' => $rental->getIdUserRental()
-                    ]);
-                } catch (\Exception $e) {
-                    $this->addFlash('error', $e->getMessage());
-                }
-            }
-        }
+        // For demonstration, use user ID 1
+        $user = $this->entityManager->getRepository(User::class)->find(1);
 
         return $this->render('front/bicycle/reserve.html.twig', [
             'bicycle' => $bicycle,
-            'bicycleType' => $isPremium ? 'Premium E-Bike' : 'Standard E-Bike',
-            'hourlyRate' => $hourlyRate
+            'user' => $user
+        ]);
+    }
+
+    #[Route('/confirm-reservation/{id}', name: 'app_front_services_bicycle_confirm', methods: ['POST'])]
+    public function confirmReservation(Request $request, int $id): Response
+    {
+        $bicycle = $this->bicycleService->getBicycle($id);
+        
+        if (!$bicycle) {
+            throw $this->createNotFoundException('Bicycle not found');
+        }
+        
+        if ($bicycle->getStatus() !== BICYCLE_STATUS::AVAILABLE) {
+            $this->addFlash('error', 'This bicycle is not available for reservation');
+            return $this->redirectToRoute('app_front_services_bicycle_station', ['id' => $bicycle->getBicycleStation()->getIdStation()]);
+        }
+        
+        // For demonstration, use user ID 1
+        $user = $this->entityManager->getRepository(User::class)->find(1);
+        
+        // Get form data
+        $estimatedCost = $request->request->get('estimated_cost', 0);
+        
+        // Create rental
+        $rental = $this->rentalService->reserveBicycle($user, $bicycle, $estimatedCost);
+        
+        return $this->render('front/bicycle/confirmation.html.twig', [
+            'rental' => $rental,
+            'reservationCode' => 'B' . str_pad($rental->getIdUserRental(), 5, '0', STR_PAD_LEFT)
         ]);
     }
 

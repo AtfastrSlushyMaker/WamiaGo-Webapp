@@ -44,10 +44,11 @@ class UserRepository extends ServiceEntityRepository
         try {
             $qb = $this->createQueryBuilder('u');
             
-            // Apply search filter
+            // Apply search filter (case-insensitive, accent-insensitive if possible)
             if (!empty($search)) {
-                $qb->andWhere('(u.name LIKE :search OR u.email LIKE :search OR u.phone_number LIKE :search)')
-                   ->setParameter('search', '%' . $search . '%');
+                $search = trim($search);
+                $qb->andWhere('LOWER(u.name) LIKE LOWER(:search) OR LOWER(u.email) LIKE LOWER(:search) OR LOWER(u.phone_number) LIKE LOWER(:search)')
+                   ->setParameter('search', '%' . mb_strtolower($search, 'UTF-8') . '%');
             }
             
             // Add additional criteria
@@ -69,22 +70,12 @@ class UserRepository extends ServiceEntityRepository
                 $qb->setMaxResults($limit)
                    ->setFirstResult($offset);
             }
-            
             return $qb->getQuery()->getResult();
         } catch (\Exception $e) {
             // Log any errors that occur
             error_log('Error in findBySearchTerm: ' . $e->getMessage());
             return [];
         }
-        $qb->orderBy('u.' . $sortBy, $sortDir);
-        
-        // Add pagination
-        if ($limit > 0) {
-            $qb->setMaxResults($limit)
-               ->setFirstResult($offset);
-        }
-        
-        return $qb->getQuery()->getResult();
     }
     
     /**
@@ -96,10 +87,11 @@ class UserRepository extends ServiceEntityRepository
             $qb = $this->createQueryBuilder('u')
                     ->select('COUNT(u.id_user)');
             
-            // Apply search filter if provided
+            // Apply search filter if provided (case-insensitive)
             if (!empty($search)) {
-                $qb->andWhere('(u.name LIKE :search OR u.email LIKE :search OR u.phone_number LIKE :search)')
-                ->setParameter('search', '%' . $search . '%');
+                $search = trim($search);
+                $qb->andWhere('LOWER(u.name) LIKE LOWER(:search) OR LOWER(u.email) LIKE LOWER(:search) OR LOWER(u.phone_number) LIKE LOWER(:search)')
+                ->setParameter('search', '%' . mb_strtolower($search, 'UTF-8') . '%');
             }
             
             // Add additional criteria

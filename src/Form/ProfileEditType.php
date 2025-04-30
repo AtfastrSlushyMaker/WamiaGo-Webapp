@@ -10,6 +10,7 @@ use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use App\Entity\Location;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -82,15 +83,15 @@ class ProfileEditType extends AbstractType
                     new Assert\GreaterThan('-120 years', message: 'Please enter a valid date of birth'),
                 ],
             ])
-            ->add('gender', EnumType::class, [
-                'class' => GENDER::class,
+            ->add('gender', ChoiceType::class, [
                 'label' => 'Gender',
                 'required' => true,
                 'expanded' => true,
                 'multiple' => false,
-                'choice_label' => function($choice, $key, $value) {
-                    return ucfirst(strtolower($value));
-                },
+                'choices' => [
+                    'Male' => 'MALE',
+                    'Female' => 'FEMALE'
+                ],
                 'constraints' => [
                     new Assert\NotNull(['message' => 'Please select your gender'])
                 ]
@@ -131,6 +132,29 @@ class ProfileEditType extends AbstractType
                     } catch (\Exception $e) {
                         return null;
                     }
+                }
+            ));
+            
+        // Add gender transformer
+        $builder->get('gender')
+            ->addModelTransformer(new CallbackTransformer(
+                function ($genderEnum) {
+                    // Transform from GENDER enum to string
+                    if ($genderEnum instanceof GENDER) {
+                        return $genderEnum->value;
+                    }
+                    return null;
+                },
+                function ($genderString) {
+                    // Transform from string to GENDER enum
+                    if (!empty($genderString)) {
+                        try {
+                            return GENDER::from($genderString);
+                        } catch (\ValueError $e) {
+                            return null;
+                        }
+                    }
+                    return null;
                 }
             ));
     }

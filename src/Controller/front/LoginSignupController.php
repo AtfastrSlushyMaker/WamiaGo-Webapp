@@ -41,19 +41,82 @@ class LoginSignupController extends AbstractController
             if ($error) {
                 $errorMessage = $error->getMessage();
                 $errorKey = 'security.authentication_error';
+                $field = null;
                 
+                // Mapping of error messages to user-friendly messages
                 $errorMap = [
-                    'Invalid credentials.' => 'The email or password you entered is incorrect.',
-                    'User account is disabled.' => 'Your account has been disabled. Please contact support.',
-                    'User account is locked.' => 'Your account has been locked due to too many failed login attempts.'
+                    'Invalid credentials.' => [
+                        'message' => 'The email or password you entered is incorrect.',
+                        'code' => 'invalid_credentials'
+                    ],
+                    'User account is disabled.' => [
+                        'message' => 'Your account has been disabled. Please contact support.',
+                        'code' => 'account_disabled'
+                    ],
+                    'User account is locked.' => [
+                        'message' => 'Your account has been locked due to too many failed login attempts.',
+                        'code' => 'account_locked'
+                    ],
+                    'Please enter a valid email address.' => [
+                        'message' => 'Please enter a valid email address in the format name@example.com',
+                        'code' => 'invalid_email_format',
+                        'field' => 'email'
+                    ],
+                    'Email cannot be empty.' => [
+                        'message' => 'Please enter your email address',
+                        'code' => 'empty_email',
+                        'field' => 'email'
+                    ],
+                    'Password cannot be empty.' => [
+                        'message' => 'Please enter your password',
+                        'code' => 'empty_password',
+                        'field' => 'password'
+                    ],
+                    'No account found with this email address.' => [
+                        'message' => 'No account found with this email address. Please check your spelling or create a new account.',
+                        'code' => 'email_not_found',
+                        'field' => 'email'
+                    ],
+                    'The password you entered is incorrect.' => [
+                        'message' => 'The password you entered is incorrect. Please try again or use the forgot password option.',
+                        'code' => 'invalid_password',
+                        'field' => 'password'
+                    ],
+                    'Too many failed login attempts.' => [
+                        'message' => 'Too many failed login attempts. For security reasons, please wait before trying again.',
+                        'code' => 'too_many_attempts'
+                    ]
                 ];
                 
-                $userMessage = isset($errorMap[$errorMessage]) ? $errorMap[$errorMessage] : 'Login failed. Please check your credentials and try again.';
+                // Determine the appropriate error info
+                $errorInfo = null;
+                
+                // Try exact match first
+                if (isset($errorMap[$errorMessage])) {
+                    $errorInfo = $errorMap[$errorMessage];
+                } else {
+                    // Try partial match
+                    foreach ($errorMap as $key => $info) {
+                        if (strpos($errorMessage, $key) !== false) {
+                            $errorInfo = $info;
+                            break;
+                        }
+                    }
+                }
+                
+                // Default fallback if no match found
+                if (!$errorInfo) {
+                    $errorInfo = [
+                        'message' => 'Login failed. Please check your credentials and try again.',
+                        'code' => 'authentication_error'
+                    ];
+                }
                 
                 return $this->json([
                     'success' => false,
-                    'message' => $userMessage,
-                    'error_code' => $errorKey,
+                    'message' => $errorInfo['message'],
+                    'error_code' => $errorInfo['code'],
+                    'field' => isset($errorInfo['field']) ? $errorInfo['field'] : null,
                     'technical_details' => $this->getParameter('kernel.debug') ? $errorMessage : null
                 ], Response::HTTP_UNAUTHORIZED);
             }

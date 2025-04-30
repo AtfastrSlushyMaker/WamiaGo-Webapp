@@ -7,6 +7,9 @@ parameters:
     profile_pictures_directory: '%kernel.project_dir%/public/uploads/profile_pictures'
     app_secret: '%env(APP_SECRET)%'
     app_email: '%env(APP_EMAIL)%'
+    cloudinary_cloud_name: '%env(CLOUDINARY_CLOUD_NAME)%'
+    cloudinary_api_key: '%env(CLOUDINARY_API_KEY)%'
+    cloudinary_api_secret: '%env(CLOUDINARY_API_SECRET)%'
 
 services:
     # default configuration for services in *this* file
@@ -26,12 +29,20 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
     
-    # Add UserRepository as a global Twig variable
-    App\Repository\UserRepository:
-        public: true
-
     # Configure ResetPasswordService
     App\Service\ResetPasswordService:
         arguments:
             $appSecret: '%app_secret%'
             $appEmail: '%app_email%'
+
+    # Configure CloudinaryService
+    App\Service\CloudinaryService:
+        arguments:
+            $cloudName: '%cloudinary_cloud_name%'
+            $apiKey: '%cloudinary_api_key%'
+            $apiSecret: '%cloudinary_api_secret%'
+
+    # Make the UserRepository service available in templates
+    App\Service\UserRepository:
+        autowire: true
+        public: true

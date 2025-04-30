@@ -416,6 +416,12 @@ function initializeFormSubmission() {
             e.preventDefault();
             hideError();
 
+            // Reset validation state
+            const emailField = document.getElementById('email');
+            const passwordField = document.getElementById('password');
+            if (emailField) emailField.classList.remove('is-invalid');
+            if (passwordField) passwordField.classList.remove('is-invalid');
+
             // Validate form
             if (!validateForm(this)) {
                 return;
@@ -442,17 +448,81 @@ function initializeFormSubmission() {
                 if (contentType && contentType.includes('application/json')) {
                     return response.json().then(data => {
                         if (!response.ok) {
-                            throw new Error(data.message || 'An error occurred during login');
+                            throw {
+                                message: data.message || 'An error occurred during login',
+                                errorCode: data.error_code || 'unknown_error',
+                                field: data.field || null
+                            };
                         }
                         return data;
                     });
                 } else if (!response.ok) {
-                    throw new Error('An error occurred during login');
+                    throw {
+                        message: 'An error occurred during login',
+                        errorCode: 'unknown_error',
+                        field: null
+                    };
                 }
             })
             .catch(error => {
                 console.error('Login error:', error);
+                
+                // Show error message
                 showError(error.message || 'An error occurred during login. Please try again.');
+                
+                // Highlight the specific field if provided
+                if (error.field === 'email' && emailField) {
+                    emailField.classList.add('is-invalid');
+                    emailField.focus();
+                } else if (error.field === 'password' && passwordField) {
+                    passwordField.classList.add('is-invalid');
+                    passwordField.focus();
+                }
+                
+                // Add specific guidance based on error code
+                if (error.errorCode === 'invalid_email_format') {
+                    // Show email format guidance
+                    showFieldError(emailField, 'Please enter a valid email address (e.g., user@example.com)');
+                } else if (error.errorCode === 'email_not_found' || error.errorCode === 'user_not_found') {
+                    // Show account creation suggestion
+                    const errorContainer = document.getElementById('login-error-container');
+                    if (errorContainer) {
+                        const signupLink = document.createElement('a');
+                        signupLink.href = '#';
+                        signupLink.textContent = 'Create a new account';
+                        signupLink.onclick = function(e) {
+                            e.preventDefault();
+                            document.querySelector('.container').classList.add('active');
+                        };
+                        
+                        const suggestionElement = document.createElement('div');
+                        suggestionElement.className = 'error-suggestion';
+                        suggestionElement.innerHTML = 'Don\'t have an account? ';
+                        suggestionElement.appendChild(signupLink);
+                        
+                        const existingSuggestion = errorContainer.querySelector('.error-suggestion');
+                        if (existingSuggestion) {
+                            existingSuggestion.remove();
+                        }
+                        
+                        errorContainer.appendChild(suggestionElement);
+                    }
+                } else if (error.errorCode === 'too_many_attempts') {
+                    // Show countdown or additional information for locked accounts
+                    const errorContainer = document.getElementById('login-error-container');
+                    if (errorContainer) {
+                        const suggestionElement = document.createElement('div');
+                        suggestionElement.className = 'error-suggestion';
+                        suggestionElement.innerHTML = 'For security reasons, your account is temporarily locked. Try again after one hour or use the password recovery option.';
+                        
+                        const existingSuggestion = errorContainer.querySelector('.error-suggestion');
+                        if (existingSuggestion) {
+                            existingSuggestion.remove();
+                        }
+                        
+                        errorContainer.appendChild(suggestionElement);
+                    }
+                }
             })
             .finally(() => {
                 setLoading(this, false);
@@ -662,4 +732,42 @@ function validateNameField(field, fieldName) {
         field.classList.remove('is-invalid');
         return true;
     }
+}
+
+/**
+ * Show field-specific error
+ */
+function showFieldError(inputElement, message) {
+    if (!inputElement) return;
+    
+    // Find the parent input box or group
+    const inputBox = inputElement.closest('.input-box') || inputElement.closest('.input-group');
+    if (!inputBox) return;
+    
+    // Remove existing error message
+    const existingError = inputBox.querySelector('.validation-error');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    // Create new error message
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'validation-error';
+    errorDiv.textContent = message;
+    inputBox.appendChild(errorDiv);
+    
+    // Add event listener to clear error when input changes
+    inputElement.addEventListener('input', function clearError() {
+        inputElement.classList.remove('is-invalid');
+        const errorEl = inputBox.querySelector('.validation-error');
+        if (errorEl) {
+            errorEl.classList.add('fade-out');
+            setTimeout(() => {
+                if (errorEl.parentNode) {
+                    errorEl.remove();
+                }
+            }, 500);
+        }
+        inputElement.removeEventListener('input', clearError);
+    });
 }

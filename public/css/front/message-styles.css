@@ -1,0 +1,82 @@
+/**
+ * Enhanced styles for success and error messages
+ */
+
+.success-message, 
+.error-message {
+    display: flex;
+    padding: 12px 15px;
+    border-radius: 6px;
+    margin: 15px 0;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    animation: message-slide-in 0.5s ease forwards;
+}
+
+.success-message {
+    background-color: rgba(76, 175, 80, 0.15);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    color: #4caf50;
+}
+
+.error-message {
+    background-color: rgba(244, 67, 54, 0.15);
+    border: 1px solid rgba(244, 67, 54, 0.3);
+    color: #f44336;
+}
+
+.success-message i, 
+.error-message i {
+    font-size: 20px;
+}
+
+@keyframes message-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Success Animation */
+@keyframes success-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.5); }
+    50% { box-shadow: 0 0 20px 0 rgba(76, 175, 80, 0.5); }
+    100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+}
+
+.success-animation {
+    animation: success-pulse 1.5s ease-in-out;
+}
+
+/* Button Animation */
+.btn.create-account-btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn.create-account-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transition: all 0.6s;
+}
+
+.btn.create-account-btn:hover::before {
+    left: 100%;
+}

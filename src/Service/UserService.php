@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use App\Enum\ROLE;
@@ -29,6 +30,51 @@ class UserService
         $this->userRepository = $userRepository;
         $this->passwordHasher = $passwordHasher;
         $this->validator = $validator;
+    }
+
+    public function getUserQuery(array $filters = []): QueryBuilder
+    {
+        $qb = $this->userRepository->createQueryBuilder('u')
+            ->select('u');
+            
+        // Apply search filter
+        if (!empty($filters['search'])) {
+            $qb->andWhere('u.name LIKE :search OR u.email LIKE :search OR u.phone_number LIKE :search')
+               ->setParameter('search', '%' . $filters['search'] . '%');
+        }
+          // Apply role filter
+        if (!empty($filters['role'])) {
+                $qb->andWhere('u.role = :role')
+               ->setParameter('role', $filters['role']);
+        }
+        
+        // Apply account status filter
+        if (!empty($filters['status'])) {
+                $qb->andWhere('u.account_status = :status')
+               ->setParameter('status', $filters['status']);
+        }
+        
+        // Apply verification filter
+        if (isset($filters['verified']) && $filters['verified'] !== '') {
+            $isVerified = $filters['verified'] == '1' ? true : false;
+            $qb->andWhere('u.is_verified = :verified')
+               ->setParameter('verified', $isVerified);
+        }
+        
+        // Apply ordering
+        $orderBy = $filters['orderBy'] ?? 'id_user';
+        $orderDirection = $filters['orderDirection'] ?? 'DESC';
+        
+        $validColumns = ['id_user', 'name', 'email', 'role', 'account_status', 'is_verified'];
+        if (!in_array($orderBy, $validColumns)) {
+            $orderBy = 'id_user';
+        }
+        
+        $orderDirection = strtoupper($orderDirection) === 'ASC' ? 'ASC' : 'DESC';
+        
+        $qb->orderBy('u.' . $orderBy, $orderDirection);
+        
+        return $qb;
     }
 
     public function getAllUsers(): array
@@ -61,15 +107,51 @@ class UserService
 
     public function updateUser(User $user, array $data): User
     {
-        $this->validateUserData($data, false);
-        $this->setUserData($user, $data);
-
-        $errors = $this->validator->validate($user);
-        if (count($errors) > 0) {
-            throw new \InvalidArgumentException((string) $errors);
+        // Update user fields
+        if (isset($data['name'])) {
+            $user->setName($data['name']);
         }
-
+        
+        if (isset($data['email'])) {
+            $user->setEmail($data['email']);
+        }
+        
+        if (isset($data['phone_number'])) {
+            $user->setPhone_number($data['phone_number']);
+        }
+        
+        if (isset($data['role'])) {
+            $user->setRole(ROLE::from($data['role']));
+        }
+        
+        if (isset($data['gender'])) {
+            $user->setGender(GENDER::from($data['gender']));
+        }
+        
+        if (isset($data['account_status'])) {
+            $user->setAccount_status(ACCOUNT_STATUS::from($data['account_status']));
+        }
+        
+        if (isset($data['date_of_birth'])) {
+            if (!empty($data['date_of_birth'])) {
+                $user->setDate_of_birth(new \DateTime($data['date_of_birth']));
+            } else {
+                $user->setDate_of_birth(null);
+            }
+        }
+        
+        if (isset($data['profilePicture'])) {
+            $user->setProfilePicture($data['profilePicture']);
+        }
+        
+        if (isset($data['is_verified'])) {
+            $user->setIs_verified((bool) $data['is_verified']);
+        }
+        
+        // Save user
+        $this->entityManager->persist($user);
         $this->entityManager->flush();
+        
         return $user;
     }
 
@@ -98,6 +180,11 @@ class UserService
         return $user;
     }
 
+    public function getUserById(int $id): ?User
+    {
+        return $this->userRepository->find($id);
+    }
+    
     public function deleteUser(User $user): void
     {
         $this->entityManager->remove($user);

@@ -18,7 +18,7 @@
         
         {{ form_start(form, {'attr': {'id': 'delete-user-form'}}) }}
             {{ form_widget(form) }}
-            <input type="hidden" id="delete-user-id" name="id" value="{{ user.id_user is defined ? user.id_user : '' }}">
+            <input type="hidden" id="delete-user-id-modal" name="id" value="{{ user.id_user is defined ? user.id_user : '' }}">
         {{ form_end(form) }}
     </div>
 {% endblock %}

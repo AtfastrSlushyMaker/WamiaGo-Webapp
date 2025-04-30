@@ -1,0 +1,87 @@
+/* Enhanced pagination styles */
+.pagination .page-item .page-link {
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Add ripple effect */
+.pagination .page-item .page-link:after {
+    content: "";
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle, #000 10%, transparent 10.01%);
+    background-repeat: no-repeat;
+    background-position: 50%;
+    transform: scale(10, 10);
+    opacity: 0;
+    transition: transform .5s, opacity 1s;
+}
+
+.pagination .page-item .page-link:active:after {
+    transform: scale(0, 0);
+    opacity: .2;
+    transition: 0s;
+}
+
+/* Improve active state visuals */
+.pagination .page-item.active .page-link {
+    box-shadow: 0 2px 5px rgba(52, 144, 220, 0.3);
+    font-weight: 600;
+}
+
+/* Add transition for smooth state changes */
+.pagination .page-item .page-link {
+    transition: all 0.25s ease-in-out;
+}
+
+/* Card view pagination enhancements */
+#card-view .pagination-container .pagination {
+    margin-top: 0.5rem;
+}
+
+/* Spinner for loading state */
+.pagination-loading {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-top-color: #3490dc;
+    border-radius: 50%;
+    animation: pagination-spin 1s infinite linear;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+}
+
+@keyframes pagination-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Make cards view pagination more compact on mobile */
+@media (max-width: 576px) {
+    #card-view .pagination-container {
+        justify-content: center;
+    }
+    
+    #page-size-cards {
+        border-radius: 4px;
+        border-color: #dee2e6;
+        background-color: #fff;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        cursor: pointer;
+    }
+    
+    #page-size-cards:focus {
+        border-color: #3490dc;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(52, 144, 220, 0.25);
+    }
+}

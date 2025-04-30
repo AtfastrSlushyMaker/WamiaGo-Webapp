@@ -370,6 +370,17 @@ form h1::after {
     color: var(--primary-color);
 }
 
+/* Password container styling */
+.password-container {
+    position: relative;
+    width: 100%;
+}
+
+.password-container input {
+    width: 100%;
+    padding-right: 45px; /* Make space for the eye icon */
+}
+
 .forgot-link {
     text-align: right;
     margin-bottom: 20px;

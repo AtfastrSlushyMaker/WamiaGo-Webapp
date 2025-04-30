@@ -10,8 +10,7 @@
     <!-- External CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css"
           integrity="sha256-tXJfXfp6Ewt1ilPzLDtQnJV4hclT9XuaZUKyUvmyr+Q=" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/styles/overlayscrollbars.min.css"
-          integrity="sha256-dghWARbRe2eLlIJ56wNB+b760ywulqK3DzZYEpsg2fQ=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/styles/overlayscrollbars.min.css" integrity="sha256-tZHrRjVqNSRyWg2wbppGnT833E/Ys0DHWGwT04GiqQg=" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
           integrity="sha256-9kPW/n5nn53j4WMRYAxe9c1rCY96Oogo/MKSVdKzPmI=" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css"
@@ -19,6 +18,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/css/jsvectormap.min.css"
           integrity="sha256-+uGLJmmTKOqBr+2E6KDYs/NRsHxSkONXFHUL0fy2O/4=" crossorigin="anonymous">
     <link rel="stylesheet" href="{{ asset("adminlte/css/adminlte.min.css") }}">
+    <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin-header.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
 
     <style>
         /* ========== BASE STYLES ========== */
@@ -741,49 +743,49 @@
                 </a>
             </div>
             <ul class="nav-list">
-                <li class="nav-item {{ app.request.attributes.get("_route") == "admin_dashboard" ? "active" : "" }}">
+                <li class="nav-item {% if app is defined and app.request is defined and app.request.attributes.get("_route") == "admin_dashboard" %}active{% endif %}">
                     <a href="{{ path("admin_dashboard") }}" class="nav-link">
                         <i class="bi bi-speedometer2 nav-icon"></i>
                         <span class="nav-text">Dashboard</span>
                     </a>
                 </li>
 
-                <li class="nav-item {{ app.request.attributes.get("_route") == "admin_users_management" ? "active" : "" }}">
-                    <a href="{{ path("admin_users_management") }}" class="nav-link">
+                <li class="nav-item {% if app is defined and app.request is defined and app.request.attributes.get("_route") == "admin_users" %}active{% endif %}">
+                    <a href="{{ path("admin_users") }}" class="nav-link">
                         <i class="bi bi-people nav-icon"></i>
                         <span class="nav-text">Users</span>
                     </a>
                 </li>
 
-                <li class="nav-item {{ app.request.attributes.get("_route") == "admin_ride_sharing" ? "active" : "" }}">
+                <li class="nav-item {% if app is defined and app.request is defined and app.request.attributes.get("_route") == "admin_ride_sharing" %}active{% endif %}">
                     <a href="{{ path("admin_ride_sharing") }}" class="nav-link">
                         <i class="bi bi-car-front nav-icon"></i>
                         <span class="nav-text">Ride Sharing</span>
                     </a>
                 </li>
 
-                <li class="nav-item {{ app.request.attributes.get("_route") == "admin_taxi_bookings" ? "active" : "" }}">
+                <li class="nav-item {% if app is defined and app.request is defined and app.request.attributes.get("_route") == "admin_taxi_bookings" %}active{% endif %}">
                     <a href="{{ path("admin_taxi_bookings") }}" class="nav-link">
                         <i class="bi bi-taxi-front nav-icon"></i>
                         <span class="nav-text">Taxi Bookings</span>
                     </a>
                 </li>
 
-                <li class="nav-item {{ app.request.attributes.get("_route") == "admin_bicycle_rentals" ? "active" : "" }}">
+                <li class="nav-item {% if app is defined and app.request is defined and app.request.attributes.get("_route") == "admin_bicycle_rentals" %}active{% endif %}">
                     <a href="{{ path("admin_bicycle_rentals") }}" class="nav-link">
                         <i class="bi bi-bicycle nav-icon"></i>
                         <span class="nav-text">Bicycle Rentals</span>
                     </a>
                 </li>
 
-                <li class="nav-item {{ app.request.attributes.get("_route") == "admin_relocations" ? "active" : "" }}">
+                <li class="nav-item {% if app is defined and app.request is defined and app.request.attributes.get("_route") == "admin_relocations" %}active{% endif %}">
                     <a href="{{ path("admin_relocations") }}" class="nav-link">
                         <i class="bi bi-truck nav-icon"></i>
                         <span class="nav-text">Relocations</span>
                     </a>
                 </li>
 
-                <li class="nav-item {{ app.request.attributes.get("_route") == "admin_settings" ? "active" : "" }}">
+                <li class="nav-item {% if app is defined and app.request is defined and app.request.attributes.get("_route") == "admin_settings" %}active{% endif %}">
                     <a href="{{ path("admin_settings") }}" class="nav-link">
                         <i class="bi bi-gear nav-icon"></i>
                         <span class="nav-text">Settings</span>

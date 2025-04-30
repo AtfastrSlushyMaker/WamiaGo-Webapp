@@ -84,7 +84,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private GENDER $gender;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    #[Assert\Url(message: 'The profile picture must be a valid URL')]
+    #[Assert\Length(max: 255, maxMessage: 'Profile picture URL cannot be longer than {{ limit }} characters')]
     private ?string $profilePicture = null;
 
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
@@ -232,17 +232,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->location = $location;
         return $this;
+    }    #[Groups(['user:read'])]
+    public function getGender(): GENDER
+    {
+        return $this->gender;
     }
 
-    #[Groups(['user:read'])]
-    public function getGender(): string
+    /**
+     * Get gender as string value
+     */
+    public function getGenderValue(): string
     {
         return $this->gender->value;
     }
 
-    public function setGender(GENDER $gender): void
+    /**
+     * Set the gender - accepts either a GENDER enum or a string
+     */
+    public function setGender($gender): void
     {
-        $this->gender = $gender;
+        if ($gender instanceof GENDER) {
+            $this->gender = $gender;
+        } elseif (is_string($gender)) {
+            try {
+                $this->gender = GENDER::from($gender);
+            } catch (\ValueError $e) {
+                // Invalid gender value, don't update
+                throw new \InvalidArgumentException("Invalid gender value: $gender. Must be one of: MALE, FEMALE");
+            }
+        }
     }
 
     #[Groups(['user:read'])]

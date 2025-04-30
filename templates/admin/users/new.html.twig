@@ -20,7 +20,7 @@
     <div class="row">
         <div class="col-md-6">
             <div class="form-group">
-                {{ form_label(form.name, null, {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_label(form.name, null, {'label_attr': {'class': 'form-label', 'for': 'add-name'}}) }}
                 <div class="input-group">
                     <div class="input-group-prepend">
                         <span class="input-group-text"><i class="fas fa-user"></i></span>
@@ -31,7 +31,7 @@
             </div>
             
             <div class="form-group">
-                {{ form_label(form.email, null, {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_label(form.email, null, {'label_attr': {'class': 'form-label', 'for': 'add-email'}}) }}
                 <div class="input-group">
                     <div class="input-group-prepend">
                         <span class="input-group-text"><i class="fas fa-envelope"></i></span>
@@ -42,7 +42,7 @@
             </div>
             
             <div class="form-group">
-                {{ form_label(form.phone_number, null, {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_label(form.phone_number, null, {'label_attr': {'class': 'form-label', 'for': 'add-phone'}}) }}
                 <div class="input-group">
                     <div class="input-group-prepend">
                         <span class="input-group-text"><i class="fas fa-phone"></i></span>
@@ -53,7 +53,7 @@
             </div>
             
             <div class="form-group">
-                {{ form_label(form.password.first, null, {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_label(form.password.first, null, {'label_attr': {'class': 'form-label', 'for': 'add-password'}}) }}
                 <div class="input-group">
                     <div class="input-group-prepend">
                         <span class="input-group-text"><i class="fas fa-lock"></i></span>
@@ -73,7 +73,7 @@
             </div>
             
             <div class="form-group">
-                {{ form_label(form.password.second, null, {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_label(form.password.second, null, {'label_attr': {'class': 'form-label', 'for': 'confirm-password'}}) }}
                 <div class="input-group">
                     <div class="input-group-prepend">
                         <span class="input-group-text"><i class="fas fa-lock"></i></span>
