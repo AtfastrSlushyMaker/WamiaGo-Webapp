@@ -53,4 +53,4 @@ services:
     App\Service\GeminiApiService:
         arguments:
             $httpClient: '@http_client'
-            $apiKey: '%app.gemini_api_key%'
+            $apiKey: '%gemini.api_key%'
