@@ -12,97 +12,36 @@
         
         .confirmation-card {
             background-color: #fff;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 30px;
             margin-bottom: 30px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .confirmation-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 6px;
-            background: linear-gradient(90deg, #28a745, #20c997);
         }
         
         .success-icon {
-            font-size: 60px;
+            font-size: 48px;
             color: #28a745;
-            margin-bottom: 25px;
-            text-align: center;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-        
-        .qr-container {
-            width: 240px;
-            height: 240px;
-            background-color: white;
-            padding: 15px;
-            border-radius: 16px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             margin-bottom: 20px;
-            position: relative;
-            transition: all 0.3s ease;
+            text-align: center;
         }
         
-        .qr-container:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-        }
-        
-        .qr-container::after {
-            content: '';
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            right: 12px;
-            bottom: 12px;
-            border: 2px dashed rgba(40, 167, 69, 0.3);
-            border-radius: 12px;
-            pointer-events: none;
-            z-index: 1;
-        }
-        
-        .qr-image {
+        .reservation-code {
+            background-color: #f8f9fa;
+            border: 2px dashed #dee2e6;
             border-radius: 8px;
-            padding: 10px;
-            background-color: white;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .info-badge {
-            display: inline-block;
-            background-color: rgba(40, 167, 69, 0.1);
-            color: #28a745;
-            border-radius: 50px;
-            padding: 6px 16px;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
+            padding: 15px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 2px;
         }
         
         .bicycle-details {
             background-color: #f8f9fa;
-            border-radius: 16px;
-            padding: 25px;
-            margin-top: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-            transition: all 0.3s ease;
-        }
-        
-        .bicycle-details:hover {
-            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
         }
         
         .battery-indicator {
@@ -116,101 +55,23 @@
         
         .battery-level {
             height: 100%;
-            background: linear-gradient(90deg, #28a745, #20c997);
-            border-radius: 10px;
-            transition: width 1s ease-in-out;
+            background-color: #28a745;
         }
         
         .info-section {
             border-top: 1px solid #eee;
-            padding-top: 25px;
-            margin-top: 25px;
-        }
-        
-        .info-section h4 {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-        
-        .info-section h4 i {
-            margin-right: 10px;
-            color: #28a745;
-            font-size: 1.2em;
-        }
-        
-        .info-section ul li {
-            margin-bottom: 10px;
-            position: relative;
-            padding-left: 25px;
-        }
-        
-        .info-section ul li::before {
-            content: "\f00c";
-            font-family: "Font Awesome 5 Free";
-            font-weight: 900;
-            position: absolute;
-            left: 0;
-            color: #28a745;
+            padding-top: 15px;
+            margin-top: 15px;
         }
         
         .action-buttons {
             display: flex;
             gap: 15px;
-            margin-top: 30px;
+            margin-top: 20px;
         }
         
-        .btn-action {
-            flex-grow: 1;
-            padding: 12px 20px;
-            font-weight: 600;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-success {
-            background: linear-gradient(90deg, #28a745, #20c997);
-            border: none;
-            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
-        }
-        
-        .btn-success:hover {
-            box-shadow: 0 6px 15px rgba(40, 167, 69, 0.4);
-            transform: translateY(-2px);
-            background: linear-gradient(90deg, #218838, #1ca38b);
-        }
-        
-        .btn-outline-danger {
+        .btn-outline-success {
             border-width: 2px;
-            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.1);
-        }
-        
-        .btn-outline-danger:hover {
-            box-shadow: 0 6px 15px rgba(220, 53, 69, 0.2);
-            transform: translateY(-2px);
-        }
-        
-        .reservation-detail-item {
-            margin-bottom: 15px;
-        }
-        
-        .reservation-detail-item strong {
-            display: block;
-            font-size: 0.9rem;
-            color: #6c757d;
-            margin-bottom: 5px;
-        }
-        
-        .reservation-detail-item span {
-            font-weight: 600;
-            font-size: 1.05rem;
-        }
-        
-        .bicycle-icon {
-            font-size: 1.5rem;
-            margin-right: 10px;
-            color: #28a745;
         }
     </style>
 {% endblock %}
@@ -223,104 +84,53 @@
                     <i class="fas fa-check-circle"></i>
                 </div>
                 
-                <div class="text-center mb-4">
-                    <div class="info-badge">
-                        <i class="fas fa-bicycle me-2"></i> Successfully Reserved
-                    </div>
-                    <h1 class="mb-3">Bicycle Reserved Successfully!</h1>
-                    <p class="text-muted mb-4">Your bicycle is ready and waiting for you. Show the QR code below at the station.</p>
+                <h1 class="text-center mb-4">Bicycle Reserved Successfully!</h1>
                 
-                    <div class="qr-container mx-auto">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={% set bicycleDetails = {
-                            'bicycle_id': rental.bicycle.idBike,
-                            'type': rental.bicycle.batteryLevel > 90 ? 'Premium E-Bike' : 'Standard E-Bike',
-                            'battery_level': rental.bicycle.batteryLevel,
-                            'range_km': rental.bicycle.rangeKm,
-                            'reservation_code': reservationCode,
-                            'station': rental.bicycle.bicycleStation.name,
-                            'hourly_rate': rental.bicycle.batteryLevel > 90 ? '5.000' : '3.500'
-                        } %}{{ bicycleDetails|json_encode|url_encode }}" 
-                             alt="QR Code for Bicycle Details" class="img-fluid qr-image">
-                    </div>
-                    <p class="text-muted">Scan this QR code to view bicycle details</p>
+                <p class="lead text-center">Your bicycle is reserved and waiting for you at the station. Use the reservation code below to unlock it.</p>
+                
+                <div class="reservation-code" id="reservationCode">
+                    {{ reservationCode }}
                 </div>
-
+                
                 <div class="info-section">
-                    <h4><i class="fas fa-clipboard-check"></i> Reservation Details</h4>
+                    <h4>Reservation Details</h4>
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="reservation-detail-item">
-                                <strong>RESERVATION ID</strong>
-                                <span>#{{ rental.idUserRental }}</span>
-                            </div>
-                            <div class="reservation-detail-item">
-                                <strong>RESERVED ON</strong>
-                                <span>{{ rental.startTime|date('M d, Y - h:i A') }}</span>
-                            </div>
+                            <p><strong>Reservation ID:</strong> #{{ rental.idUserRental }}</p>
+                            <p><strong>Reserved On:</strong> {{ rental.startTime|date('Y-m-d H:i') }}</p>
                         </div>
                         <div class="col-md-6">
-                            <div class="reservation-detail-item">
-                                <strong>STATUS</strong>
-                                <span><span class="badge bg-success">Reserved</span></span>
-                            </div>
-                            <div class="reservation-detail-item">
-                                <strong>PICKUP STATION</strong>
-                                <span>{{ rental.bicycle.bicycleStation.name }}</span>
-                            </div>
-                            <div class="reservation-detail-item">
-                                <strong>VALID UNTIL</strong>
-                                <span>{{ rental.startTime|date_modify('+30 minutes')|date('h:i A') }}</span>
-                            </div>
+                            <p><strong>Status:</strong> <span class="badge bg-success">Reserved</span></p>
+                            <p><strong>Pickup Station:</strong> {{ rental.bicycle.bicycleStation.name }}</p>
+                            <p><strong>Reservation Valid Until:</strong> {{ rental.startTime|date_modify('+30 minutes')|date('Y-m-d H:i') }}</p>
                         </div>
                     </div>
                 </div>
                 
                 <div class="bicycle-details">
-                    <h4><i class="fas fa-bicycle"></i> Bicycle Information</h4>
+                    <h4>Bicycle Information</h4>
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="bicycle-icon">
-                                    <i class="fas fa-bicycle"></i>
-                                </div>
-                                <div>
-                                    <span class="d-block fw-bold fs-5">
-                                        {{ rental.bicycle.batteryLevel > 90 ? 'Premium E-Bike' : 'Standard E-Bike' }} #{{ rental.bicycle.idBike }}
-                                    </span>
-                                </div>
-                            </div>
+                            <p><strong>Bicycle ID:</strong> #{{ rental.bicycle.idBike }}</p>
+                            <p><strong>Type:</strong> {{ rental.bicycle.batteryLevel > 90 ? 'Premium E-Bike' : 'Standard E-Bike' }}</p>
                             
-                            <div class="reservation-detail-item">
-                                <strong>BATTERY LEVEL</strong>
-                                <div class="battery-indicator">
-                                    <div class="battery-level" style="width: {{ rental.bicycle.batteryLevel }}%;"></div>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <span>{{ rental.bicycle.batteryLevel }}%</span>
-                                    <span class="text-muted small">{{ rental.bicycle.batteryLevel < 30 ? 'Low' : (rental.bicycle.batteryLevel < 70 ? 'Good' : 'Excellent') }}</span>
-                                </div>
+                            <p><strong>Battery Level:</strong></p>
+                            <div class="battery-indicator">
+                                <div class="battery-level" style="width: {{ rental.bicycle.batteryLevel }}%;"></div>
                             </div>
+                            <p>{{ rental.bicycle.batteryLevel }}%</p>
                         </div>
                         <div class="col-md-6">
-                            <div class="reservation-detail-item">
-                                <strong>ESTIMATED RANGE</strong>
-                                <span>{{ rental.bicycle.rangeKm }} kilometers</span>
-                            </div>
-                            <div class="reservation-detail-item">
-                                <strong>HOURLY RATE</strong>
-                                <span>{{ (rental.bicycle.batteryLevel > 90 ? 5.000 : 3.500)|number_format(3) }} TND</span>
-                            </div>
-                            <div class="reservation-detail-item">
-                                <strong>STATION ADDRESS</strong>
-                                <span>{{ rental.bicycle.bicycleStation.location ? rental.bicycle.bicycleStation.location.address : 'Address not available' }}</span>
-                            </div>
+                            <p><strong>Estimated Range:</strong> {{ rental.bicycle.rangeKm }} km</p>
+                            <p><strong>Hourly Rate:</strong> {{ (rental.bicycle.batteryLevel > 90 ? 5.000 : 3.500)|number_format(3) }} TND</p>
+                            <p><strong>Station Address:</strong> {{ rental.bicycle.bicycleStation.location ? rental.bicycle.bicycleStation.location.address : 'Address not available' }}</p>
                         </div>
                     </div>
                 </div>
                 
                 <div class="info-section">
-                    <h4><i class="fas fa-info-circle"></i> Important Information</h4>
-                    <ul class="list-unstyled">
+                    <h4>Important Information</h4>
+                    <ul>
                         <li>Your reservation is valid for 30 minutes. After that, the bicycle will be available for other users.</li>
                         <li>You will only be charged for the actual time you use the bicycle.</li>
                         <li>The final cost will be calculated when you return the bicycle to any station.</li>
@@ -330,10 +140,10 @@
                 </div>
                 
                 <div class="action-buttons">
-                    <a href="{{ path('app_front_my_reservations') }}" class="btn btn-success btn-action">
+                    <a href="{{ path('app_front_my_reservations') }}" class="btn btn-success flex-grow-1">
                         <i class="fas fa-bicycle me-2"></i> Go to My Reservations
                     </a>
-                    <button type="button" class="btn btn-outline-danger btn-action" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                    <button type="button" class="btn btn-outline-danger flex-grow-1" data-bs-toggle="modal" data-bs-target="#cancelModal">
                         <i class="fas fa-times me-2"></i> Cancel Reservation
                     </button>
                 </div>
@@ -342,77 +152,54 @@
             <!-- Cancel Reservation Modal -->
             <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content border-0">
-                        <div class="modal-header bg-danger text-white">
+                    <div class="modal-content">
+                        <div class="modal-header">
                             <h5 class="modal-title" id="cancelModalLabel">Cancel Reservation</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body p-4">
-                            <div class="text-center mb-4">
-                                <i class="fas fa-exclamation-triangle text-danger" style="font-size: 3rem;"></i>
-                            </div>
-                            <p class="text-center">Are you sure you want to cancel your reservation? This action cannot be undone.</p>
+                        <div class="modal-body">
+                            <p>Are you sure you want to cancel your reservation? This action cannot be undone.</p>
                         </div>
                         <div class="modal-footer">
-                            <form method="post" action="{{ path('app_front_cancel_rental', {'id': rental.idUserRental}) }}" class="w-100 d-flex gap-2">
+                            <form method="post" action="{{ path('app_front_cancel_rental', {'id': rental.idUserRental}) }}">
                                 <input type="hidden" name="_token" value="{{ csrf_token('cancel_rental_' ~ rental.idUserRental) }}">
-                                <button type="button" class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" class="btn btn-danger flex-grow-1">Yes, Cancel Reservation</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-danger">Yes, Cancel Reservation</button>
                             </form>
                         </div>
                     </div>
                 </div>
+            </div>
+            
+            <div class="text-center">
+                <a href="{{ path('app_front_my_reservations') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-list me-2"></i> View All My Reservations
+                </a>
+                <a href="{{ path('app_front_services_bicycle') }}" class="btn btn-outline-success ms-3">
+                    <i class="fas fa-bicycle me-2"></i> Back to Bicycle Rentals
+                </a>
             </div>
         </div>
     </div>
 {% endblock %}
 
 {% block page_javascripts %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Animation for the battery level bar
-        setTimeout(() => {
-            const batteryLevels = document.querySelectorAll('.battery-level');
-            batteryLevels.forEach(level => {
-                level.style.width = level.getAttribute('style').replace('width: ', '');
-            });
-        }, 300);
-        
-        // Make QR code interactive
-        const qrContainer = document.querySelector('.qr-container');
-        if (qrContainer) {
-            qrContainer.addEventListener('click', function() {
-                const qrImage = this.querySelector('img');
-                const modal = new bootstrap.Modal(document.getElementById('qrModal') || createQRModal(qrImage.src));
-                modal.show();
-            });
-        }
-        
-        // Create modal for QR code if it doesn't exist
-        function createQRModal(imageSrc) {
-            const modalDiv = document.createElement('div');
-            modalDiv.className = 'modal fade';
-            modalDiv.id = 'qrModal';
-            modalDiv.tabIndex = '-1';
-            modalDiv.setAttribute('aria-hidden', 'true');
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // For copying reservation code to clipboard
+            const reservationCode = document.getElementById('reservationCode');
             
-            modalDiv.innerHTML = `
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content border-0">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Bicycle Details QR Code</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body text-center p-5">
-                            <img src="${imageSrc}" class="img-fluid qr-large" style="max-width: 100%;">
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(modalDiv);
-            return modalDiv;
-        }
-    });
-</script>
+            reservationCode.addEventListener('click', function() {
+                const code = this.innerText.trim();
+                navigator.clipboard.writeText(code).then(function() {
+                    // Add a temporary "Copied" message
+                    const originalText = reservationCode.innerText;
+                    reservationCode.innerText = 'Copied!';
+                    setTimeout(function() {
+                        reservationCode.innerText = originalText;
+                    }, 1000);
+                });
+            });
+        });
+    </script>
 {% endblock %}

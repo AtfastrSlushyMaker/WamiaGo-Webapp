@@ -1,0 +1,75 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Unlock Bicycle - WamiaGo{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Bicycle Unlock System</h4>
+                </div>
+                <div class="card-body p-4">
+                    <h5 class="mb-3">Enter the Unlock Code</h5>
+                    
+                    <form action="{{ path('app_bicycle_verify_code', {'code': 'placeholder'}) }}" method="get" id="unlockForm">
+                        <div class="mb-3">
+                            <input type="text" class="form-control form-control-lg text-center" id="unlockCode" 
+                                placeholder="Enter code (e.g., B12345)" required autofocus>
+                            <div class="form-text">
+                                The code format should be B followed by numbers (e.g., B12345)
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-unlock-alt me-2"></i> Verify and Unlock
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- For demonstration purposes, show some sample codes -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Sample Codes for Testing</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Active Rental:</span>
+                        <code class="sample-code">B1</code>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Invalid Code:</span>
+                        <code class="sample-code">B999</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('unlockForm');
+    const codeInput = document.getElementById('unlockCode');
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const code = codeInput.value.trim();
+        const url = "{{ path('app_bicycle_verify_code', {'code': 'placeholder'}) }}".replace('placeholder', code);
+        window.location.href = url;
+    });
+    
+    // Make sample codes clickable for easy testing
+    document.querySelectorAll('.sample-code').forEach(function(el) {
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', function() {
+            codeInput.value = this.textContent.trim();
+        });
+    });
+});
+</script>
+{% endblock %}

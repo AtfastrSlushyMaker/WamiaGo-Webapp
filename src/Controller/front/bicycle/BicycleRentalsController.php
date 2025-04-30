@@ -915,38 +915,6 @@ EOT;
     }
 
     /**
-     * Directly unlock (activate) a bicycle
-     */
-    #[Route('/rental/{id}/activate', name: 'app_rental_activate')]
-    public function activateRental(int $id): Response
-    {
-        $rental = $this->entityManager->getRepository(BicycleRental::class)->find($id);
-        $user = $this->security->getUser();
-
-        if (!$rental || !$user || $rental->getUser() !== $user) {
-            throw $this->createNotFoundException('Rental not found');
-        }
-
-        // If rental already started, redirect to my reservations
-        if ($rental->getStartTime() !== null) {
-            $this->addFlash('info', 'This bicycle is already unlocked.');
-            return $this->redirectToRoute('app_front_my_reservations', ['tab' => 'active-rides']);
-        }
-
-        // Set start time to now to indicate the bicycle is unlocked
-        $rental->setStartTime(new \DateTime());
-        $this->entityManager->flush();
-
-        // Update bicycle status
-        $bicycle = $rental->getBicycle();
-        $bicycle->setStatus(BICYCLE_STATUS::IN_USE);
-        $this->entityManager->flush();
-
-        $this->addFlash('success', 'Bicycle unlocked successfully! Enjoy your ride.');
-        return $this->redirectToRoute('app_front_my_reservations', ['tab' => 'active-rides']);
-    }
-
-    /**
      * Helper function to get display information for a bicycle
      */
     private function getBicycleDisplayInfo(Bicycle $bicycle): array
