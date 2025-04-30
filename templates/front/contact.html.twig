@@ -1,129 +1,380 @@
 {% extends 'front/base.html.twig' %}
-{%block meta%}
+
+{% block meta %}
 <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="{% block meta_description %}WamiaGo - Your transportation solution{% endblock %}">
-    <meta name="keywords" content="{% block meta_keywords %}transportation, ride sharing, mobility, taxi{% endblock %}">
+    <meta name="description" content="{% block meta_description %}Contact WamiaGo - Submit your inquiries or feedback{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}contact, support, reclamation, feedback{% endblock %}">
     <meta name="author" content="WamiaGo">
-    <meta property="og:title" content="{% block og_title %}WamiaGo{% endblock %}">
-    <meta property="og:description" content="{% block og_description %}Your transportation solution{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}Contact WamiaGo{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Get in touch with our support team{% endblock %}">
     <meta property="og:image" content="{% block og_image %}{{ absolute_url(asset('images/logo/logo.png')) }}{% endblock %}">
     <meta property="og:url" content="{% block og_url %}{{ app.request.schemeAndHttpHost }}{{ app.request.requestUri }}{% endblock %}">
     <meta name="twitter:card" content="summary_large_image">
-    <title>{% block title %}WamiaGo{% endblock %}</title>
+    <title>{% block title %}Contact Us - WamiaGo{% endblock %}</title>
 {% endblock %}
 
 {% block hero %}
-<section class="page-header bg-primary text-white py-5">
+<section class="contact-hero py-5">
     <div class="container">
-        <div class="row">
-            <div class="col-md-8 offset-md-2 text-center">
-                <h1 class="display-4 fw-bold">Contact Us</h1>
-                <p class="lead">We'd love to hear from you! Get in touch with our team for any questions or feedback.</p>
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-5 mb-lg-0">
+                <h1 class="display-4 fw-bold text-white mb-3 animate__animated animate__fadeInUp">Get in Touch</h1>
+                <p class="lead text-white-75 mb-4 animate__animated animate__fadeInUp animate__delay-1s">Have questions or feedback? Our support team is here to help you with anything you need.</p>
+                <div class="d-flex gap-3 animate__animated animate__fadeInUp animate__delay-2s">
+                    <a href="#contact-form" class="btn btn-light btn-lg px-4 py-3 d-flex align-items-center">
+                        <i class="fas fa-paper-plane me-2"></i> Submit Reclamation
+                    </a>
+                    <a href="#faq" class="btn btn-outline-light btn-lg px-4 py-3 d-flex align-items-center">
+                        <i class="fas fa-question-circle me-2"></i> FAQ
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block animate__animated animate__fadeInRight">
+                <!-- Replace image with support team icon -->
+                <div class="support-team-icon">
+                    <i class="fas fa-headset"></i>
+                    <div class="support-team-icon-circle c1"></div>
+                    <div class="support-team-icon-circle c2"></div>
+                    <div class="support-team-icon-circle c3"></div>
+                </div>
             </div>
         </div>
     </div>
 </section>
 {% endblock %}
-
 {% block content %}
-<section class="contact-info mb-5">
-    <div class="row">
-        <div class="col-md-4 mb-4 mb-md-0">
-            <div class="card h-100 contact-card">
-    <div class="card-body text-center p-4">
-        <div class="icon-circle mb-4">
-            <i class="fas fa-map-marker-alt"></i>
-        </div>
-        <h3 class="h4 mb-3">Our Location</h3>
-        <p class="mb-0">Avenue Habib Bourguiba<br>Tunis, 1001<br>Tunisia</p>
-    </div>
-</div>
-        </div>
-        <div class="col-md-4 mb-4 mb-md-0">
-            <div class="card h-100 contact-card">
-                <div class="card-body text-center p-4">
-                    <div class="icon-circle mb-4">
+<section class="contact-options py-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="contact-card h-100 animate__animated animate__fadeInUp">
+                    <div class="card-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h3>Visit Us</h3>
+                    <address class="mb-0">
+                        WamiaGo Headquarters<br>
+                        Avenue Habib Bourguiba<br>
+                        Tunis, 1001, Tunisia
+                    </address>
+                    <a href="https://goo.gl/maps/5J5JZQKVZHXMzNxx6" class="stretched-link" target="_blank" aria-label="View on Google Maps"></a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="contact-card h-100 animate__animated animate__fadeInUp animate__delay-1s">
+                    <div class="card-icon">
                         <i class="fas fa-phone-alt"></i>
                     </div>
-                    <h3 class="h4 mb-3">Phone Numbers</h3>
-                    <p class="mb-2">Main: +1 (234) 567-8900</p>
-                    <p class="mb-0">Support: +1 (234) 567-8901</p>
+                    <h3>Call Us</h3>
+                    <div class="mb-2">
+                        <span class="text-muted">Main:</span>
+                        <a href="tel:+12345678900" class="d-block fs-5">+1 (234) 567-8900</a>
+                    </div>
+                    <div>
+                        <span class="text-muted">Support:</span>
+                        <a href="tel:+12345678901" class="d-block fs-5">+1 (234) 567-8901</a>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100 contact-card">
-                <div class="card-body text-center p-4">
-                    <div class="icon-circle mb-4">
+            <div class="col-md-4">
+                <div class="contact-card h-100 animate__animated animate__fadeInUp animate__delay-2s">
+                    <div class="card-icon">
                         <i class="fas fa-envelope"></i>
                     </div>
-                    <h3 class="h4 mb-3">Email Addresses</h3>
-                    <p class="mb-2">General: info@wamiango.com</p>
-                    <p class="mb-0">Support: support@wamiango.com</p>
+                    <h3>Email Us</h3>
+                    <div class="mb-2">
+                        <span class="text-muted">General Inquiries:</span>
+                        <a href="mailto:info@wamiango.com" class="d-block fs-5">info@wamiango.com</a>
+                    </div>
+                    <div>
+                        <span class="text-muted">Support Requests:</span>
+                        <a href="mailto:support@wamiango.com" class="d-block fs-5">support@wamiango.com</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="contact-form-section mb-5">
-    <div class="row">
-        <div class="col-lg-8 mb-5 mb-lg-0">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-4 p-md-5">
-                    <h2 class="mb-4">Send Us a Message</h2>
-                    <form id="contactForm">
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <label for="name" class="form-label">Your Name</label>
-                                <input type="text" class="form-control" id="name" placeholder="Enter your name">
+<section id="contact-form" class="reclamation-form-section py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-8 text-center">
+                <h2 class="display-5 fw-bold mb-3">Submit a Reclamation</h2>
+                <p class="lead text-muted">We value your feedback and are committed to addressing your concerns promptly.</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card border-0 shadow-lg form-card">
+                    <div class="card-body p-lg-5 position-relative form-wrapper ">
+                        {% set currentUser = {'id': 1} %}
+                        
+                        <!-- Form content wrapper - this will get blurred on hover when locked -->
+                        <div class="form-content">
+                            {% if app.session.flashBag.has('success') %}
+                                <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                                    {% for message in app.flashes('success') %}
+                                        <i class="fas fa-check-circle me-2"></i> {{ message }}
+                                    {% endfor %}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endif %}
+                            
+                            {% if app.session.flashBag.has('error') %}
+                                <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                                    {% for message in app.flashes('error') %}
+                                        <i class="fas fa-exclamation-circle me-2"></i> {{ message }}
+                                    {% endfor %}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Show any form errors -->
+                            {% if form.vars.errors|length > 0 %}
+                                <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                                    <i class="fas fa-exclamation-circle me-2"></i> Please correct the errors below.
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Symfony Form -->
+                            {{ form_start(form, {'attr': {'id': 'reclamationForm', 'novalidate': 'novalidate'}}) }}
+                                
+                                <div class="mb-4">
+                                    {{ form_label(form.title) }}
+                                    <div class="input-group">
+                                        <span class="input-group-text border-end-0">
+                                            <i class="fas fa-heading text-primary"></i>
+                                        </span>
+                                        {{ form_widget(form.title) }}
+                                    </div>
+                                    <div class="form-text">{{ form_help(form.title) }}</div>
+                                    <div class="invalid-feedback">
+                                        {{ form_errors(form.title) }}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    {{ form_label(form.content) }}
+                                    <div class="d-flex align-items-center mb-2">
+                                        <button type="button" id="generateFeedbackBtn" class="btn btn-success btn-sm" style="margin-bottom: 10px; display: flex; align-items: center; gap: 5px;">
+                                            <i class="fas fa-magic"></i> AI Text Enhancement
+                                        </button>
+                                        <div class="spinner-border text-success ml-2 d-none" id="feedbackSpinner" role="status" style="margin-left: 10px; width: 1rem; height: 1rem;">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- AI Enhancement Input Field (initially hidden) -->
+                                    <div id="aiEnhancementContainer" class="mb-3 d-none">
+                                        <div class="input-group mb-2">
+                                            <span class="input-group-text border-end-0 align-items-start pt-2">
+                                                <i class="fas fa-pencil-alt text-primary"></i>
+                                            </span>
+                                            <textarea id="aiInputText" class="form-control" rows="3" placeholder="Write your message here, then click 'Enhance Text' to improve it..."></textarea>
+                                        </div>
+                                        <div class="d-flex justify-content-end">
+                                            <button type="button" id="enhanceTextBtn" class="btn btn-primary btn-sm">
+                                                <i class="fas fa-wand-magic-sparkles"></i> Enhance Text
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="input-group">
+                                        <span class="input-group-text border-end-0 align-items-start pt-2">
+                                            <i class="fas fa-comment-alt text-primary"></i>
+                                        </span>
+                                        {{ form_widget(form.content) }}
+                                    </div>
+                                    <div class="form-text text-end">
+                                        <span id="charCount">0</span>/1000 characters
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        {{ form_errors(form.content) }}
+                                    </div>
+                                </div>
+                                
+                                <!-- CAPTCHA Field - custom display to ensure it's focusable -->
+                                <div id="captchaContainer" class="mb-4">
+                                    <div class="captcha-container">
+                                        <label class="form-label" for="reclamation_captcha">{{ form.captcha.vars.label }}</label>
+                                        <div class="captcha-image-container text-center mb-3">
+                                            {{ form_widget(form.captcha, {
+                                                'id': 'reclamation_captcha',
+                                                'attr': {
+                                                    'class': 'form-control',
+                                                    'placeholder': 'Enter the code shown above',
+                                                    'autocomplete': 'off',
+                                                    'tabindex': 0
+                                                }
+                                            }) }}
+                                        </div>
+                                        <div class="form-text">{{ form_help(form.captcha) }}</div>
+                                        <div class="captcha-error text-danger">
+                                            {{ form_errors(form.captcha) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    {{ form_widget(form.submit, {'label': '<i class="fas fa-paper-plane me-2"></i> Submit Reclamation', 'label_html': true}) }}
+                                    <div class="submission-message text-center py-2 d-none">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span class="ms-2">Processing your submission...</span>
+                                    </div>
+                                </div>
+                                
+                            {{ form_end(form) }}
+                            <!-- End of Form -->
+                        </div>
+                        
+                        <!-- Form overlay for non-logged in users - only appears on hover -->
+                        <div class="login-overlay">
+                            <div class="login-card">
+                                <div class="login-icon">
+                                    <i class="fas fa-user-lock"></i>
+                                </div>
+                                <h3>Authentication Required</h3>
+                                <p class="mb-4">Please log in to submit a reclamation or provide feedback to our team.</p>
+                                <div class="d-grid gap-3">
+                                    <a href="#" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-sign-in-alt me-2"></i> Sign In
+                                    </a>
+                                    <span class="text-center">or</span>
+                                    <a href="#" class="btn btn-outline-light text-dark border-secondary">
+                                        <i class="fas fa-user-plus me-2"></i> Create an Account
+                                    </a>
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-4">
-                                <label for="email" class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="email" placeholder="Enter your email">
+                        </div> 
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="support-info py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-5 mb-4 mb-lg-0">
+                <h2 class="fw-bold mb-4">Our Support Team</h2>
+                <p class="lead mb-4">We're committed to providing exceptional customer service. Our support team is available during business hours to assist you with any questions or concerns.</p>
+                
+                <h4 class="mb-3">Office Hours</h4>
+                <ul class="list-unstyled office-hours mb-4">
+                    <li class="d-flex justify-content-between mb-2">
+                        <span><i class="fas fa-calendar-day me-2 text-primary"></i> Monday - Friday:</span>
+                        <span class="fw-bold">9:00 AM - 6:00 PM</span>
+                    </li>
+                    <li class="d-flex justify-content-between mb-2">
+                        <span><i class="fas fa-calendar-day me-2 text-primary"></i> Saturday:</span>
+                        <span class="fw-bold">10:00 AM - 4:00 PM</span>
+                    </li>
+                    <li class="d-flex justify-content-between">
+                        <span><i class="fas fa-calendar-day me-2 text-primary"></i> Sunday:</span>
+                        <span class="fw-bold">Closed</span>
+                    </li>
+                </ul>
+                
+                <h4 class="mb-3">Connect With Us</h4>
+                <div class="social-links">
+                    <a href="#" class="social-link" aria-label="Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Twitter">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="LinkedIn">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="map-container shadow-lg rounded-4 overflow-hidden">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3193.7015584185183!2d10.176413314890811!3d36.806501979949404!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x12fd346d8bf32643%3A0xf2362f1473fa5205!2sAvenue%20Habib%20Bourguiba%2C%20Tunis%2C%20Tunisia!5e0!3m2!1sen!2sus!4v1650125073024!5m2!1sen!2sus" style="border:0;" allowfullscreen="" loading="lazy" title="Map showing our location in Tunis, Tunisia"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="faq" class="faq-section py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-8 text-center">
+                <h2 class="display-5 fw-bold mb-3">Frequently Asked Questions</h2>
+                <p class="lead text-muted">Find quick answers to common questions about our services.</p>
+            </div>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="accordion faq-accordion" id="faqAccordion">
+                    <div class="accordion-item border-0 mb-3">
+                        <h3 class="accordion-header" id="headingOne">
+                            <button class="accordion-button rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                <i class="fas fa-user-plus me-3 text-primary"></i> How do I register for an account?
+                            </button>
+                        </h3>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                <p>You can register for an account by clicking the "Sign Up" button in the top right corner of the website. Fill out the registration form with your details and follow the verification process. Once your account is verified, you'll have full access to all WamiaGo services.</p>
+                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">
+                                    <i class="fas fa-arrow-right me-1"></i> Register Now
+                                </a>
                             </div>
                         </div>
-                        <div class="mb-4">
-                            <label for="subject" class="form-label">Subject</label>
-                            <input type="text" class="form-control" id="subject" placeholder="Enter subject">
-                        </div>
-                        <div class="mb-4">
-                            <label for="message" class="form-label">Message</label>
-                            <textarea class="form-control" id="message" rows="6" placeholder="Enter your message"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-lg">Send Message</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body p-4">
-                    <h3 class="mb-4">Office Hours</h3>
-                    <ul class="list-unstyled office-hours">
-                        <li class="d-flex justify-content-between mb-3">
-                            <span><strong>Monday - Friday:</strong></span>
-                            <span>9:00 AM - 6:00 PM</span>
-                        </li>
-                        <li class="d-flex justify-content-between mb-3">
-                            <span><strong>Saturday:</strong></span>
-                            <span>10:00 AM - 4:00 PM</span>
-                        </li>
-                        <li class="d-flex justify-content-between mb-3">
-                            <span><strong>Sunday:</strong></span>
-                            <span>Closed</span>
-                        </li>
-                    </ul>
+                    </div>
                     
-                    <hr class="my-4">
+                    <div class="accordion-item border-0 mb-3">
+                        <h3 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                <i class="fas fa-car me-3 text-primary"></i> How does ride sharing work?
+                            </button>
+                        </h3>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                <p>With ride sharing, users can either offer a ride or find a ride. If you're offering a ride, you specify your route, date, time, and how many passengers you can take. If you're looking for a ride, you search for available rides matching your needs and request to join.</p>
+                                <p>Our platform handles payment processing, notifications, and helps coordinate pickup details between drivers and passengers.</p>
+                            </div>
+                        </div>
+                    </div>
                     
-                    <h3 class="mb-4">Follow Us</h3>
-                    <div class="social-icons">
-                        <a href="#" class="btn btn-outline-primary me-2"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="btn btn-outline-info me-2"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="btn btn-outline-danger me-2"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="btn btn-outline-primary me-2"><i class="fab fa-linkedin-in"></i></a>
+                    <div class="accordion-item border-0 mb-3">
+                        <h3 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                <i class="fas fa-bicycle me-3 text-primary"></i> How do I rent a bicycle?
+                            </button>
+                        </h3>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                <p>To rent a bicycle, log in to your account, go to the Bicycle Rentals section, choose your location and rental period, make the payment, and you'll receive instructions on picking up your bicycle.</p>
+                                <p>We offer various bicycle types, including city bikes, mountain bikes, and electric bikes. All rentals include a helmet and basic safety equipment.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item border-0">
+                        <h3 class="accordion-header" id="headingFour">
+                            <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                <i class="fas fa-credit-card me-3 text-primary"></i> What payment methods do you accept?
+                            </button>
+                        </h3>
+                        <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                <p>We accept all major credit and debit cards, including Visa, MasterCard, and American Express. We also support mobile payment methods such as Apple Pay and Google Pay for your convenience.</p>
+                                <p>All payments are securely processed, and your financial information is never stored on our servers.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -131,56 +382,20 @@
     </div>
 </section>
 
-<section class="map mb-5">
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-            <h3 class="visually-hidden">Map Location</h3>
-            <div class="ratio ratio-21x9">
-                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3193.7015584185183!2d10.176413314890811!3d36.806501979949404!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x12fd346d8bf32643%3A0xf2362f1473fa5205!2sAvenue%20Habib%20Bourguiba%2C%20Tunis%2C%20Tunisia!5e0!3m2!1sen!2sus!4v1650125073024!5m2!1sen!2sus" style="border:0;" allowfullscreen="" aria-hidden="false" title="Map showing our location in Tunis, Tunisia"></iframe>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="faq mb-5">
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-4 p-md-5">
-            <h2 class="text-center mb-5">Frequently Asked Questions</h2>
-            <div class="accordion" id="faqAccordion">
-                <div class="accordion-item">
-                    <h3 class="accordion-header" id="headingOne">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                            How do I register for an account?
-                        </button>
-                    </h3>
-                    <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
-                        <div class="accordion-body">
-                            You can register for an account by clicking the "Sign Up" button in the top right corner of the website. Fill out the registration form with your details and follow the verification process.
-                        </div>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <h3 class="accordion-header" id="headingTwo">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                            How does ride sharing work?
-                        </button>
-                    </h3>
-                    <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
-                        <div class="accordion-body">
-                            With ride sharing, users can either offer a ride or find a ride. If you're offering a ride, you specify your route, date, time, and how many passengers you can take. If you're looking for a ride, you search for available rides matching your needs and request to join.
-                        </div>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <h3 class="accordion-header" id="headingThree">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                            How do I rent a bicycle?
-                        </button>
-                    </h3>
-                    <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
-                        <div class="accordion-body">
-                            To rent a bicycle, log in to your account, go to the Bicycle Rentals section, choose your location and rental period, make the payment, and you'll receive instructions on picking up your bicycle.
-                        </div>
+<section class="cta-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="cta-card text-center">
+                    <h2 class="display-6 fw-bold mb-3">Still have questions?</h2>
+                    <p class="lead mb-4">Our team is ready to assist you with any additional questions or concerns.</p>
+                    <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
+                        <a href="mailto:support@wamiango.com" class="btn btn-light btn-lg">
+                            <i class="fas fa-envelope me-2"></i> Email Support
+                        </a>
+                        <a href="tel:+12345678901" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-phone-alt me-2"></i> Call Support
+                        </a>
                     </div>
                 </div>
             </div>
@@ -188,62 +403,264 @@
     </div>
 </section>
 {% endblock %}
-
-{% block page_stylesheets %}
-<style>
-    .icon-circle {
-        width: 80px;
-        height: 80px;
-        background-color: rgba(13, 110, 253, 0.1);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto;
-    }
-    
-    .icon-circle i {
-        font-size: 32px;
-        color: #0d6efd;
-    }
-    
-    .office-hours li {
-        padding-bottom: 10px;
-        border-bottom: 1px dashed #dee2e6;
-    }
-    
-    .office-hours li:last-child {
-        border-bottom: none;
-    }
-</style>
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="{{ asset('css/front/Reclamation/reclamation.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 {% endblock %}
+
 
 {% block page_javascripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Contact form validation and submission
-        const contactForm = document.getElementById('contactForm');
-        if (contactForm) {
-            contactForm.addEventListener('submit', function(e) {
-                e.preventDefault();
+        // Get color scheme from services.css (fallback values)
+        const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary') || '#0d6efd';
+        const newsColor = getComputedStyle(document.documentElement).getPropertyValue('--news-color') || '#0dcaf0';
+        
+        // Apply colors dynamically
+        document.documentElement.style.setProperty('--primary', primaryColor);
+        document.documentElement.style.setProperty('--news-color', newsColor);
+        
+        // AI Text Enhancement Functionality
+        const generateBtn = document.getElementById('generateFeedbackBtn');
+        const enhanceTextBtn = document.getElementById('enhanceTextBtn');
+        const aiEnhancementContainer = document.getElementById('aiEnhancementContainer');
+        const aiInputText = document.getElementById('aiInputText');
+        const spinner = document.getElementById('feedbackSpinner');
+        const titleInput = document.getElementById('reclamation_title');
+        const contentTextarea = document.getElementById('reclamation_content');
+        
+        if (generateBtn && spinner && titleInput && contentTextarea) {
+            // Show/hide the AI enhancement input field
+            generateBtn.addEventListener('click', function() {
+                // Toggle the AI enhancement container
+                if (aiEnhancementContainer.classList.contains('d-none')) {
+                    aiEnhancementContainer.classList.remove('d-none');
+                } else {
+                    aiEnhancementContainer.classList.add('d-none');
+                }
+            });
+            
+            // Enhance Text button functionality
+            if (enhanceTextBtn && aiInputText) {
+                enhanceTextBtn.addEventListener('click', function() {
+                    const textToEnhance = aiInputText.value.trim();
+                    if (!textToEnhance) {
+                        alert('Please enter some text to enhance');
+                        return;
+                    }
+                    
+                    // Show loading spinner
+                    spinner.classList.remove('d-none');
+                    enhanceTextBtn.disabled = true;
+                    
+                    // Send request to enhance text
+                    fetch('/feedback/generate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            title: titleInput.value,
+                            text: textToEnhance
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.suggestion) {
+                            // Put enhanced text in the main content textarea
+                            contentTextarea.value = data.suggestion;
+                            
+                            // Manually trigger input event to update character counter
+                            const inputEvent = new Event('input', { bubbles: true });
+                            contentTextarea.dispatchEvent(inputEvent);
+                            
+                            // Clear the input field
+                            aiInputText.value = '';
+                            
+                            // Hide the enhancement container
+                            aiEnhancementContainer.classList.add('d-none');
+                        } else if (data.error) {
+                            alert('Error: ' + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to enhance text. Please try again.');
+                    })
+                    .finally(() => {
+                        // Hide loading spinner
+                        spinner.classList.add('d-none');
+                        enhanceTextBtn.disabled = false;
+                    });
+                });
+            }
+        }
+        
+        // Form validation
+        const reclamationForm = document.getElementById('reclamationForm');
+        
+        if (reclamationForm) {
+            // Character count for textarea
+            const contentTextarea = document.getElementById('reclamation_content');
+            const charCount = document.getElementById('charCount');
+            
+            if (contentTextarea && charCount) {
+                // Set initial count
+                charCount.textContent = contentTextarea.value.length;
                 
-                // Basic validation
-                const name = document.getElementById('name').value;
-                const email = document.getElementById('email').value;
-                const subject = document.getElementById('subject').value;
-                const message = document.getElementById('message').value;
-                
-                if (!name || !email || !subject || !message) {
-                    alert('Please fill in all fields');
+                contentTextarea.addEventListener('input', function() {
+                    const count = this.value.length;
+                    charCount.textContent = count;
+                    
+                    const maxLength = 1000;
+                    
+                    if (count > maxLength) {
+                        this.value = this.value.substring(0, maxLength);
+                        charCount.textContent = maxLength;
+                    }
+                    
+                    // Change color based on length
+                    if (count > 800) {
+                        charCount.classList.add('text-danger');
+                    } else {
+                        charCount.classList.remove('text-danger');
+                    }
+                    
+                    // Validate field length
+                    if (count < 10) {
+                        this.classList.add('is-invalid');
+                        this.setCustomValidity('Your message should be at least 10 characters');
+                    } else {
+                        this.classList.remove('is-invalid');
+                        this.setCustomValidity('');
+                    }
+                });
+            }
+            
+            // Title field validation
+            const titleField = document.getElementById('reclamation_title');
+            if (titleField) {
+                titleField.addEventListener('input', function() {
+                    const length = this.value.trim().length;
+                    
+                    if (length < 5) {
+                        this.classList.add('is-invalid');
+                        this.setCustomValidity('Your subject should be at least 5 characters');
+                    } else if (length > 100) {
+                        this.classList.add('is-invalid');
+                        this.setCustomValidity('Your subject cannot be longer than 100 characters');
+                    } else {
+                        this.classList.remove('is-invalid');
+                        this.setCustomValidity('');
+                    }
+                });
+            }
+            
+            // Form submission
+            reclamationForm.addEventListener('submit', function(e) {
+                // Check if form is locked (user not logged in)
+                const formWrapper = document.querySelector('.form-wrapper');
+                if (formWrapper.classList.contains('form-locked')) {
+                    e.preventDefault();
                     return;
                 }
                 
-                // Here you would normally send the form to the server
-                // For now, just show a success message
-                alert('Thank you for your message! We will get back to you soon.');
-                contactForm.reset();
+                // Client-side validation
+                let isValid = true;
+                const title = document.getElementById('reclamation_title');
+                const content = document.getElementById('reclamation_content');
+                
+                if (title && (title.value.trim().length < 5 || title.value.trim().length > 100)) {
+                    title.classList.add('is-invalid');
+                    isValid = false;
+                }
+                
+                if (content && (content.value.trim().length < 10 || content.value.trim().length > 1000)) {
+                    content.classList.add('is-invalid');
+                    isValid = false;
+                }
+                
+                if (!isValid) {
+                    e.preventDefault();
+                    return;
+                }
+                
+                // Show loading state if form is valid
+                const submitButton = document.querySelector('button[type="submit"]');
+                const submissionMessage = document.querySelector('.submission-message');
+                
+                if (submitButton && submissionMessage) {
+                    submitButton.disabled = true;
+                    submissionMessage.classList.remove('d-none');
+                }
+            });
+            
+            // Make sure CAPTCHA field is properly focusable
+            const captchaField = document.getElementById('reclamation_captcha');
+            if (captchaField) {
+                // Fix potential issues with tabindex
+                captchaField.tabIndex = 0;
+                
+                // Focus the field when clicking on the container
+                const captchaContainer = document.querySelector('.captcha-container');
+                if (captchaContainer) {
+                    captchaContainer.addEventListener('click', function() {
+                        captchaField.focus();
+                    });
+                }
+            }
+            
+            // Refresh captcha if needed
+            document.querySelectorAll('.captcha-container a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const captchaImg = document.querySelector('.captcha-image-container img');
+                    if (captchaImg) {
+                        const newSrc = captchaImg.src.split('?')[0] + '?t=' + new Date().getTime();
+                        captchaImg.src = newSrc;
+                    }
+                });
             });
         }
+        
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Animate elements when they come into view
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+        
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate__animated', entry.target.dataset.animation);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('[data-animation]').forEach(el => {
+            observer.observe(el);
+        });
+        
+        // Refresh captcha if needed
+        document.querySelectorAll('.captcha-container a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const captchaImg = this.parentElement.querySelector('img');
+                if (captchaImg) {
+                    const newSrc = captchaImg.src.split('?')[0] + '?t=' + new Date().getTime();
+                    captchaImg.src = newSrc;
+                }
+            });
+        });
     });
 </script>
 {% endblock %}
