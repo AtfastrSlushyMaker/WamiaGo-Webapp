@@ -258,7 +258,8 @@ function renderDetails(data, container) {
                     </div>
                     <div>
                         <h6 class="detail-label">DESCRIPTION</h6>
-                        <p class="detail-value text-muted">${data.content}</p>
+                        <p class="detail-value text-muted" style="max-width: 400px;">${data.content}</p>
+
                     </div>
                 </div>
             </div>

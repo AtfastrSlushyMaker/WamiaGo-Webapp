@@ -197,18 +197,32 @@ public function getCalendarEvents(DriverRepository $driverRepo): JsonResponse
 
     $events = [];
     foreach ($relocations as $relocation) {
+        // Récupération de la date de relocation
+        $relocationDate = clone $relocation->getDate();
+        
+        // Récupération de l'heure de réservation
+        $reservationDateTime = $relocation->getReservation()->getDate();
+        
+        // Application de l'heure de réservation à la date de relocation
+        $relocationDate->setTime(
+            (int)$reservationDateTime->format('H'),
+            (int)$reservationDateTime->format('i'),
+            (int)$reservationDateTime->format('s')
+        );
+        
         $events[] = [
             'id' => $relocation->getIdRelocation(),
             'title' => $relocation->getReservation()->getAnnouncement()->getTitle(),
-            'start' => $relocation->getDate()->format('Y-m-d\TH:i:s'),
-            'end' => $relocation->getDate()->modify('+2 hours')->format('Y-m-d\TH:i:s'),
+            'start' => $relocationDate->format('Y-m-d\TH:i:s'), // Utilisation de la date de relocation avec l'heure de réservation
+            //'end' => $relocationDate->modify('+2 hours')->format('Y-m-d\TH:i:s'),
             'color' => $relocation->isStatus() ? '#3788d8' : '#6c757d',
             'extendedProps' => [
-                'cost' => $relocation->getCost(),
+                'cost' => number_format($relocation->getCost(), 2),
                 'client' => $relocation->getReservation()->getUser()->getName(),
                 'startLocation' => $relocation->getReservation()->getStartLocation()->getAddress(),
                 'endLocation' => $relocation->getReservation()->getEndLocation()->getAddress(),
-                'status' => $relocation->isStatus()
+                'status' => $relocation->isStatus(),
+                'relocationDate' => $relocationDate->format('d M Y, H:i') // Date de relocation avec l'heure de réservation
             ]
         ];
     }

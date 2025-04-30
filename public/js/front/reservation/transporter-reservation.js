@@ -235,6 +235,7 @@ async function handleReservationAction(reservationId, action) {
 
             // Mise à jour de l'UI
             updateReservationCard(reservationId, 'CONFIRMED');
+            window.location.reload();
             
         } else if (action === 'refuse') {
             const response = await fetch(`/transporter/reservations/${reservationId}/refuse`, {

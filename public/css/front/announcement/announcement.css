@@ -1312,3 +1312,14 @@ body.dark-mode .accordion-body {
         align-self: flex-start;
     }
 }
+
+.announcement-modal .modal-content {
+    max-height: 80vh;
+    overflow: hidden;
+}
+
+.announcement-modal #modalBodyContent {
+    max-height: 65vh;
+    overflow-y: auto;
+    padding: 20px;
+}

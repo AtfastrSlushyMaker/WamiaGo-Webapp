@@ -27,6 +27,19 @@ document.addEventListener('DOMContentLoaded', function() {
         navLinks: true,
         events: '/transporter/relocations/api/calendar-events',
         
+        eventDisplay: 'block', // Affiche l'événement en bloc
+        eventTimeFormat: {     // Format de l'heure (24h)
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        },
+        eventDidMount: function(info) { // Cacher l'heure si 00:00
+            const timeEl = info.el.querySelector('.fc-event-time');
+            if (timeEl && info.event.start.getHours() === 0 && info.event.start.getMinutes() === 0) {
+                timeEl.style.display = 'none';
+            }
+        },
+        
         eventClick: function(info) {
             const event = info.event;
             currentEventId = event.id;
@@ -35,26 +48,49 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('eventModalTitle').textContent = event.title;
             document.getElementById('eventModalBody').innerHTML = `
                 <div class="event-details">
-                    <p><strong>Client:</strong> ${event.extendedProps.client}</p>
-                    <p><strong>Date:</strong> ${event.start.toLocaleString('fr-FR')}</p>
-                    <p><strong>Cost:</strong> ${event.extendedProps.cost} €</p>
-                    <p><strong>Status:</strong> 
-                        <span class="badge ${event.extendedProps.status ? 'bg-success' : 'bg-secondary'}">
-                            ${event.extendedProps.status ? 'Active' : 'Inactive'}
-                        </span>
-                    </p>
-                    <hr>
-                    <p><i class="fas fa-map-marker-alt text-danger"></i> 
-                        ${event.extendedProps.startLocation}</p>
-                    <p><i class="fas fa-flag-checkered text-success"></i> 
-                        ${event.extendedProps.endLocation}</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-user"></i> Client:</strong> ${event.extendedProps.client}</p>
+                            <p><strong><i class="fas fa-coins"></i> Coût:</strong> ${event.extendedProps.cost} €</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-calendar-day"></i> Date réservation:</strong> 
+                            ${event.extendedProps.reservationDate}</p>
+                            <p><strong>Statut:</strong> 
+                                <span class="badge ${event.extendedProps.status ? 'bg-success' : 'bg-secondary'}">
+                                    ${event.extendedProps.status ? 'Actif' : 'Inactif'}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+        
+                    <div class="location-container mt-4">
+                        <div class="location-item text-danger">
+                            <i class="fas fa-map-marker-alt fa-lg"></i>
+                            <div>
+                                <h6>Départ</h6>
+                                <p>${event.extendedProps.startLocation}</p>
+                            </div>
+                        </div>
+                        <div class="location-item text-success">
+                            <i class="fas fa-flag-checkered fa-lg"></i>
+                            <div>
+                                <h6>Arrivée</h6>
+                                <p>${event.extendedProps.endLocation}</p>
+                            </div>
+                        </div>
+                    </div>
+        
+                    <div class="mt-4 text-muted small">
+                        <i class="fas fa-info-circle"></i> ID Réservation: ${event.id}
+                    </div>
                 </div>
             `;
             
             modal.show();
         }
     });
-
+    
     // Delete relocation
     document.getElementById('deleteRelocationBtn').addEventListener('click', async () => {
         if (!currentEventId) return;

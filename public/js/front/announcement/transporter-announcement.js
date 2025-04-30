@@ -515,7 +515,10 @@ modal.addEventListener('hidden.bs.modal', function () {
 });
 
 
+
+
 // Initialiser au chargement
 document.addEventListener('DOMContentLoaded', function() {
     handleEditFormSubmission();
 });
+

@@ -133,3 +133,15 @@
 .is-valid {
     border-color: #28a745 !important;
 }
+
+.announcement-modal .modal-content {
+    max-height: 80vh;
+    overflow: hidden;
+}
+
+.announcement-modal #modalBodyContent {
+    max-height: 65vh;
+    overflow-y: auto;
+    padding: 20px;
+}
+

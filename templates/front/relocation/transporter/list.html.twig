@@ -14,17 +14,22 @@
 <div class="transporter-relocations-container">
     <!-- Header Section -->
     <div class="announcements-header text-center">
-    <h1><i class="fas fa-truck-moving"></i> My Relocations</h1>
-    
-    <div class="action-buttons d-flex justify-content-center gap-3">
-        <a href="{{ path('app_transporter_announcement_list') }}" class="btn btn-outline-primary">
-            <i class="fas fa-truck me-2"></i> See Announcements
-        </a>
-        <a href="{{ path('app_transporter_reservation_list') }}" class="btn btn-info">
-            <i class="fas fa-calendar-check me-2"></i> See Reservations
-        </a>
+        <h1><i class="fas fa-truck-moving"></i> My Relocations</h1>
+        
+        <div class="action-buttons d-flex justify-content-center gap-3 flex-wrap">
+            <a href="{{ path('app_transporter_announcement_list') }}" class="btn btn-outline-primary">
+                <i class="fas fa-truck me-2"></i> See Announcements
+            </a>
+            <a href="{{ path('app_transporter_reservation_list') }}" class="btn btn-info">
+                <i class="fas fa-calendar-check me-2"></i> See Reservations
+            </a>
+            <a href="{{ path('app_transporter_relocation_calendar') }}" class="btn btn-success">
+                <i class="fas fa-calendar-alt me-2"></i> View Calendar
+            </a>
+        </div>
     </div>
 </div>
+
 
 <!-- Search Filters Section -->
 <div class="filters-section mb-5">
