@@ -21,92 +21,59 @@ use Knp\Component\Pager\PaginatorInterface;
 class AnnouncementsController extends AbstractController
 {
     #[Route('/', name: 'admin_announcements_index', methods: ['GET'])]
-    public function index(
-        Request $request, 
-        AnnouncementRepository $announcementRepo,
-        PaginatorInterface $paginator
-    ): Response {
-        try {
-            // Obtenir les paramètres de filtrage
-            $keyword = trim($request->query->get('keyword', ''));
-            $zone = $request->query->get('zone');
-            $date = $request->query->get('date');
-            
-            // Construire la requête en fonction des filtres
-            $qb = $announcementRepo->createQueryBuilder('a')
-                ->orderBy('a.date', 'DESC');
-            
-            // Ajouter le filtre de mot-clé (si présent)
-            if (!empty($keyword)) {
-                $qb->andWhere('a.title LIKE :keyword')
-                   ->setParameter('keyword', '%' . $keyword . '%');
-            }
-            
-            // Ajouter le filtre de zone (si présent)
-            if (!empty($zone)) {
-                $qb->andWhere('a.zone = :zone')
-                   ->setParameter('zone', $zone);
-            }
-            
-            // Ajouter le filtre de date (si présent)
-            if (!empty($date)) {
-                $qb->andWhere('DATE(a.date) = :date')
-                   ->setParameter('date', $date);
-            }
-            
-            // Paginer les résultats
-            $announcements = $paginator->paginate(
-                $qb->getQuery(),
-                $request->query->getInt('page', 1),
-                10
-            );
-            
-            // Traiter les requêtes AJAX
-            if ($request->isXmlHttpRequest()) {
-                return $this->json([
-                    'html' => $this->renderView('back-office/Announcements/_announcement_list.html.twig', [
-                        'announcements' => $announcements
-                    ]),
-                    'pagination' => $this->renderView('@KnpPaginator/Pagination/twitter_bootstrap_v4_pagination.html.twig', [
-                        'pagination' => $announcements
-                    ])
-                ]);
-            }
-            
-            // Afficher la page complète pour les requêtes normales
-            return $this->render('back-office/Announcements/index.html.twig', [
-                'announcements' => $announcements,
-                'filters' => [
-                    'keyword' => $keyword,
-                    'zone' => $zone,
-                    'date' => $date
-                ],
-                'zones' => Zone::cases()
-            ]);
-        } catch (\Exception $e) {
-            // Pour les requêtes AJAX, renvoyer une erreur JSON
-            if ($request->isXmlHttpRequest()) {
-                return $this->json([
-                    'error' => 'Une erreur est survenue: ' . $e->getMessage()
-                ], 500);
-            }
-            
-            // Pour les requêtes normales, utiliser un message flash
-            $this->addFlash('error', 'Une erreur est survenue: ' . $e->getMessage());
-            
-            // Renvoyer un ensemble de résultats vide
-            $announcements = $paginator->paginate(
-                [],
-                $request->query->getInt('page', 1),
-                10
-            );
-            
-            return $this->render('back-office/Announcements/index.html.twig', [
-                'announcements' => $announcements,
-                'zones' => Zone::cases()
-            ]);
-        }
+public function index(
+    Request $request, 
+    AnnouncementRepository $announcementRepo,
+    PaginatorInterface $paginator
+): Response {
+    // Récupération des paramètres
+    $keyword = trim($request->query->get('keyword', ''));
+    $zone = $request->query->get('zone');
+    $date = $request->query->get('date');
+
+    // Construction de la requête
+    $qb = $announcementRepo->createQueryBuilder('a')
+        ->orderBy('a.date', 'DESC');
+
+    if (!empty($keyword)) {
+        $qb->andWhere('a.title LIKE :keyword OR a.content LIKE :keyword')
+           ->setParameter('keyword', '%' . $keyword . '%');
     }
+
+    if (!empty($zone)) {
+        $qb->andWhere('a.zone = :zone')
+           ->setParameter('zone', $zone);
+    }
+
+    if (!empty($date)) {
+        $qb->andWhere('DATE(a.date) = :date')
+           ->setParameter('date', $date);
+    }
+
+    // Pagination
+    $announcements = $paginator->paginate(
+        $qb->getQuery(),
+        $request->query->getInt('page', 1),
+        10
+    );
+
+    // Réponse AJAX
+    if ($request->isXmlHttpRequest()) {
+        return new JsonResponse([
+            'html' => $this->renderView('back-office/Announcements/_announcement_list.html.twig', [
+                'announcements' => $announcements
+            ]),
+            'pagination' => $this->renderView('@KnpPaginator/Pagination/twitter_bootstrap_v4_pagination.html.twig', [
+                'pagination' => $announcements
+            ])
+        ]);
+    }
+
+    return $this->render('back-office/Announcements/index.html.twig', [
+        'announcements' => $announcements,
+        'zones' => Zone::cases()
+    ]);
+}
 
     #[Route('/{id}', name: 'admin_announcements_show', methods: ['GET'])]
     public function show(Announcement $announcement): Response
@@ -217,16 +184,42 @@ public function search(
     $date = $request->query->get('date');
 
     try {
-        $qb = $announcementRepo->createSearchQueryBuilder($keyword, $zone, $date);
+       
+        if (method_exists($announcementRepo, 'createSearchQueryBuilder_admin')) {
+            $qb = $announcementRepo->createSearchQueryBuilder_admin($keyword, $zone, $date);
+        } else {
+            // Si la méthode n'existe pas, utilisez le même code que la méthode index
+            $qb = $announcementRepo->createQueryBuilder('a')
+                ->orderBy('a.date', 'DESC');
+                
+            if (!empty($keyword)) {
+                $qb->andWhere('a.title LIKE :keyword')
+                   ->setParameter('keyword', '%' . $keyword . '%');
+            }
+            
+            if (!empty($zone)) {
+                $qb->andWhere('a.zone = :zone')
+                   ->setParameter('zone', $zone);
+            }
+            
+            if (!empty($date)) {
+                $qb->andWhere('DATE(a.date) = :date')
+                   ->setParameter('date', $date);
+            }
+        }
+        
         $announcements = $paginator->paginate($qb, $request->query->getInt('page', 1), 10);
 
+       
         if ($request->isXmlHttpRequest()) {
             return $this->json([
                 'html' => $this->renderView('back-office/Announcements/_announcement_list.html.twig', [
                     'announcements' => $announcements
                 ]),
                 'pagination' => $this->renderView('@KnpPaginator/Pagination/twitter_bootstrap_v4_pagination.html.twig', [
-                    'pagination' => $announcements
+                    'pagination' => $announcements,
+                    'route' => 'admin_announcements_index',
+                    'query' => $request->query->all()
                 ])
             ]);
         }

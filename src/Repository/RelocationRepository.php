@@ -263,6 +263,34 @@ public function createSearchQueryBuilder_client(array $filters): QueryBuilder
     return $qb->orderBy('r.date', 'DESC');
 }
 
+public function createSearchQueryBuilder_admin(?string $keyword = null, ?string $zone = null, ?string $date = null): QueryBuilder
+{
+    $qb = $this->createQueryBuilder('a')
+        ->orderBy('a.date', 'DESC');
+
+    if ($keyword && trim($keyword) !== '') {
+        $qb->andWhere('a.title LIKE :keyword OR a.content LIKE :keyword')
+           ->setParameter('keyword', '%' . trim($keyword) . '%');
+    }
+    
+    if ($zone && trim($zone) !== '') {
+        $qb->andWhere('a.zone = :zone')
+           ->setParameter('zone', $zone);
+    }
+    
+    if ($date && trim($date) !== '') {
+        $startDate = \DateTime::createFromFormat('Y-m-d', $date);
+        $startDate->setTime(0, 0, 0);
+        $endDate = clone $startDate;
+        $endDate->modify('+1 day');
+        
+        $qb->andWhere('a.date >= :startDate AND a.date < :endDate')
+           ->setParameter('startDate', $startDate)
+           ->setParameter('endDate', $endDate);
+    }
+    
+    return $qb;
+}
     //    /**
     //     * @return Relocation[] Returns an array of Relocation objects
     //     */

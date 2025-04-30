@@ -40,25 +40,21 @@ class AdminAnnouncementSearch {
     }
 
     async performSearch() {
-        this.showLoading();
+        const params = new URLSearchParams();
         
-        const params = new URLSearchParams(window.location.search);
-        params.set('keyword', this.keywordInput ? this.keywordInput.value || '' : '');
-        params.set('zone', this.zoneFilter ? this.zoneFilter.value || '' : '');
-        params.set('date', this.dateFilter ? this.dateFilter.value || '' : '');
-        
-        console.log('Search params:', params.toString());
-    
+        if (this.keywordInput?.value) params.append('keyword', this.keywordInput.value);
+        if (this.zoneFilter?.value) params.append('zone', this.zoneFilter.value);
+        if (this.dateFilter?.value) params.append('date', this.dateFilter.value);
+
         try {
-            const response = await fetch(`${window.location.pathname}?${params.toString()}`, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
+            this.showLoading();
             
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Error response:', errorText);
-                throw new Error(`HTTP error ${response.status}`);
-            }
+            const response = await fetch(`${window.location.pathname}?${params.toString()}`, {
+                headers: { 
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
             
             const data = await response.json();
             
@@ -67,10 +63,23 @@ class AdminAnnouncementSearch {
                 this.paginationContainer.innerHTML = data.pagination;
             }
             
+            window.history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
+            
         } catch (error) {
-            console.error('Search failed:', error);
-            this.showError('Search unavailable. Please try again or reload the page.');
+            console.error('Search error:', error);
+            this.showError('Failed to load announcements. Please try again.');
         }
+    }
+    
+    bindPaginationLinks() {
+        const links = this.paginationContainer.querySelectorAll('a.page-link');
+        links.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.history.pushState({}, '', e.target.href);
+                this.performSearch();
+            });
+        });
     }
 
     clearFilters() {

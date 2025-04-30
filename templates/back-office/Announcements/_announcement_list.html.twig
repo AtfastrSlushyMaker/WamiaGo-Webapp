@@ -1,4 +1,5 @@
-{% for announcement in announcements %}
+{% set pagination = pagination ?? announcements %}
+{% for announcement in pagination %}
 <tr data-id="{{ announcement.id_announcement }}">
     <td data-label="ID">{{ announcement.id_announcement }}</td>
     <td data-label="Title">{{ announcement.title }}</td>

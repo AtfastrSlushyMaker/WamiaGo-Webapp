@@ -204,6 +204,7 @@ public function createQueryByFilters(array $filters)
     return $qb->getQuery();
 }
 
+
 public function createSearchQueryBuilder(?string $keyword = null, ?string $zone = null, ?string $date = null)
 {
     $qb = $this->createQueryBuilder('a')
