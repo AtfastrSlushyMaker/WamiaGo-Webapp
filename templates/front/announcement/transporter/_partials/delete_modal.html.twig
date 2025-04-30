@@ -1,4 +1,4 @@
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" >
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
             <div class="modal-header bg-danger text-white">
@@ -15,9 +15,7 @@
             </div>
             
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-1"></i> Cancel
-                </button>
+                
                 <form id="deleteAnnouncementForm" method="post" action="">
                     <input type="hidden" name="_token" value="" id="deleteCsrfToken">
                     <button type="submit" class="btn btn-danger">

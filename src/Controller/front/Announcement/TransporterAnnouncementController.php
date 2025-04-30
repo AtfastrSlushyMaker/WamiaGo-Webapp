@@ -177,7 +177,7 @@ public function new(Request $request): Response
         $announcements = $paginator->paginate(
             $query,
             $request->query->getInt('page', 1),
-            6
+            8
         );
 
         // Pour les requêtes AJAX
@@ -407,7 +407,7 @@ public function search(Request $request, PaginatorInterface $paginator): Respons
     $announcements = $paginator->paginate(
         $query,
         $request->query->getInt('page', 1),
-        6// Items par page pour transporteur
+        8// Items par page pour transporteur
     );
 
     // 6. Gestion réponse AJAX

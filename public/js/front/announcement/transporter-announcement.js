@@ -261,6 +261,9 @@ function displayFormErrors(form, errors) {
     });
 }
 
+
+
+
 // Gestion de la soumission du formulaire de suppression
 document.getElementById('deleteAnnouncementForm')?.addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -313,44 +316,76 @@ function initEditButtons() {
 // Ouverture de la modal d'édition
 async function openEditModal(announcementId) {
     try {
-        const response = await fetch(`/transporter/announcements/${announcementId}/edit`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        });
+        const response = await fetch(`/transporter/announcements/${announcementId}/edit`);
+        const html = await response.text();
+        
+        const editModalElement = document.getElementById('editModal');
+        const editModal = bootstrap.Modal.getOrCreateInstance(editModalElement);
 
-        // Vérifiez d'abord le statut de la réponse
-        if (!response.ok) {
-            // Essayez de lire le message d'erreur JSON
-            try {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to load edit form');
-            } catch (e) {
-                // Si le parsing JSON échoue, lire comme texte
-                const errorText = await response.text();
-                throw new Error(errorText || 'Unknown error occurred');
-            }
+        // Gestionnaire de fermeture
+        const handleModalClose = () => {
+            document.body.style.overflow = 'auto';
+            document.body.style.paddingRight = '0';
+            editModalElement.removeEventListener('hidden.bs.modal', handleModalClose);
+        };
+
+        // Nettoyage après fermeture
+        editModalElement.addEventListener('hidden.bs.modal', handleModalClose);
+
+        // Mise à jour du contenu
+        const modalBody = editModalElement.querySelector('.modal-body');
+        modalBody.innerHTML = html;
+
+        // Gestionnaire de soumission
+        const form = modalBody.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                // Votre logique de soumission...
+                // Après succès :
+                editModal.hide(); // Utilisez la méthode Bootstrap
+            });
         }
 
-        // Si tout va bien, traiter la réponse comme HTML
-        const html = await response.text();
-        const modalContainer = document.createElement('div');
-        modalContainer.innerHTML = html;
-        document.body.appendChild(modalContainer);
-        
-        const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+        // Ouvrir la modale
         editModal.show();
         
-        // Nettoyage après fermeture
-        editModal._element.addEventListener('hidden.bs.modal', () => {
-            modalContainer.remove();
-        });
+        // Gérer le scroll correctement
+        document.body.style.overflow = 'hidden';
+        document.body.style.paddingRight = '0';
 
     } catch (error) {
         console.error('Edit error:', error);
-        // Afficher seulement le début du message pour éviter les contenus HTML longs
-        const shortError = error.message.substring(0, 100);
-        showToast('Error: ' + shortError, 'error');
+        showToast('Error: ' + error.message.substring(0, 100), 'error');
     }
 }
+
+// Nouvelle fonction pour gérer proprement la fermeture
+function setupModalCloseHandlers(modal) {
+    const closeButtons = modal._element.querySelectorAll('[data-bs-dismiss="modal"]');
+    
+    closeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            modal.hide();
+        });
+    });
+
+    modal._element.addEventListener('hidden.bs.modal', () => {
+        // Nettoyer le contenu après fermeture
+        const modalBody = document.getElementById('editModalBody');
+        if (modalBody) {
+            modalBody.innerHTML = '';
+        }
+    });
+}
+
+function resetBodyScroll() {
+    document.body.style.overflow = 'auto';
+    document.body.style.paddingRight = '0';
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+}
+
+
 
 // Gestion de la soumission du formulaire d'édition
 function initEditForm(announcementId, modal) {
@@ -371,9 +406,7 @@ function initEditForm(announcementId, modal) {
             const response = await fetch(form.action, {
                 method: 'POST',
                 body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
             
             const data = await response.json();
@@ -381,17 +414,10 @@ function initEditForm(announcementId, modal) {
             if (data.success) {
                 showToast(data.message, 'success');
                 modal.hide();
-                
-                // Mise à jour de la carte correspondante
                 updateAnnouncementCard(announcementId, data.announcement);
             } else {
                 displayFormErrors(form, data.errors || {});
-                if (data.message) {
-                    showToast(data.message, 'error');
-                }
             }
-        } catch (error) {
-            showToast('Network error: ' + error.message, 'error');
         } finally {
             submitButton.disabled = false;
             submitButton.innerHTML = originalText;
@@ -421,7 +447,7 @@ function updateAnnouncementCard(id, data) {
             data.status ? 'ACTIVE' : 'INACTIVE';
     }
     
-    // Mettez à jour les autres champs si nécessaire
+   
 }
 
 // Appelez initEditButtons au chargement
@@ -478,6 +504,16 @@ function handleEditFormSubmission() {
         }
     });
 }
+
+
+const modal = document.getElementById('editModal');
+modal.removeEventListener('shown.bs.modal', () => {});
+modal.removeEventListener('hidden.bs.modal', () => {});
+
+modal.addEventListener('hidden.bs.modal', function () {
+  modal.setAttribute('aria-hidden', 'true');
+});
+
 
 // Initialiser au chargement
 document.addEventListener('DOMContentLoaded', function() {

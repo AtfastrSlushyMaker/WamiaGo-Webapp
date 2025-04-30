@@ -54,13 +54,17 @@
         </div>
 
         <!-- Form Actions -->
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary btn-lg btn-3d">
-                <i class="fas fa-save me-2"></i> Update Announcement
-            </button>
-            <button type="button" class="btn btn-outline-secondary btn-lg btn-3d" data-bs-dismiss="modal">
-                <i class="fas fa-times me-2"></i> Cancel
-            </button>
-        </div>
+        <div class="form-actions mt-4">
+    <button type="submit" class="btn btn-primary btn-lg">
+        <i class="fas fa-save me-2"></i> Update Announcement
+    </button>
+    <button type="button" 
+            class="btn btn-outline-secondary btn-lg" 
+            data-bs-dismiss="modal"
+            onclick="resetBodyScroll()"
+            aria-label="Cancel changes">
+        <i class="fas fa-times me-2"></i> Cancel
+    </button>
+</div>
     </div>
 {{ form_end(form) }}

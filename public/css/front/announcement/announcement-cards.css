@@ -186,3 +186,18 @@
 }
 
 
+/* Corriger le comportement du body */
+body.modal-open {
+    overflow: auto !important;
+    padding-right: 0 !important;
+}
+
+/* Backdrop Bootstrap */
+.modal-backdrop {
+    z-index: 1040 !important;
+}
+
+/* Empêcher le décalage de contenu */
+.modal {
+    padding-right: 0 !important;
+}
