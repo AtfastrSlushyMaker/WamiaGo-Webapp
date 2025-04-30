@@ -6,7 +6,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Symfony\Component\Validator\Constraints as Assert;
 
 use App\Repository\ReclamationRepository;
 
@@ -46,13 +45,6 @@ class Reclamation
     }
 
     #[ORM\Column(type: 'string', nullable: false)]
-    #[Assert\NotBlank(message: 'Please provide content for your reclamation')]
-    #[Assert\Length(
-        min: 10, 
-        max: 1000,
-        minMessage: 'Your message should be at least {{ limit }} characters',
-        maxMessage: 'Your message cannot be longer than {{ limit }} characters'
-    )]
     private ?string $content = null;
 
     public function getContent(): ?string
@@ -95,13 +87,6 @@ class Reclamation
     }
 
     #[ORM\Column(type: 'string', nullable: false)]
-    #[Assert\NotBlank(message: 'Please provide a subject for your reclamation')]
-    #[Assert\Length(
-        min: 5,
-        max: 100,
-        minMessage: 'Your subject should be at least {{ limit }} characters',
-        maxMessage: 'Your subject cannot be longer than {{ limit }} characters'
-    )]
     private ?string $title = null;
 
     public function getTitle(): ?string
@@ -153,14 +138,4 @@ class Reclamation
         return $this->id_reclamation;
     }
 
-    public function getId(): ?int
-    {
-        return $this->id_reclamation;
-    }
-
-    public function setId(int $id): self
-    {
-        $this->id_reclamation = $id;
-        return $this;
-    }    
 }
