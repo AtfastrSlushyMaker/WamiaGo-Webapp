@@ -788,6 +788,12 @@
                         <span class="nav-text">Settings</span>
                     </a>
                 </li>
+               <li class="nav-item {{ app.request.attributes.get('_route') == 'admin_settings' ? 'active' : '' }}">
+    <a href="{{ path('app_reclamation_index') }}" class="nav-link">
+    <i class="bi bi-chat-square-text nav-icon"></i>
+    <span class="nav-text">Reclamations</span>
+</a>
+</li>
             </ul>
 
             <div class="logout-container">

@@ -336,4 +336,19 @@ class AdminController extends AbstractController
     {
         return $this->render('back-office/profile.html.twig');
     }
+    #[Route('/admin/contact', name: 'admin_contact')]
+    public function contact(): Response
+    {
+        return $this->render('back-office/contact.html.twig');
+    }
+#[Route('/admin/response', name: 'admin_response')]
+    public function response(): Response
+    {
+        return $this->render('back-office/response.html.twig');
+    }
+
+
+
+
+    
 }
