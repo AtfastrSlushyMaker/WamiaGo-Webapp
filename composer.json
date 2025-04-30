@@ -11,7 +11,9 @@
         "doctrine/doctrine-bundle": "^2.14",
         "doctrine/doctrine-migrations-bundle": "^3.4",
         "doctrine/orm": "^3.3",
+        "dompdf/dompdf": "^3.1",
         "geocoder-php/nominatim-provider": "^5.8",
+        "gregwar/captcha-bundle": "^2.3",
         "knplabs/knp-paginator-bundle": "^6.8",
         "knplabs/knp-snappy-bundle": "*",
         "nyholm/psr7": "^1.8",
@@ -32,6 +34,7 @@
         "symfony/flex": "^2",
         "symfony/form": "6.4.*",
         "symfony/framework-bundle": "6.4.*",
+        "symfony/google-mailer": "6.4.*",
         "symfony/http-client": "6.4.*",
         "symfony/http-foundation": "6.4.*",
         "symfony/intl": "6.4.*",
@@ -55,6 +58,7 @@
         "symfony/yaml": "6.4.*",
         "twig/extra-bundle": "^2.12|^3.0",
         "twig/twig": "^2.12|^3.0",
+        "twilio/sdk": "^8.5",
         "willdurand/geocoder": "^5.0"
     },
     "config": {

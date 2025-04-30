@@ -109,8 +109,8 @@
         <div class="row">
             <div class="col-lg-8 mx-auto">
                 <div class="card border-0 shadow-lg form-card">
-                    <div class="card-body p-lg-5 position-relative form-wrapper ">
-                        {% set currentUser = {'id': 1} %}
+                    <div class="card-body p-lg-5 position-relative form-wrapper {% if not app.user %}form-locked{% endif %}">
+                        {% set currentUser = app.user %}
                         
                         <!-- Form content wrapper - this will get blurred on hover when locked -->
                         <div class="form-content">
@@ -234,6 +234,7 @@
                         </div>
                         
                         <!-- Form overlay for non-logged in users - only appears on hover -->
+                        {% if not app.user %}
                         <div class="login-overlay">
                             <div class="login-card">
                                 <div class="login-icon">
@@ -252,6 +253,7 @@
                                 </div>
                             </div>
                         </div> 
+                        {% endif %}
                     </div>
                 </div>
             </div>
