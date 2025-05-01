@@ -55,7 +55,12 @@ public function index(): Response
         $audioContent = $this->azureTTSService->synthesizeSpeech($speechText);
 
         // Sauvegarder l'audio dans public/audio/request_{id}.mp3
-        $audioFilename = 'D:/WamiaGo-Webapp/public/audio/request_' . $request->getIdRequest() . '.mp3';
+        $projectDir = $this->getParameter('kernel.project_dir');
+        $audioDir = $projectDir . '/public/audio';
+        if (!is_dir($audioDir)) {
+            mkdir($audioDir, 0777, true);
+        }
+        $audioFilename = $audioDir . '/request_' . $request->getIdRequest() . '.mp3';
         file_put_contents($audioFilename, $audioContent);
 
         $requestData[] = [
@@ -82,7 +87,12 @@ public function index(): Response
         $audioContent = $this->azureTTSService->synthesizeSpeech($speechText);
 
         // Sauvegarder l'audio dans public/audio/ride_{id}.mp3
-        $audioFilename = 'D:/WamiaGo-Webapp/public/audio/ride_' . $ride->getIdRide() . '.mp3';
+        $projectDir = $this->getParameter('kernel.project_dir');
+        $audioDir = $projectDir . '/public/audio';
+        if (!is_dir($audioDir)) {
+            mkdir($audioDir, 0777, true);
+        }
+        $audioFilename = $audioDir . '/ride_' . $ride->getIdRide() . '.mp3';
         file_put_contents($audioFilename, $audioContent);
 
         $rideData[] = [
