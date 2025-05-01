@@ -7,6 +7,7 @@ use App\Form\AvatarUploadType;
 use App\Form\ProfileEditType;
 use App\Form\ChangePasswordType;
 use App\Service\CloudinaryService;
+use App\Service\SecurityNotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,6 +20,13 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 #[Route('/profile', name: 'app_profile_')]
 class ProfileController extends AbstractController
 {
+    private SecurityNotificationService $notificationService;
+
+    public function __construct(SecurityNotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     #[Route('/', name: 'index')]
     public function index(): Response
     {
@@ -205,8 +213,15 @@ class ProfileController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
+        // Log received data for debugging
+        error_log('Received change password data: ' . json_encode($requestData));
+
         $form = $this->createForm(ChangePasswordType::class);
-        $form->submit($requestData);
+        
+        // Handle both nested and flat structures for backward compatibility
+        $formData = $requestData['change_password'] ?? $requestData;
+        
+        $form->submit($formData);
 
         if ($form->isValid()) {
             $currentPassword = $form->get('currentPassword')->getData();
@@ -225,6 +240,22 @@ class ProfileController extends AbstractController
                 $entityManager->persist($user);
                 $entityManager->flush();
 
+                // Send password change notification email
+                $clientIp = $request->getClientIp() ?? 'unknown';
+                $userAgent = $request->headers->get('User-Agent') ?? 'unknown';
+                
+                error_log('About to send password change notification from ProfileController');
+                error_log('User ID: ' . $user->getId_user());
+                error_log('User Email: ' . $user->getEmail());
+                
+                try {
+                    $this->notificationService->sendPasswordChangeNotification($user, $clientIp, $userAgent);
+                    error_log('Notification service call completed successfully');
+                } catch (\Exception $notificationException) {
+                    error_log('Error in notification service: ' . $notificationException->getMessage());
+                    error_log('Notification error trace: ' . $notificationException->getTraceAsString());
+                }
+
                 return new JsonResponse([
                     'success' => true,
                     'message' => 'Password changed successfully'
@@ -241,20 +272,39 @@ class ProfileController extends AbstractController
             }
         }
 
-        // If form is not valid, return the errors
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
-        }
-
+        // If form is not valid, return the form errors
+        $errors = $this->getFormErrors($form);
+        
         return new JsonResponse([
             'success' => false,
-            'message' => 'Invalid form submission',
+            'message' => 'Invalid form data',
             'errors' => $errors,
             'debug' => [
-                'submitted_data' => $requestData,
-                'form_errors' => $errors
+                'submitted_data' => $requestData
             ]
         ], Response::HTTP_BAD_REQUEST);
+    }
+    
+    /**
+     * Recursively extracts form errors
+     */
+    private function getFormErrors($form): array
+    {
+        $errors = [];
+        
+        foreach ($form->getErrors() as $error) {
+            $errors[] = $error->getMessage();
+        }
+        
+        foreach ($form->all() as $childForm) {
+            if ($childForm instanceof \Symfony\Component\Form\FormInterface) {
+                $childErrors = $this->getFormErrors($childForm);
+                if ($childErrors) {
+                    $errors[$childForm->getName()] = $childErrors;
+                }
+            }
+        }
+        
+        return $errors;
     }
 } 

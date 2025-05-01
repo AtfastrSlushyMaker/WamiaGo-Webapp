@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Form\ResetPasswordRequestFormType;
 use App\Form\ResetPasswordFormType;
 use App\Service\ResetPasswordService;
+use App\Service\SecurityNotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,7 +22,9 @@ class ResetPasswordController extends AbstractController
     public function __construct(
         private EntityManagerInterface $entityManager,
         private ResetPasswordService $resetPasswordService,
-        private UserPasswordHasherInterface $passwordHasher    ) {
+        private UserPasswordHasherInterface $passwordHasher,
+        private SecurityNotificationService $notificationService
+    ) {
     }
     
     #[Route('', name: 'app_forgot_password_request')]
@@ -74,6 +77,8 @@ class ResetPasswordController extends AbstractController
       #[Route('/reset/{token}', name: 'app_reset_password')]
     public function reset(Request $request, string $token): Response
     {
+        error_log('============= PASSWORD RESET PROCESS STARTED ============');
+        
         // URL decode the token to handle URL encoding issues
         $token = urldecode($token);
         
@@ -96,18 +101,22 @@ class ResetPasswordController extends AbstractController
         
         if ($form->isSubmitted() && $form->isValid()) {            
             try {
+                error_log('Form submitted, about to reset password');
                 // Use the service to reset the password
                 $this->resetPasswordService->resetPassword(
                     $user,
                     $form->get('plainPassword')->getData(),
                     $token // Pass the token so it can be blacklisted
                 );
+                error_log('Password successfully reset for user: ' . $user->getEmail());
 
                 // Add success message
                 $this->addFlash('success', 'Your password has been reset successfully. You can now log in with your new password.');
+                error_log('============= PASSWORD RESET PROCESS COMPLETED ============');
 
                 return $this->redirectToRoute('app_login');
             } catch (\Exception $e) {
+                error_log('Error occurred: ' . $e->getMessage());
                 $this->addFlash('danger', 'An error occurred while resetting your password. Please try again.');
             }
         }        

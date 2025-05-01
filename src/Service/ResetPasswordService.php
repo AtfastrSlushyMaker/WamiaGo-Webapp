@@ -12,6 +12,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Security\Csrf\TokenGenerator\TokenGeneratorInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
+use App\Service\SecurityNotificationService;
 
 /**
  * Password reset service implementing a stateless approach.
@@ -29,6 +30,7 @@ class ResetPasswordService
     private $tokenGenerator;
     private $passwordHasher;
     private $requestStack;
+    private $securityNotification;
     // Defines how long a token is valid (1 hour = 3600 seconds)
     private const TOKEN_VALIDITY = 3600;public function __construct(
         MailerInterface $mailer,
@@ -38,7 +40,8 @@ class ResetPasswordService
         ParameterBagInterface $params,
         TokenGeneratorInterface $tokenGenerator,
         UserPasswordHasherInterface $passwordHasher,
-        RequestStack $requestStack
+        RequestStack $requestStack,
+        SecurityNotificationService $securityNotification = null
     ) {
         $this->mailer = $mailer;
         $this->entityManager = $entityManager;
@@ -48,6 +51,7 @@ class ResetPasswordService
         $this->tokenGenerator = $tokenGenerator;
         $this->passwordHasher = $passwordHasher;
         $this->requestStack = $requestStack;
+        $this->securityNotification = $securityNotification;
     }    /**
      * Generates a secure, stateless reset token.
      * 
@@ -227,10 +231,19 @@ class ResetPasswordService
         // Calculate expiry time (1 hour from now)
         $expiryTime = time() + self::TOKEN_VALIDITY;
         
-        // Create DateTime with Tunisia timezone (GMT+1)
-        $expiryDate = new \DateTime();
+        // Create DateTime object using UTC timezone first
+        $expiryDate = new \DateTime('now', new \DateTimeZone('UTC'));
         $expiryDate->setTimestamp($expiryTime);
-        $expiryDate->setTimezone(new \DateTimeZone('Africa/Tunis'));
+        
+        // Format UTC time (used for consistency across all systems)
+        $utcFormattedTime = $expiryDate->format('H:i');
+        $utcFormattedDate = $expiryDate->format('M j, Y');
+        
+        // Get user's local timezone from their browser if available, otherwise use a default
+        $userTimezone = new \DateTimeZone('Europe/Paris'); // Default to Paris timezone as a neutral option
+        
+        // Convert to user timezone
+        $expiryDate->setTimezone($userTimezone);
         $formattedDateTime = $expiryDate->format('M j, Y') . ' at ' . $expiryDate->format('H:i');
         
         return "
@@ -341,6 +354,13 @@ class ResetPasswordService
                         margin-top: 15px;
                     }
                     
+                    .timezone-note {
+                        font-size: 12px;
+                        color: #718096;
+                        margin-top: 5px;
+                        font-style: italic;
+                    }
+                    
                     .timer-expiry em {
                         font-style: normal;
                         color: #4A6FFF;
@@ -399,15 +419,22 @@ class ResetPasswordService
                         box-shadow: 0 15px 25px rgba(74, 111, 255, 0.35);
                     }
                     
-                    .button:before {
+                    .button:after {
                         content: '';
                         position: absolute;
-                        top: 0;
-                        left: 0;
                         width: 100%;
                         height: 100%;
-                        background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
+                        top: 0;
+                        left: 0;
+                        background: linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent);
                         transform: translateX(-100%);
+                        animation: shimmer 2s infinite;
+                    }
+                    
+                    @keyframes shimmer {
+                        100% {
+                            transform: translateX(100%);
+                        }
                     }
                     
                     .checklist {
@@ -519,6 +546,33 @@ class ResetPasswordService
                         margin: 5px 0;
                     }
                     
+                    .logo {
+                        width: 120px;
+                        height: auto;
+                        margin-bottom: 15px;
+                    }
+                    
+                    .social-links {
+                        margin: 15px 0;
+                    }
+                    
+                    .social-link {
+                        display: inline-block;
+                        margin: 0 8px;
+                        width: 32px;
+                        height: 32px;
+                        background-color: #4A6FFF;
+                        border-radius: 50%;
+                        text-align: center;
+                        line-height: 32px;
+                    }
+                    
+                    .social-link img {
+                        width: 16px;
+                        height: 16px;
+                        vertical-align: middle;
+                    }
+                    
                     @media only screen and (max-width: 600px) {
                         .container { 
                             width: 100%;
@@ -554,7 +608,8 @@ class ResetPasswordService
                         <div class='timer-box'>
                             <div class='timer-label'>This link will expire in</div>
                             <div class='timer-digits'>01:00:00</div>
-                            <div class='timer-expiry'>Expires at <em>{$formattedDateTime}</em> (1 hour from now)</div>
+                            <div class='timer-expiry'>Expires at <em>{$formattedDateTime}</em></div>
+                            <div class='timezone-note'>(Based on Europe/Paris timezone - UTC+1)</div>
                         </div>
                         
                         <div class='warning-alert'>
@@ -563,7 +618,7 @@ class ResetPasswordService
                         </div>
                         
                         <div class='button-container'>
-                            <a href='{$resetUrl}' class='button'>Reset my password</a>
+                            <a href='{$resetUrl}' class='button'>Reset My Password</a>
                         </div>
                         
                         <div class='checklist'>
@@ -787,27 +842,51 @@ class ResetPasswordService
     }
     
     /**
-     * Resets the user's password.
-     * 
+     * Reset a user's password.
+     *
      * @param User $user The user to reset the password for
      * @param string $newPassword The new password (plain text)
      * @param string $token The token used for this reset (to blacklist it)
      */
     public function resetPassword(User $user, string $newPassword, string $token = null): void
     {
+        error_log('ResetPasswordService: Starting resetPassword for user ' . $user->getEmail());
+        
         // Hash the password
         $hashedPassword = $this->passwordHasher->hashPassword($user, $newPassword);
-        
+
         // Set the new password
         $user->setPassword($hashedPassword);
-        
+
         // Save changes to database
         $this->entityManager->persist($user);
         $this->entityManager->flush();
         
+        error_log('ResetPasswordService: Password updated in database');
+
         // If a token was provided, blacklist it to prevent reuse
         if ($token) {
             $this->blacklistToken($token);
+        }
+        
+        // Send notifications if the service was provided
+        if ($this->securityNotification) {
+            error_log('ResetPasswordService: SecurityNotificationService is available, sending notifications');
+            
+            try {
+                // Get client info - use default values since we don't have direct access to Request here
+                $ipAddress = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+                $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+                
+                // Send only the password reset notification (which includes change details)
+                // This prevents duplicate emails
+                $this->securityNotification->sendPasswordResetNotification($user, $ipAddress, $userAgent);
+                error_log('ResetPasswordService: Reset notification sent successfully');
+            } catch (\Exception $e) {
+                error_log('ResetPasswordService: Error sending notifications: ' . $e->getMessage());
+            }
+        } else {
+            error_log('ResetPasswordService: SecurityNotificationService is NOT available');
         }
     }
     

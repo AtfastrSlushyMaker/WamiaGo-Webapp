@@ -184,18 +184,80 @@
                         'action': path('app_profile_change_password')
                     }
                 }) }}
-                    {{ form_row(passwordForm.currentPassword) }}
-                    {{ form_row(passwordForm.newPassword) }}
-                    <div class="mb-3">
+                    <!-- Ensure CSRF token is explicitly rendered -->
+                    {{ form_row(passwordForm._token) }}
+                    
+                    <div class="mb-3 position-relative">
+                        {{ form_label(passwordForm.currentPassword) }}
+                        <div class="input-group">
+                            {{ form_widget(passwordForm.currentPassword) }}
+                            <button type="button" class="btn btn-outline-secondary toggle-password" tabindex="-1">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback" id="current_password_error"></div>
+                        {{ form_errors(passwordForm.currentPassword) }}
+                    </div>
+                    
+                    <div class="mb-3 position-relative">
+                        {{ form_label(passwordForm.newPassword) }}
+                        <div class="input-group">
+                            {{ form_widget(passwordForm.newPassword) }}
+                            <button type="button" class="btn btn-outline-secondary toggle-password" tabindex="-1">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        {{ form_errors(passwordForm.newPassword) }}
+                        
+                        <!-- Password strength meter -->
+                        <div class="password-strength-meter mt-2">
+                            <div class="progress" style="height: 5px;">
+                                <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="password-strength-text text-muted">Password strength</small>
+                                <small class="password-strength-label"></small>
+                            </div>
+                        </div>
+                        
+                        <!-- Password requirements -->
+                        <div class="password-requirements mt-2 small">
+                            <div class="requirement" data-requirement="length"><i class="fas fa-circle"></i> At least 8 characters</div>
+                            <div class="requirement" data-requirement="uppercase"><i class="fas fa-circle"></i> At least one uppercase letter</div>
+                            <div class="requirement" data-requirement="lowercase"><i class="fas fa-circle"></i> At least one lowercase letter</div>
+                            <div class="requirement" data-requirement="number"><i class="fas fa-circle"></i> At least one number</div>
+                            <div class="requirement" data-requirement="special"><i class="fas fa-circle"></i> At least one special character</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 position-relative">
                         <label for="confirm_password" class="form-label">Confirm New Password</label>
-                        <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
-                        <div class="invalid-feedback" id="confirm_password_error"></div>
+                        <div class="input-group">
+                            <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
+                            <button type="button" class="btn btn-outline-secondary toggle-password" tabindex="-1">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback" id="confirm_password_error">Passwords do not match</div>
                     </div>
                 {{ form_end(passwordForm) }}
+                
+                <!-- Notification area -->
+                <div class="alert alert-success mt-3 d-none" id="password-success">
+                    <i class="fas fa-check-circle me-2"></i> 
+                    <span>Password changed successfully!</span>
+                </div>
+                <div class="alert alert-danger mt-3 d-none" id="password-error">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <span></span>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" form="passwordForm" class="btn btn-primary">Change Password</button>
+                <button type="submit" form="passwordForm" class="btn btn-primary">
+                    <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span>
+                    <span>Change Password</span>
+                </button>
             </div>
         </div>
     </div>
@@ -225,7 +287,63 @@
     box-shadow: 0 0 20px rgba(0,0,0,0.1);
 }
 
-/* Rest of your existing styles */
+/* Password strength meter styles */
+.password-strength-meter {
+    margin-top: 10px;
+}
+
+.password-strength-meter .progress-bar {
+    transition: width 0.3s, background-color 0.3s;
+}
+
+.password-strength-label {
+    font-weight: 500;
+}
+
+.password-requirements {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 12px;
+    border-left: 3px solid #dee2e6;
+}
+
+.password-requirements .requirement {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+    opacity: 0.7;
+    transition: opacity 0.3s, color 0.3s;
+}
+
+.password-requirements .requirement:last-child {
+    margin-bottom: 0;
+}
+
+.password-requirements .requirement i {
+    font-size: 6px;
+    margin-right: 8px;
+    margin-top: 1px;
+}
+
+.password-requirements .requirement.met {
+    opacity: 1;
+    color: #28a745;
+}
+
+.password-requirements .requirement.met i {
+    color: #28a745;
+}
+
+/* Toggle password button styles */
+.toggle-password {
+    cursor: pointer;
+}
+
+.toggle-password:focus {
+    box-shadow: none;
+}
+
+/* Profile avatar styles */
 .profile-avatar {
     position: relative;
     width: 100px;
@@ -256,6 +374,27 @@
     width: auto;
     margin: 0 auto;
     display: block;
+}
+
+/* Form feedback animation */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.shake {
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes successPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+}
+
+.success-pulse {
+    animation: successPulse 0.5s ease-in-out;
 }
 </style>
 {% endblock %}
@@ -300,6 +439,127 @@
             }
         });
     }
+    
+    // Password visibility toggle
+    const togglePasswordButtons = document.querySelectorAll('.toggle-password');
+    togglePasswordButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const input = this.closest('.input-group').querySelector('input');
+            const icon = this.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    });
+    
+    // Password strength meter for change password form
+    const passwordInput = document.getElementById('change_password_newPassword');
+    const confirmPasswordInput = document.getElementById('confirm_password');
+    
+    if (passwordInput) {
+        const strengthMeter = document.querySelector('.password-strength-meter .progress-bar');
+        const strengthLabel = document.querySelector('.password-strength-label');
+        const requirements = document.querySelectorAll('.password-requirements .requirement');
+        
+        // Password criteria
+        const criteria = [
+            { regex: /.{8,}/, element: document.querySelector('[data-requirement="length"]'), weight: 1 },
+            { regex: /[A-Z]/, element: document.querySelector('[data-requirement="uppercase"]'), weight: 1 },
+            { regex: /[a-z]/, element: document.querySelector('[data-requirement="lowercase"]'), weight: 1 },
+            { regex: /[0-9]/, element: document.querySelector('[data-requirement="number"]'), weight: 1 },
+            { regex: /[^A-Za-z0-9]/, element: document.querySelector('[data-requirement="special"]'), weight: 1 }
+        ];
+        
+        // Function to validate password against criteria
+        function validatePassword(password) {
+            if (!password) return { isValid: false, score: 0, unmetCriteria: criteria.map(c => c.element?.getAttribute('data-requirement')) };
+            
+            let score = 0;
+            const unmetCriteria = [];
+            
+            // Check each requirement
+            criteria.forEach(criterion => {
+                const meetsRequirement = criterion.regex.test(password);
+                if (meetsRequirement) {
+                    score += criterion.weight;
+                    if (criterion.element) criterion.element.classList.add('met');
+                } else {
+                    if (criterion.element) {
+                        criterion.element.classList.remove('met');
+                        unmetCriteria.push(criterion.element.getAttribute('data-requirement'));
+                    }
+                }
+            });
+            
+            return {
+                isValid: score >= 3, // Require at least 3 criteria to be met
+                score: score,
+                unmetCriteria: unmetCriteria
+            };
+        }
+        
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            const validationResult = validatePassword(password);
+            
+            // Calculate percentage (5 criteria = 100%)
+            const percentage = Math.min(100, (validationResult.score / 5) * 100);
+            
+            // Update the progress bar
+            if (strengthMeter) {
+                strengthMeter.style.width = percentage + '%';
+                strengthMeter.setAttribute('aria-valuenow', percentage);
+            }
+            
+            // Set color based on score
+            if (strengthLabel) {
+                if (percentage < 40) {
+                    strengthMeter.style.backgroundColor = '#dc3545'; // Weak - Red
+                    strengthLabel.textContent = 'Weak';
+                    strengthLabel.style.color = '#dc3545';
+                } else if (percentage < 80) {
+                    strengthMeter.style.backgroundColor = '#ffc107'; // Moderate - Yellow
+                    strengthLabel.textContent = 'Moderate';
+                    strengthLabel.style.color = '#ffc107';
+                } else {
+                    strengthMeter.style.backgroundColor = '#28a745'; // Strong - Green
+                    strengthLabel.textContent = 'Strong';
+                    strengthLabel.style.color = '#28a745';
+                }
+            }
+            
+            // Check if confirm password matches
+            if (confirmPasswordInput && confirmPasswordInput.value) {
+                validatePasswordMatch();
+            }
+        });
+        
+        // Validate password match
+        function validatePasswordMatch() {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            const confirmError = document.getElementById('confirm_password_error');
+            
+            if (password === confirmPassword) {
+                confirmPasswordInput.classList.remove('is-invalid');
+                confirmError.style.display = 'none';
+                return true;
+            } else {
+                confirmPasswordInput.classList.add('is-invalid');
+                confirmError.style.display = 'block';
+                return false;
+            }
+        }
+        
+        confirmPasswordInput.addEventListener('input', validatePasswordMatch);
+    }
 
     // Form configuration
     const forms = {
@@ -342,13 +602,20 @@
             isMultipart: false,
             endpoint: '{{ path('app_profile_change_password') }}',
             processData: (form) => {
-                const formData = new FormData(form);
-                const jsonData = {};
-                formData.forEach((value, key) => {
-                    if (key !== 'confirm_password') {  // Exclude confirm password from submission
-                        jsonData[key] = value;
+                // Get the CSRF token from the form
+                const tokenField = document.querySelector('input[name="change_password[_token]"]');
+                const tokenValue = tokenField ? tokenField.value : '';
+                
+                // Create a structure that follows the Symfony form naming convention
+                const jsonData = {
+                    change_password: {
+                        _token: tokenValue,
+                        currentPassword: document.getElementById('change_password_currentPassword').value,
+                        newPassword: document.getElementById('change_password_newPassword').value
                     }
-                });
+                };
+                
+                console.log('Preparing JSON data:', jsonData);
                 return JSON.stringify(jsonData);
             }
         }
@@ -361,57 +628,159 @@
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
+                // Reset previous error messages
+                const successAlert = document.getElementById('password-success');
+                const errorAlert = document.getElementById('password-error');
+                if (successAlert) successAlert.classList.add('d-none');
+                if (errorAlert) errorAlert.classList.add('d-none');
+                
                 // Password confirmation validation for password form
                 if (formId === 'passwordForm') {
-                    const newPassword = document.getElementById('change_password_newPassword').value;
-                    const confirmPassword = document.getElementById('confirm_password').value;
-                    const confirmPasswordError = document.getElementById('confirm_password_error');
+                    // Get values directly from the form fields
+                    const currentPasswordField = document.getElementById('change_password_currentPassword');
+                    const newPasswordField = document.getElementById('change_password_newPassword');
+                    const confirmPasswordField = document.getElementById('confirm_password');
                     
-                    if (newPassword !== confirmPassword) {
-                        confirmPasswordError.textContent = 'Passwords do not match';
-                        confirmPasswordError.style.display = 'block';
+                    const currentPassword = currentPasswordField ? currentPasswordField.value : '';
+                    const newPassword = newPasswordField ? newPasswordField.value : '';
+                    const confirmPassword = confirmPasswordField ? confirmPasswordField.value : '';
+                    
+                    // Basic validation - check for empty fields and matching passwords
+                    let hasErrors = false;
+                    const errorAlert = document.getElementById('password-error');
+                    const errorMessage = errorAlert?.querySelector('span');
+                    
+                    // Validate required fields
+                    if (!currentPassword) {
+                        highlightFieldError(currentPasswordField, 'current_password_error', 'Please enter your current password');
+                        hasErrors = true;
+                    }
+                    
+                    if (!newPassword) {
+                        if (errorMessage) {
+                            errorMessage.innerHTML = 'Please enter a new password';
+                            errorAlert.classList.remove('d-none');
+                        }
+                        highlightFieldError(newPasswordField);
+                        hasErrors = true;
+                    }
+                    
+                    // Validate passwords match
+                    if (newPassword && confirmPassword && newPassword !== confirmPassword) {
+                        highlightFieldError(confirmPasswordField, 'confirm_password_error', 'Passwords do not match');
+                        hasErrors = true;
+                    }
+                    
+                    // Validate password strength if we have a password
+                    if (newPassword && !hasErrors) {
+                        const validationResult = validatePassword(newPassword);
+                        if (!validationResult.isValid) {
+                            const unmetRequirements = validationResult.unmetCriteria
+                                .map(req => {
+                                    switch(req) {
+                                        case 'length': return 'at least 8 characters';
+                                        case 'uppercase': return 'uppercase letter';
+                                        case 'lowercase': return 'lowercase letter';
+                                        case 'number': return 'number';
+                                        case 'special': return 'special character';
+                                        default: return req;
+                                    }
+                                })
+                                .join(', ');
+                            
+                            if (errorMessage) {
+                                errorMessage.innerHTML = `Password does not meet requirements.<br>Please include: ${unmetRequirements}.`;
+                                errorAlert.classList.remove('d-none');
+                            }
+                            
+                            highlightFieldError(newPasswordField);
+                            hasErrors = true;
+                        }
+                    }
+                    
+                    // Helper function to highlight field errors with animation
+                    function highlightFieldError(field, errorId, errorText) {
+                        if (!field) return;
+                        
+                        field.classList.add('is-invalid');
+                        
+                        if (errorId && errorText) {
+                            const errorElement = document.getElementById(errorId);
+                            if (errorElement) {
+                                errorElement.textContent = errorText;
+                                errorElement.style.display = 'block';
+                            }
+                        }
+                        
+                        const fieldParent = field.closest('.mb-3');
+                        if (fieldParent) {
+                            fieldParent.classList.add('shake');
+                            setTimeout(() => {
+                                fieldParent.classList.remove('shake');
+                            }, 500);
+                        }
+                    }
+                    
+                    if (hasErrors) {
                         return;
-                    } else {
-                        confirmPasswordError.style.display = 'none';
+                    }
+                    
+                    // Show loading state
+                    const submitButton = form.querySelector('button[type="submit"]');
+                    if (submitButton) {
+                        const spinner = submitButton.querySelector('.spinner-border');
+                        const buttonText = submitButton.querySelector('span:not(.spinner-border)');
+                        
+                        if (spinner) spinner.classList.remove('d-none');
+                        submitButton.disabled = true;
+                        if (buttonText) buttonText.textContent = 'Changing...';
                     }
                 }
                 
                 try {
+                    // Get form data using the configured processor
                     const requestBody = config.processData(this);
+                    
                     const headers = {
                         'X-Requested-With': 'XMLHttpRequest'
                     };
 
+                    // Explicitly set Content-Type for JSON
                     if (!config.isMultipart) {
                         headers['Content-Type'] = 'application/json';
                     }
 
-                    // Use the configured endpoint instead of form.action
+                    // Use the configured endpoint
                     const url = config.endpoint;
+                    
                     console.log('Sending request to:', url);
                     console.log('Request body:', requestBody);
                     console.log('Headers:', headers);
-
+                    
                     const response = await fetch(url, {
                         method: 'POST',
                         body: requestBody,
                         headers: headers
                     });
 
+                    // Log full response for debugging
                     console.log('Response status:', response.status);
                     console.log('Response headers:', Object.fromEntries([...response.headers]));
-
+                    
                     const contentType = response.headers.get('content-type');
                     console.log('Content-Type:', contentType);
-
+                    
                     // Check if response is JSON
                     if (!contentType || !contentType.includes('application/json')) {
-                        throw new Error(`Expected JSON response but got ${contentType}`);
+                        // If not JSON, try to get the text response for debugging
+                        const textResponse = await response.text();
+                        console.log('Non-JSON response:', textResponse);
+                        throw new Error(`Expected JSON response but got ${contentType}. Server response: ${textResponse.substring(0, 200)}...`);
                     }
 
                     const responseText = await response.text();
                     console.log('Raw response:', responseText);
-
+                    
                     // Only try to parse if we have content
                     if (!responseText.trim()) {
                         throw new Error('Empty response received from server');
@@ -426,32 +795,241 @@
                         throw new Error(`Invalid JSON response: ${error.message}`);
                     }
 
+                    console.log('Parsed response data:', data);
+
                     if (data.success) {
-                        // Show success message
-                        const modal = this.closest('.modal');
-                        if (modal) {
-                            const modalInstance = bootstrap.Modal.getInstance(modal);
-                            if (modalInstance) {
-                                modalInstance.hide();
+                        // For password form, show success message instead of immediate reload
+                        if (formId === 'passwordForm') {
+                            // Reset the form
+                            form.reset();
+                            
+                            // Reset password strength meter
+                            const strengthMeter = document.querySelector('.password-strength-meter .progress-bar');
+                            if (strengthMeter) {
+                                strengthMeter.style.width = '0%';
+                                strengthMeter.setAttribute('aria-valuenow', 0);
                             }
+                            
+                            // Reset requirements
+                            const requirements = document.querySelectorAll('.password-requirements .requirement');
+                            if (requirements && requirements.length > 0) {
+                                requirements.forEach(req => req.classList.remove('met'));
+                            }
+                            
+                            // Show success message
+                            const successAlert = document.getElementById('password-success');
+                            if (successAlert) {
+                                successAlert.classList.remove('d-none');
+                                successAlert.classList.add('success-pulse');
+                                setTimeout(() => {
+                                    successAlert.classList.remove('success-pulse');
+                                }, 500);
+                            }
+                            
+                            // Reset button state
+                            const submitButton = form.querySelector('button[type="submit"]');
+                            if (submitButton) {
+                                const spinner = submitButton.querySelector('.spinner-border');
+                                const buttonText = submitButton.querySelector('span:not(.spinner-border)');
+                                
+                                if (spinner) spinner.classList.add('d-none');
+                                submitButton.disabled = false;
+                                if (buttonText) buttonText.textContent = 'Change Password';
+                            }
+                            
+                            // Close modal after 2 seconds
+                            setTimeout(() => {
+                                const modalElement = document.getElementById('changePasswordModal');
+                                if (modalElement) {
+                                    const modal = bootstrap.Modal.getInstance(modalElement);
+                                    if (modal) {
+                                        modal.hide();
+                                    }
+                                }
+                            }, 2000);
+                        } else {
+                            // For other forms, reload page to show changes
+                            window.location.reload();
                         }
-                        // Reload page to show changes
-                        window.location.reload();
                     } else {
                         // Show error message
-                        if (data.errors && data.errors.length > 0) {
-                            alert(data.errors.join('\n'));
+                        if (formId === 'passwordForm') {
+                            // Reset button state
+                            const submitButton = form.querySelector('button[type="submit"]');
+                            if (submitButton) {
+                                const spinner = submitButton.querySelector('.spinner-border');
+                                const buttonText = submitButton.querySelector('span:not(.spinner-border)');
+                                
+                                if (spinner) spinner.classList.add('d-none');
+                                submitButton.disabled = false;
+                                if (buttonText) buttonText.textContent = 'Change Password';
+                            }
+                            
+                            const errorAlert = document.getElementById('password-error');
+                            if (errorAlert) {
+                                const errorMessage = errorAlert.querySelector('span');
+                                
+                                // Different error format handling
+                                if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
+                                    // Array of error messages
+                                    if (errorMessage) {
+                                        errorMessage.innerHTML = data.errors.join('<br>');
+                                    }
+                                } else if (data.errors && typeof data.errors === 'object') {
+                                    // Object of error messages
+                                    const errorList = [];
+                                    
+                                    // Check for nested errors structure from Symfony forms
+                                    if (data.errors.children) {
+                                        // Handle Symfony form error format
+                                        for (const field in data.errors.children) {
+                                            const fieldErrors = data.errors.children[field].errors;
+                                            if (fieldErrors && fieldErrors.length) {
+                                                errorList.push(...fieldErrors);
+                                                
+                                                // Highlight field with errors
+                                                const fieldElement = document.getElementById(`change_password_${field}`);
+                                                if (fieldElement) {
+                                                    fieldElement.classList.add('is-invalid');
+                                                    
+                                                    // Show error next to field
+                                                    const errorElement = document.getElementById(`${field}_error`);
+                                                    if (errorElement) {
+                                                        errorElement.textContent = fieldErrors.join('. ');
+                                                        errorElement.style.display = 'block';
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } else if (data.errors.form && data.errors.form.children) {
+                                        // Handle form errors nested under form key
+                                        for (const field in data.errors.form.children) {
+                                            const fieldErrors = data.errors.form.children[field].errors;
+                                            if (fieldErrors && fieldErrors.length) {
+                                                errorList.push(...fieldErrors);
+                                                
+                                                // Highlight field with errors
+                                                const fieldElement = document.getElementById(`change_password_${field}`);
+                                                if (fieldElement) {
+                                                    fieldElement.classList.add('is-invalid');
+                                                    
+                                                    // Show error next to field
+                                                    const errorElement = document.getElementById(`${field}_error`);
+                                                    if (errorElement) {
+                                                        errorElement.textContent = fieldErrors.join('. ');
+                                                        errorElement.style.display = 'block';
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        // Handle standard error object
+                                        for (const field in data.errors) {
+                                            const fieldError = data.errors[field];
+                                            if (Array.isArray(fieldError)) {
+                                                errorList.push(...fieldError);
+                                            } else if (typeof fieldError === 'string') {
+                                                errorList.push(fieldError);
+                                            }
+                                            
+                                            // Highlight the field if possible
+                                            const fieldElement = document.getElementById(`change_password_${field}`);
+                                            if (fieldElement) {
+                                                fieldElement.classList.add('is-invalid');
+                                                
+                                                // Show error next to field
+                                                const errorElement = document.getElementById(`${field}_error`);
+                                                if (errorElement) {
+                                                    errorElement.textContent = Array.isArray(fieldError) 
+                                                        ? fieldError.join('. ') 
+                                                        : fieldError;
+                                                    errorElement.style.display = 'block';
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    if (errorMessage && errorList.length > 0) {
+                                        errorMessage.innerHTML = errorList.join('<br>');
+                                    } else if (errorMessage) {
+                                        errorMessage.textContent = data.message || 'Validation failed. Please check your input.';
+                                    }
+                                } else if (data.message) {
+                                    // General error message from the server
+                                    if (errorMessage) {
+                                        errorMessage.textContent = data.message;
+                                    }
+                                } else {
+                                    // Fallback error message
+                                    if (errorMessage) {
+                                        errorMessage.textContent = 'An error occurred. Please try again.';
+                                    }
+                                }
+                                
+                                errorAlert.classList.remove('d-none');
+                            }
+                            
+                            // If current password is incorrect, highlight that field
+                            if (data.message && data.message.includes('incorrect')) {
+                                const currentPasswordField = document.getElementById('change_password_currentPassword');
+                                if (currentPasswordField) {
+                                    currentPasswordField.classList.add('is-invalid');
+                                    const errorElement = document.getElementById('current_password_error');
+                                    if (errorElement) {
+                                        errorElement.textContent = 'Current password is incorrect';
+                                        errorElement.style.display = 'block';
+                                    }
+                                    
+                                    // Add shake animation
+                                    const fieldParent = currentPasswordField.closest('.mb-3');
+                                    if (fieldParent) {
+                                        fieldParent.classList.add('shake');
+                                        setTimeout(() => {
+                                            fieldParent.classList.remove('shake');
+                                        }, 500);
+                                    }
+                                }
+                            }
                         } else {
-                            alert(data.message || 'An error occurred. Please try again.');
+                            // For other forms, show alert
+                            if (data.errors && data.errors.length > 0) {
+                                alert(data.errors.join('\n'));
+                            } else {
+                                alert(data.message || 'An error occurred. Please try again.');
+                            }
                         }
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    // Show a more specific error message
-                    if (error.message.includes('JSON')) {
-                        alert('Server returned an invalid response format. Please try again later.');
+                    
+                    // Reset button state for password form
+                    if (formId === 'passwordForm') {
+                        const submitButton = form.querySelector('button[type="submit"]');
+                        if (submitButton) {
+                            const spinner = submitButton.querySelector('.spinner-border');
+                            const buttonText = submitButton.querySelector('span:not(.spinner-border)');
+                            
+                            if (spinner) spinner.classList.add('d-none');
+                            submitButton.disabled = false;
+                            if (buttonText) buttonText.textContent = 'Change Password';
+                        }
+                        
+                        // Show error in the error alert
+                        const errorAlert = document.getElementById('password-error');
+                        if (errorAlert) {
+                            const errorMessage = errorAlert.querySelector('span');
+                            if (errorMessage) {
+                                errorMessage.textContent = error.message || 'An error occurred. Please try again.';
+                            }
+                            errorAlert.classList.remove('d-none');
+                        }
                     } else {
-                        alert(error.message || 'An error occurred. Please try again.');
+                        // For other forms, show a more specific error message
+                        if (error.message.includes('JSON')) {
+                            alert('Server returned an invalid response format. Please try again later.');
+                        } else {
+                            alert(error.message || 'An error occurred. Please try again.');
+                        }
                     }
                 }
             });
