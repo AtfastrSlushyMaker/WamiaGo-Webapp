@@ -272,10 +272,6 @@ class Location
         return $this;
     }
 
-    public function getIdLocation(): ?int
-    {
-        return $this->id_location;
-    }
 
     public static function calculateDistance(Location $location1, Location $location2): float
     {

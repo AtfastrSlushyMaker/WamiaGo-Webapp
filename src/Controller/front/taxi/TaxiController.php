@@ -14,6 +14,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\Request as HttpRequest;
+use Symfony\Component\Security\Core\Security;
 
 #[Route('/services/taxi')]
 class TaxiController extends AbstractController
@@ -22,26 +23,27 @@ class TaxiController extends AbstractController
     private $requestService;
     private $rideService;
     private $azureTTSService;
+    private $security;
 
-    public function __construct(EntityManagerInterface $entityManager, RequestService $requestService, RideService $rideService, AzureTTSService $azureTTSService)
+    public function __construct(EntityManagerInterface $entityManager, RequestService $requestService, RideService $rideService, AzureTTSService $azureTTSService, Security $security)
     {
         $this->entityManager = $entityManager;
         $this->requestService = $requestService;
         $this->rideService = $rideService;
         $this->azureTTSService = $azureTTSService;
+        $this->security = $security;
     }
 
   #[Route('/taxi/management', name: 'app_taxi_management')]
 public function index(): Response
 {
-    $user = $this->entityManager->getRepository(User::class)->find(114);
+    $user = $this->security->getUser(); // Get the currently logged-in user
 
     if (!$user) {
-        throw $this->createNotFoundException('User with ID 114 not found.');
+        throw $this->createNotFoundException('User not found.');
     }
-
-    $requests = $this->requestService->getRequestsForUser($user->getIdUser());
-    $rides = $this->rideService->getRidesByUser($user->getIdUser());
+    $requests = $this->requestService->getRequestsForUser($user->getId_user());
+    $rides = $this->rideService->getRidesByUser($user->getId_user());
 
     $requestData = [];
     foreach ($requests as $request) {

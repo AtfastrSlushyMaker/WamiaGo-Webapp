@@ -71,6 +71,8 @@ class RequestService
         return $this->requestRepository->findBy(['user' => $userId]);
     }
 
+    
+
     public function updateRequest(
         int $requestId,
         User $user,

@@ -10,9 +10,9 @@ parameters:
     gemini.api_key: '%env(GEMINI_API_KEY)%'
     app.openweather_api_key: '%env(OPENWEATHER_API_KEY)%'
     app.gemini_api_key: '%env(GEMINI_API_KEY)%'
-  azure.tts.region: '%env(AZURE_TTS_REGION)%'
-  azure.tts.key: '%env(AZURE_TTS_KEY)%'
-  gemini_api_key: '%env(GEMINI_API_KEY)%'
+    azure.tts.region: '%env(AZURE_TTS_REGION)%'
+    azure.tts.key: '%env(AZURE_TTS_KEY)%'
+    gemini_api_key: '%env(GEMINI_API_KEY)%'
 
 services:
     # default configuration for services in *this* file
@@ -20,7 +20,6 @@ services:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
         public: false
-        autoconfigure: true
 
     dompdf.wrapper:
         class: Dompdf\Dompdf

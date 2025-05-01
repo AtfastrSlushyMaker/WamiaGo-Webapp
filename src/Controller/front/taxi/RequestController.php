@@ -14,17 +14,21 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\Security\Core\Security;
 
 class RequestController extends AbstractController
 {
     private RequestService $requestService;
     private EntityManagerInterface $entityManager;
+    private $security;
 
-    public function __construct(RequestService $requestService, EntityManagerInterface $entityManager)
+    public function __construct(RequestService $requestService, EntityManagerInterface $entityManager, Security $security)
     {
+        $this->security = $security;
         $this->requestService = $requestService;
         $this->entityManager = $entityManager;
     }
+
 
     #[Route('/taxi/request', name: 'app_taxi_request', methods: ['GET', 'POST'])]
     public function createRequest(Request $request, LocationService $locationService, ValidatorInterface $validator): Response
@@ -76,8 +80,8 @@ class RequestController extends AbstractController
             if (empty($validationErrors)) {
                 try {
                 
-                    $userId = 114; 
-                    $user = $this->entityManager->getRepository(User::class)->find($userId);
+
+                    $user = $this->security->getUser();
                     if (!$user) {
                         throw $this->createNotFoundException('User not found');
                     }

@@ -271,15 +271,7 @@ document.addEventListener('DOMContentLoaded', function () {
     <a href="{{ path('admin_taxi_export_excel_rides') }}" class="btn btn-excel" style="margin-left: 5px;" title="Export Excel">
     <i class="bi bi-file-earmark-excel" style="font-size: 1.2em;"></i>
 </a>
-<!-- Export Excel Button -->
-<button type="button" id="export-excel-btn-rides" class="btn btn-excel" style="margin-left: 5px;" title="Export Excel">
-    <i class="bi bi-file-earmark-excel" style="font-size: 1.2em;"></i> Export Excel
-</button>
 
-<!-- Export PDF Button for Rides -->
-<button type="button" id="export-pdf-btn-rides" class="btn btn-pdf" style="margin-left: 5px;" title="Export PDF">
-    <i class="bi bi-file-earmark-pdf" style="font-size: 1.2em;"></i> Export PDF
-</button>
 
 <!-- Hidden link to trigger PDF export -->
 <a href="{{ path('admin_taxi_export_pdf_ride') }}" id="export-pdf-link-rides" style="display: none;"></a>
@@ -302,67 +294,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <!-- AJAX Script for Dynamic Loading -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     let debounceTimer;
 
-    // Function to load data with AJAX
-    function loadData() {
-        // Show loading indicator
-        const ridesTableBody = document.querySelector('.rides-table tbody');
-        if (ridesTableBody) {
-            ridesTableBody.innerHTML = '<tr><td colspan="8" class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
-        }
-        
-        // Get form values
-        const search = document.getElementById('rides-search-input').value;
-        const status = document.getElementById('rides-status-select').value;
-        const sort = document.getElementById('rides-sort-select').value;
-        const direction = document.getElementById('rides-direction-select').value;
-        const currentPage = new URLSearchParams(window.location.search).get('page_rides') || 1;
-        
-        // Create URL with query parameters
-        const url = new URL(window.location.href);
-        url.searchParams.set('search', search);
-        url.searchParams.set('page_rides', currentPage);
-        if (status) url.searchParams.set('status', status);
-        else url.searchParams.delete('status');
-        if (sort) url.searchParams.set('sort', sort);
-        else url.searchParams.delete('sort');
-        // Fetch data with AJAX
-        fetch(url, { headers })
-            .then(response => response.text())
-            .then(html => {
-                // Create a temporary element to parse the HTML
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                // Update tables content
-                const ridesTable = doc.querySelector('.rides-table tbody');
-                if (ridesTable && ridesTableBody) {
-                    ridesTableBody.innerHTML = ridesTable.innerHTML;
-                }
+    // Attach event listeners initially
+    attachEventListeners();
 
-                // Update URL without page reload
-                window.history.pushState({}, '', url);
-
-                // Reattach event listeners to new elements
-                attachEventListeners();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                // Update tables content
-                const ridesTable = doc.querySelector('.rides-table tbody');
-                if (ridesTable && ridesTableBody) {
-                    ridesTableBody.innerHTML = ridesTable.innerHTML;
-                }
-                
-                // Update pagination if it exists
-                const paginationContainer = document.querySelector('.pagination');
-                const newPagination = doc.querySelector('.pagination');
-                if (paginationContainer && newPagination) {
-                    paginationContainer.innerHTML = newPagination.innerHTML;
     // Function to attach event listeners
     function attachEventListeners() {
-        // Attach event listeners for form inputs
         ['rides-search-input', 'rides-status-select', 'rides-sort-select', 'rides-direction-select'].forEach(id => {
             const element = document.getElementById(id);
             if (element) {
@@ -371,66 +310,89 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Reattach view and delete buttons listeners
+        // Reattach view and delete buttons listeners if needed
         document.querySelectorAll('.view-ride-btn, .delete-ride-btn').forEach(button => {
-            button.addEventListener('click', function(e) {
-                // Your existing button click handlers
+            button.addEventListener('click', function (e) {
+                // Your button logic here
             });
         });
     }
 
-    // Initial attachment of event listeners
-    attachEventListeners();
+    // Function to load data via AJAX
+    function loadData() {
+        const ridesTableBody = document.querySelector('.rides-table tbody');
+        if (ridesTableBody) {
+            ridesTableBody.innerHTML = '<tr><td colspan="8" class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+        }
+
+        const search = document.getElementById('rides-search-input').value;
+        const status = document.getElementById('rides-status-select').value;
+        const sort = document.getElementById('rides-sort-select').value;
+        const direction = document.getElementById('rides-direction-select').value;
+        const currentPage = new URLSearchParams(window.location.search).get('page_rides') || 1;
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('search', search);
+        url.searchParams.set('page_rides', currentPage);
+        status ? url.searchParams.set('status', status) : url.searchParams.delete('status');
+        sort ? url.searchParams.set('sort', sort) : url.searchParams.delete('sort');
+        direction ? url.searchParams.set('direction', direction) : url.searchParams.delete('direction');
+
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                const newTableBody = doc.querySelector('.rides-table tbody');
+                if (newTableBody && ridesTableBody) {
+                    ridesTableBody.innerHTML = newTableBody.innerHTML;
+                }
+
+                const paginationContainer = document.querySelector('.pagination');
+                const newPagination = doc.querySelector('.pagination');
+                if (paginationContainer && newPagination) {
+                    paginationContainer.innerHTML = newPagination.innerHTML;
+                }
+
+                window.history.pushState({}, '', url);
+                attachEventListeners();
             });
     }
 
-    // Attach event listeners for form inputs
-    ['rides-search-input', 'rides-status-select', 'rides-sort-select', 'rides-direction-select'].forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.addEventListener('change', function(e) {
-                e.preventDefault();
-                loadData();
-            });
-        }
-    });
-    
-    // Add input event listener with debounce for search input
+    // Debounced input event
     const searchInput = document.getElementById('rides-search-input');
     if (searchInput) {
-        searchInput.addEventListener('input', function() {
+        searchInput.addEventListener('input', function () {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(loadData, 500);
         });
     }
 
-    // Handle form submission
+    // Form submit
     const searchForm = document.getElementById('rides-search-form');
     if (searchForm) {
-        searchForm.addEventListener('submit', function(e) {
+        searchForm.addEventListener('submit', function (e) {
             e.preventDefault();
             loadData();
         });
     }
-    
-    // Handle reset button
+
+    // Reset button
     const resetButton = document.getElementById('reset-search');
     if (resetButton) {
-        resetButton.addEventListener('click', function() {
+        resetButton.addEventListener('click', function () {
             if (searchInput) searchInput.value = '';
-            const statusSelect = document.getElementById('rides-status-select');
-            const sortSelect = document.getElementById('rides-sort-select');
-            const directionSelect = document.getElementById('rides-direction-select');
-            
-            if (statusSelect) statusSelect.selectedIndex = 0;
-            if (sortSelect) sortSelect.selectedIndex = 0;
-            if (directionSelect) directionSelect.selectedIndex = 0;
-            
+            ['rides-status-select', 'rides-sort-select', 'rides-direction-select'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.selectedIndex = 0;
+            });
             loadData();
         });
     }
 });
 </script>
+
                 <div class="table-responsive">
                     <table class="admin-table rides-table">
                         <thead>
