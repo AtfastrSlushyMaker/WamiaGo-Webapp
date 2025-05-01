@@ -1,0 +1,725 @@
+{# filepath: d:\WamiaGo-Webapp - Copie (3)\templates\front\taxi\taxi-management.html.twig #}
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Taxi Management - WamiaGo{% endblock %}
+
+{% block page_stylesheets %}
+<link href="{{ asset('css/front/taxi/taxi-management.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
+{% endblock %}
+{% block hero %}
+<div class="hero-section bg-taxi text-white py-5 position-relative">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="fw-bold display-4">Effortless Taxi Management</h1>
+                <p class="mb-4 lead">Streamline your taxi requests and rides with our user-friendly platform. Whether you're a passenger or a driver, we've got you covered.</p>
+                <div class="d-flex">
+                    <a href="{{ path('request_page') }}" class="btn btn-light btn-lg me-3">
+                        <i class="fas fa-taxi me-2"></i> Request a Taxi
+                    </a>
+                    <a href="#how-it-works-section" class="btn btn-outline-light btn-lg">
+                        Learn More <i class="fas fa-car ms-2"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-4 d-none d-md-block">
+                <img src="{{ asset('images/front/taxi/taxi.png') }}" alt="Taxi Management" class="img-fluid rounded-circle shadow-lg">
+            </div>
+        </div>
+    </div>
+    <div class="hero-decorations">
+        <div class="circle-decoration bg-warning position-absolute top-0 start-0"></div>
+        <div class="circle-decoration bg-primary position-absolute bottom-0 end-0"></div>
+    </div>
+</div>
+<style>
+    .hero-decorations .circle-decoration {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        opacity: 0.3;
+    }
+    .hero-decorations .circle-decoration.bg-warning {
+        top: -50px;
+        left: -50px;
+    }
+    .hero-decorations .circle-decoration.bg-primary {
+        bottom: -50px;
+        right: -50px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+
+<!-- How It Works Section -->
+<section id="how-it-works-section" class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">How It Works</h2>
+        <div class="row text-center">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="icon mb-3">
+                            <i class="fas fa-search-location fa-3x text-primary"></i>
+                        </div>
+                        <h5 class="card-title">Find a Taxi</h5>
+                        <p class="card-text text-muted">Search for available taxis near your location with ease.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="icon mb-3">
+                            <i class="fas fa-taxi fa-3x text-success"></i>
+                        </div>
+                        <h5 class="card-title">Request a Ride</h5>
+                        <p class="card-text text-muted">Submit your pickup and destination details to request a ride.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="icon mb-3">
+                            <i class="fas fa-check-circle fa-3x text-warning"></i>
+                        </div>
+                        <h5 class="card-title">Enjoy Your Ride</h5>
+                        <p class="card-text text-muted">Sit back, relax, and enjoy your journey with our trusted drivers.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container-fluid">
+    <div class="row">
+      <!-- Taxi Requests Section -->
+<div class="col-lg-6">
+    <section id="requests-section" class="py-4">
+        <div class="container">
+            <h3 class="text-center mb-4">Taxi Requests</h3>
+            <div class="row justify-content-center">
+                {% if requests is empty %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">No active taxi requests at the moment.</p>
+                    </div>
+                {% else %}
+                    {% for request in requests %}
+                        <div id="request-{{ request.id }}" class="col-md-12 mb-3">
+                            <div class="card request-card border-0 h-100" style="background-color: #e3f2fd; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                                <div class="card-header text-center" style="background-color: #bbdefb;">
+                                    <h6 class="mb-0 text-secondary">{{ request.status }}</h6>
+                                </div>
+                                <div class="card-body d-flex flex-column p-3">
+                                    <p class="mb-2 d-flex align-items-center">
+                                        <i class="fas fa-map-marker-alt me-2 text-primary"></i> 
+                                        Pickup: {{ request.pickupLocation ?: 'Unknown' }}
+                                        {% if request.pickupLocation %}
+                                            <button type="button" class="btn btn-link btn-sm ms-2 p-0 play-address-btn" data-text="Pickup at {{ request.pickupLocation }}">
+                                                <i class="fas fa-volume-up"></i>
+                                            </button>
+                                        {% endif %}
+                                    </p>
+
+                                    <p class="mb-2 d-flex align-items-center">
+                                        <i class="fas fa-map-marker-alt me-2 text-primary"></i> 
+                                        Destination: {{ request.destination ?: 'Unknown' }}
+                                        {% if request.destination %}
+                                            <button type="button" class="btn btn-link btn-sm ms-2 p-0 play-address-btn" data-text="Destination at {{ request.destination }}">
+                                                <i class="fas fa-volume-up"></i>
+                                            </button>
+                                        {% endif %}
+                                    </p>
+
+                                    <p class="mb-2">
+                                        <i class="fas fa-clock me-2 text-primary"></i> {{ request.requestTime|date('Y-m-d H:i') }}
+                                    </p>
+
+                                    <div class="mt-auto d-flex justify-content-between">
+                                        <form class="delete-request-form" action="{{ path('delete_request', { id: request.id }) }}" method="POST">
+                                            <button type="button" class="btn btn-danger btn-sm d-flex align-items-center delete-request-btn" data-request-id="{{ request.id }}">
+                                                <i class="fas fa-trash-alt"></i> Delete
+                                            </button>
+                                        </form>
+                                        <a href="{{ path('update_request', { id: request.id }) }}" class="btn btn-primary btn-md px-3 py-2 d-flex align-items-center">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const playButtons = document.querySelectorAll('.play-address-btn');
+
+    playButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+            const textToSpeak = this.getAttribute('data-text');
+
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.lang = 'fr-FR'; // Langue français (tu peux changer en 'en-US' ou d'autres langues)
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert('Votre navigateur ne supporte pas la synthèse vocale.');
+            }
+        });
+    });
+});
+</script>
+
+
+
+
+        <!-- Rides Section -->
+        <div class="col-lg-6">
+            <section id="rides-section" class="py-4">
+            <div class="container">
+            <h3 class="text-center mb-4">Active Rides</h3>
+            <div class="row justify-content-center">
+            {% if rides is empty %}
+                <div class="text-center py-4">
+                <p class="text-muted">No active rides at the moment.</p>
+                </div>
+            {% else %}
+                {% for ride in rides %}
+                <div id="ride-{{ ride.id }}" class="col-md-12 mb-3">
+                <div class="card ride-card border-0 h-100" style="background-color: #f3e5f5; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                <div class="card-header text-center" style="background-color: #ce93d8;">
+                    <h5 class="mb-0 text-secondary">{{ ride.status }}</h5>
+                </div>
+                <div class="card-body d-flex flex-column p-4">
+                    <p class="mb-3"><i class="fas fa-map-marker-alt me-2 text-primary"></i> Pickup: {{ ride.pickupLocation ?: 'Unknown' }}</p>
+                    <p class="mb-3"><i class="fas fa-map-marker-alt me-2 text-primary"></i> Destination: {{ ride.destination ?: 'Unknown' }}</p>
+                    <p class="mb-3"><i class="fas fa-dollar-sign me-2 text-primary"></i> Price: {{ ride.price ?: 'N/A' }}</p>
+                    <p class="mb-3"><i class="fas fa-clock me-2 text-primary"></i> Duration: {{ ride.duration ?: 'N/A' }}</p>
+                    <p class="mb-3"><i class="fas fa-road me-2 text-primary"></i> Distance: {{ ride.distance ?: 'N/A' }}</p>
+                    <div class="mt-auto d-flex justify-content-between">
+                    <form class="delete-ride-form" action="{{ path('delete_ride', { id: ride.id }) }}" method="POST">
+                        <button type="button" class="btn btn-danger btn-sm d-flex align-items-center delete-ride-btn" data-ride-id="{{ ride.id }}">
+                        <i class="fas fa-trash-alt"></i> Delete
+                        </button>
+                    </form>
+                    
+                    <!-- This is the Call Driver button -->
+                    <button type="button" 
+                            class="btn btn-success btn-sm d-flex align-items-center call-driver-btn" 
+                            data-ride-id="{{ ride.id }}">
+                        <i class="fas fa-phone me-1"></i> Call Driver
+                    </button>
+                </div>
+
+                <!-- This is the hidden QR code (inside the card, still inside the loop) -->
+                <div id="qr-code-{{ ride.id }}" class="qr-code-container text-center mt-3" style="display: none;">
+                    {% if ride.driverPhone %}
+                        <img id="qr-code-img" src="{{ qr_code_data_uri('' ~ ride.driverPhone) }}" alt="Driver QR Code" style="width: 150px; height: 150px;">
+
+
+                        <p class="small text-muted mt-2">Scan to call the driver</p>
+                    {% else %}
+                        <p class="text-danger">Driver phone not available</p>
+                    {% endif %}
+                </div>
+                </div>
+                </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+            </div>
+            </div>
+            </section>
+        </div>
+        </div>
+    </div>
+
+    
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get all the Call Driver buttons
+    const callDriverButtons = document.querySelectorAll('.call-driver-btn');
+
+    callDriverButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Get ride ID from button
+            const rideId = this.getAttribute('data-ride-id');
+
+            // Find the related QR code container
+            const qrCodeDiv = document.getElementById('qr-code-' + rideId);
+
+            if (qrCodeDiv) {
+                // Toggle the visibility
+                if (qrCodeDiv.style.display === 'none' || qrCodeDiv.style.display === '') {
+                    qrCodeDiv.style.display = 'block';
+                } else {
+                    qrCodeDiv.style.display = 'none';
+                }
+            }
+        });
+    });
+});
+</script>
+
+
+
+
+
+
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle delete request buttons
+        const deleteRequestButtons = document.querySelectorAll('.delete-request-btn');
+        deleteRequestButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const requestId = button.getAttribute('data-request-id');
+                const requestCard = document.getElementById('request-' + requestId);
+                const form = button.closest('form');
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'Do you really want to delete this request? This action cannot be undone.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch(form.action, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ id: requestId }),
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                requestCard.style.transition = 'opacity 0.5s ease';
+                                requestCard.style.opacity = '0';
+                                setTimeout(() => requestCard.remove(), 500);
+                                Swal.fire('Deleted!', 'The request has been deleted successfully.', 'success');
+                            } else {
+                                Swal.fire('Error!', 'Failed to delete the request. Please try again.', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            Swal.fire('Error!', 'An unexpected error occurred. Please try again later.', 'error');
+                        });
+                    }
+                });
+            });
+        });
+
+        // Handle delete ride buttons
+        const deleteRideButtons = document.querySelectorAll('.delete-ride-btn');
+        deleteRideButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const rideId = button.getAttribute('data-ride-id');
+                const rideCard = document.getElementById('ride-' + rideId);
+                const form = button.closest('form');
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'Do you really want to delete this ride? This action cannot be undone.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch(form.action, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ id: rideId }),
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                rideCard.style.transition = 'opacity 0.5s ease';
+                                rideCard.style.opacity = '0';
+                                setTimeout(() => rideCard.remove(), 500);
+                                Swal.fire('Deleted!', 'The ride has been deleted successfully.', 'success');
+                            } else {
+                                Swal.fire('Error!', 'Failed to delete the ride. Please try again.', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            Swal.fire('Error!', 'An unexpected error occurred. Please try again later.', 'error');
+                        });
+                    }
+                });
+            });
+        });
+    });
+</script>
+<div class="d-flex justify-content-center align-items-center" style="min-height: 50vh;">
+    {% block javascripts %}
+        {{ parent() }}
+        <!-- Leaflet JS from CDN -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+        <!-- SweetAlert2 CSS and JS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <!-- Your custom JS -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Ensure Leaflet is loaded before using it
+                if (typeof L !== 'undefined') {
+                    console.log("Leaflet is loaded successfully!");
+                }
+
+                // Add your custom JS logic here for deleting requests
+                const deleteButtons = document.querySelectorAll('.delete-request-form button');
+
+                deleteButtons.forEach(function(button) {
+                    button.addEventListener('click', function(event) {
+                        event.preventDefault();  // Prevent the form from submitting immediately
+
+                        const requestId = button.getAttribute('data-request-id');
+                        const form = button.closest('form');
+
+                        // Show confirmation dialog
+                        Swal.fire({
+                            title: 'Are you sure?',
+                            text: 'Do you really want to delete this request? This action cannot be undone.',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#3085d6',
+                            confirmButtonText: 'Yes, delete it!',
+                            cancelButtonText: 'Cancel'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Make AJAX request to delete the request
+                                fetch(form.action, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        id: requestId,
+                                    }),
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.status === 'success') {
+                                        // Find the request card and remove it
+                                        const requestCard = document.getElementById('request-' + requestId);
+                                        if (requestCard) {
+                                            requestCard.style.transition = 'opacity 0.5s ease';
+                                            requestCard.style.opacity = '0';
+                                            setTimeout(() => requestCard.remove(), 500);
+                                        }
+
+                                        // Show success message
+                                        Swal.fire(
+                                            'Deleted!',
+                                            'The request has been deleted successfully.',
+                                            'success'
+                                        );
+                                    } else {
+                                        // Show error message
+                                        Swal.fire(
+                                            'Error!',
+                                            'Failed to delete the request. Please try again.',
+                                            'error'
+                                        );
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    Swal.fire(
+                                        'Error!',
+                                        'An unexpected error occurred. Please try again later.',
+                                        'error'
+                                    );
+                                });
+                            }
+                        });
+                    });
+                });
+            });
+        </script>
+    {% endblock %}
+</div>
+
+{# Fun Facts Section about Tunisia with Horizontal Sliding Layout #}
+
+<section id="fun-facts-section" class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Fun Facts about Tunisia</h2>
+        <div class="fun-facts-slider">
+            <div class="fun-fact-track">
+                <!-- Slide 1 (Facts 1-3) -->
+                <div class="fun-fact-slide d-flex">
+                    <div class="fun-fact-card">
+                        <div class="card shadow border-0 text-center" style="background: #d4edda;">
+                            <div class="card-icon my-4">
+                                <i class="fas fa-landmark fa-3x text-success"></i>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="text-success">Ancient Wonders</h5>
+                                <p class="text-muted">Tunisia is home to the ancient city of Carthage, a UNESCO World Heritage Site.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fun-fact-card">
+                        <div class="card shadow border-0 text-center" style="background: #d4edda;">
+                            <div class="card-icon my-4">
+                                <i class="fas fa-film fa-3x text-success"></i>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="text-success">Hollywood's Desert</h5>
+                                <p class="text-muted">The Star Wars movies used the Tunisian desert as a filming location for Tatooine.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fun-fact-card">
+                        <div class="card shadow border-0 text-center" style="background: #d4edda;">
+                            <div class="card-icon my-4">
+                                <i class="fas fa-globe-africa fa-3x text-success"></i>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="text-success">Cultural Gem</h5>
+                                <p class="text-muted">Tunisia is the smallest country in North Africa, but it has a rich and diverse culture.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Slide 2 (Facts 4-6) -->
+                <div class="fun-fact-slide d-flex">
+                    <div class="fun-fact-card">
+                        <div class="card shadow border-0 text-center" style="background: #d4edda;">
+                            <div class="card-icon my-4">
+                                <i class="fas fa-utensils fa-3x text-success"></i>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="text-success">Culinary Delights</h5>
+                                <p class="text-muted">Tunisia is famous for its harissa, a spicy chili pepper paste used in many dishes.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fun-fact-card">
+                        <div class="card shadow border-0 text-center" style="background: #d4edda;">
+                            <div class="card-icon my-4">
+                                <i class="fas fa-umbrella-beach fa-3x text-success"></i>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="text-success">Beautiful Beaches</h5>
+                                <p class="text-muted">Tunisia has over 1,300 km of Mediterranean coastline with stunning beaches.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fun-fact-card">
+                        <div class="card shadow border-0 text-center" style="background: #d4edda;">
+                            <div class="card-icon my-4">
+                                <i class="fas fa-medal fa-3x text-success"></i>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="text-success">Olympic History</h5>
+                                <p class="text-muted">Tunisia won its first Olympic gold medal in 1968 in the 5000m race.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Slide 3 (Facts 7-9) -->
+                <div class="fun-fact-slide d-flex">
+                    <div class="fun-fact-card">
+                        <div class="card shadow border-0 text-center" style="background: #d4edda;">
+                            <div class="card-icon my-4">
+                                <i class="fas fa-mosque fa-3x text-success"></i>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="text-success">Great Mosque</h5>
+                                <p class="text-muted">The Great Mosque of Kairouan is one of the most important Islamic monuments in North Africa.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fun-fact-card">
+                        <div class="card shadow border-0 text-center" style="background: #d4edda;">
+                            <div class="card-icon my-4">
+                                <i class="fas fa-feather-alt fa-3x text-success"></i>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="text-success">Literary Heritage</h5>
+                                <p class="text-muted">Tunisia has produced notable writers like Mahmoud Messadi and Abdelwahab Meddeb.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fun-fact-card">
+                        <div class="card shadow border-0 text-center" style="background: #d4edda;">
+                            <div class="card-icon my-4">
+                                <i class="fas fa-wine-glass-alt fa-3x text-success"></i>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="text-success">Wine Production</h5>
+                                <p class="text-muted">Tunisia has a thriving wine industry dating back to ancient Carthaginian times.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const slider = document.querySelector('.fun-facts-slider');
+        const track = document.querySelector('.fun-fact-track');
+        const slides = document.querySelectorAll('.fun-fact-slide');
+        const dotsContainer = document.createElement('div');
+        dotsContainer.className = 'slider-dots';
+        
+        // Create navigation dots
+        slides.forEach((_, index) => {
+            const dot = document.createElement('span');
+            dot.className = 'slider-dot';
+            if (index === 0) dot.classList.add('active');
+            dot.addEventListener('click', () => goToSlide(index));
+            dotsContainer.appendChild(dot);
+        });
+        
+        slider.parentNode.insertBefore(dotsContainer, slider.nextSibling);
+        
+        let currentIndex = 0;
+        let lastIndex = 0;
+        const slideCount = slides.length;
+        let slideInterval;
+        
+        // Initialize first slide with animations
+        animateSlide(currentIndex, 'enter');
+        
+        function updateSlider(direction) {
+            // Animate out current slide
+            animateSlide(lastIndex, 'exit', direction);
+            
+            // Update track position
+            track.style.transform = `translateX(-${currentIndex * 100}%)`;
+            
+            // Animate in new slide
+            animateSlide(currentIndex, 'enter', direction);
+            
+            // Update active dot
+            document.querySelectorAll('.slider-dot').forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentIndex);
+            });
+        }
+        
+        function animateSlide(index, action, direction = 'right') {
+            const slide = slides[index];
+            const cards = slide.querySelectorAll('.fun-fact-card');
+            
+            if (action === 'enter') {
+                slide.style.opacity = '1';
+                if (direction === 'right') {
+                    slide.style.animation = 'slideInFromRight 0.5s forwards';
+                } else {
+                    slide.style.animation = 'slideInFromRight 0.5s forwards';
+                }
+                
+                // Animate cards with stagger effect
+                cards.forEach((card, i) => {
+                    card.style.animation = `cardEntrance 0.5s ${i * 0.1}s forwards`;
+                });
+            } else {
+                slide.style.opacity = '0';
+                if (direction === 'right') {
+                    slide.style.animation = 'slideOutToLeft 0.5s forwards';
+                } else {
+                    slide.style.animation = 'slideOutToLeft 0.5s forwards';
+                }
+                
+                // Reset cards for next entrance
+                cards.forEach(card => {
+                    card.style.animation = '';
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                });
+            }
+        }
+        
+        function goToSlide(index) {
+            lastIndex = currentIndex;
+            currentIndex = index;
+            const direction = currentIndex > lastIndex ? 'right' : 'left';
+            updateSlider(direction);
+            resetInterval();
+        }
+        
+        function nextSlide() {
+            lastIndex = currentIndex;
+            currentIndex = (currentIndex + 1) % slideCount;
+            updateSlider('right');
+        }
+        
+        function prevSlide() {
+            lastIndex = currentIndex;
+            currentIndex = (currentIndex - 1 + slideCount) % slideCount;
+            updateSlider('left');
+        }
+        
+        function resetInterval() {
+            clearInterval(slideInterval);
+            slideInterval = setInterval(nextSlide, 7000); // 7 seconds
+        }
+        
+        // Initialize auto-slide
+        slideInterval = setInterval(nextSlide, 7000);
+        
+        // Pause on hover
+        slider.addEventListener('mouseenter', () => clearInterval(slideInterval));
+        slider.addEventListener('mouseleave', resetInterval);
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            track.style.transform = `translateX(-${currentIndex * 100}%)`;
+        });
+        
+        // Optional: Add keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+    });
+</script>
+
+
+
+
+{% endblock %}
+
+{% block page_javascripts %}
+<script src="{{ asset('js/front/taxi/taxi-management.js') }}"></script>
+{% endblock %}
