@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Delete relocation
     document.getElementById('deleteRelocationBtn').addEventListener('click', async () => {
         if (!currentEventId) return;
-
+    
         const confirmation = await Swal.fire({
             title: 'Confirm Deletion',
             text: "Are you sure you want to delete this relocation?",
@@ -179,28 +179,73 @@ document.addEventListener('DOMContentLoaded', function() {
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
             confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'Cancel'
+            cancelButtonText: 'Cancel',
+            allowOutsideClick: false
         });
-
+    
         if (confirmation.isConfirmed) {
             try {
+                // Appel API
                 const response = await fetch(`/transporter/relocations/${currentEventId}/delete`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+                    method: 'POST'
                 });
-
-                if (response.ok) {
-                    window.refreshCalendar(); // Utiliser la fonction globale de rafraîchissement
-                    bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
-                    Swal.fire('Deleted!', 'The relocation has been deleted.', 'success');
+    
+                // Traitement de la réponse
+                const contentType = response.headers.get("content-type");
+                if (!response.ok || !contentType?.includes('application/json')) {
+                    throw new Error('Invalid server response');
+                }
+    
+                const data = await response.json();
+    
+                if (data.success) {
+                    // Rafraîchissement immédiat du calendrier
+                    calendar.refetchEvents();
+                    
+                    // Fermer le modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
+                    if (modal) modal.hide();
+    
+                    // Réinitialiser l'ID courant
+                    currentEventId = null;
+    
+                    // Notification visuelle discrète
+                    Toast.fire({
+                        icon: 'success',
+                        title: 'Relocation deleted successfully'
+                    });
+                } else {
+                    //throw new Error(data.message || 'Deletion failed');
                 }
             } catch (error) {
-                Swal.fire('Error!', 'Deletion failed.', 'error');
+                // Gestion d'erreur générique
+               /* //Toast.fire({
+                    icon: 'error',
+                    title: error.message || 'Deletion failed'
+                });*/
             }
         }
     });
+    
+    // Configuration des Toast
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
+    // Déclaration globale de la fonction de rafraîchissement
+    window.refreshRelocationDetails = function(eventId) {
+        if (eventId) {
+            refreshEventDetails(eventId);
+        }
+        calendar.refetchEvents(); // Actualisation du calendrier
+    };
 
     // Edit relocation
     document.getElementById('editRelocationBtn').addEventListener('click', async () => {

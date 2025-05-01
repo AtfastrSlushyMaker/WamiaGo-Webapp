@@ -36,7 +36,53 @@
     </div>
 </div>
 
+     <!-- Search Filters Section -->
+    <div class="filters-section mb-5">
+        <div class="advanced-search-container bg-light p-4 rounded-3 shadow-sm">
+            <div class="search-filter mb-3">
+                <input type="text" 
+                       id="transporterKeywordSearch" 
+                       placeholder="Search my announcements..." 
+                       class="form-control form-control-lg"
+                       value="{{ app.request.query.get('keyword') }}">
+            </div>
+
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="transporterZoneFilter" class="form-label">
+                        <i class="fas fa-map-marker-alt me-2"></i>Zone
+                    </label>
+                    <select id="transporterZoneFilter" class="form-select">
+                        <option value="">All Zones</option>
+                        {% for zone in zones %}
+                            <option value="{{ zone.value }}" 
+                                {{ app.request.query.get('zone') == zone.value ? 'selected' }}>
+                                {{ zone.value }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="transporterDateFilter" class="form-label">
+                        <i class="fas fa-calendar-alt me-2"></i>Date
+                    </label>
+                    <input type="date" 
+                           id="transporterDateFilter" 
+                           class="form-control"
+                           value="{{ app.request.query.get('date') }}">
+                </div>
+
+                <div class="col-md-4">
+                    <button class="btn btn-outline-danger w-100" id="transporterClearFilters">
+                        <i class="fas fa-eraser me-2"></i>Clear Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Announcements Grid -->
+    <div id="transporterAnnouncementsList">
     {% if announcements is empty %}
         <div class="empty-state">
             <img src="{{ asset('images/front/announcement/empty-state.png') }}" alt="No announcements">
@@ -47,7 +93,7 @@
             </a>
         </div>
     {% else %}
-        <div class="announcements-grid">
+         <div class="announcements-grid">
             {% for announcement in announcements %}
                 <div class="announcement-card" data-id="{{ announcement.id_announcement }}">
                     <div class="card-header">
@@ -94,15 +140,15 @@
                 </div>
             {% endfor %}
         </div>
-
+        
         <!-- Pagination -->
         <div class="card-footer clearfix">
-                    <div class="float-right">
-                        {{ knp_pagination_render(announcements, '@KnpPaginator/Pagination/twitter_bootstrap_v4_pagination.html.twig') }}
-                    </div>
-                </div>
+            <div class="float-right">
+                {{ knp_pagination_render(announcements, '@KnpPaginator/Pagination/twitter_bootstrap_v4_pagination.html.twig') }}
+            </div>
+        </div>
     {% endif %}
-
+</div>
     <!-- Delete Modal -->
     {% include 'front/announcement/transporter/_partials/delete_modal.html.twig' %}
 
@@ -139,4 +185,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.all.min.js"></script>
     <script src="{{ asset('js/front/announcement/transporter-announcement.js') }}" defer></script>
     <script src="{{ asset('js/front/announcement/announcement-modals.js') }}" defer></script>
+    <script src="{{ asset('js/front/announcement/transporter-search.js') }}" defer></script>
+
 {% endblock %}

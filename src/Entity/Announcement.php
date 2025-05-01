@@ -105,11 +105,11 @@ class Announcement
 
     #[ORM\Column(enumType: Zone::class)]
     #[Assert\NotBlank(message: "Please select a service zone")]
-    private Zone $zone = Zone::NOT_SPECIFIED;
+    private Zone $zone = Zone::ARIANA;
 
     public function getZone(): Zone
     {
-        return $this->zone ?? Zone::NOT_SPECIFIED;
+        return $this->zone ?? Zone::ARIANA;
     }
 
     public function setZone(Zone $zone): self
