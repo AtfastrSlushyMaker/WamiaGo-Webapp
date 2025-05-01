@@ -12,7 +12,11 @@ services:
     # default configuration for services in *this* file
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
-        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        autoconfigure: true
+
+    dompdf.wrapper:
+        class: Dompdf\Dompdf
+        arguments: [] # Automatically registers your services as commands, event subscribers, etc.
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
@@ -30,6 +34,10 @@ services:
     App\Service\GeminiService:
         arguments:
             $geminiApiKey: '%gemini_api_key%'
+
+    App\Controller\Admin\taxi\TaxiManagementController:
+        arguments:
+            $pdf: '@dompdf.wrapper'
 
             
 
