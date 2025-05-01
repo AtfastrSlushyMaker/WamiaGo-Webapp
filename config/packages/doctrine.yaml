@@ -11,7 +11,7 @@ doctrine:
 
         profiling_collect_backtrace: '%kernel.debug%'
         use_savepoints: true
-        types: ~
+        types: ~  # Cette ligne était manquante dans ta version secondaire, on la garde
 
     orm:
         auto_generate_proxy_classes: true

@@ -1,0 +1,234 @@
+{% extends 'back-office/base.html.twig' %}
+
+{% block title %}Admin | Statistics Dashboard{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('adminlte/css/custom-stats.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>Statistics Dashboard</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{{ path('admin_dashboard') }}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">Statistics</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <!-- Stats Cards Row -->
+            <div class="row">
+                <!-- Users Card -->
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-teal">
+                        <div class="inner">
+                            <h3>{{ totalUsers }}</h3>
+                            <p>Users</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <a  class="small-box-footer">Total registered users <i class="fas fa-arrow-circle-right"></i></a>
+                    </div>
+                </div>
+
+                <!-- Announcements Card -->
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-primary">
+                        <div class="inner">
+                            <h3>{{ totalAnnouncements }}</h3>
+                            <p>Announcements</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-bullhorn"></i>
+                        </div>
+                        <a href="{{ path('admin_announcements_index') }}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                    </div>
+                </div>
+
+                <!-- Relocations Card -->
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-purple">
+                        <div class="inner">
+                            <h3>{{ totalRelocations }}</h3>
+                            <p>Relocations</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-truck-moving"></i>
+                        </div>
+                        <a href="{{ path('admin_relocations_index') }}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                    </div>
+                </div>
+
+                <!-- Reservations Card -->
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-danger">
+                        <div class="inner">
+                            <h3>{{ totalReservations }}</h3>
+                            <p>Reservations</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <a href="{{ path('admin_reservations_index') }}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="row">
+                <!-- Pie Chart -->
+                <div class="col-md-6">
+                    <div class="card card-primary">
+                        <div class="card-header">
+                            <h3 class="card-title">Reservations Status</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="pieChart" style="min-height: 350px; height: 350px; max-height: 350px; max-width: 100%;"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bar Chart -->
+                <div class="col-md-6">
+                    <div class="card card-success">
+                        <div class="card-header">
+                            <h3 class="card-title">Reservations Status Overview</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="barChart" style="min-height: 350px; height: 350px; max-height: 350px; max-width: 100%;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script>
+        // Pie Chart
+var pieCtx = document.getElementById('pieChart').getContext('2d');
+var pieChart = new Chart(pieCtx, {
+    type: 'pie',
+    data: {
+        labels: [
+            'On Going ({{ reservationsPercentage.ongoing|number_format(1) }}%)',
+            'Completed ({{ reservationsPercentage.completed|number_format(1) }}%)',
+            'Cancelled ({{ reservationsPercentage.canceled|number_format(1) }}%)',
+            'Confirmed ({{ reservationsPercentage.confirmed|number_format(1) }}%)'
+        ],
+        datasets: [{
+            data: [
+                {{ reservationsByStatus.ongoing }},
+                {{ reservationsByStatus.completed }},
+                {{ reservationsByStatus.canceled }},
+                {{ reservationsByStatus.confirmed }}
+            ],
+            backgroundColor: [
+                'rgba(255, 206, 86, 0.9)',   // Jaune pour On Going
+                'rgba(75, 192, 192, 0.9)',   // Cyan pour Completed
+                'rgba(255, 99, 132, 0.9)',   // Rouge pour Cancelled
+                'rgba(54, 162, 235, 0.9)'    // Bleu pour Confirmed
+            ],
+            borderColor: [
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'right',
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        let label = context.label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        label += context.raw + ' (' + context.parsed + '%)';
+                        return label;
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Bar Chart
+var barCtx = document.getElementById('barChart').getContext('2d');
+var barChart = new Chart(barCtx, {
+    type: 'bar',
+    data: {
+        labels: ['On Going', 'Completed', 'Cancelled', 'Confirmed'],
+        datasets: [{
+            label: 'Reservations',
+            data: [
+                {{ reservationsByStatus.ongoing }},
+                {{ reservationsByStatus.completed }},
+                {{ reservationsByStatus.canceled }},
+                {{ reservationsByStatus.confirmed }}
+            ],
+            backgroundColor: [
+                'rgba(255, 206, 86, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(54, 162, 235, 0.7)'
+            ],
+            borderColor: [
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Total Reservations'
+                }
+            }
+        },
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.parsed.y + ' reservations';
+                    }
+                }
+            }
+        }
+    }
+});
+    </script>
+{% endblock %}

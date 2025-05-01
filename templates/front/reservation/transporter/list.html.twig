@@ -1,0 +1,364 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}My Reservations | TransportApp{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/front/reservation/reservation-cards.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/front/reservation/modal-details.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.min.css" rel="stylesheet">
+  <style>
+        /* Style pour les modales SweetAlert */
+        .reservation-modal-container {
+            z-index: 1500 !important;
+        }
+
+        .reservation-modal-popup {
+            border-radius: 12px !important;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2) !important;
+            animation: swal-popup-appear 0.3s !important;
+            border-left: 5px solid #5A6BE5 !important;
+        }
+
+        .reservation-success-modal {
+            border-radius: 12px !important;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        @keyframes swal-popup-appear {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Améliorations des boutons dans les cartes */
+        .card-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        /* Style amélioré pour les boutons accept/refuse */
+        .btn-accept, .btn-refuse {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-accept {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn-accept:hover {
+            background-color: #388E3C;
+            transform: scale(1.15);
+            box-shadow: 0 5px 10px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-refuse {
+            background-color: #F44336;
+            color: white;
+        }
+
+        .btn-refuse:hover {
+            background-color: #D32F2F;
+            transform: scale(1.15);
+            box-shadow: 0 5px 10px rgba(244, 67, 54, 0.3);
+        }
+
+        /* Style amélioré pour le bouton details */
+        .btn-details {
+            background-color: #f8f9fa;
+            border: 1px solid #4299E1;
+            color: #4299E1;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 4px rgba(66, 153, 225, 0.1);
+        }
+
+        .btn-details:hover {
+            background-color: #4299E1;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(66, 153, 225, 0.2);
+        }
+
+        /* Style amélioré pour les boutons SweetAlert */
+        .swal-confirm-button, .swal-cancel-button {
+            border-radius: 6px !important;
+            padding: 12px 24px !important;
+            font-size: 15px !important;
+            font-weight: 500 !important;
+            letter-spacing: 0.5px !important;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1) !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .swal-confirm-button:hover, .swal-cancel-button:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Améliorations de la forme et des inputs */
+        .swal2-popup .form-control {
+            padding: 0.75rem 1rem !important;
+            border: 1px solid #ced4da !important;
+            border-radius: 8px !important;
+            font-size: 1rem !important;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out !important;
+        }
+
+        .swal2-popup .form-control:focus {
+            border-color: #5A6BE5 !important;
+            box-shadow: 0 0 0 3px rgba(90, 107, 229, 0.25) !important;
+            outline: none !important;
+        }
+
+        .swal2-popup .form-label {
+            margin-bottom: 0.75rem !important;
+            display: block !important;
+            font-weight: 500 !important;
+            color: #2D3748 !important;
+            font-size: 0.95rem !important;
+        }
+
+        /* Ajouts CSS pour les filtres */
+        .filters-section {
+            margin: 2rem 0;
+        }
+
+        .advanced-search-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+        }
+
+        .search-filter input {
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .search-filter input:focus {
+            border-color: #4299E1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .reservations-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters-section .col-md-4 {
+                margin-bottom: 1rem;
+            }
+        }
+        .reservation-details-popup {
+  max-height: 80vh; 
+  overflow-y: auto; 
+  padding-right: 10px; 
+}
+
+
+        
+    </style>
+{% endblock %}
+
+{% block content %}
+<div id="csrf-token" data-token="{{ csrf_token('reservation') }}"></div>
+
+<div class="reservations-header text-center">
+    <h1><i class="fas fa-calendar-check"></i> My Transport Reservations</h1>
+        
+        <div class="action-buttons d-flex justify-content-center gap-3">
+            <a href="{{ path('app_transporter_announcement_list') }}" class="btn btn-outline-primary">
+                <i class="fas fa-truck me-2"></i> My Announcements
+            </a>
+            <a href="{{ path('app_transporter_relocation_calendar') }}" class="btn btn-primary">
+                <i class="fas fa-truck-moving me-2"></i> My Relocations
+            </a>
+        </div>
+</div>
+
+<!-- Search Filters Section -->
+    <div class="filters-section mb-5">
+        <div class="advanced-search-container bg-light p-4 rounded-3 shadow-sm">
+            <div class="search-filter mb-3">
+                <input type="text" 
+                       id="reservationKeywordSearch" 
+                       placeholder="Search reservations..." 
+                       class="form-control form-control-lg"
+                       value="{{ app.request.query.get('keyword') }}">
+            </div>
+
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="reservationStatusFilter" class="form-label">
+                        <i class="fas fa-filter me-2"></i>Status
+                    </label>
+                    <select id="reservationStatusFilter" class="form-select">
+                        <option value="">All Statuses</option>
+                         {% for status in enum('App\\Enum\\ReservationStatus').cases() %}
+                            <option value="{{ status.value }}" 
+                                {{ app.request.query.get('status') == status.value ? 'selected' }}>
+                                {{ status.value|title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="reservationDateFilter" class="form-label">
+                        <i class="fas fa-calendar-alt me-2"></i>Date
+                    </label>
+                    <input type="date" 
+                           id="reservationDateFilter" 
+                           class="form-control"
+                           value="{{ app.request.query.get('date') }}">
+                </div>
+
+                <div class="col-md-4">
+                    <button class="btn btn-outline-danger w-100" id="reservationClearFilters">
+                        <i class="fas fa-eraser me-2"></i>Clear Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+   
+
+    <!-- Reservations Grid -->
+    {% if reservations is empty %}
+        <div class="empty-state">
+            <img src="{{ asset('images/front/reservation/empty-state.png') }}" alt="No reservations" class="mb-3">
+            <h3>No reservations yet</h3>
+            <p class="text-muted">When clients book your transport services, reservations will appear here</p>
+        </div>
+    {% else %}
+        <div class="reservations-grid">
+            {% for reservation in reservations %}
+                <div class="reservation-card {{ reservation.status.value|lower }}" 
+                     data-id="{{ reservation.id_reservation }}">
+                    <div class="card-header">
+                        <div class="card-badge {{ reservation.status.value|lower }}">
+                            {{ reservation.status.value }}
+                        </div>
+                        <h3 class="card-title">{{ reservation.announcement.title }}</h3>
+                    </div>
+                    
+                    <div class="card-body">
+                        <p class="card-content">
+                            {{ reservation.description|length > 120 ? 
+                               reservation.description|slice(0, 120) ~ '...' : 
+                               reservation.description }}
+                        </p>
+                        
+                        <div class="card-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>{{ reservation.date|date('d M Y, H:i') }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-user"></i>
+                                <span>{{ reservation.user.name }}</span>
+                            </div>
+                        </div>
+
+                        <div class="locations mt-3">
+                            <div class="meta-item">
+                                <i class="fas fa-map-marker-alt text-danger"></i>
+                                <span>{{ reservation.startLocation.address }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-flag-checkered text-success"></i>
+                                <span>{{ reservation.endLocation.address }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <button class="btn-details" data-id="{{ reservation.id_reservation }}">
+                            <i class="fas fa-eye me-1"></i> Details
+                        </button>
+                        
+                        <div class="card-actions">
+                            {% if reservation.status.value == 'ON_GOING' %}
+                                <button class="btn-accept" data-id="{{ reservation.id_reservation }}" title="Accept Reservation">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn-refuse" data-id="{{ reservation.id_reservation }}" title="Refuse Reservation">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+<!-- Pagination -->
+        <div class="pagination-container">
+            {{ knp_pagination_render(reservations, '@KnpPaginator/Pagination/twitter_bootstrap_v4_pagination.html.twig') }}
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.all.min.js"></script>
+    <script src="{{ asset('js/front/reservation/transporter-reservation.js') }}"></script>
+    <script src="{{ asset('js/front/reservation/transporter-reservation-search.js') }}"></script>
+        <script>
+        // Gestionnaire global pour les fermetures de modales
+        document.addEventListener('click', function(e) {
+            // Boutons de fermeture Bootstrap
+            if (e.target.closest('[data-bs-dismiss="modal"]')) {
+                const modal = bootstrap.Modal.getInstance(e.target.closest('.modal'));
+                if (modal) modal.hide();
+            }
+            
+            // Boutons de fermeture SweetAlert
+            if (e.target.closest('.swal2-close')) {
+                Swal.close();
+            }
+        });
+
+        // Réinitialisation des modales cachées
+        document.addEventListener('hidden.bs.modal', function() {
+            document.body.classList.remove('modal-open');
+            document.body.style.paddingRight = '';
+            document.body.style.overflow = '';
+        });
+    </script>
+{% endblock %}

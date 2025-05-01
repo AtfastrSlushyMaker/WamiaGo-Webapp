@@ -1,0 +1,304 @@
+{% extends 'back-office/base.html.twig' %}
+
+{% block title %}Admin | Transport Announcements Management{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('adminlte/css/custom-announcements.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>Transport Announcements</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{{ path('admin_dashboard') }}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">Announcements</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <!-- Search Filters -->
+            <div class="card card-outline card-info mb-4">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-filter mr-2"></i>Search & Filters
+                    </h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="adminKeywordSearch">
+                                    <i class="fas fa-search mr-1"></i>Search
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="adminKeywordSearch" 
+                                       placeholder="Search announcements..."
+                                       value="{{ app.request.query.get('keyword') }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="adminZoneFilter">
+                                    <i class="fas fa-map-marker-alt mr-1"></i>Zone
+                                </label>
+                                <select class="form-control" id="adminZoneFilter">
+                                    <option value="">All Zones</option>
+                                    {% for zone in zones %}
+                                        <option value="{{ zone.value }}" 
+                                                {% if app.request.query.get('zone') == zone.value %}selected{% endif %}>
+                                            {{ zone.getDisplayName() }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="adminDateFilter">
+                                    <i class="fas fa-calendar mr-1"></i>Date
+                                </label>
+                                <input type="date" 
+                                       class="form-control" 
+                                       id="adminDateFilter"
+                                       value="{{ app.request.query.get('date') }}">
+                            </div>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button id="adminClearFilters" class="btn btn-default btn-block">
+                                <i class="fas fa-eraser mr-1"></i>Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card card-primary card-outline elevation-3">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-bullhorn mr-2"></i>Announcements List
+                    </h3>
+                    <div class="card-tools">
+                        <button id="exportAllPdfBtn" class="btn btn-sm btn-danger">
+    <i class="fas fa-file-pdf mr-1"></i> Export All to PDF
+</button>
+
+                    </div>
+                </div>
+                <div class="card-body table-responsive p-0">
+                    <table class="table table-hover text-nowrap">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Zone</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Driver</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for announcement in announcements %}
+                            <tr data-id="{{ announcement.id_announcement }}">
+                                <td data-label="ID">{{ announcement.id_announcement }}</td>
+                                <td data-label="Title">{{ announcement.title }}</td>
+                                <td data-label="Zone">
+                                    <span class="badge badge-pill" style="background-color: {{ announcement.zone.getColor() }}; color: #fff;">
+                                        {{ announcement.zone.getDisplayName() }}
+                                    </span>
+                                </td>
+                                <td data-label="Date">{{ announcement.date|date('M d, Y H:i') }}</td>
+                                <td data-label="Status">
+                                    {% if announcement.status %}
+                                        <span class="badge badge-success"><i class="fas fa-check-circle mr-1"></i> Active</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary"><i class="fas fa-times-circle mr-1"></i> Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td data-label="Driver">{{ announcement.driver.user.name }}</td>
+                                 <td class="text-center" data-label="Actions">
+                                    <div class="btn-group action-buttons">
+                                        <!-- View Details Button -->
+                                        <a href="{{ path('admin_announcements_show', {'id': announcement.id_announcement}) }}" 
+                                           class="btn btn-action btn-view" 
+                                           data-toggle="tooltip" 
+                                           data-placement="top"
+                                           title="View Details">
+                                           <i class="fas fa-eye"></i>
+                                           <span class="btn-label">Details</span>
+                                        </a>
+
+                                        <!-- Delete Button -->
+                                        <button class="btn btn-action btn-delete delete-btn" 
+                                                data-id="{{ announcement.id_announcement }}"
+                                                data-title="{{ announcement.title }}"
+                                                data-token="{{ csrf_token('delete' ~ announcement.id_announcement) }}"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteModal"
+                                                data-toggle="tooltip" 
+                                                data-placement="top"
+                                                title="Delete Announcement">
+                                            <i class="fas fa-trash-alt"></i>
+                                            <span class="btn-label">Delete</span>
+                                        </button>
+                                    </div>
+                                </td>
+
+                            </tr>
+         
+         
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    <img src="{{ asset('adminlte/images/empty-data.svg') }}" alt="No data" width="120" class="mb-3 img-3d">
+                                    <h5 class="text-muted">No announcements found</h5>
+                                </td>
+                            </tr>
+                                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer clearfix">
+                    <div class="float-right pagination-container">
+                        {{ knp_pagination_render(
+                            announcements,
+                            '@KnpPaginator/Pagination/twitter_bootstrap_v4_pagination.html.twig'
+                        ) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% include 'back-office/Announcements/_partials/_delete_modal.html.twig' %}
+{% include 'back-office/Announcements/_partials/_toast.html.twig' %}
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('adminlte/js/announcements.js') }}"></script>
+    <script src="{{ asset('adminlte/js/admin-announcement-search.js') }}"></script>
+    <script>
+    
+document.querySelectorAll('.btn-pdf').forEach(btn => {
+    const dropdownItems = btn.nextElementSibling.querySelectorAll('.dropdown-item');
+    
+    dropdownItems.forEach(item => {
+        item.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const link = e.currentTarget;
+            const url = link.href;
+            const icon = link.querySelector('i');
+            const originalIcon = icon.className;
+            
+            try {
+                // Show loading state
+                btn.classList.add('generating-pdf');
+                icon.className = 'fas fa-spinner';
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('PDF generation failed');
+                
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                
+                // Create and trigger download
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = response.headers.get('Content-Disposition')?.split('filename=')[1] || 'announcement.pdf';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                // Show success toast
+                showToast('success', 'PDF generated successfully');
+                
+            } catch (error) {
+                console.error('PDF Error:', error);
+                showToast('error', 'Failed to generate PDF');
+            } finally {
+                // Reset button state
+                btn.classList.remove('generating-pdf');
+                icon.className = originalIcon;
+            }
+        });
+    });
+});
+
+// Toast notification function
+function showToast(type, message) {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type} show`;
+    toast.innerHTML = `
+        <div class="toast-header">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>
+            <strong class="mr-auto">${type === 'success' ? 'Success' : 'Error'}</strong>
+            <button type="button" class="ml-2 mb-1 close" data-dismiss="toast">&times;</button>
+        </div>
+        <div class="toast-body">${message}</div>
+    `;
+    
+    document.querySelector('.toast-container').appendChild(toast);
+    setTimeout(() => {
+        toast.remove();
+    }, 5000);
+}
+
+document.getElementById('exportAllPdfBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    
+    const btn = e.currentTarget;
+    
+    try {
+        btn.disabled = true;
+        btn.classList.add('button-loading');
+
+        const response = await fetch('{{ path('admin_announcements_export_all') }}');
+
+        if (!response.ok) {
+            throw new Error('Erreur lors de la génération du PDF');
+        }
+
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        const filename = response.headers.get('Content-Disposition')?.split('filename=')[1]?.replaceAll('"', '') || 'announcements.pdf';
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        showToast('success', 'PDF exported successfully!');
+    } catch (error) {
+        console.error(error);
+        showToast('error', 'Failed to export PDF.');
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove('button-loading');
+    }
+});
+
+
+
+    </script>
+{% endblock %}

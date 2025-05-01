@@ -775,12 +775,65 @@
                     </a>
                 </li>
 
-                <li class="nav-item {{ app.request.attributes.get('_route') == 'admin_relocations' ? 'active' : '' }}">
-                    <a href="{{ path('admin_relocations') }}" class="nav-link">
-                        <i class="bi bi-truck nav-icon"></i>
-                        <span class="nav-text">Relocations</span>
-                    </a>
-                </li>
+                <li class="nav-item dropdown">
+    <a href="#" class="nav-link dropdown-toggle {% if app.request.get('_route') starts with 'admin_announcements_' 
+                                            or app.request.get('_route') starts with 'admin_reservations_'
+                                            or app.request.get('_route') starts with 'admin_relocations_'
+                                            or app.request.get('_route') starts with 'admin_stats_' %}active{% endif %}" 
+    id="relocationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-truck nav-icon"></i>
+        <span class="nav-text">Relocations</span>
+    </a>
+
+    <ul class="dropdown-menu shadow-lg border-0 rounded-3" aria-labelledby="relocationsDropdown">
+        <li><h6 class="dropdown-header text-uppercase fw-bold text-secondary fs-7 px-3 py-2">Dashboards</h6></li>
+        <li><hr class="dropdown-divider mx-3 my-0"></li>
+        <li>
+            <a class="dropdown-item d-flex align-items-center py-2 px-3 transition-all hover-bg-light" href="{{ path('admin_stats_index') }}">
+                <div class="menu-icon bg-warning-subtle rounded p-2 me-3">
+                    <i class="fas fa-chart-pie text-warning"></i>
+                </div>
+                <div>
+                    <span class="fw-medium">Statistics Overview</span>
+                    <p class="text-muted small mb-0">View all system statistics</p>
+                </div>
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item d-flex align-items-center py-2 px-3 transition-all hover-bg-light" href="{{ path('admin_announcements_index') }}">
+                <div class="menu-icon bg-primary-subtle rounded p-2 me-3">
+                    <i class="fas fa-bullhorn text-primary"></i>
+                </div>
+                <div>
+                    <span class="fw-medium">Announcements</span>
+                    <p class="text-muted small mb-0">Manage your publication dashboard</p>
+                </div>
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item d-flex align-items-center py-2 px-3 transition-all hover-bg-light" href="{{ path('admin_reservations_index') }}">
+                <div class="menu-icon bg-success-subtle rounded p-2 me-3">
+                    <i class="fas fa-calendar-check text-success"></i>
+                </div>
+                <div>
+                    <span class="fw-medium">Reservations</span>
+                    <p class="text-muted small mb-0">Monitor all booking requests</p>
+                </div>
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item d-flex align-items-center py-2 px-3 transition-all hover-bg-light" href="{{ path('admin_relocations_index') }}">
+                <div class="menu-icon bg-info-subtle rounded p-2 me-3">
+                    <i class="fas fa-truck-moving text-info"></i>
+                </div>
+                <div>
+                    <span class="fw-medium">Relocations</span>
+                    <p class="text-muted small mb-0">Track active moving operations</p>
+                </div>
+            </a>
+        </li>
+    </ul>
+</li>
 
                 <li class="nav-item {{ app.request.attributes.get('_route') == 'admin_settings' ? 'active' : '' }}">
                     <a href="{{ path('admin_settings') }}" class="nav-link">

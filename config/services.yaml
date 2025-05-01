@@ -17,6 +17,7 @@ services:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
         public: false
+
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
     App\:
@@ -25,32 +26,67 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
-            
+
     # Twilio service configuration
     App\Service\TwilioService:
         arguments:
             $accountSid: '%twilio.account_sid%'
             $authToken: '%twilio.auth_token%'
             $fromNumber: '%twilio.from_number%'
-            
+
     # Gemini Chat service configuration
     App\Service\GeminiChatService:
         arguments:
             $apiKey: '%gemini.api_key%'
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
-    
-    # Add UserRepository as a global Twig variable
-    App\Repository\UserRepository:
-        public: true
-    
     # Geo-routing service for bicycle module
     App\Service\Geo\GeoRoutingService:
         arguments:
             $logger: '@logger'
-# Configure Gemini API Service with API key
+
+    # Configure Gemini API Service with API key
     App\Service\GeminiApiService:
         arguments:
             $httpClient: '@http_client'
             $apiKey: '%gemini.api_key%'
+
+    # Add UserRepository as a global Twig variable
+    App\Repository\UserRepository:
+        public: true
+
+    # Azure Speech service
+    App\Service\Speech\AzureSpeechService:
+        public: true
+
+    # PDF export service
+    App\Service\Export\PdfExportService:
+        arguments:
+            $twig: '@twig'
+
+    # Configure Dompdf as a service
+    Dompdf\Dompdf:
+        calls:
+            - [setOptions, ['@dompdf.options']]
+
+    dompdf.options:
+        class: Dompdf\Options
+        calls:
+            - [setIsHtml5ParserEnabled, [true]]
+            - [setIsRemoteEnabled, [true]]
+            - [setIsPhpEnabled, [true]]
+            - [setDefaultFont, ['DejaVu Sans']]
+
+    # Twig extension
+    App\Twig\Extension\ImageExtension:
+        tags: ['twig.extension']
+
+    # OpenAI service
+    App\Service\OpenAIService:
+        arguments:
+            $apiKey: '%env(OPENAI_API_KEY)%'
+
+    # Email service
+    App\Service\EmailService:
+        arguments:
+            $mailer: '@mailer'
+            $logger: '@logger'

@@ -1,0 +1,189 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}My Reservations | Client{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/front/reservation/reservation-cards.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/front/reservation/modal-details.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.min.css" rel="stylesheet">
+    <style>
+        /* Style pour les boutons update/delete */
+        .btn-update, .btn-delete {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-update {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .btn-update:hover {
+            background-color: #0b7dda;
+            transform: scale(1.15);
+            box-shadow: 0 5px 10px rgba(33, 150, 243, 0.3);
+        }
+
+        .btn-delete {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background-color: #da190b;
+            transform: scale(1.15);
+            box-shadow: 0 5px 10px rgba(244, 67, 54, 0.3);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div id="csrf-token" data-token="{{ csrf_token('reservation') }}"></div>
+
+<div class="client-reservations-container text-center" >
+    <!-- Header Section -->
+    <div class="reservations-header">
+        <h1><i class="fas fa-calendar-check me-2"></i> My Reservations</h1>
+    </div>
+     <div class="action-buttons">
+                    <a href="{{ path('app_front_announcements') }}" class="btn btn-outline-primary">
+            <i class="fas fa-truck me-2"></i> See Announcements
+        </a>
+        <a href="{{ path('app_client_relocation_list')  }}" class="btn btn-primary">
+            <i class="fas fa-truck-moving me-2"></i> See Relocations
+        </a>
+                </div>
+
+                
+<!-- Search Filters Section -->
+<div class="filters-section mb-5">
+    <div class="advanced-search-container bg-light p-4 rounded-3 shadow-sm">
+        <div class="search-filter mb-3">
+            <input type="text" 
+                   id="reservationKeywordSearch" 
+                   placeholder="Search reservations..." 
+                   class="form-control form-control-lg"
+                   value="{{ app.request.query.get('keyword') }}">
+        </div>
+
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="reservationStatusFilter" class="form-label">
+                    <i class="fas fa-filter me-2"></i>Status
+                </label>
+                <select id="reservationStatusFilter" class="form-select">
+                    <option value="">All Statuses</option>
+                    {% for status in enum('App\\Enum\\ReservationStatus').cases() %}
+                        <option value="{{ status.value }}" 
+                            {{ app.request.query.get('status') == status.value ? 'selected' }}>
+                            {{ status.value|title }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label for="reservationDateFilter" class="form-label">
+                    <i class="fas fa-calendar-alt me-2"></i>Date
+                </label>
+                <input type="date" 
+                       id="reservationDateFilter" 
+                       class="form-control"
+                       value="{{ app.request.query.get('date') }}">
+            </div>
+
+            <div class="col-md-4">
+                <button class="btn btn-outline-danger w-100" id="reservationClearFilters">
+                    <i class="fas fa-eraser me-2"></i>Clear Filters
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Reservations Grid -->
+    {# ... après le header #}
+
+
+<div id="reservationsList">
+    {% if reservations is empty %}
+        <div class="empty-state">
+            <img src="{{ asset('images/front/reservation/empty-state.png') }}" alt="No reservations" class="mb-3">
+            <h3>No reservations yet</h3>
+            <p class="text-muted">When you book transport services, your reservations will appear here</p>
+        </div>
+    {% else %}
+        <div class="reservations-grid">
+            {% for reservation in reservations %}
+                <div class="reservation-card {{ reservation.status.value|lower }}" 
+                     data-id="{{ reservation.id_reservation }}">
+                    <div class="card-header">
+                        <div class="card-badge {{ reservation.status.value|lower }}">
+                            {{ reservation.status.value }}
+                        </div>
+                        <h3 class="card-title">{{ reservation.announcement.title }}</h3>
+                    </div>
+                    
+                    <div class="card-body">
+                        <p class="card-content">
+                            {{ reservation.description|length > 120 ? 
+                               reservation.description|slice(0, 120) ~ '...' : 
+                               reservation.description }}
+                        </p>
+                        
+                        <div class="card-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>{{ reservation.date|date('d M Y, H:i') }}</span>
+                            </div>
+                        </div>
+
+                        <div class="locations mt-3">
+                            <div class="meta-item">
+                                <i class="fas fa-map-marker-alt text-danger"></i>
+                                <span>{{ reservation.startLocation.address }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-flag-checkered text-success"></i>
+                                <span>{{ reservation.endLocation.address }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <button class="btn-details" data-id="{{ reservation.id_reservation }}">
+                            <i class="fas fa-eye me-1"></i> Details
+                        </button>
+                        
+                        <div class="card-actions">
+                            <button class="btn-update" data-id="{{ reservation.id_reservation }}" title="Update Reservation">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                            <button class="btn-delete" data-id="{{ reservation.id_reservation }}" title="Delete Reservation">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.all.min.js"></script>
+    <script src="{{ asset('js/front/reservation/client-reservation.js') }}"></script>
+    <script src="{{ asset('js/front/reservation/client-reservation-search.js') }}"></script>
+{% endblock %}

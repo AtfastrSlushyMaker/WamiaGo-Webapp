@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Announcement #{{ announcement.id }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .header { 
+            background-color: #2c3e50; 
+            color: white; 
+            padding: 20px; 
+            text-align: center;
+        }
+        .content { padding: 20px; }
+        .footer { 
+            text-align: center; 
+            padding: 10px; 
+            font-size: 12px; 
+            color: #666;
+        }
+        .title { font-size: 24px; margin-bottom: 20px; }
+        .meta { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 20px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            color: white;
+            font-weight: bold;
+        }
+        .status-active { background-color: #27ae60; }
+        .status-inactive { background-color: #7f8c8d; }
+        .zone-badge { background-color: #3498db; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Transport Announcement</h1>
+        <p>WamiaGo Professional Services</p>
+    </div>
+    
+    <div class="content">
+        <div class="title">{{ announcement.title }}</div>
+        
+        <div class="meta">
+            <div><strong>Date:</strong> {{ announcement.date|date('M d, Y H:i') }}</div>
+            <div>
+                <span class="badge zone-badge">{{ announcement.zone }}</span>
+                <span class="badge {% if announcement.status %}status-active{% else %}status-inactive{% endif %}">
+                    {% if announcement.status %}Active{% else %}Inactive{% endif %}
+                </span>
+            </div>
+        </div>
+        
+        <div class="announcement-content">
+            {{ announcement.content|nl2br }}
+        </div>
+    </div>
+    
+    <div class="footer">
+        Generated on {{ "now"|date('M d, Y') }} by WamiaGo Transport System
+    </div>
+</body>
+</html>

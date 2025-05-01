@@ -1,14 +1,18 @@
 security:
     enable_authenticator_manager: true
+
     password_hashers:
         App\Entity\User:
             algorithm: auto
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+
     providers:
         app_user_provider:
             entity:
                 class: App\Entity\User
                 property: email
-                
+        users_in_memory: { memory: null }
+
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -27,7 +31,8 @@ security:
                 check_path: app_login
                 default_target_path: app_front_home
             entry_point: form_login
-                
+            # switch_user: true  # décommenter si tu veux activer l’usurpation d’utilisateur
+
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/signup, roles: PUBLIC_ACCESS }
@@ -35,10 +40,10 @@ security:
         - { path: ^/driver, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/profile, roles: ROLE_USER }
         - { path: ^/, roles: PUBLIC_ACCESS }
+
 when@test:
     security:
         password_hashers:
-        
             Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
                 algorithm: auto
                 cost: 4 # Lowest possible value for bcrypt
