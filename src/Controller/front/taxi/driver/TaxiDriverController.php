@@ -20,18 +20,28 @@ use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use App\Service\GeminiService;
+use Symfony\Component\Security\Core\Security;
+use App\Repository\DriverRepository;
+
 
 #[Route('/driver')]
 class TaxiDriverController extends AbstractController
+
 {
+    //private Security $security; // Add security
+
     public function __construct(
         private RequestService $requestService,
         private RideService $rideService,
-        private EntityManagerInterface $entityManager,
-        private LoggerInterface $logger, // Add logger
-        private \Symfony\Component\HttpFoundation\RequestStack $requestStack // Add RequestStack
+        private EntityManagerInterface $entityManager, // Add logger
+        private \Symfony\Component\HttpFoundation\RequestStack $requestStack, // Add RequestStack // Add security
+        private DriverRepository $driverRepository, 
+        private readonly Security $security,
+        private readonly LoggerInterface $logger// Add DriverRepository
         
-    ) {}
+        
+    ) {// Initialize the driver repository
+    }
     
 
     #[Route('/dashboard', name: 'app_taxi_driver_dashboard')]
@@ -39,7 +49,9 @@ class TaxiDriverController extends AbstractController
     {
         // Fetch all requests using the RequestService
         $availableRequests = $this->requestService->getAllRequests();
-        $driver = $this->entityManager->getRepository(Driver::class)->find(1);
+        //$driver = $this->entityManager->getRepository(Driver::class)->find(1);
+        $user = $this->getUser();
+        $driver = $this->driverRepository->findOneBy(['user' => $user]);
         
         $activeRides = $this->rideService->getActiveRidesByDriver($driver);// Fetch driver with ID 1
 
@@ -103,7 +115,8 @@ public function acceptRequest(int $id): JsonResponse
         }
         
         // Find driver with ID 1 directly
-        $driver = $this->entityManager->getRepository(Driver::class)->find(1);
+            $user = $this->getUser();
+$driver = $this->driverRepository->findOneBy(['user' => $user]);
         
         if (!$driver) {
             throw new \Exception('Driver with ID 1 not found in the database.');
