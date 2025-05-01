@@ -28,12 +28,10 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
-    
-    # Configure ResetPasswordService
+      # Configure ResetPasswordService
     App\Service\ResetPasswordService:
         arguments:
-            $appSecret: '%app_secret%'
-            $appEmail: '%app_email%'
+            $params: '@parameter_bag'
 
     # Configure CloudinaryService
     App\Service\CloudinaryService:

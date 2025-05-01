@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgot Password | WamiaGo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4A6FFF;
+            --primary-gradient: linear-gradient(135deg, #4A6FFF 0%, #5E89FF 100%);
+            --primary-dark: #385BD9;
+            --primary-light: #7A9CFF;
+            --accent-color: #FF7A5A;
+            --accent-gradient: linear-gradient(135deg, #FF7A5A 0%, #FFA26B 100%);
+            --success-color: #00C896;
+            --danger-color: #FF5A5A;
+            --warning-color: #FFB947;
+            --gray-light: #F9FAFF;
+            --gray-medium: #E6EBFF;
+            --gray-dark: #B0B7D0;
+            --text-dark: #1E2B4D;
+            --text-medium: #637094;
+            --text-light: #8A93AD;
+            --white: #FFFFFF;
+            --card-shadow: 0 15px 35px rgba(74, 111, 255, 0.1);
+            --input-shadow: 0 5px 15px rgba(74, 111, 255, 0.05);
+            --border-radius: 16px;
+            --animation-duration: 0.4s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes float {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(10px, 15px) rotate(5deg); }
+            50% { transform: translate(20px, 0) rotate(10deg); }
+            75% { transform: translate(10px, -15px) rotate(5deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+        
+        body {
+            background-color: var(--gray-light);
+            background-image: radial-gradient(circle at top right, rgba(74, 111, 255, 0.1) 0%, transparent 60%),
+                            radial-gradient(circle at bottom left, rgba(255, 122, 90, 0.1) 0%, transparent 60%);
+            min-height: 100vh;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            padding: 30px 15px;
+            z-index: 10;
+        }
+        
+        .card {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            animation: scaleIn var(--animation-duration) ease-out;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: var(--primary-gradient);
+        }
+        
+        .card-header {
+            padding: 32px 30px 20px;
+            border-bottom: 1px solid var(--gray-medium);
+            position: relative;
+        }
+        
+        .card-header h3 {
+            margin: 0;
+            color: var(--text-dark);
+            font-size: 28px;
+            font-weight: 700;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .card-header h3::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: var(--accent-gradient);
+            border-radius: 10px;
+        }
+        
+        .card-body {
+            padding: 35px 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+            position: relative;
+            animation: fadeIn calc(var(--animation-duration) + 0.1s) ease-out;
+        }
+        
+        .form-group label {
+            display: block;
+            color: var(--text-medium);
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 15px;
+            animation: slideIn var(--animation-duration) ease-out;
+        }
+        
+        .form-control {
+            width: 100%;
+            height: 56px;
+            border: 2px solid var(--gray-medium);
+            border-radius: 12px;
+            padding: 0 20px;
+            font-size: 16px;
+            color: var(--text-dark);
+            background-color: var(--white);
+            box-shadow: var(--input-shadow);
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(74, 111, 255, 0.1);
+            outline: none;
+        }
+        
+        .input-with-icon {
+            position: relative;
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            transition: color 0.3s ease;
+        }
+        
+        .input-with-icon .form-control {
+            padding-left: 45px;
+        }
+        
+        .input-with-icon .form-control:focus + .input-icon {
+            color: var(--primary-color);
+        }
+        
+        .btn {
+            display: inline-block;
+            font-weight: 600;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: middle;
+            user-select: none;
+            border: none;
+            padding: 0 25px;
+            font-size: 16px;
+            line-height: 54px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+        
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: var(--white);
+            box-shadow: 0 10px 20px rgba(74, 111, 255, 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #385BD9 0%, #4A6FFF 100%);
+            box-shadow: 0 15px 25px rgba(74, 111, 255, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 5px 15px rgba(74, 111, 255, 0.2);
+        }
+        
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+        
+        .btn-primary:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            20% {
+                transform: scale(25, 25);
+                opacity: 0.3;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(40, 40);
+            }
+        }
+        
+        .alert {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            animation: fadeIn var(--animation-duration) ease-out;
+        }
+        
+        .alert-icon {
+            margin-right: 15px;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        
+        .alert-danger {
+            background-color: rgba(255, 90, 90, 0.1);
+            color: var(--danger-color);
+            border-left: 4px solid var(--danger-color);
+        }
+        
+        .alert-success {
+            background-color: rgba(0, 200, 150, 0.1);
+            color: var(--success-color);
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .alert-warning {
+            background-color: rgba(255, 185, 71, 0.1);
+            color: var(--warning-color);
+            border-left: 4px solid var(--warning-color);
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            color: var(--text-medium);
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 15px;
+            margin-top: 25px;
+            transition: color 0.3s ease;
+        }
+        
+        .back-link:hover {
+            color: var(--primary-color);
+        }
+        
+        .back-link i {
+            margin-right: 8px;
+            transition: transform 0.3s ease;
+        }
+        
+        .back-link:hover i {
+            transform: translateX(-3px);
+        }
+        
+        .illustration {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .illustration-icon {
+            font-size: 52px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+        
+        /* Resend container styles */
+        .resend-container {
+            background-color: var(--gray-light);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 25px;
+            animation: fadeIn var(--animation-duration) ease-out;
+        }
+        
+        .resend-container h6 {
+            color: var(--text-dark);
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+        
+        .cooldown-message, .resend-action {
+            margin-bottom: 0;
+            font-size: 14px;
+        }
+        
+        .cooldown-message {
+            color: var(--text-medium);
+        }
+        
+        .cooldown-timer {
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .resend-btn {
+            color: var(--primary-color);
+            font-weight: 600;
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        
+        .resend-btn:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+        
+        /* Animated background shapes */
+        .bg-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .shape {
+            position: absolute;
+            opacity: 0.2;
+            border-radius: 50%;
+        }
+        
+        .shape-1 {
+            width: 300px;
+            height: 300px;
+            background: var(--primary-light);
+            top: -150px;
+            right: 10%;
+            animation: float 30s infinite alternate ease-in-out;
+        }
+        
+        .shape-2 {
+            width: 200px;
+            height: 200px;
+            background: var(--accent-color);
+            bottom: -100px;
+            left: 10%;
+            animation: float 25s infinite alternate-reverse ease-in-out;
+        }
+        
+        .shape-3 {
+            width: 150px;
+            height: 150px;
+            background: var(--primary-color);
+            top: 40%;
+            left: -75px;
+            animation: float 20s infinite alternate ease-in-out;
+        }
+        
+        @media (max-width: 767px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .card-header {
+                padding: 25px 20px 15px;
+            }
+            
+            .card-header h3 {
+                font-size: 24px;
+            }
+            
+            .card-body {
+                padding: 25px 20px;
+            }
+            
+            .form-control {
+                height: 50px;
+            }
+            
+            .btn {
+                line-height: 50px;
+                font-size: 15px;
+            }
+            
+            .resend-container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h3>Reset Your Password</h3>
+            </div>
+            <div class="card-body">
+                <div class="illustration">
+                    <span class="illustration-icon">
+                        <i class="fas fa-key"></i>
+                    </span>
+                </div>
+                
+                {% for flash_error in app.flashes('danger') %}
+                    <div class="alert alert-danger" role="alert">
+                        <span class="alert-icon"><i class="fas fa-exclamation-circle"></i></span>
+                        <span>{{ flash_error }}</span>
+                    </div>
+                {% endfor %}
+
+                {% for flash_success in app.flashes('success') %}
+                    <div class="alert alert-success" role="alert">
+                        <span class="alert-icon"><i class="fas fa-check-circle"></i></span>
+                        <span>{{ flash_success }}</span>
+                    </div>
+                {% endfor %}
+                
+                {% for flash_warning in app.flashes('warning') %}
+                    <div class="alert alert-warning" role="alert">
+                        <span class="alert-icon"><i class="fas fa-exclamation-triangle"></i></span>
+                        <span>{{ flash_warning }}</span>
+                    </div>
+                {% endfor %}
+
+                <p class="lead" style="margin-bottom: 20px; color: var(--text-medium);">Enter your email address and we'll send you a link to reset your password.</p>
+
+                {{ form_start(form) }}
+                    <div class="form-group">
+                        {{ form_label(form.email, 'Email Address') }}
+                        <div class="input-with-icon">
+                            {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'Enter your email address'}}) }}
+                            <span class="input-icon">
+                                <i class="fas fa-envelope"></i>
+                            </span>
+                        </div>
+                        {{ form_errors(form.email) }}
+                    </div>
+                    <div>
+                        {{ form_widget(form.submit, {'attr': {'class': 'btn btn-primary', 'value': 'Send Reset Link'}}) }}
+                    </div>
+                {{ form_end(form) }}
+                
+                {% if emailWasSubmitted and cooldown > 0 %}
+                    <div id="resend-container" class="resend-container mt-4" data-cooldown="{{ cooldown }}" data-email="{{ emailAddress }}">
+                        <h6>Email sent successfully</h6>
+                        <p class="cooldown-message">
+                            If you don't receive the email within a few minutes, you can resend it in <span id="cooldown-timer" class="cooldown-timer">{{ cooldown }}</span> seconds.
+                        </p>
+                        <p class="resend-action" style="display: none;">
+                            <input type="hidden" id="resend-token" value="{{ csrf_token('resend-email' ~ emailAddress) }}">
+                            <button id="resend-btn" class="resend-btn">
+                                <i class="fas fa-paper-plane"></i> Resend password reset email
+                            </button>
+                        </p>
+                    </div>
+                {% endif %}
+                
+                <div style="text-align: center; margin-top: 25px;">
+                    <a href="{{ path('app_login') }}" class="back-link">
+                        <i class="fas fa-arrow-left"></i> Back to login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create animated background shapes
+            const bgShapes = document.createElement('div');
+            bgShapes.className = 'bg-shapes';
+            bgShapes.innerHTML = `
+                <div class="shape shape-1"></div>
+                <div class="shape shape-2"></div>
+                <div class="shape shape-3"></div>
+            `;
+            document.body.appendChild(bgShapes);
+            
+            // Add button hover effect
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(function(button) {
+                button.addEventListener('mouseenter', function() {
+                    this.style.animation = 'pulse 0.5s ease-in-out';
+                });
+                
+                button.addEventListener('animationend', function() {
+                    this.style.animation = '';
+                });
+            });
+            
+            // Handle cooldown timer
+            const resendContainer = document.getElementById('resend-container');
+            if (resendContainer) {
+                const cooldownTimer = document.getElementById('cooldown-timer');
+                const resendAction = document.querySelector('.resend-action');
+                const cooldownMessage = document.querySelector('.cooldown-message');
+                const initialCooldown = parseInt(resendContainer.dataset.cooldown, 10);
+                
+                let timeLeft = initialCooldown;
+                
+                const countdownInterval = setInterval(() => {
+                    timeLeft--;
+                    
+                    if (cooldownTimer) {
+                        cooldownTimer.textContent = timeLeft;
+                    }
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(countdownInterval);
+                        if (cooldownMessage) cooldownMessage.style.display = 'none';
+                        if (resendAction) resendAction.style.display = 'block';
+                    }
+                }, 1000);
+                
+                // Handle resend button
+                const resendBtn = document.getElementById('resend-btn');
+                if (resendBtn) {
+                    resendBtn.addEventListener('click', function() {
+                        const email = resendContainer.dataset.email;
+                        const csrfToken = document.getElementById('resend-token').value;
+                        
+                        // Visual feedback
+                        const originalText = resendBtn.innerHTML;
+                        resendBtn.disabled = true;
+                        resendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                        
+                        fetch(`{{ path('app_resend_password_reset_email_admin', {'email': 'PLACEHOLDER'}) }}`.replace('PLACEHOLDER', email), {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: new URLSearchParams({
+                                '_csrf_token': csrfToken
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Reset cooldown timer
+                                timeLeft = data.cooldown || 60;
+                                cooldownTimer.textContent = timeLeft;
+                                
+                                // Show cooldown message
+                                resendAction.style.display = 'none';
+                                cooldownMessage.style.display = 'block';
+                                
+                                // Start countdown again
+                                const countdownInterval = setInterval(() => {
+                                    timeLeft--;
+                                    cooldownTimer.textContent = timeLeft;
+                                    
+                                    if (timeLeft <= 0) {
+                                        clearInterval(countdownInterval);
+                                        cooldownMessage.style.display = 'none';
+                                        resendAction.style.display = 'block';
+                                    }
+                                }, 1000);
+                                
+                                // Add success message
+                                const successAlert = document.createElement('div');
+                                successAlert.className = 'alert alert-success';
+                                successAlert.innerHTML = '<span class="alert-icon"><i class="fas fa-check-circle"></i></span><span>Reset email has been sent!</span>';
+                                resendContainer.before(successAlert);
+                                
+                                // Remove the alert after a few seconds
+                                setTimeout(() => {
+                                    successAlert.style.opacity = '0';
+                                    successAlert.style.transition = 'opacity 0.5s ease';
+                                    setTimeout(() => {
+                                        successAlert.remove();
+                                    }, 500);
+                                }, 5000);
+                            } else {
+                                // Show error
+                                const warningAlert = document.createElement('div');
+                                warningAlert.className = 'alert alert-warning';
+                                warningAlert.innerHTML = `<span class="alert-icon"><i class="fas fa-exclamation-triangle"></i></span><span>${data.message}</span>`;
+                                resendContainer.before(warningAlert);
+                                
+                                // Remove the alert after a few seconds
+                                setTimeout(() => {
+                                    warningAlert.style.opacity = '0';
+                                    warningAlert.style.transition = 'opacity 0.5s ease';
+                                    setTimeout(() => {
+                                        warningAlert.remove();
+                                    }, 500);
+                                }, 5000);
+                            }
+                            
+                            // Reset button
+                            resendBtn.disabled = false;
+                            resendBtn.innerHTML = originalText;
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            // Reset button
+                            resendBtn.disabled = false;
+                            resendBtn.innerHTML = originalText;
+                            
+                            // Show error
+                            const dangerAlert = document.createElement('div');
+                            dangerAlert.className = 'alert alert-danger';
+                            dangerAlert.innerHTML = '<span class="alert-icon"><i class="fas fa-exclamation-circle"></i></span><span>An error occurred. Please try again.</span>';
+                            resendContainer.before(dangerAlert);
+                            
+                            // Remove the alert after a few seconds
+                            setTimeout(() => {
+                                dangerAlert.style.opacity = '0';
+                                dangerAlert.style.transition = 'opacity 0.5s ease';
+                                setTimeout(() => {
+                                    dangerAlert.remove();
+                                }, 500);
+                            }, 5000);
+                        });
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html>

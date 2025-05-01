@@ -390,9 +390,9 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/debug-api.js') }}"></script>
-    <script src="{{ asset('js/user-management-enhanced.js') }}"></script>
-    <script src="{{ asset('js/view-user-modal.js') }}"></script>
+    <script src="{{ asset('js/user/debug-api.js') }}"></script>
+    <script src="{{ asset('js/user/user-management-enhanced.js') }}"></script>
+    <script src="{{ asset('js/user/view-user-modal.js') }}"></script>
     <script>
         // Debug any errors during page load
         window.addEventListener('error', function(e) {

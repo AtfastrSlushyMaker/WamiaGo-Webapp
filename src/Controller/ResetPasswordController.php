@@ -1,33 +1,80 @@
 <?php
 
-namespace App\Controller\front;
+namespace App\Controller;
 
 use App\Entity\User;
-use App\Form\ResetPasswordRequestFormType;
-use App\Form\ResetPasswordFormType;
+use App\Form\ResetPasswordRequestType;
+use App\Form\ResetPasswordType;
+use App\Repository\UserRepository;
 use App\Service\ResetPasswordService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Exception\UserNotFoundException;
-use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 
-#[Route('/reset-password')]
 class ResetPasswordController extends AbstractController
 {
+    private $resetPasswordService;
+    private $userRepository;
+    private $entityManager;
+    private $passwordHasher;
+
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private ResetPasswordService $resetPasswordService,
-        private UserPasswordHasherInterface $passwordHasher    ) {
+        ResetPasswordService $resetPasswordService,
+        UserRepository $userRepository,
+        EntityManagerInterface $entityManager,
+        UserPasswordHasherInterface $passwordHasher
+    ) {
+        $this->resetPasswordService = $resetPasswordService;
+        $this->userRepository = $userRepository;
+        $this->entityManager = $entityManager;
+        $this->passwordHasher = $passwordHasher;
     }
     
-    #[Route('', name: 'app_forgot_password_request')]
-    public function request(Request $request): Response
+    /**
+     * Handles resending reset password email with CSRF protection
+     */
+    #[Route('/reset-password/resend-email/{email}', name: 'app_resend_password_reset_email_admin')]
+    public function resendResetEmail(string $email, Request $request): Response
     {
-        $form = $this->createForm(ResetPasswordRequestFormType::class);
+        // CSRF protection
+        if (!$this->isCsrfTokenValid('resend-email' . $email, $request->request->get('_csrf_token'))) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Invalid CSRF token.'
+            ], 400);
+        }
+
+        try {
+            $result = $this->resetPasswordService->processForgotPasswordRequest($email);
+            
+            if ($result['success']) {
+                return $this->json([
+                    'success' => true,
+                    'message' => 'Reset email has been sent again.',
+                    'cooldown' => $result['cooldown'] ?? 60
+                ]);
+            } else {
+                return $this->json([
+                    'success' => false,
+                    'message' => $result['error'] ?? 'Unable to send reset email. Please try again later.',
+                    'cooldown' => $result['cooldown'] ?? 0
+                ]);
+            }        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'An error occurred while processing your request.'
+            ], 500);
+        }
+    }
+    
+    #[Route('/forgot-password', name: 'app_forgot_password')]
+    public function forgotPassword(Request $request): Response
+    {
+        $form = $this->createForm(ResetPasswordRequestType::class);
         $form->handleRequest($request);
 
         // Store for template variables
@@ -42,7 +89,7 @@ class ResetPasswordController extends AbstractController
                 $result = $this->resetPasswordService->processForgotPasswordRequest($email);
                 if ($result['success']) {
                     // Instead of flash message, redirect to a dedicated page with better UX
-                    return $this->render('front/reset_password/email_sent.html.twig', [
+                    return $this->render('reset_password/email_sent.html.twig', [
                         'email' => $email,
                         'cooldown' => $result['cooldown'] ?? 60
                     ]);
@@ -65,14 +112,16 @@ class ResetPasswordController extends AbstractController
             }
         }
 
-        return $this->render('front/reset_password/request.html.twig', [
-            'requestForm' => $form->createView(),
+        return $this->render('reset_password/request.html.twig', [
+            'form' => $form->createView(),
             'cooldown' => $cooldown,
-            'emailWasSubmitted' => $emailWasSubmitted,            'emailAddress' => $emailAddress
+            'emailWasSubmitted' => $emailWasSubmitted,
+            'emailAddress' => $emailAddress
         ]);
     }
-      #[Route('/reset/{token}', name: 'app_reset_password')]
-    public function reset(Request $request, string $token): Response
+
+    #[Route('/reset-password/{token}', name: 'app_reset_password')]
+    public function resetPassword(Request $request, string $token): Response
     {
         // URL decode the token to handle URL encoding issues
         $token = urldecode($token);
@@ -80,77 +129,37 @@ class ResetPasswordController extends AbstractController
         // Validate the token format before even trying to process it
         if (strpos($token, '.') === false) {
             $this->addFlash('danger', 'The password reset link is invalid. Please request a new one.');
-            return $this->redirectToRoute('app_forgot_password_request');
+            return $this->redirectToRoute('app_forgot_password');
         }
         
         $user = $this->resetPasswordService->validateResetToken($token);
         
         if (!$user) {
-            // Token could be invalid for multiple reasons, give a specific message
             $this->addFlash('danger', 'Your password reset link is invalid or has expired. Please request a new one.');
-            return $this->redirectToRoute('app_forgot_password_request');
+            return $this->redirectToRoute('app_forgot_password');
         }
 
-        $form = $this->createForm(ResetPasswordFormType::class);
+        $form = $this->createForm(ResetPasswordType::class);
         $form->handleRequest($request);
         
-        if ($form->isSubmitted() && $form->isValid()) {            
+        if ($form->isSubmitted() && $form->isValid()) {
             try {
-                // Use the service to reset the password
+                // Use the service to reset the password and blacklist the token
                 $this->resetPasswordService->resetPassword(
                     $user,
                     $form->get('plainPassword')->getData(),
-                    $token // Pass the token so it can be blacklisted
+                    $token
                 );
-
-                // Add success message
-                $this->addFlash('success', 'Your password has been reset successfully. You can now log in with your new password.');
-
+                
+                $this->addFlash('success', 'Your password has been successfully reset. You can now log in with your new password.');
                 return $this->redirectToRoute('app_login');
             } catch (\Exception $e) {
                 $this->addFlash('danger', 'An error occurred while resetting your password. Please try again.');
             }
-        }        
-        return $this->render('front/reset_password/reset.html.twig', [
+        }
+
+        return $this->render('reset_password/reset.html.twig', [
             'resetForm' => $form->createView(),
         ]);
-    }
-    
-    #[Route('/resend/{email}', name: 'app_resend_password_reset_email', methods: ['POST'])]
-    public function resendEmail(Request $request, string $email): Response
-    {
-        // URL-decode the email to handle non-ASCII characters
-        $email = urldecode($email);
-        
-        // Check CSRF token to prevent abuse
-        $submittedToken = $request->request->get('_csrf_token');
-        if (!$this->isCsrfTokenValid('resend-email' . $email, $submittedToken)) {
-            return $this->json([
-                'success' => false,
-                'message' => 'Invalid CSRF token',
-            ], Response::HTTP_BAD_REQUEST);
-        }
-        
-        try {
-            $result = $this->resetPasswordService->processForgotPasswordRequest($email);
-            
-            if ($result['success']) {
-                return $this->json([
-                    'success' => true,
-                    'message' => 'Reset email has been sent again.',
-                    'cooldown' => $result['cooldown'] ?? 60
-                ]);            } else {
-                return $this->json([
-                    'success' => false,
-                    'message' => $result['error'] ?? 'Unable to send reset email.',
-                    'cooldown' => $result['cooldown'] ?? 0
-                ]);
-            }
-        } catch (\Exception $e) {
-            return $this->json([
-                'success' => false,
-                'message' => 'An error occurred: ' . $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
     }
 }

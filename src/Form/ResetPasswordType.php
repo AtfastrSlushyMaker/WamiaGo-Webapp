@@ -10,9 +10,8 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\Regex;
 
-class ResetPasswordFormType extends AbstractType
+class ResetPasswordType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -20,11 +19,6 @@ class ResetPasswordFormType extends AbstractType
             ->add('plainPassword', RepeatedType::class, [
                 'type' => PasswordType::class,
                 'first_options' => [
-                    'attr' => [
-                        'autocomplete' => 'new-password',
-                        'class' => 'form-control',
-                        'placeholder' => 'Enter new password'
-                    ],
                     'constraints' => [
                         new NotBlank([
                             'message' => 'Please enter a password',
@@ -34,20 +28,19 @@ class ResetPasswordFormType extends AbstractType
                             'minMessage' => 'Your password should be at least {{ limit }} characters',
                             'max' => 4096,
                         ]),
-                        new Regex([
-                            'pattern' => '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/',
-                            'message' => 'Your password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
-                        ]),
                     ],
-                    'label' => 'New password',
+                    'label' => 'New Password',
+                    'attr' => [
+                        'class' => 'form-control',
+                        'autocomplete' => 'new-password',
+                    ],
                 ],
                 'second_options' => [
+                    'label' => 'Confirm New Password',
                     'attr' => [
-                        'autocomplete' => 'new-password',
                         'class' => 'form-control',
-                        'placeholder' => 'Repeat new password'
+                        'autocomplete' => 'new-password',
                     ],
-                    'label' => 'Repeat Password',
                 ],
                 'invalid_message' => 'The password fields must match.',
                 'mapped' => false,
@@ -55,10 +48,9 @@ class ResetPasswordFormType extends AbstractType
             ->add('submit', SubmitType::class, [
                 'label' => 'Reset Password',
                 'attr' => [
-                    'class' => 'btn reset-password-btn'
+                    'class' => 'btn btn-primary btn-block'
                 ]
-            ])
-        ;
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

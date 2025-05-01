@@ -91,9 +91,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private bool $is_verified = false;
 
     #[ORM\Column(type: 'string', length: 20, enumType: ACCOUNT_STATUS::class, options: ['default' => 'ACTIVE'])]
-    private ACCOUNT_STATUS $account_status = ACCOUNT_STATUS::ACTIVE;
-
-    #[Groups(['user:read'])]
+    private ACCOUNT_STATUS $account_status = ACCOUNT_STATUS::ACTIVE;    #[Groups(['user:read'])]
     #[ORM\Column(type: 'date', nullable: true)]
     #[Assert\NotNull(message: 'Date of birth is required')]
     #[Assert\LessThanOrEqual('today', message: 'Date of birth cannot be in the future')]
@@ -119,10 +117,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $reclamations;
 
     #[ORM\OneToMany(targetEntity: Request::class, mappedBy: 'user')]
-    private Collection $requests;
-
-    #[ORM\OneToMany(targetEntity: Reservation::class, mappedBy: 'user')]
+    private Collection $requests;    #[ORM\OneToMany(targetEntity: Reservation::class, mappedBy: 'user')]
     private Collection $reservations;
+
+    /**
+     * @var string|null Used for stateless password reset system, not stored in database
+     */
+    private ?string $resetToken = null;
+
+    /**
+     * @var \DateTimeInterface|null Used for stateless password reset system, not stored in database
+     */
+    private ?\DateTimeInterface $resetTokenExpiry = null;
 
     public function __construct()
     {
@@ -551,13 +557,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function hasRole(string $role): bool
     {
         return in_array($role, $this->getRoles(), true);
-    }
-
-    public function getProfilePicturePath(): ?string
+    }    public function getProfilePicturePath(): ?string
     {
         if (!$this->profilePicture) {
             return null;
         }
-        return 'uploads/profile_pictures/' . $this->profilePicture;
+        return $this->profilePicture;
     }
+
+    public function getResetToken(): ?string
+    {
+        return $this->resetToken;
+    }
+
+    public function setResetToken(?string $resetToken): self
+    {
+        $this->resetToken = $resetToken;
+        return $this;
+    }
+
+    public function getResetTokenExpiry(): ?\DateTimeInterface
+    {
+        return $this->resetTokenExpiry;
+    }
+
+    public function setResetTokenExpiry(?\DateTimeInterface $resetTokenExpiry): self
+    {
+        $this->resetTokenExpiry = $resetTokenExpiry;
+        return $this;
+    }
+
+    // ...existing code...
 }

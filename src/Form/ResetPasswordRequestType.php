@@ -7,19 +7,15 @@ use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Email;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
-class ResetPasswordRequestFormType extends AbstractType
-{    public function buildForm(FormBuilderInterface $builder, array $options): void
+class ResetPasswordRequestType extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
             ->add('email', EmailType::class, [
-                'attr' => [
-                    'autocomplete' => 'email',
-                    'class' => 'form-control',
-                    'placeholder' => 'Enter your email'
-                ],
                 'constraints' => [
                     new NotBlank([
                         'message' => 'Please enter your email',
@@ -28,8 +24,18 @@ class ResetPasswordRequestFormType extends AbstractType
                         'message' => 'Please enter a valid email address',
                     ]),
                 ],
+                'attr' => [
+                    'class' => 'form-control',
+                    'placeholder' => 'Enter your email address'
+                ],
+                'label' => 'Email Address'
             ])
-        ;
+            ->add('submit', SubmitType::class, [
+                'label' => 'Send Reset Link',
+                'attr' => [
+                    'class' => 'btn btn-primary btn-block'
+                ]
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -53,38 +53,27 @@
                                    data-validation="required|minLength:8"
                                    data-validation-message="Password must be at least 8 characters long" />
                             <button type="button" class="toggle-password" aria-label="Reveal password" aria-pressed="false">
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <defs>
-                                        <mask id="eye-open">
-                                            <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12V20H12H1V12Z" fill="#D9D9D9" stroke="black"
-                                                stroke-width="1.5" stroke-linejoin="round" />
-                                        </mask>
-                                        <mask id="eye-closed">
-                                            <path d="M1 12C1 12 5 20 12 20C19 20 23 12 23 12V20H12H1V12Z" fill="#D9D9D9" />
-                                        </mask>
-                                    </defs>
-                                    <path class="lid lid--upper" d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12" stroke="currentColor"
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="eye-svg">
+                                    <path class="eye-shape" d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12" stroke="currentColor"
                                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                                    <path class="lid lid--lower" d="M1 12C1 12 5 20 12 20C19 20 23 12 23 12" stroke="currentColor"
+                                    <path class="eye-shape" d="M1 12C1 12 5 20 12 20C19 20 23 12 23 12" stroke="currentColor"
                                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                                    <g mask="url(#eye-open)">
-                                        <g class="eye">
-                                            <circle cy="12" cx="12" r="4" fill="currentColor" />
-                                            <circle cy="11" cx="13" r="1" fill="black" />
-                                        </g>
-                                    </g>
+                                    <circle class="eye-ball" cx="12" cy="12" r="4" />
+                                    <circle class="eye-pupil" cx="13" cy="11" r="1" />
+                                    <!-- Eyelashes for lower lid -->
+                                    <path class="eye-lash" d="M7 17C7 17 7 19 6 20" />
+                                    <path class="eye-lash" d="M11 18C11 18 11 20 11 21" />
+                                    <path class="eye-lash" d="M15 18C15 18 16 19 17 20" />
                                 </svg>
                                 <span class="sr-only">Reveal</span>
                             </button>
                             <div class="invalid-feedback"></div>
                         </div>
-                    </div>
-
-                    <div class="remember-forgot">
+                    </div>                    <div class="remember-forgot">
                         <label>
                             <input type="checkbox" name="_remember_me"> Remember me
                         </label>
-                        <a href="{{ path('app_forgot_password_request') }}">Forgot Password?</a>
+                        <a href="{{ path('app_forgot_password') }}">Forgot Password?</a>
                     </div>
 
                     <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}" />
@@ -230,26 +219,17 @@
                                 <div class="password-container">
                                     {{ form_widget(registrationForm.plainPassword, {'attr': {'id': 'reg_password', 'novalidate': 'novalidate'}}) }}
                                     <button type="button" class="toggle-password" aria-label="Reveal password" aria-pressed="false">
-                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <defs>
-                                                <mask id="eye-open-reg">
-                                                    <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12V20H12H1V12Z" fill="#D9D9D9" stroke="black"
-                                                        stroke-width="1.5" stroke-linejoin="round" />
-                                                </mask>
-                                                <mask id="eye-closed-reg">
-                                                    <path d="M1 12C1 12 5 20 12 20C19 20 23 12 23 12V20H12H1V12Z" fill="#D9D9D9" />
-                                                </mask>
-                                            </defs>
-                                            <path class="lid lid--upper" d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12" stroke="currentColor"
+                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="eye-svg">
+                                            <path class="eye-shape" d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12" stroke="currentColor"
                                                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                                            <path class="lid lid--lower" d="M1 12C1 12 5 20 12 20C19 20 23 12 23 12" stroke="currentColor"
+                                            <path class="eye-shape" d="M1 12C1 12 5 20 12 20C19 20 23 12 23 12" stroke="currentColor"
                                                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                                            <g mask="url(#eye-open-reg)">
-                                                <g class="eye">
-                                                    <circle cy="12" cx="12" r="4" fill="currentColor" />
-                                                    <circle cy="11" cx="13" r="1" fill="black" />
-                                                </g>
-                                            </g>
+                                            <circle class="eye-ball" cx="12" cy="12" r="4" />
+                                            <circle class="eye-pupil" cx="13" cy="11" r="1" />
+                                            <!-- Eyelashes for lower lid -->
+                                            <path class="eye-lash" d="M7 17C7 17 7 19 6 20" />
+                                            <path class="eye-lash" d="M11 18C11 18 11 20 11 21" />
+                                            <path class="eye-lash" d="M15 18C15 18 16 19 17 20" />
                                         </svg>
                                         <span class="sr-only">Reveal</span>
                                     </button>
@@ -262,26 +242,17 @@
                                 <div class="password-container">
                                     <input type="password" id="reg_confirm_password" novalidate />
                                     <button type="button" class="toggle-password" aria-label="Reveal password" aria-pressed="false">
-                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <defs>
-                                                <mask id="eye-open-confirm">
-                                                    <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12V20H12H1V12Z" fill="#D9D9D9" stroke="black"
-                                                        stroke-width="1.5" stroke-linejoin="round" />
-                                                </mask>
-                                                <mask id="eye-closed-confirm">
-                                                    <path d="M1 12C1 12 5 20 12 20C19 20 23 12 23 12V20H12H1V12Z" fill="#D9D9D9" />
-                                                </mask>
-                                            </defs>
-                                            <path class="lid lid--upper" d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12" stroke="currentColor"
+                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="eye-svg">
+                                            <path class="eye-shape" d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12" stroke="currentColor"
                                                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                                            <path class="lid lid--lower" d="M1 12C1 12 5 20 12 20C19 20 23 12 23 12" stroke="currentColor"
+                                            <path class="eye-shape" d="M1 12C1 12 5 20 12 20C19 20 23 12 23 12" stroke="currentColor"
                                                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                                            <g mask="url(#eye-open-confirm)">
-                                                <g class="eye">
-                                                    <circle cy="12" cx="12" r="4" fill="currentColor" />
-                                                    <circle cy="11" cx="13" r="1" fill="black" />
-                                                </g>
-                                            </g>
+                                            <circle class="eye-ball" cx="12" cy="12" r="4" />
+                                            <circle class="eye-pupil" cx="13" cy="11" r="1" />
+                                            <!-- Eyelashes for lower lid -->
+                                            <path class="eye-lash" d="M7 17C7 17 7 19 6 20" />
+                                            <path class="eye-lash" d="M11 18C11 18 11 20 11 21" />
+                                            <path class="eye-lash" d="M15 18C15 18 16 19 17 20" />
                                         </svg>
                                         <span class="sr-only">Reveal</span>
                                     </button>
@@ -379,7 +350,8 @@
 {% block stylesheets %}
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@600&display=swap" rel="stylesheet" />
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />    <link rel="stylesheet" href="{{ asset('css/front/loginSignup.css') }}" />    <link rel="stylesheet" href="{{ asset('css/front/enhanced-eye-animation.css') }}?v={{ random() }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />    <link rel="stylesheet" href="{{ asset('css/front/loginSignup.css') }}" />    
+    <link rel="stylesheet" href="{{ asset('css/front/eye-toggle-updated.css') }}?v={{ random() }}" />
     <link rel="stylesheet" href="{{ asset('css/front/step-indicators-fix.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/front/password-eye-final-fix.css') }}" /><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
     <link rel="stylesheet" href="{{ asset('css/front/flatpickr-custom.css') }}?v={{ random() }}">
@@ -390,10 +362,9 @@
 {% block javascripts %}
     <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
     <script src="{{ asset('js/front/loginSignup.js') }}"></script>
-    <script src="{{ asset('js/front/enhanced-eye-animation.js') }}?v={{ random() }}"></script>
-    <script src="{{ asset('js/front/password-validator.js') }}"></script>
-    <script src="{{ asset('js/front/flatpickr-init.js') }}?v={{ random() }}"></script>
-    <script src="{{ asset('js/user-status-manager.js') }}?v={{ random() }}"></script><script src="{{ asset('js/front/alert-handler.js') }}"></script>    <script src="{{ asset('js/front/direct-flatpickr.js') }}?v={{ random() }}"></script>
+    <script src="{{ asset('js/front/eye-toggle-updated.js') }}?v={{ random() }}"></script>
+    <script src="{{ asset('js/front/password-validator.js') }}"></script>    <script src="{{ asset('js/front/flatpickr-init.js') }}?v={{ random() }}"></script>
+    <script src="{{ asset('js/user/user-status-manager.js') }}?v={{ random() }}"></script><script src="{{ asset('js/front/alert-handler.js') }}"></script>    <script src="{{ asset('js/front/direct-flatpickr.js') }}?v={{ random() }}"></script>
     <script src="{{ asset('js/front/confetti-animation.js') }}?v={{ random() }}"></script>
     <script src="{{ asset('js/front/step-navigation-fix.js') }}?v={{ random() }}"></script>
     <script src="{{ asset('js/front/form-handler.js') }}?v={{ random() }}"></script>

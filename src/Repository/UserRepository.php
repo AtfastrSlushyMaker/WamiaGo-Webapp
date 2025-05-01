@@ -12,6 +12,22 @@ class UserRepository extends ServiceEntityRepository
         parent::__construct($registry, User::class);
     }
 
+    /**
+     * Find users with expired reset tokens
+     * 
+     * This method is kept for backward compatibility but returns an empty array
+     * since we're using a stateless approach without storing tokens in the database.
+     * 
+     * @param \DateTime $now Current datetime
+     * @return User[] Array of users with expired tokens (always empty)
+     */
+    public function findExpiredResetTokens(\DateTime $now): array
+    {
+        // Return an empty array since we're using a stateless approach
+        // with no tokens stored in the database
+        return [];
+    }
+
     public function isUserDriver(User $user): bool
     {
         try {
