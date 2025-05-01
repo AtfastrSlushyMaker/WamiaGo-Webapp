@@ -16,23 +16,26 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Knp\Component\Pager\PaginatorInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Security\Core\Security;
 
 
 #[Route('/client/reservations')]
 class ClientReservationController extends AbstractController
 {
-    private const HARDCODED_CLIENT_ID = 122;
+    //private const HARDCODED_CLIENT_ID = 122;
 
     public function __construct(
         private ReservationService $reservationService,
         private EntityManagerInterface $em,
-        private readonly ReservationRepository $reservationRepository
+        private readonly ReservationRepository $reservationRepository,
+        private readonly Security $security
     ) {}
 
     #[Route('/', name: 'app_client_reservation_list', methods: ['GET'])]
 public function list(Request $request, UserRepository $userRepository, PaginatorInterface $paginator): Response
 {
-    $client = $userRepository->find(self::HARDCODED_CLIENT_ID);
+    $client = $this->security->getUser();
     
     // Récupération et validation des paramètres
     $keyword = trim($request->query->get('keyword', ''));

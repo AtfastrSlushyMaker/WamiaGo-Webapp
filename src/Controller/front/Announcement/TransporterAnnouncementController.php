@@ -17,22 +17,25 @@ use App\Repository\AnnouncementRepository;
 
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\OpenAIService;
-use App\Utils\BadWordFilter; // Adjust the namespace to the actual location of BadWordFilter
-use App\Enum\Zone; // Adjust 'App\Enum\Zone' to the correct namespace of the Zone class or enum
+use App\Utils\BadWordFilter; 
+use App\Enum\Zone; 
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Security\Core\Security;
 
 use function PHPUnit\Framework\throwException;
 
 #[Route('/transporter/announcements')]
 class TransporterAnnouncementController extends AbstractController
 {
-    private const HARDCODED_DRIVER_ID = 6;
+    //private const HARDCODED_DRIVER_ID = 6;
 
 
     public function __construct(
         private readonly AnnouncementService $announcementService,
         private readonly AnnouncementRepository $announcementRepository,
         private readonly DriverRepository $driverRepository,
-        private readonly PaginatorInterface $paginator
+        private readonly PaginatorInterface $paginator,
+        private readonly Security $security
 
     ) {
     }
@@ -41,10 +44,13 @@ class TransporterAnnouncementController extends AbstractController
 #[Route('/new', name: 'app_transporter_announcement_new', methods: ['GET', 'POST'])]
 public function new(Request $request): Response
 {
-    $driver = $this->driverRepository->find(self::HARDCODED_DRIVER_ID);
-    if (!$driver) {
-        throw $this->createNotFoundException('Driver not found');
-    }
+    $user = $this->getUser();
+$driver = $this->driverRepository->findOneBy(['user' => $user]);
+
+if (!$driver) {
+    throw $this->createNotFoundException('Aucun conducteur associé à cet utilisateur');
+}
+
 
     $announcement = new Announcement();
     $announcement->setDriver($driver);
@@ -144,7 +150,8 @@ public function new(Request $request): Response
     #[Route('/', name: 'app_transporter_announcement_list', methods: ['GET'])]
     public function list(Request $request, PaginatorInterface $paginator): Response
     {
-        $driver = $this->driverRepository->find(self::HARDCODED_DRIVER_ID);
+        $user = $this->getUser();
+$driver = $this->driverRepository->findOneBy(['user' => $user]);
         
         // Récupérer les paramètres de filtrage
         $keyword = trim($request->query->get('keyword', ''));
@@ -378,7 +385,8 @@ public function generateTitles(Request $request, OpenAIService $openAIService): 
 public function search(Request $request, PaginatorInterface $paginator): Response
 {
     // 1. Récupération du transporteur
-    $driver = $this->driverRepository->find(self::HARDCODED_DRIVER_ID);
+    $user = $this->getUser();
+    $driver = $this->driverRepository->findOneBy(['user' => $user]);
     if (!$driver) {
         throw $this->createNotFoundException('Driver not found');
     }

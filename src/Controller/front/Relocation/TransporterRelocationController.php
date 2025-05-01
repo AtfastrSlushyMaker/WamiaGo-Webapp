@@ -15,21 +15,28 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Enum\ReservationStatus; 
 use Knp\Component\Pager\PaginatorInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Security\Core\Security;
+
 
 #[Route('/transporter/relocations')]
 class TransporterRelocationController extends AbstractController
 {
-    private const HARDCODED_DRIVER_ID = 6;
+    //private const HARDCODED_DRIVER_ID = 6;
+    
 
     public function __construct(
         private EntityManagerInterface $em,
-        private RelocationRepository $relocationRepo
+        private RelocationRepository $relocationRepo,
+        private readonly DriverRepository $driverRepository,
+        private readonly Security $security
     ) {}
 
     #[Route('/', name: 'app_transporter_relocation_list', methods: ['GET'])]
 public function list(Request $request, PaginatorInterface $paginator, DriverRepository $driverRepo): Response
 {
-    $driver = $driverRepo->find(self::HARDCODED_DRIVER_ID);
+    $user = $this->getUser();
+    $driver = $this->driverRepository->findOneBy(['user' => $user]);
     
     $filters = [
         'keyword' => $request->query->get('keyword'),
@@ -45,7 +52,7 @@ public function list(Request $request, PaginatorInterface $paginator, DriverRepo
     $relocations = $paginator->paginate(
         $query,
         $request->query->getInt('page', 1),
-        6
+        4
     );
 
     if ($request->isXmlHttpRequest()) {
@@ -178,7 +185,8 @@ public function delete(Relocation $relocation): JsonResponse
 #[Route('/calendar', name: 'app_transporter_relocation_calendar', methods: ['GET'])]
 public function calendar(DriverRepository $driverRepo): Response
 {
-    $driver = $driverRepo->find(self::HARDCODED_DRIVER_ID);
+    $user = $this->getUser();
+    $driver = $this->driverRepository->findOneBy(['user' => $user]);
     
     if (!$driver) {
         throw $this->createNotFoundException('Driver not found');
@@ -192,7 +200,8 @@ public function calendar(DriverRepository $driverRepo): Response
 #[Route('/api/calendar-events', name: 'app_relocation_calendar_events', methods: ['GET'])]
 public function getCalendarEvents(DriverRepository $driverRepo): JsonResponse
 {
-    $driver = $driverRepo->find(self::HARDCODED_DRIVER_ID);
+    $user = $this->getUser();
+    $driver = $this->driverRepository->findOneBy(['user' => $user]);
     $relocations = $this->relocationRepo->findByDriver($driver);
 
     $events = [];

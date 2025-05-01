@@ -6,7 +6,7 @@ use App\Enum\BICYCLE_STATION_STATUS;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-
+use Symfony\Component\Validator\Constraints as Assert;
 use App\Repository\BicycleStationRepository;
 
 #[ORM\Entity(repositoryClass: BicycleStationRepository::class)]
@@ -19,25 +19,52 @@ class BicycleStation
     private ?int $id_station = null;
 
     #[ORM\Column(type: 'string', nullable: false)]
+    #[Assert\NotBlank(message: "Station name cannot be empty")]
+    #[Assert\Length(
+        min: 2,
+        max: 255,
+        minMessage: "Station name must be at least {{ limit }} characters long",
+        maxMessage: "Station name cannot be longer than {{ limit }} characters"
+    )]
     private ?string $name = null;
 
     #[ORM\ManyToOne(targetEntity: Location::class, inversedBy: 'bicycleStations')]
     #[ORM\JoinColumn(name: 'id_location', referencedColumnName: 'id_location')]
+    #[Assert\NotNull(message: "Station must have a location")]
     private ?Location $location = null;
 
     #[ORM\Column(type: 'integer', nullable: false)]
+    #[Assert\NotBlank(message: "Total docks cannot be empty")]
+    #[Assert\Positive(message: "Total docks must be greater than zero")]
     private ?int $total_docks = null;
 
     #[ORM\Column(type: 'integer', nullable: false)]
+    #[Assert\GreaterThanOrEqual(
+        value: 0,
+        message: "Available docks cannot be negative"
+    )]
     private ?int $available_docks = null;
 
     #[ORM\Column(type: 'integer', nullable: false)]
+    #[Assert\GreaterThanOrEqual(
+        value: 0,
+        message: "Available bikes cannot be negative"
+    )]
+    #[Assert\Expression(
+        "this.getAvailableBikes() <= this.getTotalDocks()",
+        message: "Available bikes cannot exceed total docks"
+    )]
     private ?int $available_bikes = null;
 
     #[ORM\Column(type: 'integer', nullable: false)]
+    #[Assert\GreaterThanOrEqual(
+        value: 0,
+        message: "Charging bikes cannot be negative"
+    )]
     private ?int $charging_bikes = null;
 
     #[ORM\Column(enumType: BICYCLE_STATION_STATUS::class)]
+    #[Assert\NotNull(message: "Station status is required")]
     private ?BICYCLE_STATION_STATUS $status = null;
 
     #[ORM\OneToMany(targetEntity: Bicycle::class, mappedBy: 'bicycleStation')]

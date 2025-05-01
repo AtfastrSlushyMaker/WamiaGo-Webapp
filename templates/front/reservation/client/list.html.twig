@@ -111,7 +111,7 @@
 </div>
 
     <!-- Reservations Grid -->
-    {# ... après le header #}
+    
 
 
 <div id="reservationsList">
@@ -177,6 +177,10 @@
             {% endfor %}
         </div>
     {% endif %}
+       <!-- Pagination -->
+    <div class="pagination-container mt-4">
+        {{ knp_pagination_render(reservations, '@KnpPaginator/Pagination/twitter_bootstrap_v4_pagination.html.twig') }}
+    </div>
 </div>
 </div>
 {% endblock %}

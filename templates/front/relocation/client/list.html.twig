@@ -160,6 +160,10 @@
                 </div>
             {% endfor %}
         </div>
+         <!-- Pagination -->
+    <div class="pagination-container mt-4">
+        {{ knp_pagination_render(relocations, '@KnpPaginator/Pagination/twitter_bootstrap_v4_pagination.html.twig') }}
+    </div>
     {% endif %}
 </div>
 </div>

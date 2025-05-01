@@ -25,64 +25,291 @@
     <div class="container-fluid">
       <!-- Stats Row -->
       <div class="row mb-4">
-        <div class="col-lg-3 col-6">
-          <div class="small-box bg-primary shadow-sm">
+        <div class="col-lg-3 col-md-6 col-sm-6 mb-3 mb-lg-0">
+          <div class="small-box bg-primary shadow-sm position-relative overflow-hidden stat-card">
             <div class="inner p-3">
               <h3>{{ stats.rideShares }}</h3>
-              <p>New Ride Shares</p>
+              <p class="mb-0">New Ride Shares</p>
             </div>
-            <div class="icon">
-              <img src="{{ asset('images/front/carpool.png') }}" alt="Ride Share Icon" class="img-fluid" style="width: 50px; height: 50px;">
+            <div class="icon position-absolute">
+              <img src="{{ asset('images/front/carpool.png') }}" alt="Ride Share Icon" class="img-fluid icon-image">
             </div>
-            <a href="#" class="small-box-footer py-2">
+            <a href="#" class="small-box-footer py-2 position-relative">
               More info <i class="bi bi-arrow-right-circle"></i>
             </a>
           </div>
         </div>
-        <div class="col-lg-3 col-6">
-          <div class="small-box bg-warning shadow-sm">
+        <div class="col-lg-3 col-md-6 col-sm-6 mb-3 mb-lg-0">
+          <div class="small-box bg-warning shadow-sm position-relative overflow-hidden stat-card">
             <div class="inner p-3 text-white">
               <h3>{{ stats.taxiBookings }}</h3>
-              <p>Taxi Bookings</p>
+              <p class="mb-0">Taxi Bookings</p>
             </div>
-            <div class="icon">
-              <img src="{{ asset('images/front/taxi.png') }}" alt="Taxi Icon" class="img-fluid" style="width: 50px; height: 50px;">
+            <div class="icon position-absolute">
+              <img src="{{ asset('images/front/taxi.png') }}" alt="Taxi Icon" class="img-fluid icon-image">
             </div>
-            <a href="#" class="small-box-footer py-2 text-white">
+            <a href="#" class="small-box-footer py-2 text-white position-relative">
               More info <i class="bi bi-arrow-right-circle"></i>
             </a>
           </div>
         </div>
-        <div class="col-lg-3 col-6">
-          <div class="small-box bg-success shadow-sm">
+        <div class="col-lg-3 col-md-6 col-sm-6 mb-3 mb-md-0">
+          <div class="small-box bg-success shadow-sm position-relative overflow-hidden stat-card">
             <div class="inner p-3">
               <h3>{{ stats.bicycleRentals }}</h3>
-              <p>Bicycle Rentals</p>
+              <p class="mb-0">Bicycle Rentals</p>
             </div>
-            <div class="icon">
-              <img src="{{ asset('images/front/bicycle.png') }}" alt="Bike Icon" class="img-fluid" style="width: 50px; height: 50px;">
+            <div class="icon position-absolute">
+              <img src="{{ asset('images/front/bicycle.png') }}" alt="Bike Icon" class="img-fluid icon-image">
             </div>
-            <a href="#" class="small-box-footer py-2">
+            <a href="#" class="small-box-footer py-2 position-relative">
               More info <i class="bi bi-arrow-right-circle"></i>
             </a>
           </div>
         </div>
-        <div class="col-lg-3 col-6">
-          <div class="small-box bg-info shadow-sm">
+        <div class="col-lg-3 col-md-6 col-sm-6">
+          <div class="small-box bg-info shadow-sm position-relative overflow-hidden stat-card">
             <div class="inner p-3">
               <h3>{{ stats.relocationBookings }}</h3>
-              <p>Relocation Bookings</p>
+              <p class="mb-0">Relocation Bookings</p>
             </div>
-            <div class="icon">
-              <img src="{{ asset('images/front/truck.png') }}" alt="Truck Icon" class="img-fluid" style="width: 50px; height: 50px;">
+            <div class="icon position-absolute">
+              <img src="{{ asset('images/front/truck.png') }}" alt="Truck Icon" class="img-fluid icon-image">
             </div>
-            <a href="#" class="small-box-footer py-2">
+            <a href="#" class="small-box-footer py-2 position-relative">
               More info <i class="bi bi-arrow-right-circle"></i>
             </a>
           </div>
         </div>
       </div>
 
+      <style>
+        /* ========== CHART STYLES ========== */
+        /* Global chart variables */
+        :root {
+          --chart-grid-color: #e0e0e0;
+          --chart-text-color: #333;
+          --chart-tooltip-bg: #fff;
+          --chart-tooltip-border: #ddd;
+          --chart-series-colors: #0d6efd, #20c997, #ffc107, #dc3545;
+          --chart-axis-color: #777;
+          --chart-legend-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        body.dark-mode {
+          --chart-grid-color: #333;
+          --chart-text-color: #e0e0e0;
+          --chart-tooltip-bg: #252525;
+          --chart-tooltip-border: #444;
+          --chart-legend-bg: rgba(30, 30, 30, 0.85);
+        }
+
+        /* ApexCharts Global Styling */
+        .apexcharts-canvas {
+          background-color: transparent !important;
+        }
+
+        .apexcharts-text,
+        .apexcharts-title-text,
+        .apexcharts-legend-text,
+        .apexcharts-xaxis-label,
+        .apexcharts-yaxis-label {
+          fill: var(--chart-text-color) !important;
+        }
+
+        .apexcharts-grid line {
+          stroke: var(--chart-grid-color) !important;
+        }
+
+        .apexcharts-tooltip {
+          background-color: var(--chart-tooltip-bg) !important;
+          border: 1px solid var(--chart-tooltip-border) !important;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* ApexCharts Dark Mode Overrides */
+        body.dark-mode .apexcharts-canvas {
+          filter: brightness(1.05);
+        }
+
+        body.dark-mode .apexcharts-canvas .apexcharts-grid line {
+          stroke: var(--chart-grid-color) !important;
+        }
+
+        body.dark-mode .apexcharts-canvas .apexcharts-text,
+        body.dark-mode .apexcharts-canvas .apexcharts-title-text,
+        body.dark-mode .apexcharts-canvas .apexcharts-legend-text,
+        body.dark-mode .apexcharts-canvas .apexcharts-xaxis-label,
+        body.dark-mode .apexcharts-canvas .apexcharts-yaxis-label,
+        body.dark-mode .apexcharts-canvas .apexcharts-legend-text {
+          fill: var(--chart-text-color) !important;
+        }
+
+        body.dark-mode .apexcharts-canvas .apexcharts-tooltip {
+          background-color: var(--chart-tooltip-bg) !important;
+          border: 1px solid var(--chart-tooltip-border) !important;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25) !important;
+        }
+
+        body.dark-mode .apexcharts-canvas .apexcharts-tooltip-title {
+          background-color: #333 !important;
+          border-bottom: 1px solid #444 !important;
+        }
+
+        body.dark-mode .apexcharts-canvas .apexcharts-tooltip-text-y-value,
+        body.dark-mode .apexcharts-canvas .apexcharts-tooltip-text-x-value,
+        body.dark-mode .apexcharts-canvas .apexcharts-tooltip-text-y-label,
+        body.dark-mode .apexcharts-canvas .apexcharts-tooltip-text-x-label {
+          color: var(--chart-text-color) !important;
+        }
+
+        body.dark-mode .apexcharts-canvas .apexcharts-menu {
+          background-color: #252525 !important;
+          border: 1px solid #444 !important;
+        }
+
+        body.dark-mode .apexcharts-canvas .apexcharts-menu-item {
+          color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .apexcharts-canvas .apexcharts-menu-item:hover {
+          background-color: #333 !important;
+        }
+
+        /* ChartJS Styling */
+        canvas.chartjs-render-monitor {
+          background-color: transparent !important;
+        }
+
+        /* ChartJS Dark Mode Overrides */
+        body.dark-mode .chartjs-render-monitor {
+          filter: brightness(1.05);
+        }
+
+        /* jsVectorMap Styling */
+        .jvm-tooltip {
+          background-color: var(--chart-tooltip-bg);
+          border-color: var(--chart-tooltip-border);
+          color: var(--chart-text-color);
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+          padding: 5px 10px;
+          border-radius: 4px;
+        }
+
+        .jvm-container {
+          background-color: transparent !important;
+        }
+
+        .jvm-series-container .jvm-legend .jvm-legend-title,
+        .jvm-series-container .jvm-legend .jvm-legend-item-name {
+          color: var(--chart-text-color);
+        }
+
+        /* jsVectorMap Dark Mode Overrides */
+        body.dark-mode .jvm-tooltip {
+          background-color: var(--chart-tooltip-bg) !important;
+          border-color: var(--chart-tooltip-border) !important;
+          color: var(--chart-text-color) !important;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-mode .jvm-container {
+          background-color: transparent !important;
+          filter: brightness(0.9) contrast(1.1);
+        }
+
+        body.dark-mode .jvm-series-container .jvm-legend .jvm-legend-title,
+        body.dark-mode .jvm-series-container .jvm-legend .jvm-legend-item-name {
+          color: var(--chart-text-color) !important;
+        }
+
+        /* Ensure chart containers have proper background in cards */
+        .card .chart {
+          background-color: transparent !important;
+          position: relative;
+          z-index: 1;
+        }
+        /* Stat cards styling */
+        .stat-card {
+          border-radius: 10px;
+          transition: all 0.3s ease;
+          overflow: hidden;
+        }
+
+        .stat-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        }
+
+        .stat-card .inner {
+          z-index: 10;
+          position: relative;
+          color: #ffff;
+        }
+
+        .stat-card .inner h3 {
+          font-size: 2.2rem;
+          font-weight: 700;
+          margin-bottom: 10px;
+          transition: all 0.3s ease;
+        }
+
+        .stat-card:hover .inner h3 {
+          transform: scale(1.05);
+        }
+
+        .stat-card .icon {
+          bottom: 10px;
+          right: 10px;
+          opacity: 0.8;
+          transition: all 0.3s ease;
+          z-index: 1;
+        }
+
+        .stat-card:hover .icon {
+          opacity: 0.4;
+          transform: scale(1.1);
+        }
+
+        .icon-image {
+          width: 65px;
+          height: 65px;
+        }
+
+        .small-box-footer {
+          background: rgba(0, 0, 0, 0.1);
+          text-decoration: none;
+          display: block;
+          text-align: center;
+          color: rgba(255, 255, 255, 0.8);
+          transition: all 0.3s ease;
+        }
+
+        .small-box-footer:hover {
+          background: rgba(0, 0, 0, 0.15);
+          color: #fff !important;
+        }
+
+        .small-box-footer i {
+          margin-left: 5px;
+          transition: transform 0.3s ease;
+        }
+
+        .small-box-footer:hover i {
+          transform: translateX(3px);
+        }
+
+        @media (max-width: 767.98px) {
+          .stat-card .inner h3 {
+            font-size: 1.8rem;
+          }
+
+          .icon-image {
+            width: 50px;
+            height: 50px;
+          }
+        }
+      </style>
       <!-- Charts Row -->
       <div class="row">
         <div class="col-md-8">

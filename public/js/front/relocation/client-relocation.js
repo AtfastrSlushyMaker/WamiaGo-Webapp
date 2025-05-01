@@ -18,12 +18,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function showDetailsModal(relocationId) {
         try {
-            const response = await fetch(`/client/relocations/${relocationId}/details`);
+            const response = await fetch(`/client/relocations/${relocationId}/details`, {
+                credentials: 'include' // Important pour les cookies de session
+            });
+            
+            if (response.status === 403) {
+                handleAuthError();
+                return;
+            }
             
             if (!response.ok) {
                 throw new Error('Failed to fetch relocation details');
             }
-
+    
             const data = await response.json();
 
             await Swal.fire({
@@ -129,6 +136,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function handleAuthError() {
+        Swal.fire({
+            icon: 'error',
+            title: 'Session Expired',
+            text: 'Please login again',
+            willClose: () => window.location.href = '/login'
+        });
+    }
+
     async function handleDeleteRelocation(relocationId, relocationTitle) {
         try {
             const result = await Swal.fire({
@@ -147,19 +163,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: {
                         'Content-Type': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({
-                        _token: csrfToken
-                    })
+                    }
                 });
-                
+    
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Invalid response format');
+                }
+    
                 const data = await response.json();
                 
                 if (!response.ok) {
-                    throw new Error(data.error || 'Failed to delete relocation');
+                    throw new Error(data.message || 'Failed to delete relocation');
                 }
                 
-                // Show success message
                 await Swal.fire({
                     icon: 'success',
                     title: 'Deleted!',
@@ -168,7 +185,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     position: 'top'
                 });
                 
-                // Remove the card from the UI
                 removeRelocationCard(relocationId);
             }
             

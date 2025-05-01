@@ -19,36 +19,89 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    async function showDetailsModal(reservationId) {
+    async function showDetailsModal(relocationId) {
         try {
-            const response = await fetch(`/client/reservations/${reservationId}/details`);
+            const response = await fetch(`/client/relocations/${relocationId}/details`);
             
             if (!response.ok) {
-                throw new Error('Failed to fetch reservation details');
+                throw new Error('Failed to fetch relocation details');
             }
-
+    
             const data = await response.json();
-
+    
             await Swal.fire({
-                title: `<strong>${data.title}</strong>`,
+                title: `<strong>${data.reservationTitle}</strong>`,
                 html: `
                     <div class="text-start">
-                        <p class="text-muted mb-3">${data.description}</p>
-                        <div class="d-flex justify-content-between mb-3">
-                            <span><i class="fas fa-calendar-alt me-2"></i>${data.date}</span>
-                            <span class="badge ${data.status.toLowerCase()}">${data.status}</span>
+                        <div class="detail-section mb-3">
+                            <div class="detail-item">
+                                <i class="fas fa-calendar-alt"></i>
+                                <div class="detail-item-content">
+                                    <div class="detail-label">Date</div>
+                                    <div class="detail-value">${data.date}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <i class="fas fa-euro-sign"></i>
+                                <div class="detail-item-content">
+                                    <div class="detail-label">Cost</div>
+                                    <div class="detail-value">${data.cost} €</div>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <i class="fas fa-info-circle"></i>
+                                <div class="detail-item-content">
+                                    <div class="detail-label">Status</div>
+                                    <div class="detail-value">
+                                        <span class="badge ${data.status.toLowerCase()}">${data.status}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <hr>
-                        <div class="location-details mb-3">
-                            <p><i class="fas fa-map-marker-alt text-danger me-2"></i> ${data.startLocation}</p>
-                            <p><i class="fas fa-flag-checkered text-success me-2"></i> ${data.endLocation}</p>
+                        
+                        <div class="detail-section mb-3">
+                            <div class="detail-item">
+                                <i class="fas fa-user-tie"></i>
+                                <div class="detail-item-content">
+                                    <div class="detail-label">Transporter</div>
+                                    <div class="detail-value">${data.transporterName}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <i class="fas fa-phone"></i>
+                                <div class="detail-item-content">
+                                    <div class="detail-label">Phone</div>
+                                    <div class="detail-value">${data.transporterPhone}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <div class="detail-item">
+                                <i class="fas fa-map-marker-alt text-danger"></i>
+                                <div class="detail-item-content">
+                                    <div class="detail-label">From</div>
+                                    <div class="detail-value">${data.startLocation}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <i class="fas fa-flag-checkered text-success"></i>
+                                <div class="detail-item-content">
+                                    <div class="detail-label">To</div>
+                                    <div class="detail-value">${data.endLocation}</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `,
                 showCloseButton: true,
                 showConfirmButton: false
             });
-
+    
         } catch (error) {
             await Swal.fire({
                 icon: 'error',

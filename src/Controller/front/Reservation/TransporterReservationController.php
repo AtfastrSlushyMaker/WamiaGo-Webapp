@@ -17,11 +17,13 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Knp\Component\Pager\PaginatorInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Security\Core\Security;
 
 #[Route('/transporter/reservations')]
 class TransporterReservationController extends AbstractController
 {
-    private const HARDCODED_DRIVER_ID = 6;
+    //private const HARDCODED_DRIVER_ID = 6;
 
     public function __construct(
         private ReservationService $reservationService,
@@ -29,12 +31,18 @@ class TransporterReservationController extends AbstractController
         private DriverRepository $driverRepository,
         private EntityManagerInterface $em,
         private readonly ReservationRepository $reservationRepository,
+        private readonly Security $security
     ) {}
 
     #[Route('/', name: 'app_transporter_reservation_list', methods: ['GET'])]
 public function list(Request $request, PaginatorInterface $paginator): Response
 {
-    $driver = $this->driverRepository->find(self::HARDCODED_DRIVER_ID);
+    $user = $this->getUser();
+    $driver = $this->driverRepository->findOneBy(['user' => $user]);
+    
+    if (!$driver) {
+        throw $this->createNotFoundException('Aucun conducteur associé à cet utilisateur');
+    }
     
     // Récupération des paramètres
     $keyword = trim($request->query->get('keyword', ''));
@@ -54,7 +62,7 @@ public function list(Request $request, PaginatorInterface $paginator): Response
     $reservations = $paginator->paginate(
         $query->getQuery(),
         $request->query->getInt('page', 1),
-        6
+        9
     );
 
     // Gestion réponse AJAX
@@ -230,7 +238,8 @@ public function refuse(Reservation $reservation): JsonResponse
     #[Route('/search', name: 'app_transporter_reservation_search', methods: ['GET'])]
 public function search(Request $request, PaginatorInterface $paginator): Response
 {
-    $driver = $this->driverRepository->find(self::HARDCODED_DRIVER_ID);
+    $user = $this->getUser();
+    $driver = $this->driverRepository->findOneBy(['user' => $user]);
     
     $keyword = trim($request->query->get('keyword', ''));
     $status = $request->query->get('status');

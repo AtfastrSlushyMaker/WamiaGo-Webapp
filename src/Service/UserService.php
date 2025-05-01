@@ -1,0 +1,164 @@
+<?php
+
+namespace App\Service;
+
+use App\Entity\User;
+use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+
+class UserService
+{
+    private EntityManagerInterface $entityManager;
+    private UserRepository $userRepository;
+    private UserPasswordHasherInterface $passwordHasher;
+    private ValidatorInterface $validator;
+
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        UserRepository $userRepository,
+        UserPasswordHasherInterface $passwordHasher,
+        ValidatorInterface $validator
+    ) {
+        $this->entityManager = $entityManager;
+        $this->userRepository = $userRepository;
+        $this->passwordHasher = $passwordHasher;
+        $this->validator = $validator;
+    }
+
+    public function getAllUsers(): array
+    {
+        return $this->userRepository->findAll();
+    }
+
+    public function createUser(array $data): User
+    {
+        $this->validateUserData($data, true);
+
+        $user = new User();
+        $this->setUserData($user, $data);
+
+        $errors = $this->validator->validate($user);
+        if (count($errors) > 0) {
+            throw new \InvalidArgumentException((string) $errors);
+        }
+
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+
+        return $user;
+    }
+
+    public function updateUser(User $user, array $data): User
+    {
+        $this->validateUserData($data, false);
+        $this->setUserData($user, $data);
+
+        $errors = $this->validator->validate($user);
+        if (count($errors) > 0) {
+            throw new \InvalidArgumentException((string) $errors);
+        }
+
+        $this->entityManager->flush();
+        return $user;
+    }
+
+    public function partialUpdateUser(User $user, array $data): User
+    {
+        foreach ($data as $field => $value) {
+            $setter = 'set' . str_replace('_', '', ucwords($field, '_'));
+
+            if (method_exists($user, $setter)) {
+                if ($field === 'password') {
+                    $user->setPassword($this->passwordHasher->hashPassword($user, $value));
+                } elseif ($field === 'date_of_birth') {
+                    $user->setDateOfBirth(new \DateTime($value));
+                } else {
+                    $user->$setter($value);
+                }
+            }
+        }
+
+        $errors = $this->validator->validate($user);
+        if (count($errors) > 0) {
+            throw new \InvalidArgumentException((string) $errors);
+        }
+
+        $this->entityManager->flush();
+        return $user;
+    }
+
+    public function deleteUser(User $user): void
+    {
+        $this->entityManager->remove($user);
+        $this->entityManager->flush();
+    }
+
+    private function validateUserData(array $data, bool $isCreate): void
+    {
+        $requiredFields = [
+            'name',
+            'email',
+            'phone_number',
+            'role',
+            'gender',
+            'account_status'
+        ];
+
+        if ($isCreate) {
+            $requiredFields[] = 'password';
+        }
+
+        foreach ($requiredFields as $field) {
+            if (!array_key_exists($field, $data)) {
+                throw new \InvalidArgumentException("Missing required field: $field");
+            }
+        }
+
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            throw new \InvalidArgumentException("Invalid email format");
+        }
+
+        if ($isCreate && strlen($data['password']) < 8) {
+            throw new \InvalidArgumentException("Password must be at least 8 characters");
+        }
+    }
+
+    private function setUserData(User $user, array $data): void
+    {
+        $user->setName($data['name']);
+        $user->setEmail($data['email']);
+        $user->setPhoneNumber($data['phone_number']);
+        $user->setRole($data['role']);
+        $user->setGender($data['gender']);
+        $user->setAccountStatus($data['account_status']);
+
+        if (isset($data['password'])) {
+            $user->setPassword(
+                $this->passwordHasher->hashPassword($user, $data['password'])
+            );
+        }
+
+        if (isset($data['profile_picture'])) {
+            $user->setProfilePicture($data['profile_picture']);
+        }
+
+        if (isset($data['is_verified'])) {
+            $user->setIsVerified((bool)$data['is_verified']);
+        }
+
+        if (isset($data['status'])) {
+            try {
+                $status = \App\Enum\STATUS::from($data['status']);
+                $user->setStatus($status);
+            } catch (\ValueError $e) {
+                throw new \InvalidArgumentException('Invalid status value: ' . $data['status']);
+            }
+        }
+
+        if (isset($data['date_of_birth'])) {
+            $user->setDateOfBirth(new \DateTime($data['date_of_birth']));
+        }
+    }
+}

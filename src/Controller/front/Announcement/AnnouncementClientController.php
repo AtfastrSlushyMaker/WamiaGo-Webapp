@@ -20,7 +20,11 @@ use App\Service\EmailService;
 use App\Repository\DriverRepository;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
-
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Security\Core\Security;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 #[Route('/announcements')]
 class AnnouncementClientController extends AbstractController
 {
@@ -30,12 +34,14 @@ class AnnouncementClientController extends AbstractController
     private $emailService;
     private $driverRepository;
 
-    public function __construct(
+    public function __construct(        
         EntityManagerInterface $entityManager,
         AnnouncementService $announcementService,
         \Symfony\Component\Validator\Validator\ValidatorInterface $validator,
         EmailService $emailService,
-        DriverRepository $driverRepository
+        DriverRepository $driverRepository,
+        private readonly Security $security,
+        private readonly LoggerInterface $logger
     ) {
         $this->entityManager = $entityManager;
         $this->announcementService = $announcementService;
@@ -45,16 +51,23 @@ class AnnouncementClientController extends AbstractController
     }
 
     // Méthode helper pour obtenir l'utilisateur temporaire
-    private function getTempUser(): ?User
+    /*private function getTempUser(): ?User
     {
         return $this->entityManager->getRepository(User::class)->find(122);
-    }
+    }*/
 
     #[Route('/', name: 'app_front_announcements')]
     public function index(Request $request, PaginatorInterface $paginator): Response
     {
-        $user = $this->getTempUser();
-        
+        $user = $this->security->getUser();
+
+        if (!$user instanceof \App\Entity\User) {
+            return $this->json(['success' => false, 'message' => 'Invalid user type'], 401);
+        }
+        $user = $this->security->getUser();
+
+
+
         $query = $this->entityManager->createQueryBuilder()
             ->select('a', 'd')
             ->from(Announcement::class, 'a')
@@ -131,9 +144,9 @@ public function createReservation(Request $request, Announcement $announcement, 
 {
     $data = json_decode($request->getContent(), true);
 
-    $user = $this->entityManager->getRepository(User::class)->find(122);
+    $user = $this->security->getUser();
     if (!$user) {
-        return $this->json(['success' => false, 'message' => 'User with ID 122 not found.'], 404);
+        return $this->json(['success' => false, 'message' => 'Utilisateur non connecté.'], 401);
     }
 
     $reservation = new Reservation();
@@ -298,7 +311,7 @@ public function createReservation(Request $request, Announcement $announcement, 
                 
                 <div class='detail-item'>
                     <span class='detail-label'>Client Name:</span>
-                    <span>" . $user->getName() . "</span>
+                    <span>" . "Abrougui Ali" . "</span>
                 </div>
                 
                 <div class='detail-item'>
@@ -318,7 +331,7 @@ public function createReservation(Request $request, Announcement $announcement, 
             </div>
 
             <div style='text-align: center;'>
-                <a href='" . $request->getSchemeAndHttpHost() . "/transporter/reservations' class='button'>
+                <a href='" . $request->getSchemeAndHttpHost() . "/login' class='button'>
                     Manage Reservation
                 </a>
             </div>
@@ -388,7 +401,7 @@ $mailer->send($email);
     #[Route('/search', name: 'app_front_announcements_search', methods: ['GET'])]
     public function search(Request $request, PaginatorInterface $paginator): Response
     {
-        $user = $this->getTempUser();
+        $user = $this->security->getUser();
         
         // Récupération et validation des paramètres
         $keyword = trim($request->query->get('keyword', ''));
