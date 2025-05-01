@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des réclamations - WamiaGo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .logo {
+            max-width: 150px;
+            margin-bottom: 15px;
+        }
+        h1 {
+            color: #4e73df;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .date {
+            font-style: italic;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th {
+            background-color: #4e73df;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-size: 14px;
+        }
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #ddd;
+            font-size: 13px;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fc;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-true {
+            background-color: #1cc88a;
+            color: #fff;
+        }
+        .status-false {
+            background-color: #e74a3b;
+            color: #fff;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        {% if logoBase64 %}
+            <img src="{{ logoBase64 }}" alt="WamiaGo Logo" class="logo">
+        {% else %}
+            <div style="height: 40px; font-size: 24px; font-weight: bold; color: #4e73df; margin-bottom: 15px;">WamiaGo</div>
+        {% endif %}
+        <h1>Liste des réclamations</h1>
+        <div class="date">Généré le {{ date|date('d/m/Y à H:i') }}</div>
+    </div>
+    
+    {% if reclamations|length > 0 %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Utilisateur</th>
+                    <th>Titre</th>
+                    <th>Date</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reclamation in reclamations %}
+                    <tr>
+                        <td>#{{ reclamation.id_reclamation }}</td>
+                        <td>{{ reclamation.user.name ?? 'N/A' }}</td>
+                        <td>{{ reclamation.title }}</td>
+                        <td>{{ reclamation.date|date('d/m/Y') }}</td>
+                        <td>
+                            <span class="status-badge status-{{ reclamation.status ? 'true' : 'false' }}">
+                                {{ reclamation.status ? 'Traité' : 'Non traité' }}
+                            </span>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Aucune réclamation n'a été trouvée.</p>
+    {% endif %}
+    
+    <div class="footer">
+        <p>WamiaGo - Tous droits réservés &copy; {{ date|date('Y') }}</p>
+    </div>
+</body>
+</html>

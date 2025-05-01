@@ -1,0 +1,102 @@
+/* Enhanced radio button styling */
+.radio-group {
+    display: flex;
+    gap: 30px;
+    margin-top: 10px;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid #7FB4FF;
+}
+
+.radio-option:hover {
+    background-color: rgba(255, 206, 75, 0.2);
+    border-color: #FFCE4B;
+}
+
+input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #FFCE4B;
+    border-radius: 50%;
+    margin-right: 10px;
+    position: relative;
+    cursor: pointer;
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+input[type="radio"]:checked {
+    border-color: #FFCE4B;
+    background-color: #FFCE4B;
+    box-shadow: 0 0 10px rgba(255, 206, 75, 0.5);
+}
+
+input[type="radio"]:checked::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    background-color: white;
+    border-radius: 50%;
+}
+
+/* Update form colors to match landing page */
+.right-side {
+    background-color: #4169E1;
+    background-image:
+        radial-gradient(circle at 10% 20%, rgba(255, 206, 75, 0.2) 0%, transparent 25%),
+        radial-gradient(circle at 90% 80%, rgba(255, 206, 75, 0.2) 0%, transparent 25%);
+}
+
+.submit-btn {
+    background: linear-gradient(45deg, #FFCE4B, #FFD700);
+    color: #333;
+    font-weight: 600;
+    box-shadow: 0 8px 15px rgba(255, 206, 75, 0.3);
+}
+
+.submit-btn:hover {
+    background: linear-gradient(45deg, #FFD700, #FFCE4B);
+    box-shadow: 0 12px 25px rgba(255, 206, 75, 0.5);
+}
+
+.next-btn, .prev-btn {
+    background-color: #FFCE4B;
+    color: #333;
+    box-shadow: 0 5px 15px rgba(255, 206, 75, 0.3);
+}
+
+.next-btn:hover, .prev-btn:hover {
+    background-color: #FFD700;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(255, 206, 75, 0.3);
+}
+
+.step-indicator.active {
+    background-color: #FFCE4B;
+    color: #333;
+    box-shadow: 0 0 20px rgba(255, 206, 75, 0.6);
+}
+
+.step-indicator.completed {
+    background-color: #FFCE4B;
+    box-shadow: 0 0 15px rgba(255, 206, 75, 0.4);
+}
+
+.step-line.active {
+    background-color: #FFCE4B;
+    box-shadow: 0 0 10px rgba(255, 206, 75, 0.4);
+}

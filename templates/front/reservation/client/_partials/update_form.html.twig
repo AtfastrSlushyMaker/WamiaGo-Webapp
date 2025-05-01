@@ -1,0 +1,40 @@
+<div class="reservation-update-form">
+    <div class="mb-3">
+        <label for="update-description" class="form-label">Description</label>
+        <textarea class="form-control" id="update-description" rows="3" required>
+            {{- reservation.description|default('') -}}
+        </textarea>
+    </div>
+    
+    <div class="mb-3">
+        <label for="update-date" class="form-label">Date</label>
+        <input type="datetime-local" class="form-control" id="update-date" 
+               value="{{ reservation.date ? reservation.date|date('Y-m-d\\TH:i') : '' }}" required>
+    </div>
+    
+    <div class="mb-3">
+        <label for="update-start-location" class="form-label">Start Location</label>
+        <select class="form-select" id="update-start-location" required>
+            <option value="">Select start location</option>
+            {% for location in locations %}
+                <option value="{{ location.id_location }}" 
+                    {% if reservation.startLocation and location.id_location == reservation.startLocation.id_location %}selected{% endif %}>
+                    {{ location.address|default('') }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <div class="mb-3">
+        <label for="update-end-location" class="form-label">End Location</label>
+        <select class="form-select" id="update-end-location" required>
+            <option value="">Select end location</option>
+            {% for location in locations %}
+                <option value="{{ location.id_location }}"
+                    {% if reservation.endLocation and location.id_location == reservation.endLocation.id_location %}selected{% endif %}>
+                    {{ location.address|default('') }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+</div>

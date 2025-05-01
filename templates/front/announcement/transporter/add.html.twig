@@ -1,0 +1,644 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Create New Announcement | WamiaGo{% endblock %}
+
+{% block page_stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/front/announcement/transporter-create-announcement.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+
+  .title-suggestion {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.title-suggestion:hover {
+    background-color: #f8f9fa;
+    border-color: #4361ee;
+}
+
+.use-title-btn {
+    padding: 0.1rem 0.5rem;
+    font-size: 0.8rem;
+}
+                /* Generation button styles */
+        .btn-generate {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(103, 58, 183, 0.2);
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(103, 58, 183, 0.3);
+        }
+
+        .btn-generate:disabled {
+            opacity: 0.7;
+            transform: none;
+        }
+
+        /* Loader styles */
+        .generation-loader {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* Text animation */
+        @keyframes textHighlight {
+            0% { background-color: rgba(167, 119, 227, 0.1); }
+            100% { background-color: transparent; }
+        }
+
+        .text-generated {
+            animation: textHighlight 1s ease-out;
+        }
+
+        .voice-recorder {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+
+        .recording-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .record-btn {
+            background: #ff4b4b;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .record-btn.recording {
+            animation: pulse 1.5s infinite;
+            background: #ff0000;
+        }
+
+        .record-btn i {
+            color: white;
+            font-size: 20px;
+        }
+
+        .timer {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 1.2rem;
+            color: #333;
+            min-width: 85px;
+        }
+
+        .recording-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #666;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+
+        .status-indicator.active {
+            background: #ff4b4b;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        .alert {
+            position: relative;
+            margin-top: 1rem;
+        }
+
+        .alert-dismissible .btn-close {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 1.25rem;
+        }
+
+        .content-tools-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.language-selector .btn-group {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.language-selector .btn {
+    padding: 5px 12px;
+    font-size: 0.8rem;
+}
+
+.language-btn.active {
+    background: #4361ee;
+    color: white;
+}
+    </style>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap">
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section with 3D Background -->
+<div class="announcement-hero">
+    <!-- Background Image with Parallax Effect -->
+    <img src="{{ asset('images/front/announcements/3d-transport-bg.png') }}" 
+         alt="Professional transport services" 
+         class="hero-img"
+         loading="lazy">
+    
+    <!-- Decorative Animated Circles -->
+    <div class="decorative-circle circle-1"></div>
+    <div class="decorative-circle circle-2"></div>
+    <div class="decorative-circle circle-3"></div>
+    <div class="decorative-circle circle-4"></div>
+    
+    <!-- Hero Content -->
+    <div class="hero-content animate__animated animate__fadeIn">
+        <h1>Create Your Transport Announcement</h1>
+        <p class="lead">Connect with clients across Tunisia through our professional network</p>
+        
+        <!-- Professional Service Highlights -->
+        <div class="service-highlights">
+            <div class="highlight-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Reach thousands of potential clients</span>
+            </div>
+            <div class="highlight-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Real-time notifications</span>
+            </div>
+        </div>
+        
+        <div class="scroll-indicator">
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Main Form Section -->
+<div class="announcement-container">
+    <div class="announcement-form-container">
+        <div class="form-intro">
+            <h2><i class="fas fa-truck-moving me-2"></i>Transport Service Details</h2>
+            <p>Fill in all required information to create an attractive announcement</p>
+        </div>
+
+        {{ form_start(form, {'attr': {'id': 'announcement-form', 'class': 'announcement-form'}}) }}
+            <div class="form-card">
+                <!-- Title Field -->
+                <div class="form-group floating-label">
+                    {{ form_widget(form.title, {'attr': {
+                        'class': 'form-control' ~ (form.title.vars.errors|length ? ' is-invalid' : ''),
+                        'placeholder': ' ',
+                        'id': 'announcement_title'
+                    }}) }}
+                    {{ form_label(form.title) }}
+                    <div class="invalid-feedback">
+                        {% for error in form.title.vars.errors %}
+                            {{ error.message }}
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="title-suggestions mt-2">
+                        <button type="button" id="suggestTitlesBtn" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-lightbulb me-1"></i> Suggest Titles
+                        </button>
+                        <div id="titleSuggestionsLoader" class="spinner-border spinner-border-sm text-primary d-none ms-2" role="status"></div>
+                        
+                        <div id="titleSuggestions" class="mt-2">
+                            <!-- Les suggestions apparaîtront ici -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Field -->
+                <div class="form-group floating-label">
+                    {{ form_widget(form.content, {'attr': {
+                        'class': 'form-control' ~ (form.content.vars.valid ? '' : ' is-invalid'),
+                        'placeholder': ' ',
+                        'rows': 6,
+                        'data-3d': 'true'
+                    }}) }}
+                    {{ form_label(form.content) }}
+                    <div class="invalid-feedback">{{ form_errors(form.content)|striptags }}</div>
+                
+                    <div class="content-generation-container mb-3 mt-3">
+                        <button type="button" id="generateContentBtn" class="btn btn-primary btn-generate">
+                            <i class="fas fa-robot me-2"></i>Generate with AI
+                        </button>
+                        <div id="generationLoader" class="generation-loader d-none">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span class="ms-2">Generating content...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Voice Recorder -->
+                <div class="voice-recorder">
+                    <div class="recording-controls">
+                        <button type="button" id="recordButton" class="record-btn">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <div class="timer" id="timer">00:00</div>
+                        <div class="recording-status">
+                            <div class="status-indicator" id="statusIndicator"></div>
+                            <span id="statusText">Click to start recording</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Zone and Status Fields -->
+                <div class="form-row">
+                    <div class="form-group col-md-6 floating-label">
+                        {{ form_widget(form.zone, {'attr': {
+                            'class': 'form-select' ~ (form.zone.vars.valid ? '' : ' is-invalid'),
+                            'data-3d': 'true'
+                        }}) }}
+                        {{ form_label(form.zone) }}
+                        <div class="invalid-feedback">{{ form_errors(form.zone)|striptags }}</div>
+                    </div>
+
+                    <div class="form-group col-md-6">
+                        <div class="form-check form-switch">
+                            {{ form_widget(form.status, {'attr': {
+                                'class': 'form-check-input',
+                                'role': 'switch',
+                                'data-3d': 'true'
+                            }}) }}
+                            {{ form_label(form.status, null, {
+                                'label_attr': {'class': 'form-check-label'}
+                            }) }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg btn-3d">
+                        <i class="fas fa-paper-plane me-2"></i>Publish Announcement
+                    </button>
+                    <a href="{{ path('app_transporter_announcement_list') }}" class="btn btn-outline-secondary btn-lg btn-3d">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                </div>
+
+                <!-- Professional Tips Section -->
+        <div class="professional-tips mt-5">
+            <h4><i class="fas fa-lightbulb"></i> Professional Tips</h4>
+            <ul>
+                <li>Be specific about your services and capacity</li>
+                <li>Include clear pricing information if possible</li>
+        
+                <li>Respond quickly to client inquiries</li>
+            </ul>
+        </div>
+
+        <!-- Trust Badges -->
+        <div class="trust-badges">
+            <div class="badge-item">
+                <i class="fas fa-shield-alt"></i>
+                <span>Secure Platform</span>
+            </div>
+            <div class="badge-item">
+                <i class="fas fa-headset"></i>
+                <span>24/7 Support</span>
+            </div>
+            <div class="badge-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Verified Transporters</span>
+            </div>
+        </div>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}
+
+{% block page_javascripts %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanilla-tilt@1.7.0/dist/vanilla-tilt.min.js"></script>
+    <script src="{{ asset('js/front/announcement/transporter-announcement.js') }}"></script>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+    const generateBtn = document.getElementById('generateContentBtn');
+    const contentField = document.querySelector('#{{ form.content.vars.id }}');
+    const loader = document.getElementById('generationLoader');
+    
+    generateBtn.addEventListener('click', async function() {
+        try {
+            // Show loading state
+            generateBtn.disabled = true;
+            loader.classList.remove('d-none');
+            
+            const response = await fetch('{{ path('app_announcement_generate_content') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({
+                    content: contentField.value
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                contentField.value = data.content;
+                
+                // Show success animation
+                contentField.classList.add('text-generated');
+                setTimeout(() => {
+                    contentField.classList.remove('text-generated');
+                }, 1000);
+            } else {
+                throw new Error(data.error || 'Unknown error');
+            }
+        } catch (error) {
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger mt-3';
+            alert.innerHTML = `
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                ${error.message}
+            `;
+            generateBtn.parentNode.insertBefore(alert, generateBtn.nextSibling);
+            
+            setTimeout(() => alert.remove(), 5000);
+        } finally {
+            generateBtn.disabled = false;
+            loader.classList.add('d-none');
+        }
+    });
+});
+
+        document.addEventListener('DOMContentLoaded', function() {
+            let isRecording = false;
+            let recognizer = null;
+            let startTime = null;
+            let timerInterval = null;
+            let accumulatedText = ''; 
+
+            const recordButton = document.getElementById('recordButton');
+            const timer = document.getElementById('timer');
+            const statusIndicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            const contentField = document.querySelector('#{{ form.content.vars.id }}');
+
+            async function initializeSpeechService() {
+                try {
+                    const response = await fetch('/api/speech/config');
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch speech configuration');
+                    }
+                    
+                    const config = await response.json();
+                    if (!config.authToken || !config.region) {
+                        throw new Error('Invalid speech configuration');
+                    }
+
+                    const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(
+                        config.authToken,
+                        config.region
+                    );
+                    speechConfig.speechRecognitionLanguage = config.language || 'fr-FR';
+                    
+                    return speechConfig;
+                } catch (error) {
+                    console.error('Speech config error:', error);
+                    throw new Error('Failed to initialize speech service: ' + error.message);
+                }
+            }
+
+            async function startRecording() {
+                try {
+                    if (!isRecording) {
+                        // Clear previous content only when starting a new recording session
+                        contentField.value = '';
+                        accumulatedText = '';
+
+                        // Initialize speech service
+                        const speechConfig = await initializeSpeechService();
+                        const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+                        recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+
+                        // Handle intermediate results - accumulate text
+                        recognizer.recognizing = (s, e) => {
+                            if (e.result.text) {
+                                contentField.value = accumulatedText + ' ' + e.result.text;
+                            }
+                        };
+
+                        // Handle final results - update accumulated text
+                        recognizer.recognized = (s, e) => {
+                            if (e.result.text) {
+                                accumulatedText = (accumulatedText + ' ' + e.result.text).trim();
+                                contentField.value = accumulatedText;
+                            }
+                        };
+
+                        await recognizer.startContinuousRecognitionAsync();
+                        
+                        isRecording = true;
+                        startTime = Date.now();
+                        timerInterval = setInterval(updateTimer, 1000);
+                        
+                        recordButton.classList.add('recording');
+                        statusIndicator.classList.add('active');
+                        recordButton.innerHTML = '<i class="fas fa-stop"></i>';
+                        statusText.textContent = 'Recording...';
+                    }
+                } catch (error) {
+                    console.error('Speech recognition error:', error);
+                    showError(error.message || 'Failed to start recording. Please try again.');
+                    await stopRecording();
+                }
+            }
+
+            async function stopRecording() {
+                if (recognizer && isRecording) {
+                    try {
+                        await recognizer.stopContinuousRecognitionAsync();
+                        recognizer.close();
+                    } catch (error) {
+                        console.error('Error stopping recognition:', error);
+                    } finally {
+                        recognizer = null;
+                    }
+                }
+                
+                isRecording = false;
+                clearInterval(timerInterval);
+                timer.textContent = '00:00';
+                
+                recordButton.classList.remove('recording');
+                statusIndicator.classList.remove('active');
+                recordButton.innerHTML = '<i class="fas fa-microphone"></i>';
+                statusText.textContent = 'Click to start new recording';
+
+                // Add visual feedback for accumulated text
+                contentField.classList.add('text-accumulated');
+                setTimeout(() => {
+                    contentField.classList.remove('text-accumulated');
+                }, 500);
+            }
+
+            function updateTimer() {
+                const elapsed = Date.now() - startTime;
+                const minutes = Math.floor(elapsed / 60000);
+                const seconds = Math.floor((elapsed % 60000) / 1000);
+                timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            function showError(message) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'alert alert-danger alert-dismissible fade show mt-2';
+                errorDiv.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <div><strong>Error:</strong> ${message}</div>
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+                recordButton.parentElement.appendChild(errorDiv);
+                
+                setTimeout(() => {
+                    errorDiv.remove();
+                }, 5000);
+            }
+
+            recordButton.addEventListener('click', async () => {
+                try {
+                    if (!isRecording) {
+                        await startRecording();
+                    } else {
+                        await stopRecording();
+                    }
+                } catch (error) {
+                    console.error('Recording operation failed:', error);
+                    showError('An unexpected error occurred. Please try again.');
+                    await stopRecording();
+                }
+            });
+        });
+
+        // Title Suggestions
+document.getElementById('suggestTitlesBtn').addEventListener('click', async function() {
+    const btn = this;
+    const loader = document.getElementById('titleSuggestionsLoader');
+    const suggestionsDiv = document.getElementById('titleSuggestions');
+    const content = document.querySelector('#{{ form.content.vars.id }}').value;
+
+    if (!content.trim()) {
+        alert('Please enter some content first');
+        return;
+    }
+
+    btn.disabled = true;
+    loader.classList.remove('d-none');
+    suggestionsDiv.innerHTML = '';
+
+    try {
+        const response = await fetch('{{ path('app_announcement_generate_titles') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                content: content,
+                language: document.querySelector('.language-btn.active')?.dataset.lang || 'auto'
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            suggestionsDiv.innerHTML = data.titles.map(title => `
+                <div class="card mb-2 title-suggestion">
+                    <div class="card-body p-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>${title}</span>
+                            <button class="btn btn-sm btn-success use-title-btn">
+                                <i class="fas fa-check"></i> Use
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Add click handlers
+            document.querySelectorAll('.use-title-btn').forEach((btn, index) => {
+                btn.addEventListener('click', () => {
+                    document.getElementById('{{ form.title.vars.id }}').value = data.titles[index];
+                });
+            });
+        } else {
+            throw new Error(data.error || 'Failed to generate titles');
+        }
+    } catch (error) {
+        suggestionsDiv.innerHTML = `
+            <div class="alert alert-danger mt-2">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                ${error.message}
+            </div>
+        `;
+    } finally {
+        btn.disabled = false;
+        loader.classList.add('d-none');
+    }
+});
+    </script>
+
+    <style>
+        @keyframes textAccumulated {
+            0% { background-color: rgba(90, 107, 229, 0.1); }
+            100% { background-color: transparent; }
+        }
+
+        .text-accumulated {
+            animation: textAccumulated 0.5s ease-out;
+        }
+    </style>
+{% endblock %}

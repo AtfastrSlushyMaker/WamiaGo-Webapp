@@ -2,8 +2,14 @@
 # Files in the packages/ subdirectory configure your dependencies.
 
 # Put parameters here that don't need to change on each machine where the app is deployed
-# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+# https://symfony.com/doc/current/best-practices.html#use-parameters-for-application-configuration
 parameters:
+    twilio.account_sid: '%env(TWILIO_ACCOUNT_SID)%'
+    twilio.auth_token: '%env(TWILIO_AUTH_TOKEN)%'
+    twilio.from_number: '%env(TWILIO_FROM_NUMBER)%'
+    gemini.api_key: '%env(GEMINI_API_KEY)%'
+    app.openweather_api_key: '%env(OPENWEATHER_API_KEY)%'
+    app.gemini_api_key: '%env(GEMINI_API_KEY)%'
   azure.tts.region: '%env(AZURE_TTS_REGION)%'
   azure.tts.key: '%env(AZURE_TTS_KEY)%'
   gemini_api_key: '%env(GEMINI_API_KEY)%'
@@ -12,6 +18,8 @@ services:
     # default configuration for services in *this* file
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        public: false
         autoconfigure: true
 
     dompdf.wrapper:
@@ -41,5 +49,66 @@ services:
 
             
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+    # Twilio service configuration
+    App\Service\TwilioService:
+        arguments:
+            $accountSid: '%twilio.account_sid%'
+            $authToken: '%twilio.auth_token%'
+            $fromNumber: '%twilio.from_number%'
+
+    # Gemini Chat service configuration
+    App\Service\GeminiChatService:
+        arguments:
+            $apiKey: '%gemini.api_key%'
+
+    # Geo-routing service for bicycle module
+    App\Service\Geo\GeoRoutingService:
+        arguments:
+            $logger: '@logger'
+
+    # Configure Gemini API Service with API key
+    App\Service\GeminiApiService:
+        arguments:
+            $httpClient: '@http_client'
+            $apiKey: '%gemini.api_key%'
+
+    # Add UserRepository as a global Twig variable
+    App\Repository\UserRepository:
+        public: true
+
+    # Azure Speech service
+    App\Service\Speech\AzureSpeechService:
+        public: true
+
+    # PDF export service
+    App\Service\Export\PdfExportService:
+        arguments:
+            $twig: '@twig'
+
+    # Configure Dompdf as a service
+    Dompdf\Dompdf:
+        calls:
+            - [setOptions, ['@dompdf.options']]
+
+    dompdf.options:
+        class: Dompdf\Options
+        calls:
+            - [setIsHtml5ParserEnabled, [true]]
+            - [setIsRemoteEnabled, [true]]
+            - [setIsPhpEnabled, [true]]
+            - [setDefaultFont, ['DejaVu Sans']]
+
+    # Twig extension
+    App\Twig\Extension\ImageExtension:
+        tags: ['twig.extension']
+
+    # OpenAI service
+    App\Service\OpenAIService:
+        arguments:
+            $apiKey: '%env(OPENAI_API_KEY)%'
+
+    # Email service
+    App\Service\EmailService:
+        arguments:
+            $mailer: '@mailer'
+            $logger: '@logger'

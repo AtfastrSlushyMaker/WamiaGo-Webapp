@@ -1,0 +1,116 @@
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-draggable">
+        <div class="modal-content border-0">
+            <!-- Header avec poignée de déplacement -->
+            <div class="modal-header bg-gradient-primary text-white cursor-move">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-truck me-3 fs-4"></i>
+                    <h5 class="modal-title mb-0">TRANSPORT ANNOUNCEMENT DETAILS</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" aria-label="Close" onclick="closeModalAndRefreshList()"></button>
+            </div>
+            
+            <!-- Corps du modal -->
+            <div class="modal-body p-4" id="detailsModalBody">
+                <div class="row g-4">
+                    <!-- Colonne gauche -->
+                    <div class="col-lg-6">
+                        <!-- Titre -->
+                        <div class="detail-card">
+                            <div class="detail-icon">
+                                <i class="fas fa-heading"></i>
+                            </div>
+                            <div>
+                                <h6 class="detail-label">TITLE</h6>
+                                <p class="detail-value" id="details-title"></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Contenu -->
+                        <div class="detail-card">
+                            <div class="detail-icon">
+                                <i class="fas fa-align-left"></i>
+                            </div>
+                            <div>
+                                <h6 class="detail-label">DESCRIPTION</h6>
+                                <p class="detail-value text-muted" id="details-content"></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Colonne droite -->
+                    <div class="col-lg-6">
+                        <!-- Zone -->
+                        <div class="detail-card">
+                            <div class="detail-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div>
+                                <h6 class="detail-label">ZONE</h6>
+                                <p class="detail-value">
+                                    <span class="badge bg-primary" id="details-zone"></span>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Date -->
+                        <div class="detail-card">
+                            <div class="detail-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div>
+                                <h6 class="detail-label">DATE</h6>
+                                <p class="detail-value" id="details-date"></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Statut -->
+                        <div class="detail-card">
+                            <div class="detail-icon">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div>
+                                <h6 class="detail-label">STATUS</h6>
+                                <p class="detail-value">
+                                    <span class="badge" id="details-status"></span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Illustration -->
+                <div class="truck-animation-container">
+                    <div class="road"></div>
+                    <img src="{{ asset('images/front/announcements/icons/d.png') }}" class="truck-image" alt="Truck">
+                    <img src="{{ asset('images/front/announcements/icons/wheel.png') }}" class="truck-wheel wheel-front" alt="Wheel">
+                    <img src="{{ asset('images/front/announcements/icons/wheel.png') }}" class="truck-wheel wheel-rear" alt="Wheel">
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModalAndRefreshList()">
+    <i class="fas fa-times me-2"></i> Close
+</button>
+                <button type="button" class="btn btn-primary" id="editAnnouncementBtn">
+                    <i class="fas fa-edit me-2"></i> Edit
+                </button>
+            </div>
+
+            
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const detailsModal = document.getElementById('detailsModal');
+
+    if (detailsModal) {
+        detailsModal.addEventListener('hidden.bs.modal', function () {
+            document.body.style.overflow = 'auto'; // réactive le scroll
+        });
+    }
+});
+</script>

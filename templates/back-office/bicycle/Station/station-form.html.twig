@@ -1,0 +1,201 @@
+<div class="modal fade" id="stationFormModal" tabindex="-1" aria-labelledby="stationFormModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-gradient-primary-to-secondary text-white">
+        <h5 class="modal-title" id="stationFormModalLabel">
+          <i class="ti ti-map-pin me-2"></i> {{ is_new ? 'Add New Station' : 'Edit Station' }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="container-fluid">
+          <div class="row g-0">
+            <!-- Left Column: Map & Location -->
+            <div class="col-lg-7 p-4 border-end">
+              <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="fw-bold mb-0"><i class="ti ti-map-2 text-primary me-2"></i> Station Location</h6>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="showOtherStations" checked>
+                    <label class="form-check-label small" for="showOtherStations">Show other stations</label>
+                  </div>
+                </div>
+                
+                <div class="input-group mb-3">
+                  <input type="text" class="form-control" id="locationSearch" placeholder="Search for a location...">
+                  <button class="btn btn-primary" type="button" id="searchLocationBtn">
+                    <i class="ti ti-search"></i>
+                  </button>
+                </div>
+                
+                <div class="station-map-container rounded-3 overflow-hidden shadow-sm">
+                  <div id="stationMap" style="height: 320px;"></div>
+                  <div class="hover-indicator" id="mapHoverIndicator">
+                    <i class="ti ti-map-pin me-2"></i>Click to place station
+                  </div>
+                </div>
+                
+                <div class="location-preview mt-3 p-3 rounded-3 bg-light shadow-sm">
+                  <div class="d-flex align-items-center mb-2">
+                    <div class="location-marker me-2">
+                      <i class="ti ti-map-pin text-danger"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                      <p class="mb-0 fw-bold">Selected Location</p>
+                      <p id="selectedAddress" class="text-muted mb-0 small">
+                        {% if station.location.address is defined and station.location.address %}
+                          {{ station.location.address }}
+                        {% else %}
+                          No location selected
+                        {% endif %}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="d-flex text-muted small">
+                    <div class="me-3" id="selectedLatitude">
+                      <strong>Lat:</strong> 
+                      {% if station.location is defined and station.location.latitude %}
+                        {{ station.location.latitude }}
+                      {% else %}
+                        --
+                      {% endif %}
+                    </div>
+                    <div id="selectedLongitude">
+                      <strong>Lng:</strong> 
+                      {% if station.location is defined and station.location.longitude %}
+                        {{ station.location.longitude }}
+                      {% else %}
+                        --
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Hidden fields for location data -->
+              <input type="hidden" id="station_latitude" name="station_latitude" value="{% if station.location is defined %}{{ station.location.latitude|default('') }}{% endif %}">
+              <input type="hidden" id="station_longitude" name="station_longitude" value="{% if station.location is defined %}{{ station.location.longitude|default('') }}{% endif %}">
+              <input type="hidden" id="station_address" name="station_address" value="{% if station.location is defined %}{{ station.location.address|default('') }}{% endif %}">
+              <input type="hidden" id="station_location_id" name="station_location_id" value="{% if station.location is defined %}{{ station.location.id|default('') }}{% endif %}">
+            </div>
+            
+            <!-- Right Column: Form Fields -->
+            <div class="col-lg-5 p-4 bg-light">
+              {{ form_start(stationForm, {'attr': {'id': 'stationForm', 'class': 'needs-validation'}}) }}
+                {{ form_errors(stationForm) }}
+                
+                <div class="form-floating mb-3">
+                  {{ form_widget(stationForm.name, {
+                    'attr': {
+                      'class': 'form-control' ~ (stationForm.name.vars.valid ? '' : ' is-invalid'),
+                      'placeholder': 'Station Name',
+                      'id': 'station_name'
+                    }
+                  }) }}
+                  {{ form_label(stationForm.name, 'Station Name', {'label_attr': {'for': 'station_name'}}) }}
+                  {{ form_errors(stationForm.name, {'attr': {'class': 'invalid-feedback'}}) }}
+                </div>
+                
+                <div class="row g-3 mb-3">
+                  <div class="col-md-6">
+                    <div class="form-floating">
+                      {{ form_widget(stationForm.status, {
+                        'attr': {
+                          'class': 'form-select status-select' ~ (stationForm.status.vars.valid ? '' : ' is-invalid'),
+                          'id': 'station_status'
+                        }
+                      }) }}
+                      {{ form_label(stationForm.status, 'Status', {'label_attr': {'for': 'station_status'}}) }}
+                      {{ form_errors(stationForm.status, {'attr': {'class': 'invalid-feedback'}}) }}
+                      <div class="form-text small">Determines if the station appears in the app</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-floating">
+                      {{ form_widget(stationForm.totalDocks, {
+                        'attr': {
+                          'class': 'form-control' ~ (stationForm.totalDocks.vars.valid ? '' : ' is-invalid'),
+                          'placeholder': 'Total Docks',
+                          'min': 1,
+                          'id': 'station_totalDocks'
+                        }
+                      }) }}
+                      {{ form_label(stationForm.totalDocks, 'Total Docks', {'label_attr': {'for': 'station_totalDocks'}}) }}
+                      {{ form_errors(stationForm.totalDocks, {'attr': {'class': 'invalid-feedback'}}) }}
+                      <div class="form-text small">Total docking spots available</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="form-floating mb-4">
+                  <input type="number" class="form-control" id="availableBikes" 
+                         name="availableBikes" min="0" 
+                         max="{{ stationForm.totalDocks.vars.value|default(5) }}"
+                         value="{% if station.availableBikes is defined %}{{ station.availableBikes }}{% else %}0{% endif %}" 
+                         placeholder="Available Bikes">
+                  <label for="availableBikes">Available Bikes</label>
+                  <div class="form-text small">Number of bikes currently available</div>
+                </div>
+
+                <!-- Hidden location fields -->
+                {{ form_row(stationForm.location, {'attr': {'class': 'd-none'}}) }}
+                <input type="hidden" id="station_latitude" name="station_latitude" value="{% if station.location is defined %}{{ station.location.latitude|default('') }}{% endif %}">
+                <input type="hidden" id="station_longitude" name="station_longitude" value="{% if station.location is defined %}{{ station.location.longitude|default('') }}{% endif %}">
+                <input type="hidden" id="station_address" name="station_address" value="{% if station.location is defined %}{{ station.location.address|default('') }}{% endif %}">
+                <input type="hidden" id="station_location_id" name="station_location_id" value="{% if station.location is defined %}{{ station.location.id|default('') }}{% endif %}">
+                
+                <!-- Capacity Visualization -->
+                <div class="capacity-card p-3 mb-4 bg-white rounded-3 shadow-sm">
+                  <h6 class="fw-bold mb-3"><i class="ti ti-chart-pie text-primary me-2"></i> Capacity Visualization</h6>
+                  <div class="capacity-distribution rounded-pill overflow-hidden mb-3" style="height: 12px;">
+                    <div class="distribution-segment bike-segment" id="bikeSegment" style="width: 0%; height: 100%; float: left;"></div>
+                    <div class="distribution-segment dock-segment" id="dockSegment" style="width: 100%; height: 100%; float: left;"></div>
+                    <div class="distribution-segment charging-segment" id="chargingSegment" style="width: 0%; height: 100%; float: left;"></div>
+                  </div>
+                  
+                  <div class="row text-center">
+                    <div class="col-4">
+                      <h3 class="mb-0" id="availableBikesValue">0</h3>
+                      <p class="text-muted small mb-0">Bikes</p>
+                    </div>
+                    <div class="col-4">
+                      <h3 class="mb-0" id="availableDocksValue">0</h3>
+                      <p class="text-muted small mb-0">Empty Docks</p>
+                    </div>
+                    <div class="col-4">
+                      <h3 class="mb-0" id="chargingBikesValue">0</h3>
+                      <p class="text-muted small mb-0">Charging</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="alert alert-info d-flex" role="alert">
+                  <i class="ti ti-info-circle me-2 mt-1"></i>
+                  <div class="small">
+                    Place stations in accessible locations with high foot traffic. Balance the number of docks with the expected demand in the area.
+                  </div>
+                </div>
+                
+              {{ form_end(stationForm, {'render_rest': true}) }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="ti ti-x me-1"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-primary" id="saveStationBtn">
+          <i class="ti ti-device-floppy me-1"></i> {{ is_new ? 'Create Station' : 'Update Station' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Overlay for the Modal -->
+<div id="modalLoadingOverlay" class="modal-loading-overlay" style="display: none;">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>

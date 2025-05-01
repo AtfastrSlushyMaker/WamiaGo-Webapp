@@ -22,7 +22,7 @@ class LocationService
      * @param float $longitude
      * @return Location
      */
-    public function createLocation(string $address, ?float $latitude = null, ?float $longitude = null): Location
+    public function createLocation(string $address, float $latitude = null, float $longitude = null): Location
     {
         $location = new Location();
         $location->setAddress($address);
