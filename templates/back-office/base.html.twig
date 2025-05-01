@@ -763,6 +763,8 @@
 
                 <li class="nav-item {{ app.request.attributes.get('_route') == 'admin_taxi_bookings' ? 'active' : '' }}">
                     <a href="{{ path('admin_taxi_bookings') }}" class="nav-link">
+                <li class="nav-item">
+                    <a href="{{ path('admin_taxi_management') }}" class="nav-link">
                         <i class="bi bi-taxi-front nav-icon"></i>
                         <span class="nav-text">Taxi Bookings</span>
                     </a>
