@@ -590,8 +590,8 @@ class BicycleRentalsController extends AbstractController
         array $routeData = [],
         array $elevationData = []
     ): array {
-        // Get weather information - in a real application you would use your weather service
-        $weatherInfo = "Sunny with light breeze"; // This would normally come from your weather API
+        // Get weather information for the start location
+        $weatherInfo = $this->getWeatherInfo($startStation);
         
         // Create a detailed prompt for Gemini API
         $prompt = $this->createAIPrompt(
@@ -1223,5 +1223,63 @@ EOT;
                 round($distance * 0.2, 1) . ' kg of CO2 compared to car travel.',
             'is_fallback' => true
         ];
+    }
+
+    /**
+     * Get the current weather information for a bicycle station
+     * 
+     * @param BicycleStation $station The station to get weather for
+     * @return string Formatted weather information
+     */
+    private function getWeatherInfo(BicycleStation $station): string
+    {
+        try {
+            // Make sure we have location data for the station
+            if (!$station->getLocation()) {
+                return "Sunny with light breeze";
+            }
+            
+            // Get coordinates
+            $lat = $station->getLocation()->getLatitude();
+            $lon = $station->getLocation()->getLongitude();
+            
+            // Try to get weather data from API
+            $apiKey = $this->getParameter('app.openweather_api_key');
+            
+            if (!$apiKey) {
+                $this->logger->warning("No OpenWeather API key found, using default weather");
+                return "Sunny with light breeze";
+            }
+            
+            // Create API URL
+            $url = "https://api.openweathermap.org/data/2.5/weather?lat={$lat}&lon={$lon}&units=metric&appid={$apiKey}";
+            
+            // Make the API call
+            $response = @file_get_contents($url);
+            
+            if ($response === false) {
+                $this->logger->warning("Failed to connect to OpenWeather API, using default weather");
+                return "Sunny with light breeze";
+            }
+            
+            // Parse response
+            $weatherData = json_decode($response, true);
+            
+            if (!$weatherData || !isset($weatherData['weather'][0]['description'])) {
+                $this->logger->warning("Invalid weather data from API, using default weather");
+                return "Sunny with light breeze";
+            }
+            
+            // Format a detailed weather description
+            $description = ucfirst($weatherData['weather'][0]['description']);
+            $temperature = round($weatherData['main']['temp']) . '°C';
+            $windSpeed = isset($weatherData['wind']['speed']) ? 
+                round($weatherData['wind']['speed'] * 3.6) . ' km/h' : 'light';
+                
+            return "{$description}, {$temperature} with {$windSpeed} wind";
+        } catch (\Exception $e) {
+            $this->logger->error("Weather service error: " . $e->getMessage());
+            return "Sunny with light breeze";
+        }
     }
 }
