@@ -331,7 +331,7 @@ public function createReservation(Request $request, Announcement $announcement, 
             </div>
 
             <div style='text-align: center;'>
-                <a href='" . $request->getSchemeAndHttpHost() . "/transporter/reservations' class='button'>
+                <a href='" . $request->getSchemeAndHttpHost() . "/login' class='button'>
                     Manage Reservation
                 </a>
             </div>

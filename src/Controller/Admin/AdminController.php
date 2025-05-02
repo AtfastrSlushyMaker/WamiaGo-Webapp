@@ -319,11 +319,11 @@ class AdminController extends AbstractController
         return $this->render('back-office/bicycle-rentals.html.twig', $params);
     }
 
-    #[Route('/admin/relocations', name: 'admin_relocations')]
+   /* #[Route('/admin/relocations', name: 'admin_relocations')]
     public function relocations(): Response
     {
         return $this->render('back-office/relocations.html.twig');
-    }
+    }*/
 
     #[Route('/admin/settings', name: 'admin_settings')]
     public function settings(): Response

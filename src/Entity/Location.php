@@ -12,6 +12,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: 'location')]
 class Location
 {
+    private const EARTH_RADIUS_KM = 6371; // Earth's radius in kilometers
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(name: 'id_location', type: 'integer')]
@@ -270,4 +271,44 @@ class Location
         $this->getUsers()->removeElement($user);
         return $this;
     }
+
+
+    public static function calculateDistance(Location $location1, Location $location2): float
+    {
+        $lat1 = deg2rad($location1->getLatitude());
+        $lon1 = deg2rad($location1->getLongitude());
+        $lat2 = deg2rad($location2->getLatitude());
+        $lon2 = deg2rad($location2->getLongitude());
+    
+        $deltaLat = $lat2 - $lat1;
+        $deltaLon = $lon2 - $lon1;
+    
+        $a = sin($deltaLat/2) * sin($deltaLat/2) +
+             cos($lat1) * cos($lat2) * 
+             sin($deltaLon/2) * sin($deltaLon/2);
+        
+        $c = 2 * atan2(sqrt($a), sqrt(1-$a));
+        
+        return self::EARTH_RADIUS_KM * $c;
+    }
+    
+    /**
+     * Get formatted distance between two locations
+     * 
+     * @param Location $location1 The first location
+     * @param Location $location2 The second location
+     * @return string Formatted distance (e.g. "1.2 km" or "800 m")
+     */
+    public static function getFormattedDistance(Location $location1, Location $location2): string
+    {
+        $distance = self::calculateDistance($location1, $location2);
+        
+        if ($distance < 1) {
+            // Convert to meters if less than 1 km
+            return round($distance * 1000) . ' m';
+        }
+        
+        return round($distance, 2) . ' km';
+    } 
+
 }
