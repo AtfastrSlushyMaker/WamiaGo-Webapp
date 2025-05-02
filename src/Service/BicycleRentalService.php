@@ -182,7 +182,7 @@ class BicycleRentalService
             ->getQuery()
             ->getResult();
     }
-    public function getActiveRidesForStation(Station $station): array
+    public function getActiveRidesForStation(BicycleStation $station): array
     {
         return $this->entityManager->createQueryBuilder()
             ->select('r')
