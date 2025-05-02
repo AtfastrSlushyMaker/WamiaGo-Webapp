@@ -144,77 +144,81 @@ public function saveTrip(Request $request, TripService $tripService, EntityManag
             'cities' => $cities,
         ]);
     }
-#[Route('/api/predict-price', name: 'predict_price', methods: ['POST'])]
-public function predict(Request $request, PredictPrice $predictPrice, LoggerInterface $logger): JsonResponse
-{
-    try {
-        $departureCity = $request->request->get('departureCity');
-        $arrivalCity = $request->request->get('arrivalCity');
-        $availableSeats = (int) $request->request->get('availableSeats');
+    #[Route('/api/predict-price', name: 'api_predict_price', methods: ['POST'])]
+    public function predict(Request $request, PredictPrice $predictPrice, LoggerInterface $logger): JsonResponse
+    {
+        try {
+            // Ensure it's an AJAX request
+            if (!$request->isXmlHttpRequest()) {
+                $logger->warning('Non-AJAX request received');
+                return $this->fallbackResponse();
+            }
 
-        // Validate input data
-        if (!$departureCity || !$arrivalCity || $availableSeats <= 0) {
-            return new JsonResponse(['error' => 'Invalid input data'], Response::HTTP_BAD_REQUEST);
+            $data = json_decode($request->getContent(), true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $logger->warning('Invalid JSON received', ['error' => json_last_error_msg()]);
+                return $this->fallbackResponse();
+            }
+
+            $departureCity = $data['departureCity'] ?? null;
+            $arrivalCity = $data['arrivalCity'] ?? null;
+            $availableSeats = $data['availableSeats'] ?? 0;
+
+            // Validate input data
+            if (empty($departureCity) || empty($arrivalCity) || $availableSeats <= 0) {
+                $logger->warning('Invalid input data', [
+                    'departure' => $departureCity,
+                    'arrival' => $arrivalCity,
+                    'seats' => $availableSeats
+                ]);
+                return $this->fallbackResponse();
+            }
+
+            // Create and validate trip
+            $trip = new Trip();
+            $trip->setDepartureCity(trim($departureCity));
+            $trip->setArrivalCity(trim($arrivalCity));
+            $trip->setAvailableSeats((int)$availableSeats);
+
+            try {
+                $price = $predictPrice->predict($trip);
+
+                if ($price === null) {
+                    $logger->warning('Prediction service returned null');
+                    return $this->fallbackResponse();
+                }
+
+                return new JsonResponse(['price' => round($price, 2)]);
+
+            } catch (\Exception $e) {
+                $logger->error('Prediction service failed', [
+                    'exception' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                return $this->fallbackResponse();
+            }
+
+        } catch (\Exception $e) {
+            $logger->critical('Unexpected error in prediction endpoint', [
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return $this->fallbackResponse();
         }
-
-        // Create a temporary Trip object for estimation
-        $trip = new Trip();
-        $trip->setDepartureCity($departureCity);
-        $trip->setArrivalCity($arrivalCity);
-        $trip->setAvailableSeats($availableSeats);
-
-        // Get the price estimation
-        $price = $predictPrice->predict($trip);
-
-        // Handle cases where no price is returned
-        if ($price === null) {
-            $logger->error('Price prediction failed: No price returned.');
-            return new JsonResponse(['error' => 'Failed to predict price'], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-
-        // Return the estimated price
-        return new JsonResponse(['price' => $price]);
-    } catch (\Exception $e) {
-        $logger->error('Error in /api/predict-price route', [
-            'exception' => $e->getMessage(),
-            'trace' => $e->getTraceAsString(),
-        ]);
-        return new JsonResponse(['error' => 'An unexpected error occurred'], Response::HTTP_INTERNAL_SERVER_ERROR);
     }
-}
 
-#[Route('/predict-price', name: 'predict_price', methods: ['POST'])]
-public function predictto(Request $request, PredictPrice $predictPrice, LoggerInterface $logger): JsonResponse
-{
-    try {
-        $departureCity = $request->request->get('departureCity');
-        $arrivalCity = $request->request->get('arrivalCity');
-        $availableSeats = (int) $request->request->get('availableSeats');
-
-        if (!$departureCity || !$arrivalCity || $availableSeats <= 0) {
-            return new JsonResponse(['error' => 'Invalid input data'], Response::HTTP_BAD_REQUEST);
-        }
-        $predictedPrice = 12; // Replace with actual logic
-
-
-        $trip = new Trip();
-        $trip->setDepartureCity($departureCity);
-        $trip->setArrivalCity($arrivalCity);
-        $trip->setAvailableSeats($availableSeats);
-
-        $price = $predictPrice->predict($trip);
-
-        if ($price === null) {
-            return new JsonResponse(['error' => 'Failed to predict price'], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-
-        return new JsonResponse(['price' => $price]);
-    } catch (\Exception $e) {
-        $logger->error('Error in /predict-price route', ['exception' => $e->getMessage()]);
-        return new JsonResponse(['error' => 'An unexpected error occurred'], Response::HTTP_INTERNAL_SERVER_ERROR);
+    private function fallbackResponse(): JsonResponse
+    {
+        // Generate random price between 7 and 10 with 2 decimal places
+        $randomPrice = round(7 + (mt_rand() / mt_getrandmax() * 3), 2);
+        return new JsonResponse(['price' => $randomPrice, 'warning' => 'Used fallback pricing']);
     }
-}
-
+    #[Route('/api/predict-price', methods: ['POST'])]
+    public function testRoute(Request $request): JsonResponse
+    {
+        return new JsonResponse(['status' => 'ok', 'data' => $request->request->all()]);
+    }
 
     #[Route('/driver/trip/create', name: 'app_driver_trip_create', methods: ['POST'])]
 public function createTripForBooking(Request $request, EntityManagerInterface $entityManager): Response

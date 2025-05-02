@@ -20,18 +20,28 @@ class PredictPrice
 
     public function predict(Trip $trip): ?float
     {
-        $this->logger->info('Predicting price using DeepSeekService', [
-            'departureCity' => $trip->getDepartureCity(),
-            'arrivalCity' => $trip->getArrivalCity(),
-            'availableSeats' => $trip->getAvailableSeats(),
-        ]);
-
         try {
-            return $this->deepSeekService->predictPrice($trip, $this->deepSeekService->apiKey);
-        } catch (\Exception $e) {
-            $this->logger->error('Error in DeepSeekService', [
-                'exception' => $e->getMessage(),
+            $this->logger->debug('Attempting price prediction', [
+                'trip' => [
+                    'departure' => $trip->getDepartureCity(),
+                    'arrival' => $trip->getArrivalCity(),
+                    'seats' => $trip->getAvailableSeats()
+                ]
             ]);
+
+            $price = $this->deepSeekService->predictPrice($trip);
+
+            if ($price === null) {
+                $this->logger->warning('Received null price from prediction service');
+                return null;
+            }
+
+            return $price;
+        } catch (\RuntimeException $e) {
+            $this->logger->error('Prediction service error: ' . $e->getMessage());
+            return null;
+        } catch (\Exception $e) {
+            $this->logger->critical('Unexpected prediction error: ' . $e->getMessage());
             return null;
         }
     }

@@ -56,4 +56,5 @@ public function countTripsByMonth(): array
 
     return $tripsByMonth;
 }
+
 }

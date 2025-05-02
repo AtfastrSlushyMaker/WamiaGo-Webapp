@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trip Report | Modern Transport Solutions</title>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4cc9f0;
+            --warning-color: #f8961e;
+            --danger-color: #f72585;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            color: var(--dark-color);
+            background-color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .company-info {
+            text-align: right;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #6c757d;
+            font-weight: 400;
+            margin-top: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .report-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+            font-size: 0.95rem;
+            box-shadow: 0 0 0 1px #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            padding: 1rem;
+            text-align: left;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e0e0e0;
+            vertical-align: middle;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        tr:hover {
+            background-color: #f1f3f5;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-available {
+            background-color: #e6f7ee;
+            color: #00a854;
+        }
+
+        .status-warning {
+            background-color: #fff7e6;
+            color: #fa8c16;
+        }
+
+        .status-full {
+            background-color: #fff1f0;
+            color: #f5222d;
+        }
+
+        .price {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .footer {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e0e0e0;
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-align: center;
+        }
+
+        .summary-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 0 1rem;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .logo {
+            height: 60px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div>
+            <!-- Replace with your actual logo or remove -->
+            <div class="logo">🚌 Modern Transport Solutions</div>
+            <h1>Trip Report</h1>
+            <p class="subtitle">Comprehensive overview of all available trips</p>
+        </div>
+        <div class="company-info">
+            <strong>Modern Transport Solutions</strong><br>
+            123 Business Avenue<br>
+            Tech City, TC 10001<br>
+            contact@moderntransport.com<br>
+            +1 (555) 123-4567
+        </div>
+    </div>
+
+    <div class="report-meta">
+        <div>
+            <strong>Report Date:</strong> {{ "now"|date('Y-m-d H:i') }}
+        </div>
+        <div>
+            <strong>Total Trips:</strong> {{ trips|length }}
+        </div>
+    </div>
+
+    <div class="summary-card">
+        <div class="summary-item">
+            <div class="summary-value">{{ trips|length }}</div>
+            <div class="summary-label">Total Trips</div>
+        </div>
+        <div class="summary-item">
+            <div class="summary-value">{{ (trips|reduce((sum, trip) => sum + trip.available_seats, 0)) / trips|length|round(1) }}</div>
+            <div class="summary-label">Avg. Availability</div>
+        </div>
+        <div class="summary-item">
+            <div class="summary-value">{{ (trips|reduce((sum, trip) => sum + trip.price_per_passenger, 0)) / trips|length|round(2) }}</div>
+            <div class="summary-label">Avg. Price</div>
+        </div>
+        <div class="summary-item">
+            <div class="summary-value">{{ trips|reduce((sum, trip) => sum + trip.available_seats, 0) }}</div>
+            <div class="summary-label">Total Seats</div>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Departure</th>
+            <th>Arrival</th>
+            <th>Departure Date</th>
+            <th>Seats</th>
+            <th>Price</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for trip in trips %}
+            <tr>
+                <td>#{{ trip.id_trip }}</td>
+                <td>{{ trip.departure_city }}</td>
+                <td>{{ trip.arrival_city }}</td>
+                <td>{{ trip.departure_date|date('Y-m-d H:i') }}</td>
+                <td>{{ trip.available_seats }}</td>
+                <td class="price">${{ trip.price_per_passenger|number_format(2) }}</td>
+                <td>
+                    {% if trip.available_seats > 10 %}
+                        <span class="status-badge status-available">Available</span>
+                    {% elseif trip.available_seats > 0 %}
+                        <span class="status-badge status-warning">Limited</span>
+                    {% else %}
+                        <span class="status-badge status-full">Full</span>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>This report was generated automatically on {{ "now"|date('Y-m-d H:i') }}. For any inquiries, please contact our support team.</p>
+        <p>© {{ "now"|date('Y') }} Modern Transport Solutions. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>

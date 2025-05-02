@@ -17,7 +17,7 @@ class DeepSeekService
     public function __construct(
         HttpClientInterface $httpClient,
         LoggerInterface $logger,
-        string $apiKey,
+        string $apiKey= "sk-856cd7686cd94dfca0570b605d453812 ",
         string $apiUrl = 'https://api.deepseek.com/v1/chat/completions',
         int $timeout = 10
     ) {
@@ -27,73 +27,94 @@ class DeepSeekService
         $this->apiUrl = $apiUrl;
         $this->timeout = $timeout;
     }
-
     public function predictPrice(Trip $trip): ?float
-    {
-        if (empty($this->apiKey)) {
-            $this->logger->error('DeepSeek API key is missing.');
-            return null;
-        }
+{
+    if (empty($this->apiKey)) {
+        $this->logger->error('DeepSeek API key is missing.');
+        return null;
+    }
 
-        $departureCity = $trip->getDepartureCity();
-        $arrivalCity = $trip->getArrivalCity();
-        $availableSeats = $trip->getAvailableSeats();
+    $departureCity = $trip->getDepartureCity();
+    $arrivalCity = $trip->getArrivalCity();
+    $availableSeats = $trip->getAvailableSeats();
 
-        $this->logger->info('Sending price prediction request to DeepSeek', [
-            'departure' => $departureCity,
-            'arrival' => $arrivalCity,
-            'seats' => $availableSeats,
+    $this->logger->info('Sending price prediction request to DeepSeek', [
+        'departure' => $departureCity,
+        'arrival' => $arrivalCity,
+        'seats' => $availableSeats,
+    ]);
+
+    $prompt = "Estime un prix pour un trajet entre $departureCity et $arrivalCity avec $availableSeats places disponibles. " .
+        "Considère la distance et la demande pour donner un prix précis.";
+
+    try {
+        $response = $this->httpClient->request('POST', $this->apiUrl, [
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Accept' => 'application/json',
+            ],
+            'json' => [
+                'model' => 'deepseek-chat',
+                'messages' => [
+                    [
+                        'role' => 'system',
+                        'content' => 'You are a price prediction assistant. Respond only with a decimal number representing the estimated price.'
+                    ],
+                    [
+                        'role' => 'user',
+                        'content' => $prompt
+                    ]
+                ],
+                'temperature' => 0.7,
+                'max_tokens' => 10,
+            ],
+            'timeout' => $this->timeout,
         ]);
 
-        $prompt = "Estime un prix pour un trajet entre $departureCity et $arrivalCity avec $availableSeats places disponibles. " .
-            "Considère la distance et la demande pour donner un prix précis.";
+        $statusCode = $response->getStatusCode();
+        $content = $response->toArray(false);
 
-        try {
-            $response = $this->httpClient->request('POST', $this->apiUrl, [
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer ' . $this->apiKey,
-                ],
-                'json' => [
-                    'model' => 'deepseek-chat',
-                    'messages' => [
-                        [
-                            'role' => 'system',
-                            'content' => 'Tu es un assistant qui prédit les prix de trajets. Réponds uniquement avec un nombre décimal représentant le prix.'
-                        ],
-                        [
-                            'role' => 'user',
-                            'content' => $prompt
-                        ]
-                    ],
-                ],
-                'timeout' => $this->timeout,
+        if ($statusCode === 503) {
+            $this->logger->error('DeepSeek API is unavailable', [
+                'status' => $statusCode,
+                'response' => $content,
             ]);
+            throw new \RuntimeException('The prediction service is temporarily unavailable');
+        }
 
-            $statusCode = $response->getStatusCode();
-            if ($statusCode !== 200) {
-                $this->logger->error('DeepSeek API returned an error', [
-                    'statusCode' => $statusCode,
-                    'response' => $response->getContent(false),
-                ]);
-                return null;
-            }
+        if ($statusCode === 429) {
+            $this->logger->error('Rate limit exceeded for DeepSeek API');
+            throw new \RuntimeException('Too many requests. Please try again later');
+        }
 
-            $content = $response->toArray();
-            $price = $content['choices'][0]['message']['content'] ?? null;
+        if ($statusCode !== 200) {
+            $this->logger->error('DeepSeek API error', [
+                'status' => $statusCode,
+                'response' => $content,
+            ]);
+            throw new \RuntimeException('Prediction service returned an error');
+        }
 
-            if (is_numeric($price)) {
-                $this->logger->info('Successfully retrieved price from DeepSeek', ['price' => $price]);
-                return round((float) $price, 2);
-            }
-
-            $this->logger->warning('Invalid price format received from DeepSeek', ['response' => $content]);
-            return null;
-        } catch (\Exception $e) {
-            $this->logger->error('Error during DeepSeek API call', [
-                'exception' => $e->getMessage(),
+        if (isset($content['choices'][0]['message']['content'])) {
+            $price = (float) $content['choices'][0]['message']['content'];
+            return $price;
+        } else {
+            $this->logger->error('Invalid response format from DeepSeek API', [
+                'response' => $content,
             ]);
             return null;
         }
+    } catch (\Exception $e) {
+        $this->logger->error('DeepSeek API call failed', [
+            'exception' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ]);
+        return null;
     }
+}
+
+
+
+
 }

@@ -12,7 +12,7 @@
   </component>
   <component name="PhpCodeSniffer">
     <phpcs_settings>
-      <phpcs_by_interpreter asDefaultInterpreter="true" interpreter_id="45bdb79d-80b7-4d92-84a5-70b5ed8bdce4" timeout="30000" />
+      <phpcs_by_interpreter interpreter_id="45bdb79d-80b7-4d92-84a5-70b5ed8bdce4" timeout="30000" />
     </phpcs_settings>
   </component>
   <component name="PhpIncludePathManager">
@@ -149,12 +149,16 @@
       <path value="$PROJECT_DIR$/vendor/phpdocumentor/reflection-docblock" />
       <path value="$PROJECT_DIR$/vendor/doctrine/annotations" />
       <path value="$PROJECT_DIR$/vendor/symfony/ux-chartjs" />
+      <path value="$PROJECT_DIR$/vendor/sabberworm/php-css-parser" />
+      <path value="$PROJECT_DIR$/vendor/dompdf/php-svg-lib" />
+      <path value="$PROJECT_DIR$/vendor/dompdf/php-font-lib" />
+      <path value="$PROJECT_DIR$/vendor/dompdf/dompdf" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.1" />
   <component name="PhpStan">
     <PhpStan_settings>
-      <phpstan_by_interpreter asDefaultInterpreter="true" interpreter_id="45bdb79d-80b7-4d92-84a5-70b5ed8bdce4" timeout="60000" />
+      <phpstan_by_interpreter interpreter_id="45bdb79d-80b7-4d92-84a5-70b5ed8bdce4" timeout="60000" />
     </PhpStan_settings>
   </component>
   <component name="PhpStanOptionsConfiguration">
@@ -167,7 +171,7 @@
   </component>
   <component name="Psalm">
     <Psalm_settings>
-      <psalm_fixer_by_interpreter asDefaultInterpreter="true" interpreter_id="45bdb79d-80b7-4d92-84a5-70b5ed8bdce4" timeout="60000" />
+      <psalm_fixer_by_interpreter interpreter_id="45bdb79d-80b7-4d92-84a5-70b5ed8bdce4" timeout="60000" />
     </Psalm_settings>
   </component>
   <component name="PsalmOptionsConfiguration">

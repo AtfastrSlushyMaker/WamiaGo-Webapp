@@ -63,6 +63,34 @@ class AdminController extends AbstractController
             'data' => json_encode($data),
         ]);
     }
+#[Route('/admin/trips/pdf', name: 'admin_trips_pdf')]
+public function generateAllTripsPdf(TripRepository $tripRepository): Response
+{
+    $trips = $tripRepository->findAll();
+
+    if (empty($trips)) {
+        $this->addFlash('error', 'No trips found.');
+        return $this->redirectToRoute('admin_ride_sharing');
+    }
+
+    // Generate the PDF content
+    $html = $this->renderView('back-office/pdftrip.twig', [
+        'trips' => $trips,
+    ]);
+
+    $pdf = new \Dompdf\Dompdf();
+    $pdf->loadHtml($html);
+    $pdf->setPaper('A4', 'landscape');
+    $pdf->render();
+
+    // Return the PDF as a response
+    return new Response($pdf->output(), 200, [
+        'Content-Type' => 'application/pdf',
+        'Content-Disposition' => 'inline; filename="all_trips.pdf"',
+    ]);
+}
+// src/Controller/TripController.php
+
     #[Route('/admin/trip/delete/{id}', name: 'admin_trip_delete', methods: ['POST'])]
     public function deleteTrip(int $id, EntityManagerInterface $entityManager, TripService $tripService): Response
     {

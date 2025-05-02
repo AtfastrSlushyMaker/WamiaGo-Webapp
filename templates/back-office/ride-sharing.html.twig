@@ -4,6 +4,7 @@
 
 {% block stylesheets %}
     <style>
+
         .trip-row {
             cursor: pointer;
             transition: all 0.2s ease;
@@ -113,6 +114,11 @@
                     <a href="{{ path('admin_trips_chart') }}" class="btn btn-primary ms-3">
                         <i class="bi bi-bar-chart"></i> View Trips Chart
                     </a>
+                    <td class="text-end">
+                        <a href="{{ path('admin_trips_pdf') }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-file-earmark-pdf"></i> Generate All Trips PDF
+                        </a>
+                    </td>
                 </ol>
             </div>
         </div>
