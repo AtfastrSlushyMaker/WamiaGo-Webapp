@@ -33,17 +33,12 @@ class GeoRoutingService
         $this->logger = $logger;
         $this->userAgent = 'WamiaGo Bicycle App';
         $this->referer = $_SERVER['HTTP_HOST'] ?? 'wamiagobikes.com';
-        
-        // Create HTTP client using discovery
+
         $httpClient = HttpClientDiscovery::find();
-        
-        // Create PSR-17 factories
+
         $requestFactory = Psr17FactoryDiscovery::findRequestFactory();
         $streamFactory = Psr17FactoryDiscovery::findStreamFactory();
-        
-        // Create the Nominatim provider with correct parameter order
-        // The constructor signature is:
-        // Nominatim(HttpClient $client, string $userAgent, ?string $referer = null, ?string $region = null, ?int $limit = null)
+
         $this->geocoder = new Nominatim(
             $httpClient,
             $this->userAgent,
@@ -56,18 +51,11 @@ class GeoRoutingService
 
     /**
      * Calculate the real-world cycling route distance between coordinates
-     * 
-     * @param float $startLat Starting point latitude
-     * @param float $startLon Starting point longitude
-     * @param float $endLat Destination latitude
-     * @param float $endLon Destination longitude
-     * @return array Distance in km, duration in minutes, and route info
      */
     public function calculateRouteDistance(float $startLat, float $startLon, float $endLat, float $endLon): array
     {
         try {
-            // For now, we'll implement a call to the OSRM API
-            // In a production environment, consider using a dedicated routing API with proper authentication
+            
             $osrmUrl = sprintf(
                 'http://router.project-osrm.org/route/v1/cycling/%f,%f;%f,%f?overview=false',
                 $startLon, $startLat, $endLon, $endLat
@@ -78,8 +66,7 @@ class GeoRoutingService
                 'start' => [$startLat, $startLon],
                 'end' => [$endLat, $endLon]
             ]);
-            
-            // Make API request
+   
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $osrmUrl);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -112,7 +99,7 @@ class GeoRoutingService
                 'duration_min' => $durationInMinutes
             ]);
             
-            // Return the route information
+     
             return [
                 'distance' => $distanceInKm,
                 'duration' => $durationInMinutes,
@@ -127,7 +114,7 @@ class GeoRoutingService
                 'trace' => $e->getTraceAsString()
             ]);
             
-            // Fallback to Haversine formula
+     
             $haversineDistance = $this->calculateHaversineDistance($startLat, $startLon, $endLat, $endLon);
             $estimatedDuration = $this->estimateCyclingDuration($haversineDistance);
             
@@ -152,7 +139,7 @@ class GeoRoutingService
      */
     public function calculateHaversineDistance(float $lat1, float $lon1, float $lat2, float $lon2): float
     {
-        // Haversine formula to calculate distance between two points
+
         $earthRadius = 6371; // in kilometers
         
         $dLat = deg2rad($lat2 - $lat1);
@@ -167,27 +154,20 @@ class GeoRoutingService
     
     /**
      * Estimate cycling duration based on distance and terrain
-     * 
-     * @param float $distanceKm Distance in kilometers
-     * @param string $terrain Terrain type: 'flat', 'hilly', or 'mixed'
-     * @return int Estimated duration in minutes
      */
     public function estimateCyclingDuration(float $distanceKm, string $terrain = 'mixed'): int
     {
-        // Average speeds based on terrain type (in km/h)
         $speeds = [
-            'flat' => 18, // Faster on flat terrain
-            'mixed' => 15, // Medium speed on mixed terrain
-            'hilly' => 12  // Slower on hilly terrain
+            'flat' => 18, 
+            'mixed' => 15, 
+            'hilly' => 12  
         ];
         
-        // Default to mixed if terrain type is not recognized
+  
         $speed = $speeds[$terrain] ?? $speeds['mixed'];
         
-        // For very short trips, add extra time for starting/stopping
-        $baseTime = 5; // Base time in minutes for very short trips
+        $baseTime = 5; 
         
-        // Calculate duration, ensuring it's at least the base time
         $durationMinutes = max($baseTime, round(($distanceKm / $speed) * 60));
         
         return $durationMinutes;
@@ -195,10 +175,6 @@ class GeoRoutingService
     
     /**
      * Find the nearest address to coordinates
-     * 
-     * @param float $latitude
-     * @param float $longitude
-     * @return string|null The address or null if not found
      */
     public function reverseGeocode(float $latitude, float $longitude): ?string
     {
@@ -221,9 +197,6 @@ class GeoRoutingService
     
     /**
      * Get coordinates for an address
-     * 
-     * @param string $address
-     * @return array|null [latitude, longitude] or null if not found
      */
     public function geocodeAddress(string $address): ?array
     {
@@ -250,20 +223,13 @@ class GeoRoutingService
     
     /**
      * Find nearby points of interest
-     * 
-     * @param float $latitude
-     * @param float $longitude
-     * @param float $radiusKm Radius in kilometers
-     * @param string $type Type of POI (restaurant, cafe, etc.)
-     * @return array List of POIs
      */
     public function findNearbyPointsOfInterest(float $latitude, float $longitude, float $radiusKm = 1.0, string $type = ''): array
     {
         try {
-            // Construct Overpass API query
-            $radius = $radiusKm * 1000; // Convert to meters
+            $radius = $radiusKm * 1000; 
             
-            // Build the query based on type
+
             $typeQuery = '';
             if (!empty($type)) {
                 $typeQuery = "[\"amenity\"=\"$type\"]";
@@ -275,10 +241,10 @@ class GeoRoutingService
                 );
                 out body;";
             
-            // URL encode the query
+        
             $encodedQuery = urlencode($query);
             
-            // Send request to Overpass API
+  
             $url = "https://overpass-api.de/api/interpreter?data=$encodedQuery";
             
             $ch = curl_init();
@@ -293,14 +259,14 @@ class GeoRoutingService
             
             curl_close($ch);
             
-            // Parse response
+    
             $data = json_decode($response, true);
             
             if (!$data || !isset($data['elements'])) {
                 return [];
             }
             
-            // Extract POIs
+         
             $pois = [];
             foreach ($data['elements'] as $element) {
                 if (isset($element['tags'])) {
@@ -330,17 +296,11 @@ class GeoRoutingService
     
     /**
      * Calculate the elevation gain between two points
-     * 
-     * @param float $startLat
-     * @param float $startLon
-     * @param float $endLat
-     * @param float $endLon
-     * @return array Information about elevation changes
      */
     public function getElevationData(float $startLat, float $startLon, float $endLat, float $endLon): array
     {
         try {
-            // Open-Elevation API is a free service for elevation data
+         
             $url = sprintf(
                 'https://api.open-elevation.com/api/v1/lookup?locations=%f,%f|%f,%f',
                 $startLat, $startLon, $endLat, $endLon
@@ -358,19 +318,18 @@ class GeoRoutingService
             
             curl_close($ch);
             
-            // Parse response
+   
             $data = json_decode($response, true);
             
             if (!$data || !isset($data['results']) || count($data['results']) < 2) {
                 throw new \Exception('Invalid elevation data response');
             }
-            
-            // Calculate elevation difference
+
             $startElevation = $data['results'][0]['elevation'];
             $endElevation = $data['results'][1]['elevation'];
             $elevationDiff = $endElevation - $startElevation;
             
-            // Determine if the route is uphill, downhill or flat
+  
             $routeType = 'flat';
             if ($elevationDiff > 10) {
                 $routeType = 'uphill';
@@ -389,7 +348,6 @@ class GeoRoutingService
                 'error' => $e->getMessage()
             ]);
             
-            // Return default values
             return [
                 'start_elevation' => 0,
                 'end_elevation' => 0,

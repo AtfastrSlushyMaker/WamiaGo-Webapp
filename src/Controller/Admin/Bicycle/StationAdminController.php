@@ -418,48 +418,45 @@ class StationAdminController extends AbstractController
     public function export(Request $request): Response
     {
         try {
-            // Add diagnostic log at the beginning
+          
             $this->logger->info('Starting station export process', [
                 'format' => $request->query->get('format', 'csv'),
                 'status' => $request->query->get('status')
             ]);
             
-            // Get filter parameters
+            
             $status = $request->query->get('status');
             $format = $request->query->get('format', 'csv');
             
-            // Create query builder with filters
+            
             $queryBuilder = $this->entityManager->getRepository(BicycleStation::class)
                 ->createQueryBuilder('s')
                 ->leftJoin('s.location', 'l')
                 ->orderBy('s.id_station', 'ASC');
             
-            // Apply status filter if provided
+         
             if ($status) {
                 $queryBuilder->andWhere('s.status = :status')
                     ->setParameter('status', BICYCLE_STATION_STATUS::from($status));
             }
             
-            // Get all stations matching the criteria
             $this->logger->info('Executing station query');
             $stations = $queryBuilder->getQuery()->getResult();
             $this->logger->info('Retrieved ' . count($stations) . ' stations');
             
-            // Special handling for empty results
+            
             if (empty($stations)) {
                 $this->logger->info('No stations found for export');
                 $this->addFlash('warning', 'No stations found matching the selected criteria');
                 return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => 'stations']);
             }
             
-            // Calculate statistics for PDF export
             $totalCapacity = 0;
             $totalBikes = 0;
             $totalChargingDocks = 0;
             $activeStations = 0;
             
             foreach ($stations as $station) {
-                // Null check for each station property
                 if ($station->getTotalDocks() === null) {
                     $this->logger->warning('Station #' . $station->getIdStation() . ' has null totalDocks, defaulting to 0');
                     $station->setTotalDocks(0);
@@ -493,7 +490,7 @@ class StationAdminController extends AbstractController
             ];
             
             $this->logger->info('Calculating station activity data');
-            // Get station activity data for PDF export (which stations are busiest)
+         
             $stationActivity = [];
             try {
                 $rentalStats = $this->entityManager->getRepository(BicycleRental::class)
@@ -534,7 +531,7 @@ class StationAdminController extends AbstractController
                     }
                 }
                 
-                // Sort by total activity
+                
                 usort($stationActivity, function($a, $b) {
                     $totalA = $a['rentalsStarted'] + $a['rentalsEnded'];
                     $totalB = $b['rentalsStarted'] + $b['rentalsEnded'];
@@ -544,12 +541,12 @@ class StationAdminController extends AbstractController
                 $this->logger->error('Error calculating station activity: ' . $e->getMessage(), [
                     'exception' => $e
                 ]);
-                // Continue with export even if this fails
+              
                 $stationActivity = [];
             }
             
             $this->logger->info('Preparing data for export');
-            // Set up data for export
+         
             $headers = [
                 'ID', 'Station Name', 'Status', 'Available Bicycles', 
                 'Available Docks', 'Total Docks', 'Occupancy Rate (%)', 'Location'
@@ -558,12 +555,12 @@ class StationAdminController extends AbstractController
             $exportData = [];
             
             foreach ($stations as $station) {
-                // Calculate occupancy rate
+           
                 $occupancyRate = $station->getTotalDocks() > 0 
                     ? ($station->getAvailableBikes() / $station->getTotalDocks()) * 100 
                     : 0;
                 
-                // Format status for display
+            
                 try {
                     $statusLabel = match($station->getStatus()) {
                         BICYCLE_STATION_STATUS::ACTIVE => 'Active',
@@ -576,7 +573,7 @@ class StationAdminController extends AbstractController
                     $statusLabel = 'Unknown';
                 }
                 
-                // Format location with null safety
+        
                 if ($station->getLocation() === null) {
                     $this->logger->warning('Station #' . $station->getIdStation() . ' has no location');
                     $location = 'No location';
@@ -584,7 +581,7 @@ class StationAdminController extends AbstractController
                     $location = $station->getLocation()->getAddress() ?: 'No address';
                 }
                 
-                // Add row to export data
+               
                 $exportData[] = [
                     $station->getIdStation(),
                     $station->getName() ?: 'Unnamed Station',
@@ -598,8 +595,7 @@ class StationAdminController extends AbstractController
             }
             
             $this->logger->info('Processed ' . count($exportData) . ' stations for export');
-            
-            // Set filters context for PDF export
+       
             $filters = [
                 'status' => $status ? ucfirst($status) : ''
             ];
@@ -608,18 +604,18 @@ class StationAdminController extends AbstractController
             
             $this->logger->info('Starting export generation in ' . $format . ' format');
             
-            // Create response object directly to avoid memory issues
+        
             $response = null;
             
-            // Export based on requested format
+    
             switch ($format) {
                 case 'excel':
                     $this->logger->info('Generating Excel export');
                     $columnStyles = [
-                        3 => ['format' => NumberFormat::FORMAT_NUMBER],     // Available Bicycles
-                        4 => ['format' => NumberFormat::FORMAT_NUMBER],     // Available Docks
-                        5 => ['format' => NumberFormat::FORMAT_NUMBER],     // Total Docks
-                        6 => ['format' => NumberFormat::FORMAT_PERCENTAGE_00], // Occupancy Rate
+                        3 => ['format' => NumberFormat::FORMAT_NUMBER],      
+                        4 => ['format' => NumberFormat::FORMAT_NUMBER],    
+                        5 => ['format' => NumberFormat::FORMAT_NUMBER],     
+                        6 => ['format' => NumberFormat::FORMAT_PERCENTAGE_00], 
                     ];
                     
                     $response = $this->exportService->exportToExcel(
@@ -659,12 +655,12 @@ class StationAdminController extends AbstractController
             
             $this->logger->info('Generated export response, preparing headers');
             
-            // Add extra headers to force download
+    
             $response->headers->set('Content-Description', 'File Transfer');
             $response->headers->set('Cache-Control', 'private');
             $response->headers->set('X-Accel-Buffering', 'no');
             
-            // Explicitly turn off output buffering to prevent interference with headers
+    
             while (ob_get_level()) {
                 ob_end_clean();
             }
@@ -673,7 +669,7 @@ class StationAdminController extends AbstractController
             return $response;
             
         } catch (\Exception $e) {
-            // Detailed error logging with full context
+        
             $this->logger->error('Station export error: ' . $e->getMessage(), [
                 'exception_class' => get_class($e),
                 'file' => $e->getFile(),
@@ -683,7 +679,7 @@ class StationAdminController extends AbstractController
                 'format' => $request->query->get('format', 'unknown')
             ]);
             
-            // Add helpful message for the user
+          
             $this->addFlash('error', 'Error creating station export: ' . $e->getMessage());
             return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => 'stations']);
         }
@@ -692,7 +688,7 @@ class StationAdminController extends AbstractController
     #[Route('/{id}', name: 'admin_bicycle_station_detail')]
     public function stationDetail($id): Response
     {
-        // Convert parameter to integer since Route parameters are strings
+       
         $id = (int) $id;
         
         $station = $this->stationService->getStation($id);
@@ -702,13 +698,12 @@ class StationAdminController extends AbstractController
             return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => 'stations']);
         }
 
-        // Get bicycles at this station
+ 
         $bicycles = $this->bicycleService->getBicyclesByStation($station);
 
-        // Get rental history for this station
+       
         $rentals = $this->rentalService->getRentalsByStation($station);
 
-        // Get bicycles by status for this station
         $bicyclesByStatus = [
             'available' => 0,
             'in_use' => 0,
@@ -724,7 +719,7 @@ class StationAdminController extends AbstractController
             }
         }
 
-        // Get station statistics
+       
         $statistics = [
             'totalRentals' => count($rentals),
             'availableBikes' => $station->getAvailableBikes(),

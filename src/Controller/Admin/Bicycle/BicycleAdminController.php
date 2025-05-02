@@ -404,11 +404,11 @@ class BicycleAdminController extends AbstractController
                         continue;
                     }
                     
-                    // Update station available docks/bikes
+                    
                     $station->setAvailableDocks($station->getAvailableDocks() - 1);
                     $station->setAvailableBikes($station->getAvailableBikes() + 1);
                     
-                    // Success
+                    
                     $updatedCount++;
                 }
                 
