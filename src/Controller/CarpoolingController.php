@@ -6,6 +6,7 @@ namespace App\Controller;
 use App\Entity\Booking;
 use App\Entity\Trip;
 use App\Entity\User;
+use App\Service\CityFinder;
 use App\Service\TrafficTimeEstimator;
 use App\Service\TripService;
 use App\Service\BookingService;
@@ -19,14 +20,33 @@ final class CarpoolingController extends AbstractController
 {
     private TripService $tripService;
     private TrafficTimeEstimator $trafficEstimator;
+    private CityFinder $cityFinder;
 
 
 
-    public function __construct(TripService $tripService , TrafficTimeEstimator $trafficEstimator)
+
+    public function __construct(TripService $tripService , TrafficTimeEstimator $trafficEstimator , CityFinder $cityFinder)
     {
         $this->tripService = $tripService;
         $this->trafficEstimator = $trafficEstimator;
+        $this->cityFinder = $cityFinder;
 
+
+    }
+    #[Route('/trips/filter-by-city/{city}', name: 'app_trips_filter_by_city', methods: ['GET'])]
+    public function filterByCity(string $city, TripService $tripService): Response
+    {
+        // Fetch trips with the matching departure city
+        $trips = $tripService->getTripsByDepartureCity($city);
+
+        if (empty($trips)) {
+            $this->addFlash('error', 'No trips found for the selected departure city.');
+        }
+
+        return $this->render('front/carpooling/carpoolingMain.twig', [
+            'trips' => $trips,
+            'city' => $city,
+        ]);
     }
 
 
@@ -35,8 +55,11 @@ final class CarpoolingController extends AbstractController
     {
         $trips = $this->tripService->getAllTrips();
         $tripsWithTravelTime = [];
+
         foreach ($trips as $trip) {
             try {
+                $city = $this->cityFinder->getCurrentCity();
+                $coordinates = $this->cityFinder->getCoordinates();
                 $travelTimeData = $this->trafficEstimator->calculateTravelTime(
                     $trip->getDepartureCity(),
                     $trip->getArrivalCity()
@@ -51,13 +74,22 @@ final class CarpoolingController extends AbstractController
                 $this->addFlash('warning', "Could not estimate travel time for trip from {$trip->getDepartureCity()} to {$trip->getArrivalCity()}: {$e->getMessage()}");
                 $trip->travelTimeData = null;
                 $tripsWithTravelTime[] = $trip;
+
             }
         }
+        $city = $this->cityFinder->getCurrentCity();
+        $coordinates = $this->cityFinder->getCoordinates();
+
 
 
         return $this->render('front/carpooling/carpoolingMain.twig', [
             'controller_name' => 'CarpoolingController',
             'trips' => $tripsWithTravelTime,
+            'city' => $city,
+            'coordinates' => $coordinates,
+            'success' => true,
+
+
         ]);
     }
 

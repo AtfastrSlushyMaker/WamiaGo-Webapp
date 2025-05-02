@@ -40,4 +40,20 @@ class TripRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+public function countTripsByMonth(): array
+{
+    $qb = $this->createQueryBuilder('t')
+        ->select("SUBSTRING(t.departure_date, 1, 7) as month, COUNT(t.id_trip) as tripCount")
+        ->groupBy('month')
+        ->orderBy('month', 'ASC');
+
+    $result = $qb->getQuery()->getResult();
+
+    $tripsByMonth = [];
+    foreach ($result as $row) {
+        $tripsByMonth[$row['month']] = $row['tripCount'];
+    }
+
+    return $tripsByMonth;
+}
 }

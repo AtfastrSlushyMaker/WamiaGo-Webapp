@@ -345,6 +345,114 @@
             .form-footer .btn {
                 width: 100%;
             }
+            /* Price prediction styling */
+            .price-slider-container {
+                margin-top: 10px;
+                padding: 5px 0;
+                position: relative;
+            }
+
+            .price-slider {
+                width: 100%;
+                height: 5px;
+                -webkit-appearance: none;
+                appearance: none;
+                background: #e0e0e0;
+                outline: none;
+                border-radius: 5px;
+            }
+
+            .price-slider::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 18px;
+                height: 18px;
+                background: #4CAF50;
+                cursor: pointer;
+                border-radius: 50%;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            }
+
+            .price-slider::-moz-range-thumb {
+                width: 18px;
+                height: 18px;
+                background: #4CAF50;
+                cursor: pointer;
+                border-radius: 50%;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            }
+
+            .price-display {
+                margin-top: 8px;
+                text-align: center;
+                font-weight: bold;
+                color: #4CAF50;
+            }
+
+            /* Animation for when price is calculating */
+            .is-calculating .price-display {
+                opacity: 0.7;
+                position: relative;
+            }
+
+            .is-calculating .price-display:after {
+                content: "";
+                position: absolute;
+                width: 16px;
+                height: 16px;
+                top: 50%;
+                right: -20px;
+                margin-top: -8px;
+                border: 2px solid rgba(0,0,0,0.2);
+                border-radius: 50%;
+                border-top-color: #4CAF50;
+                animation: spin 1s linear infinite;
+            }
+
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+
+            /* Notification styling */
+            .price-notification {
+                display: none;
+                padding: 8px 12px;
+                margin-top: 8px;
+                border-radius: 4px;
+                font-size: 0.85em;
+                text-align: center;
+                transition: all 0.3s ease;
+            }
+
+            .price-notification.info {
+                background-color: #e3f2fd;
+                color: #1976d2;
+                border-left: 3px solid #1976d2;
+            }
+
+            .price-notification.warning {
+                background-color: #fff3e0;
+                color: #e65100;
+                border-left: 3px solid #e65100;
+            }
+
+            .price-notification.error {
+                background-color: #ffebee;
+                color: #c62828;
+                border-left: 3px solid #c62828;
+            }
+
+            /* Add a bit of animation to the price prediction */
+            @keyframes highlight {
+                0% { background-color: rgba(76, 175, 80, 0.1); }
+                50% { background-color: rgba(76, 175, 80, 0.2); }
+                100% { background-color: rgba(76, 175, 80, 0); }
+            }
+
+            #pricePerPassenger:focus {
+                animation: highlight 1s ease;
+            }
         }
     </style>
 </head>
@@ -572,10 +680,72 @@
         </div>
     </div>
 </div>
-
+<script src="{{ asset('js/price-prediction.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const estimateButton = document.getElementById('estimatePrice');
+        const departureCity = document.getElementById('departureCity');
+        const arrivalCity = document.getElementById('arrivalCity');
+        const availableSeats = document.getElementById('availableSeats');
+        const previewPrice = document.getElementById('previewPrice');
+        estimateButton.addEventListener('click', async function () {
+            try {
+                // Validate input fields
+                if (!departureCity.value || !arrivalCity.value || !availableSeats.value) {
+                    alert('Please fill in all required fields.');
+                    return;
+                }
+
+                if (departureCity.value === arrivalCity.value) {
+                    alert('Departure and arrival cities must be different.');
+                    return;
+                }
+
+                const seats = parseInt(availableSeats.value, 10);
+                if (isNaN(seats) || seats <= 0 || seats > 10) {
+                    alert('Please enter a valid number of seats (between 1 and 10).');
+                    return;
+                }
+
+                // Prepare form data
+                const formData = new FormData();
+                formData.append('departureCity', departureCity.value);
+                formData.append('arrivalCity', arrivalCity.value);
+                formData.append('availableSeats', seats);
+
+                // Make the fetch request
+                const response = await fetch('/predict-price', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Server error response:', errorText);
+                    throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                if (data.error) {
+                    throw new Error(`API error: ${data.error}`);
+                }
+
+                // Update the preview price
+                if (data.price !== undefined) {
+                    previewPrice.textContent = `Estimated Price: ${parseFloat(data.price).toFixed(2)}`;
+                } else {
+                    throw new Error('No price returned from API');
+                }
+            } catch (error) {
+                console.error('Error estimating price:', error);
+                alert(`Failed to estimate price: ${error.message}`);
+            }
+        });
+
+
+// Call the static prediction function for testing
+
         // Set minimum date to today
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('departureDate').min = today;
@@ -619,6 +789,8 @@
             const departureTime = document.getElementById('departureTime').value;
             const availableSeats = document.getElementById('availableSeats').value;
             const pricePerPassenger = document.getElementById('pricePerPassenger').value;
+
+
 
             // Update preview sections
             document.getElementById('previewRoute').textContent =

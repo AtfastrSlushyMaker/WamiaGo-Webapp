@@ -21,6 +21,10 @@ class TripService
     {
         return $this->tripRepository->find($id);
     }
+public function getTripsByDepartureCity(string $city): array
+{
+    return $this->tripRepository->findBy(['departure_city' => $city]);
+}
 
     public function createTrip(array $data): Trip
     {

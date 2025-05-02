@@ -27,5 +27,15 @@ services:
             $httpClient: '@http_client'
             $apiKey: '%app.here_api_key%'
 
+
+    App\Service\PredictPrice:
+        arguments:
+            $logger: '@logger'
+    App\Service\DeepSeekService:
+        arguments:
+            $apiKey: '%env(DEEPS_EEK_API_KEY)%'
+            $httpClient: '@http_client'
+            $logger: '@logger'
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

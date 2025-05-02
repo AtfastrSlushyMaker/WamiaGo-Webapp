@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Trip;
+use App\Repository\TripRepository;
 use App\Service\TripService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -41,6 +42,25 @@ class AdminController extends AbstractController
         // Pass the trips to the template
         return $this->render('back-office/ride-sharing.html.twig', [
             'trips' => $trips,
+        ]);
+    }
+    #[Route('/admin/trips/chart', name: 'admin_trips_chart')]
+    public function tripsChart(TripRepository $tripRepository): Response
+    {
+        // Récupérer les données des trips groupées par mois
+        $tripsByMonth = $tripRepository->countTripsByMonth();
+
+        // Préparer les données pour le graphique
+        $labels = [];
+        $data = [];
+        foreach ($tripsByMonth as $month => $count) {
+            $labels[] = $month;
+            $data[] = $count;
+        }
+
+        return $this->render('back-office/trips_chart.twig', [
+            'labels' => json_encode($labels),
+            'data' => json_encode($data),
         ]);
     }
     #[Route('/admin/trip/delete/{id}', name: 'admin_trip_delete', methods: ['POST'])]
