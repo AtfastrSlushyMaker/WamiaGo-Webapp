@@ -61,11 +61,15 @@ RUN composer config --no-plugins allow-plugins.endroid/installer true
 RUN composer config --no-plugins allow-plugins.symfony/flex true
 RUN composer config --no-plugins allow-plugins.symfony/runtime true
 
-# Install dependencies with optimizations for production
+# Install dependencies for production only (excludes dev packages like DebugBundle)
 RUN composer install --prefer-dist --no-dev --optimize-autoloader --no-scripts
 
 # Now copy the rest of the files
 COPY . .
+
+# Create a .env.local file to ensure we're in production mode
+RUN echo "APP_ENV=prod" > .env.local
+RUN echo "APP_DEBUG=0" >> .env.local
 
 # Run scripts after all files are copied
 RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
@@ -75,9 +79,9 @@ RUN mkdir -p var/cache var/log
 RUN chown -R www-data:www-data var
 RUN chmod -R 777 var
 
-# Generate cache for production (only if all dependencies were successfully installed)
-RUN php bin/console cache:clear --env=prod --no-warmup || echo "Could not clear cache, continuing anyway"
-RUN php bin/console cache:warmup --env=prod || echo "Could not warm up cache, continuing anyway"
+# Generate cache for production with explicit environment
+RUN APP_ENV=prod php bin/console cache:clear --no-warmup --no-debug --env=prod || echo "Could not clear cache, continuing anyway"
+RUN APP_ENV=prod php bin/console cache:warmup --env=prod || echo "Could not warm up cache, continuing anyway"
 
 # Expose port for Render (Render expects port 8080)
 EXPOSE 8080
