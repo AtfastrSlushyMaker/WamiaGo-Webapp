@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service;
+namespace App\Service\Export;
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
