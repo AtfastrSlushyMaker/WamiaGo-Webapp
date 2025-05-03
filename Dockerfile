@@ -84,10 +84,17 @@ RUN echo "APP_DEBUG=0" >> .env.local
 # Run scripts after all files are copied
 RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
 
-# Set permissions
-RUN mkdir -p var/cache var/log
+# Ensure var directory exists and has correct permissions
+RUN mkdir -p var/cache var/log var/sessions
+
+# First ensure that apache can write to these directories
+# We run Apache as www-data, so we need to ensure the directories are owned by www-data
 RUN chown -R www-data:www-data var
-RUN chmod -R 777 var
+RUN chmod -R 777 var  # Very permissive for troubleshooting
+
+# Ensure Apache is running as the www-data user (this is actually the default)
+RUN sed -i 's/^export APACHE_RUN_USER=www-data$/export APACHE_RUN_USER=www-data/' /etc/apache2/envvars
+RUN sed -i 's/^export APACHE_RUN_GROUP=www-data$/export APACHE_RUN_GROUP=www-data/' /etc/apache2/envvars
 
 # Clear Symfony cache to make sure our bundles.php changes are recognized
 RUN rm -rf var/cache/* || true
@@ -99,13 +106,20 @@ EXPOSE 8080
 RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf && \
     sed -i 's/*:80/*:8080/' /etc/apache2/sites-available/000-default.conf
 
-# Add a startup script to ensure environment is properly set and handle cache on startup
+# Create a startup script that ensures proper permissions and cache warming
 RUN echo '#!/bin/bash' > /usr/local/bin/start-apache.sh && \
+    echo 'set -e' >> /usr/local/bin/start-apache.sh && \
     echo 'export APP_ENV=prod' >> /usr/local/bin/start-apache.sh && \
     echo 'export APP_DEBUG=0' >> /usr/local/bin/start-apache.sh && \
+    echo 'echo "Creating cache directory structure"' >> /usr/local/bin/start-apache.sh && \
+    echo 'mkdir -p /var/www/html/var/cache/prod' >> /usr/local/bin/start-apache.sh && \
+    echo 'mkdir -p /var/www/html/var/log' >> /usr/local/bin/start-apache.sh && \
+    echo 'echo "Setting permissions on var directory"' >> /usr/local/bin/start-apache.sh && \
     echo 'chown -R www-data:www-data /var/www/html/var' >> /usr/local/bin/start-apache.sh && \
-    echo 'rm -rf /var/www/html/var/cache/*' >> /usr/local/bin/start-apache.sh && \
-    echo 'php /var/www/html/bin/console cache:warmup --env=prod --no-debug || true' >> /usr/local/bin/start-apache.sh && \
+    echo 'chmod -R 777 /var/www/html/var' >> /usr/local/bin/start-apache.sh && \
+    echo 'echo "Clearing existing cache files"' >> /usr/local/bin/start-apache.sh && \
+    echo 'rm -rf /var/www/html/var/cache/prod/*' >> /usr/local/bin/start-apache.sh && \
+    echo 'echo "Running Apache in the foreground"' >> /usr/local/bin/start-apache.sh && \
     echo 'apache2-foreground' >> /usr/local/bin/start-apache.sh && \
     chmod +x /usr/local/bin/start-apache.sh
 
