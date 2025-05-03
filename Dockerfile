@@ -1,4 +1,4 @@
-FROM php:8.1-apache
+FROM php:8.2-apache
 
 # Set environment variables early
 ENV APP_ENV=prod
@@ -52,15 +52,17 @@ RUN echo "memory_limit = ${PHP_MEMORY_LIMIT}" > $PHP_INI_DIR/conf.d/memory-limit
 RUN echo "upload_max_filesize = 20M" > $PHP_INI_DIR/conf.d/upload-limit.ini
 RUN echo "post_max_size = 20M" >> $PHP_INI_DIR/conf.d/upload-limit.ini
 
-# Copy just the dependency files first for better caching
+# Copy composer files and install dependencies
 COPY composer.json composer.lock ./
+
+# Allow required plugins
 RUN composer config --no-plugins allow-plugins.php-http/discovery true
 RUN composer config --no-plugins allow-plugins.endroid/installer true
 RUN composer config --no-plugins allow-plugins.symfony/flex true
 RUN composer config --no-plugins allow-plugins.symfony/runtime true
 
 # Install dependencies with optimizations for production
-RUN composer install --prefer-dist --no-dev --optimize-autoloader --no-scripts || (composer diagnose && exit 1)
+RUN composer install --prefer-dist --no-dev --optimize-autoloader --no-scripts
 
 # Now copy the rest of the files
 COPY . .
