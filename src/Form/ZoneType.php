@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Form;
+namespace App\Form\Type;
 
 use App\Enum\Zone;
 use Symfony\Component\Form\AbstractType;

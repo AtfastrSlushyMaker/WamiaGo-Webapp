@@ -90,7 +90,9 @@ RUN chown -R www-data:www-data var
 RUN chmod -R 777 var
 
 # Clear Symfony cache to make sure our bundles.php changes are recognized
-RUN rm -rf var/cache/* || true
+RUN rm -rf var/cache/*
+RUN APP_ENV=prod APP_DEBUG=0 php bin/console cache:clear --no-warmup --env=prod
+RUN APP_ENV=prod APP_DEBUG=0 php bin/console cache:warmup --env=prod
 
 # Expose port for Render (Render expects port 8080)
 EXPOSE 8080
@@ -99,13 +101,11 @@ EXPOSE 8080
 RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf && \
     sed -i 's/*:80/*:8080/' /etc/apache2/sites-available/000-default.conf
 
-# Add a startup script to ensure environment is properly set and handle cache on startup
+# Add a startup script to ensure environment is properly set
 RUN echo '#!/bin/bash' > /usr/local/bin/start-apache.sh && \
     echo 'export APP_ENV=prod' >> /usr/local/bin/start-apache.sh && \
     echo 'export APP_DEBUG=0' >> /usr/local/bin/start-apache.sh && \
     echo 'chown -R www-data:www-data /var/www/html/var' >> /usr/local/bin/start-apache.sh && \
-    echo 'rm -rf /var/www/html/var/cache/*' >> /usr/local/bin/start-apache.sh && \
-    echo 'php /var/www/html/bin/console cache:warmup --env=prod --no-debug || true' >> /usr/local/bin/start-apache.sh && \
     echo 'apache2-foreground' >> /usr/local/bin/start-apache.sh && \
     chmod +x /usr/local/bin/start-apache.sh
 
