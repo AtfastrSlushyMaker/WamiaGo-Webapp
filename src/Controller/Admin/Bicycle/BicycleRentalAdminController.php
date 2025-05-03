@@ -12,7 +12,7 @@ use App\Form\BicycleType;
 use App\Service\BicycleService;
 use App\Service\BicycleStationService;
 use App\Service\BicycleRentalService;
-use App\Service\Export\ExportService;
+use App\Service\ExportService;
 use App\Service\LocationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
