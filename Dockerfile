@@ -2,7 +2,6 @@ FROM php:8.2-apache
 
 # Set environment variables early
 ENV APP_ENV=prod
-ENV APP_DEBUG=0
 ENV COMPOSER_ALLOW_SUPERUSER=1
 # Increase PHP memory limit
 ENV PHP_MEMORY_LIMIT=1024M
@@ -53,11 +52,6 @@ RUN echo "memory_limit = ${PHP_MEMORY_LIMIT}" > $PHP_INI_DIR/conf.d/memory-limit
 RUN echo "upload_max_filesize = 20M" > $PHP_INI_DIR/conf.d/upload-limit.ini
 RUN echo "post_max_size = 20M" >> $PHP_INI_DIR/conf.d/upload-limit.ini
 
-# Enable error logging for PHP
-RUN echo "log_errors = On" > $PHP_INI_DIR/conf.d/error-logging.ini
-RUN echo "error_log = /dev/stderr" >> $PHP_INI_DIR/conf.d/error-logging.ini
-RUN echo "display_errors = Off" >> $PHP_INI_DIR/conf.d/error-logging.ini
-
 # Copy composer files and install dependencies
 COPY composer.json composer.lock ./
 
@@ -70,14 +64,10 @@ RUN composer config --no-plugins allow-plugins.symfony/runtime true
 # Install dependencies for production only (excludes dev packages like DebugBundle)
 RUN composer install --prefer-dist --no-dev --optimize-autoloader --no-scripts
 
-# Create .env.local first to ensure correct environment
-RUN echo "APP_ENV=prod" > .env.local
-RUN echo "APP_DEBUG=0" >> .env.local
-
 # Now copy the rest of the files
 COPY . .
 
-# Make sure our .env.local file takes precedence (in case it was overwritten)
+# Create a .env.local file to ensure we're in production mode
 RUN echo "APP_ENV=prod" > .env.local
 RUN echo "APP_DEBUG=0" >> .env.local
 
@@ -89,10 +79,9 @@ RUN mkdir -p var/cache var/log
 RUN chown -R www-data:www-data var
 RUN chmod -R 777 var
 
-# Clear Symfony cache to make sure our bundles.php changes are recognized
-RUN rm -rf var/cache/*
-RUN APP_ENV=prod APP_DEBUG=0 php bin/console cache:clear --no-warmup --env=prod
-RUN APP_ENV=prod APP_DEBUG=0 php bin/console cache:warmup --env=prod
+# Generate cache for production with explicit environment
+RUN APP_ENV=prod php bin/console cache:clear --no-warmup --no-debug --env=prod || echo "Could not clear cache, continuing anyway"
+RUN APP_ENV=prod php bin/console cache:warmup --env=prod || echo "Could not warm up cache, continuing anyway"
 
 # Expose port for Render (Render expects port 8080)
 EXPOSE 8080
@@ -101,13 +90,5 @@ EXPOSE 8080
 RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf && \
     sed -i 's/*:80/*:8080/' /etc/apache2/sites-available/000-default.conf
 
-# Add a startup script to ensure environment is properly set
-RUN echo '#!/bin/bash' > /usr/local/bin/start-apache.sh && \
-    echo 'export APP_ENV=prod' >> /usr/local/bin/start-apache.sh && \
-    echo 'export APP_DEBUG=0' >> /usr/local/bin/start-apache.sh && \
-    echo 'chown -R www-data:www-data /var/www/html/var' >> /usr/local/bin/start-apache.sh && \
-    echo 'apache2-foreground' >> /usr/local/bin/start-apache.sh && \
-    chmod +x /usr/local/bin/start-apache.sh
-
-# Start Apache with our script
-CMD ["/usr/local/bin/start-apache.sh"]
+# Start Apache
+CMD ["apache2-foreground"]
