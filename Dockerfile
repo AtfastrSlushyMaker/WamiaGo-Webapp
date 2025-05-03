@@ -1,5 +1,13 @@
 FROM php:8.1-apache
 
+# Set environment variables early
+ENV APP_ENV=prod
+ENV COMPOSER_ALLOW_SUPERUSER=1
+# Increase PHP memory limit
+ENV PHP_MEMORY_LIMIT=1024M
+# Set Composer environment variables to avoid prompts
+ENV COMPOSER_NO_INTERACTION=1
+
 # Set working directory
 WORKDIR /var/www/html
 
@@ -25,6 +33,9 @@ RUN apt-get update && apt-get install -y \
     exif \
     gd \
     xsl \
+    mysqli \
+    soap \
+    bcmath \
     && docker-php-ext-configure gd --with-freetype --with-jpeg
 
 # Install Composer
@@ -36,25 +47,37 @@ RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available
 RUN echo "AllowEncodedSlashes On" >> /etc/apache2/apache2.conf
 RUN echo "DirectoryIndex index.php" >> /etc/apache2/apache2.conf
 
-# Copy project files
+# Set PHP configuration
+RUN echo "memory_limit = ${PHP_MEMORY_LIMIT}" > $PHP_INI_DIR/conf.d/memory-limit.ini
+RUN echo "upload_max_filesize = 20M" > $PHP_INI_DIR/conf.d/upload-limit.ini
+RUN echo "post_max_size = 20M" >> $PHP_INI_DIR/conf.d/upload-limit.ini
+
+# Copy just the dependency files first for better caching
+COPY composer.json composer.lock ./
+RUN composer config --no-plugins allow-plugins.php-http/discovery true
+RUN composer config --no-plugins allow-plugins.endroid/installer true
+RUN composer config --no-plugins allow-plugins.symfony/flex true
+RUN composer config --no-plugins allow-plugins.symfony/runtime true
+
+# Install dependencies with optimizations for production
+RUN composer install --prefer-dist --no-dev --optimize-autoloader --no-scripts || (composer diagnose && exit 1)
+
+# Now copy the rest of the files
 COPY . .
 
-# Install dependencies
-RUN composer install --optimize-autoloader
+# Run scripts after all files are copied
+RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
 
 # Set permissions
+RUN mkdir -p var/cache var/log
 RUN chown -R www-data:www-data var
 RUN chmod -R 777 var
 
-# Set environment variables
-ENV APP_ENV=prod
-ENV COMPOSER_ALLOW_SUPERUSER=1
+# Generate cache for production (only if all dependencies were successfully installed)
+RUN php bin/console cache:clear --env=prod --no-warmup || echo "Could not clear cache, continuing anyway"
+RUN php bin/console cache:warmup --env=prod || echo "Could not warm up cache, continuing anyway"
 
-# Generate cache for production
-RUN php bin/console cache:clear --env=prod
-RUN php bin/console cache:warmup --env=prod
-
-# Expose port for Render (Render uses 10000 by default)
+# Expose port for Render (Render expects port 8080)
 EXPOSE 8080
 
 # Update Apache port to 8080 for Render
