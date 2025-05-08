@@ -7,12 +7,15 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV PHP_MEMORY_LIMIT=1024M
 # Set Composer environment variables to avoid prompts
 ENV COMPOSER_NO_INTERACTION=1
+# Set Debian frontend to noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Set working directory
 WORKDIR /var/www/html
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
+# Install dependencies with SSH for Git
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends \
     git \
     unzip \
     libzip-dev \
@@ -25,18 +28,28 @@ RUN apt-get update && apt-get install -y \
     g++ \
     libxslt1-dev \
     wkhtmltopdf \
+    ssh \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
     && docker-php-ext-install \
     pdo_mysql \
     zip \
     intl \
     opcache \
     exif \
-    gd \
     xsl \
     mysqli \
     soap \
     bcmath \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd
+
+# Configure Git to retry connections (after Git is installed)
+RUN git config --global http.postBuffer 524288000
+RUN git config --global http.maxRequestBuffer 100M
+RUN git config --global core.compression 9
+RUN git config --global http.lowSpeedLimit 1000
+RUN git config --global http.lowSpeedTime 60
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -62,7 +75,7 @@ RUN composer config --no-plugins allow-plugins.symfony/flex true
 RUN composer config --no-plugins allow-plugins.symfony/runtime true
 
 # Install dependencies for production only (excludes dev packages like DebugBundle)
-RUN composer install --prefer-dist --no-dev --optimize-autoloader --no-scripts
+RUN composer install --prefer-source --no-dev --optimize-autoloader --no-scripts
 
 # Now copy the rest of the files
 COPY . .
