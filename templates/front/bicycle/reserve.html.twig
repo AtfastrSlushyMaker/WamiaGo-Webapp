@@ -1,10 +1,10 @@
+
 {% extends 'front/base.html.twig' %}
 
 {% block title %}Reserve a Bicycle - WamiaGo{% endblock %}
 
 {% block page_stylesheets %}
     <link href="{{ asset('css/front/Bicycle/bicycle-rental.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .bicycle-details {
             background-color: #f8f9fa;
@@ -85,120 +85,6 @@
         .return-station-selector {
             margin-top: 15px;
         }
-
-        .weather-loading {
-            color: #6c757d;
-            font-style: italic;
-        }
-
-        .weather-factor {
-            font-weight: bold;
-            padding: 3px 8px;
-            border-radius: 4px;
-            display: inline-block;
-        }
-
-        .weather-factor-good {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
-        .weather-factor-mild {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-
-        .weather-factor-moderate {
-            background-color: #ffe6cc;
-            color: #8a5d19;
-        }
-
-        .weather-factor-challenging {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-
-        .weather-factor-difficult {
-            background-color: #f5c2c7;
-            color: #58151c;
-        }
-
-        .elevation-chart {
-            height: 100px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            position: relative;
-            overflow: hidden;
-            margin-top: 15px;
-        }
-        
-        .elevation-profile {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 50%;
-            background: linear-gradient(to top, rgba(41, 128, 185, 0.7), rgba(41, 128, 185, 0.2));
-            clip-path: polygon(0 100%, 20% 70%, 40% 85%, 60% 40%, 80% 60%, 100% 25%, 100% 100%);
-        }
-        
-        .terrain-badge {
-            font-size: 0.85rem;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-        }
-        
-        .terrain-flat {
-            background-color: #d1e7dd;
-            color: #0f5132;
-        }
-        
-        .terrain-hilly {
-            background-color: #fff3cd;
-            color: #664d03;
-        }
-        
-        .terrain-uphill {
-            background-color: #f8d7da;
-            color: #842029;
-        }
-        
-        .terrain-downhill {
-            background-color: #cfe2ff;
-            color: #084298;
-        }
-        
-        .poi-list {
-            margin-top: 10px;
-            list-style-type: none;
-            padding-left: 0;
-        }
-        
-        .poi-list li {
-            padding: 5px 0;
-            border-bottom: 1px dashed #e0e0e0;
-        }
-        
-        .poi-list li:last-child {
-            border-bottom: none;
-        }
-        
-        .poi-list i {
-            margin-right: 8px;
-            color: #6c757d;
-        }
-        
-        .routing-provider {
-            position: absolute;
-            bottom: 5px;
-            right: 10px;
-            font-size: 0.7rem;
-            color: #6c757d;
-            background-color: rgba(255, 255, 255, 0.7);
-            padding: 2px 5px;
-            border-radius: 3px;
-            z-index: 400;
-        }
     </style>
 {% endblock %}
 
@@ -225,72 +111,38 @@
 
         <div class="row">
             <div class="col-md-6">
-                <div class="bicycle-details mb-4">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="bicycle-icon me-3">
-                            <i class="fas fa-bicycle fa-3x text-primary"></i>
+                <div class="bicycle-details">
+                    <h3>{{ bicycleType }}</h3>
+                    <p class="text-muted">ID: #{{ bicycle.idBike }}</p>
+                    
+                    <div class="mt-4">
+                        <p><strong>Battery Level:</strong></p>
+                        <div class="battery-indicator">
+                            <div class="battery-level" style="width: {{ bicycle.batteryLevel }}%;"></div>
                         </div>
+                        <p>{{ bicycle.batteryLevel }}%</p>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <p><strong>Estimated Range:</strong> {{ bicycle.rangeKm }} km</p>
+                        <p><strong>Station:</strong> {{ bicycle.bicycleStation.name }}</p>
+                        <p><strong>Hourly Rate:</strong> {{ (hourlyRate)|number_format(3) }} TND</p>
+                    </div>
+                    
+                    <div class="weather-info">
+                        <div class="weather-icon">☀️</div>
                         <div>
-                            <h3 class="mb-0">{{ bicycleType }}</h3>
-                            <p class="text-muted mb-0">ID: #{{ bicycle.idBike }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="row mt-4">
-                        <div class="col-6">
-                            <div class="card h-100 border-0 bg-light">
-                                <div class="card-body">
-                                    <h5 class="card-title"><i class="fas fa-battery-three-quarters text-success me-2"></i>Battery</h5>
-                                    <div class="battery-indicator">
-                                        <div class="battery-level" style="width: {{ bicycle.batteryLevel }}%;"></div>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center mt-2">
-                                        <span class="fw-bold">{{ bicycle.batteryLevel }}%</span>
-                                        <span class="badge bg-info">{{ bicycle.rangeKm }} km range</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="card h-100 border-0 bg-light">
-                                <div class="card-body">
-                                    <h5 class="card-title"><i class="fas fa-tag text-warning me-2"></i>Pricing</h5>
-                                    <div class="pricing-info">
-                                        <p class="mb-1"><span class="fw-bold">{{ hourlyRate|number_format(3) }} TND</span> / hour</p>
-                                        <small class="text-muted">Weather conditions may affect pricing</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="station-info mt-4 p-3 border rounded">
-                        <h5><i class="fas fa-map-marker-alt text-danger me-2"></i>Pick-up Location</h5>
-                        <p class="mb-1"><strong>{{ bicycle.bicycleStation.name }}</strong></p>
-                        <p class="mb-1">{{ bicycle.bicycleStation.location ? bicycle.bicycleStation.location.address : 'Address not available' }}</p>
-                        <p class="mb-0 small">
-                            <span class="badge bg-success me-2">{{ bicycle.bicycleStation.availableBikes }} bikes available</span>
-                            <span class="badge bg-secondary">{{ bicycle.bicycleStation.availableDocks }} docks available</span>
-                        </p>
-                    </div>
-                    
-                    <div class="weather-info mt-4" id="weather-container">
-                        <div class="weather-icon">
-                            <i class="fas fa-spinner fa-pulse"></i>
-                        </div>
-                        <div>
-                            <p class="mb-0"><strong>Current Weather:</strong> <span class="weather-loading">Loading...</span></p>
-                            <p class="mb-0 weather-loading">Checking conditions...</p>
-                            <small class="text-muted weather-loading">Weather affects pricing</small>
+                            <p class="mb-0"><strong>Current Weather:</strong> Sunny</p>
+                            <p class="mb-0">26°C, Light breeze</p>
+                            <small class="text-muted">Perfect conditions for cycling!</small>
                         </div>
                     </div>
                     
                     <div class="rental-info-box mt-4">
-                        <h5 class="mb-3"><i class="fas fa-info-circle text-info me-2"></i>How it works</h5>
+                        <p class="mb-2"><span class="rental-info-label">How it works:</span></p>
                         <ol>
                             <li>Reserve the bicycle now</li>
-                            <li>Go to "My Reservations" page to activate your reservation</li>
-                            <li>Click the "Start Ride" button to begin using the bicycle</li>
+                            <li>Unlock it at the station using your reservation code</li>
                             <li>Use it for as long as you need</li>
                             <li>Return it to any available station</li>
                             <li>The final cost will be calculated when you return the bicycle</li>
@@ -303,151 +155,51 @@
                 <div class="reservation-form">
                     <h3>Reservation Details</h3>
                     
-                    <form method="post" id="reservationForm" >
+                    <form method="post" id="reservationForm">
                         <div class="form-group mb-3">
                             <label>Current Date and Time:</label>
                             <input type="text" class="form-control" 
                                    value="{{ "now"|date('Y-m-d H:i') }}" readonly>
-                            <small class="form-text text-muted">Your rental will be reserved now but will only start when you activate it from "My Reservations" page.</small>
+                            <small class="form-text text-muted">Your rental will start when you unlock the bicycle.</small>
                         </div>
+                        
                         <div class="form-group mb-3">
-                            <label for="endStation">Destination Station:</label>
-                            <select class="form-control" id="endStation" name="endStation" required>
-                                <option value="">Select your destination</option>
-                                {% for station in stations %}
-                                    {% if station.idStation != bicycle.bicycleStation.idStation %}
-                                        <option value="{{ station.idStation }}">{{ station.name }}</option>
-                                    {% endif %}
+                            <label for="estimatedDuration">Estimated Rental Duration (hours):</label>
+                            <select class="form-control" id="estimatedDuration" name="estimatedDuration" required>
+                                {% for i in 1..24 %}
+                                    <option value="{{ i }}">{{ i }} hour{% if i > 1 %}s{% endif %}</option>
                                 {% endfor %}
                             </select>
-                            <small class="form-text text-muted">Select where you plan to return the bicycle.</small>
+                            <small class="form-text text-muted">This is just an estimate to help calculate the deposit amount.</small>
                         </div>
-
-                        <div class="mb-3 text-center">
-                            <button type="button" id="predictButton" class="btn btn-info">
-                                <i class="fas fa-magic me-2"></i>Get AI Prediction
-                            </button>
+                        
+                        <div class="form-group mb-3">
+                            <label for="estimatedDistance">Estimated Distance (km):</label>
+                            <input type="number" class="form-control" id="estimatedDistance" name="estimatedDistance" 
+                                   value="5" min="1" max="{{ bicycle.rangeKm }}">
+                            <small class="form-text text-muted">Maximum range with current battery: {{ bicycle.rangeKm }} km</small>
                         </div>
-
-                        <div id="predictionLoading" class="text-center my-3 d-none">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                            <p class="mt-2">AI is calculating your prediction...</p>
-                        </div>
-
-                        <div id="predictionResult" class="rental-info-box d-none">
-                            <h5 class="mb-3"><i class="fas fa-robot text-primary me-2"></i>AI-Powered Prediction</h5>
-                            
-
-                            <div class="row mb-3">
-                                <div class="col-4">
-                                    <p><span class="rental-info-label">Distance:</span><br>
-                                    <span id="predictionDistance">--</span> km</p>
-                                </div>
-                                <div class="col-4">
-                                    <p><span class="rental-info-label">Duration:</span><br>
-                                    <span id="predictionDuration">--</span> minutes</p>
-                                </div>
-                                <div class="col-4">
-                                    <p><span class="rental-info-label">Estimated Cost:</span><br>
-                                    <span id="predictionCost">--</span> TND</p>
-                                </div>
-                            </div>
-                            
-                            <!-- Terrain Information - New Addition -->
-                            <div class="row mb-3">
-                                <div class="col-12">
-                                    <p><span class="rental-info-label">Terrain:</span>
-                                    <span id="terrainBadge" class="terrain-badge ms-2">--</span></p>
-                                    <div class="elevation-chart">
-                                        <div class="elevation-profile"></div>
-                                    </div>
-                                    <p class="text-center small text-muted mt-1">
-                                        <span id="elevationData">--</span>
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <div class="row mb-3 border-top pt-3">
-                                <div class="col-6">
-                                    <p><span class="rental-info-label">Battery Usage:</span><br>
-                                    <span id="predictionBattery">--</span></p>
-                                </div>
-                                <div class="col-6">
-                                    <p><span class="rental-info-label">Weather Impact:</span><br>
-                                    <span id="predictionWeather">--</span></p>
-                                </div>
-                            </div>
-
-                            <div id="rechargingAlert" class="alert alert-warning d-none mb-3">
-                                <i class="fas fa-charging-station me-2"></i>
-                                <strong>Battery Recharging Recommended:</strong>
-                                <span id="rechargingSuggestion">--</span>
-                            </div>
-
-                            <div class="enhanced-prediction border-top pt-3">
-                                <div class="row mb-2">
-                                    <div class="col-12">
-                                        <p class="rental-info-label"><i class="fas fa-route me-2 text-info"></i>Route Suggestion:</p>
-                                        <p id="routeSuggestion" class="ps-4">--</p>
-                                    </div>
-                                </div>
-                                
-                                <!-- Points of Interest - New Addition -->
-                                <div class="row mb-2">
-                                    <div class="col-12">
-                                        <p class="rental-info-label"><i class="fas fa-map-pin me-2 text-danger"></i>Points of Interest:</p>
-                                        <ul id="pointsOfInterest" class="poi-list ps-4">
-                                            <li><i class="fas fa-spinner fa-pulse"></i> Loading points of interest...</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                                
-                                <div class="accordion" id="predictionAccordion">
-                                    <!-- Health & Safety -->
-                                    <div class="accordion-item">
-                                        <h2 class="accordion-header">
-                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#healthSafetyCollapse" aria-expanded="false" aria-controls="healthSafetyCollapse">
-                                                <i class="fas fa-heartbeat me-2 text-danger"></i> Health & Safety
-                                            </button>
-                                        </h2>
-                                        <div id="healthSafetyCollapse" class="accordion-collapse collapse" data-bs-parent="#predictionAccordion">
-                                            <div class="accordion-body">
-                                                <p><strong>Health Benefits:</strong> <span id="healthBenefits">--</span></p>
-                                                <p><strong>Safety Tips:</strong> <span id="safetyTips">--</span></p>
-                                                <p class="mt-2">
-                                                    <strong>Difficulty Level:</strong> 
-                                                    <span id="difficultyBadge" class="badge bg-success">--</span>
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Environment & Impact - New Addition -->
-                                    <div class="accordion-item">
-                                        <h2 class="accordion-header">
-                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#environmentCollapse" aria-expanded="false" aria-controls="environmentCollapse">
-                                                <i class="fas fa-leaf me-2 text-success"></i> Environmental Impact
-                                            </button>
-                                        </h2>
-                                        <div id="environmentCollapse" class="accordion-collapse collapse" data-bs-parent="#predictionAccordion">
-                                            <div class="accordion-body">
-                                                <p id="environmentalImpact">--</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        
+                        <div class="return-station-selector mb-3">
+                            <label>Estimated Return Station (Optional):</label>
+                            <select class="form-control" id="estimatedReturnStation" name="estimatedReturnStation">
+                                <option value="">-- Select a station --</option>
+                                <option value="{{ bicycle.bicycleStation.idStation }}">{{ bicycle.bicycleStation.name }} (same station)</option>
+                                <!-- Other stations would be populated here from available stations -->
+                                <option value="2">Central Station</option>
+                                <option value="3">Harbor View Station</option>
+                                <option value="4">University Campus</option>
+                            </select>
+                            <small class="form-text text-muted">You can return the bicycle to any station.</small>
                         </div>
                         
                         <div class="price-calculation">
                             <p><strong>Hourly Rate:</strong> {{ hourlyRate|number_format(3) }} TND</p>
-                            <p><strong>Weather Conditions:</strong> <span id="weatherCondition">Loading...</span></p>
+                            <p><strong>Weather Conditions:</strong> <span id="weatherCondition">Good (no surcharge)</span></p>
                             <p class="font-italic">The final price will be calculated when you return the bicycle.</p>
                             <hr>
                             <p class="h5"><strong>Estimated Deposit:</strong> <span id="totalCost">{{ hourlyRate|number_format(3) }}</span> TND</p>
-                            <p class="small text-muted">This is a pre-authorization amount. You'll only be charged for the actual time used after activating the reservation.</p>
+                            <p class="small text-muted">This is a pre-authorization amount. You'll only be charged for the actual time used.</p>
                             <input type="hidden" name="estimatedCost" id="estimatedCost" value="{{ hourlyRate }}">
                             <input type="hidden" name="duration" id="duration" value="1">
                         </div>
@@ -461,447 +213,62 @@
             </div>
         </div>
     </div>
-
-    {# Station coordinates for weather API #}
-    <input type="hidden" id="stationLatitude" value="{{ bicycle.bicycleStation.latitude|default(36.8065) }}">
-    <input type="hidden" id="stationLongitude" value="{{ bicycle.bicycleStation.longitude|default(10.1815) }}">
 {% endblock %}
 
 {% block page_javascripts %}
-    {{ parent() }}
-    <script src="{{ asset('js/front/bicycle/weatherService.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const estimatedDurationSelect = document.getElementById('estimatedDuration');
+            const distanceInput = document.getElementById('estimatedDistance');
             const totalCostSpan = document.getElementById('totalCost');
             const estimatedCostInput = document.getElementById('estimatedCost');
-            const weatherConditionSpan = document.getElementById('weatherCondition');
-            const weatherContainer = document.getElementById('weather-container');
             const durationInput = document.getElementById('duration');
-            
-            // Prediction elements
-            const predictButton = document.getElementById('predictButton');
-            const endStationSelect = document.getElementById('endStation');
-            const predictionLoading = document.getElementById('predictionLoading');
-            const predictionResult = document.getElementById('predictionResult');
+            const weatherConditionSpan = document.getElementById('weatherCondition');
+            const estimatedReturnStationSelect = document.getElementById('estimatedReturnStation');
             
             const hourlyRate = {{ hourlyRate }};
-            let weatherFactor = 1.0; // Default factor
             
-            // Initialize the weather service (it will fetch its API key from the backend)
-            const weatherService = new WeatherService();
-            
-            // Get the station coordinates from the hidden inputs
-            const startLat = {{ bicycle.bicycleStation.location ? bicycle.bicycleStation.location.latitude : 36.8065 }};
-            const startLon = {{ bicycle.bicycleStation.location ? bicycle.bicycleStation.location.longitude : 10.1815 }};
-            
-            // Prediction button click handler
-            predictButton.addEventListener('click', async function() {
-                const endStationId = endStationSelect.value;
-                
-                if (!endStationId) {
-                    alert('Please select a destination station first.');
-                    return;
-                }
-                
-                // Show loading indicator
-                predictionLoading.classList.remove('d-none');
-                predictionResult.classList.add('d-none');
-                
-                try {
-                    // Make API request to get prediction
-                    const response = await fetch('/services/bicycle/api-rental-predict', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            startStationId: {{ bicycle.bicycleStation.idStation }},
-                            endStationId: endStationId,
-                            bicycleId: {{ bicycle.idBike }}
-                        })
-                    });
-                    
-                    const predictionData = await response.json();
-                    
-                    if (predictionData.error) {
-                        throw new Error(predictionData.error);
-                    }
-                    
-                    // Update prediction display
-                    updatePredictionUI(predictionData);
-                    
-                    // Always update the cost with the predicted values - FIXED
-                    const predictedCost = parseFloat(predictionData.estimatedCost);
-                    const predictedDuration = parseInt(predictionData.estimatedDuration);
-                    
-                    // Calculate a deposit based on predicted duration and hourly rate with weather factor
-                    // Using ceiling of hours needed (e.g., 70 minutes = 2 hours) plus a small buffer
-                    const hoursNeeded = Math.ceil(predictedDuration / 60) + 1; 
-                    const estimatedDeposit = (hourlyRate * weatherFactor * hoursNeeded).toFixed(3);
-                    
-                    // Update both display and input value - FIXED
-                    totalCostSpan.textContent = estimatedDeposit;
-                    estimatedCostInput.value = estimatedDeposit;
-                    durationInput.value = hoursNeeded; // Update duration input
-                    
-                    // Show results
-                    predictionResult.classList.remove('d-none');
-                    
-                } catch (error) {
-                    console.error('Error getting prediction:', error);
-                    alert('Unable to get prediction at this time. Please try again later.');
-                } finally {
-                    // Hide loading indicator
-                    predictionLoading.classList.add('d-none');
-                }
-            });
-            
-            // SIMPLIFIED POINTS OF INTEREST - Direct from GeoRoutingService API
-function updatePointsOfInterest(data) {
-    const poiList = document.getElementById('pointsOfInterest');
-    poiList.innerHTML = '';
-    
-    if (data.pointsOfInterest && typeof data.pointsOfInterest === 'string' && data.pointsOfInterest.trim() !== '') {
-        // Just use POIs directly from GeoRoutingService (as comma-separated string)
-        const pois = data.pointsOfInterest.split(',');
-        
-        let validPoisFound = false;
-        pois.forEach(poi => {
-            const poiText = poi.trim();
-            // Only show POIs with actual names (filter out unnamed or empty)
-            if (poiText && !poiText.includes('unnamed') && !poiText.includes('Unnamed')) {
-                validPoisFound = true;
-                const li = document.createElement('li');
-                li.innerHTML = getPoiHtml(poiText);
-                poiList.appendChild(li);
-            }
-        });
-        
-        // If no valid POIs found, use generic fallbacks
-        if (!validPoisFound) {
-            addGenericPois(data);
-        }
-    } else {
-        // No POIs in response, use generic fallbacks
-        addGenericPois(data);
-    }
-}
-
-// Generate generic POIs based on terrain when real data isn't available
-function addGenericPois(data) {
-    const poiList = document.getElementById('pointsOfInterest');
-    const terrainDescription = data.terrainDescription || '';
-    const distance = parseFloat(data.distance || 3);
-    
-    // Determine terrain type for more appropriate suggestions
-    let terrainType = 'Mixed';
-    if (terrainDescription.toLowerCase().includes('flat')) {
-        terrainType = 'Flat';
-    } else if (terrainDescription.toLowerCase().includes('downhill')) {
-        terrainType = 'Downhill';
-    } else if (terrainDescription.toLowerCase().includes('uphill')) {
-        terrainType = 'Uphill';
-    } else if (terrainDescription.toLowerCase().includes('hilly')) {
-        terrainType = 'Hilly';
-    }
-    
-    // Add generic POIs based on terrain type
-    const genericPois = [
-        '<i class="fas fa-city"></i> City district with shops and cafés'
-    ];
-    
-    // Add terrain-specific POI
-    if (terrainType === 'Flat') {
-        genericPois.push('<i class="fas fa-tree"></i> Urban park with green spaces');
-    } else if (terrainType === 'Downhill') {
-        genericPois.push('<i class="fas fa-mountain"></i> Scenic overlook point');
-    } else if (terrainType === 'Uphill') {
-        genericPois.push('<i class="fas fa-mountain"></i> Hilltop viewpoint');
-    } else {
-        genericPois.push('<i class="fas fa-map-signs"></i> Recreational area');
-    }
-    
-    // Add a third POI for longer routes
-    if (distance > 2) {
-        const thirdPoi = terrainType === 'Flat' ? 
-            '<i class="fas fa-utensils"></i> Local bistro area' :
-            terrainType === 'Downhill' ? 
-            '<i class="fas fa-water"></i> Water feature along route' :
-            terrainType === 'Uphill' ? 
-            '<i class="fas fa-store"></i> Convenience store for refreshments' :
-            '<i class="fas fa-coffee"></i> Café district';
-        
-        genericPois.push(thirdPoi);
-    }
-    
-    // Add the generic POIs to the list
-    genericPois.forEach(poi => {
-        const li = document.createElement('li');
-        li.innerHTML = poi;
-        poiList.appendChild(li);
-    });
-}
-            
-            // Update the prediction UI with the received data
-            function updatePredictionUI(data) {
-                // Basic prediction data
-                document.getElementById('predictionDistance').textContent = data.distance;
-                document.getElementById('predictionDuration').textContent = data.estimatedDuration;
-                document.getElementById('predictionCost').textContent = parseFloat(data.estimatedCost).toFixed(3);
-                
-                // Battery and weather info
-                document.getElementById('predictionBattery').textContent = `${data.batteryConsumption}% usage (${data.rangeAfterTrip} km remaining)`;
-                document.getElementById('predictionWeather').textContent = data.weatherImpact;
-                
-                // Route suggestion
-                document.getElementById('routeSuggestion').textContent = data.routeSuggestion;
-                
-                // Health and safety
-                document.getElementById('healthBenefits').textContent = data.healthBenefits;
-                document.getElementById('safetyTips').textContent = data.safetyTips;
-                
-                // Update difficulty badge
-                const difficultyBadge = document.getElementById('difficultyBadge');
-                difficultyBadge.textContent = data.difficultyLevel;
-                difficultyBadge.className = 'badge';
-                
-                switch(data.difficultyLevel) {
-                    case 'Easy':
-                        difficultyBadge.classList.add('bg-success');
-                        break;
-                    case 'Moderate':
-                        difficultyBadge.classList.add('bg-warning');
-                        break;
-                    case 'Challenging':
-                        difficultyBadge.classList.add('bg-danger');
-                        break;
-                    default:
-                        difficultyBadge.classList.add('bg-secondary');
-                }
-                
-                // ENHANCED TERRAIN INFO - More detailed description with custom styling
-                const terrainBadge = document.getElementById('terrainBadge');
-                const terrainDescription = data.terrainDescription || 'Mixed terrain with some flat sections';
-                
-                // Extract the main terrain type for the badge
-                let mainTerrainType = 'Mixed';
-                if (terrainDescription.toLowerCase().includes('flat')) {
-                    mainTerrainType = 'Flat';
-                } else if (terrainDescription.toLowerCase().includes('downhill')) {
-                    mainTerrainType = 'Downhill';
-                } else if (terrainDescription.toLowerCase().includes('uphill')) {
-                    mainTerrainType = 'Uphill';
-                } else if (terrainDescription.toLowerCase().includes('hilly')) {
-                    mainTerrainType = 'Hilly';
-                }
-                
-                terrainBadge.textContent = mainTerrainType;
-                terrainBadge.className = 'terrain-badge';
-                
-                // Set terrain badge color based on description
-                const terrainText = terrainDescription.toLowerCase();
-                if (terrainText.includes('flat')) {
-                    terrainBadge.classList.add('terrain-flat');
-                } else if (terrainText.includes('downhill')) {
-                    terrainBadge.classList.add('terrain-downhill');
-                } else if (terrainText.includes('uphill')) {
-                    terrainBadge.classList.add('terrain-uphill');
-                } else {
-                    terrainBadge.classList.add('terrain-hilly');
-                }
-                
-                // Update elevation data text - ENHANCED with more detail
-                document.getElementById('elevationData').textContent = generateElevationDescription(data);
-                
-                // Update environmental impact - New Addition
-                document.getElementById('environmentalImpact').textContent = data.environmentalImpact || 
-                    'By choosing this bicycle, you are helping reduce carbon emissions.';
-                
-                // Use our new POI update function which includes landmark extraction
-                updatePointsOfInterest(data);
-                
-                // Show/hide recharging recommendation
-                const rechargingAlert = document.getElementById('rechargingAlert');
-                const rechargingSuggestion = document.getElementById('rechargingSuggestion');
-                
-                if (data.rechargingNeeded) {
-                    rechargingAlert.classList.remove('d-none');
-                    rechargingSuggestion.textContent = data.rechargingSuggestion || 
-                        'Consider recharging during your trip.';
-                } else {
-                    rechargingAlert.classList.add('d-none');
-                }
-            }
-            
-            // HELPER FUNCTION - Generate elevation description with more detail
-            function generateElevationDescription(data) {
-                // If we have specific elevation data, use it
-                if (data.terrainDescription) {
-                    // Add additional details
-                    let description = data.terrainDescription;
-                    
-                    // Add difficulty context if not in the description
-                    if (!description.toLowerCase().includes('difficulty')) {
-                        const difficultyMap = {
-                            'Easy': 'suitable for all riders',
-                            'Moderate': 'requiring average effort',
-                            'Challenging': 'requiring good fitness'
-                        };
-                        
-                        if (data.difficultyLevel && difficultyMap[data.difficultyLevel]) {
-                            description += ` - ${difficultyMap[data.difficultyLevel]}.`;
-                        }
-                    }
-                    
-                    return description;
-                }
-                
-                // If we don't have specific data, generate based on distance
-                const distance = parseFloat(data.distance || 0);
-                
-                if (distance < 2) {
-                    return 'Short route with minimal elevation changes, suitable for all riders.';
-                } else if (distance < 5) {
-                    return 'Moderate distance with some gentle slopes. Comfortable for most riders.';
-                } else {
-                    return 'Longer route with varied terrain. Some hills may require moderate effort.';
-                }
-            }
-            
-            // HELPER FUNCTION - Generate POI HTML with appropriate icon
-            function getPoiHtml(poiText) {
-                let iconClass = 'fas fa-map-marker-alt';
-                
-                // Determine icon based on POI text
-                const lowerText = poiText.toLowerCase();
-                if (lowerText.includes('restaurant') || lowerText.includes('café') || 
-                    lowerText.includes('cafe') || lowerText.includes('food')) {
-                    iconClass = 'fas fa-utensils';
-                } else if (lowerText.includes('park') || lowerText.includes('garden')) {
-                    iconClass = 'fas fa-tree';
-                } else if (lowerText.includes('museum') || lowerText.includes('gallery') || 
-                           lowerText.includes('monument')) {
-                    iconClass = 'fas fa-landmark';
-                } else if (lowerText.includes('shop') || lowerText.includes('store') || 
-                           lowerText.includes('market')) {
-                    iconClass = 'fas fa-shopping-cart';
-                } else if (lowerText.includes('beach') || lowerText.includes('sea') || 
-                           lowerText.includes('lake')) {
-                    iconClass = 'fas fa-water';
-                } else if (lowerText.includes('hotel') || lowerText.includes('hostel') || 
-                           lowerText.includes('accommodation')) {
-                    iconClass = 'fas fa-bed';
-                }
-                
-                return `<i class="${iconClass}"></i> ${poiText}`;
-            }
-            
-            // HELPER FUNCTION - Generate generic POIs based on terrain type
-            function getGenericPois(terrainType, distance) {
-                const dist = parseFloat(distance || 3);
-                const pois = [];
-                
-                // Add a generic city/district point
-                pois.push('<i class="fas fa-city"></i> City center district with shops and cafés');
-                
-                // Add terrain-specific POIs
-                if (terrainType === 'Flat') {
-                    pois.push('<i class="fas fa-tree"></i> Urban park with green spaces');
-                    if (dist > 2) pois.push('<i class="fas fa-utensils"></i> Local bistro area');
-                } else if (terrainType === 'Downhill') {
-                    pois.push('<i class="fas fa-mountain"></i> Scenic overlook');
-                    if (dist > 2) pois.push('<i class="fas fa-water"></i> Water feature along route');
-                } else if (terrainType === 'Uphill') {
-                    pois.push('<i class="fas fa-mountain"></i> Hilltop viewpoint');
-                    if (dist > 2) pois.push('<i class="fas fa-store"></i> Convenience store for refreshments');
-                } else {
-                    pois.push('<i class="fas fa-map-signs"></i> Recreational area');
-                    if (dist > 2) pois.push('<i class="fas fa-coffee"></i> Café district');
-                }
-                
-                return pois;
-            }
-            
-            // Fetch weather data for the bicycle station location
-            async function loadWeatherData() {
-                try {
-                    // Initialize the weather service first (this fetches the API key)
-                    await weatherService.init();
-                    
-                    const weatherData = await weatherService.getWeatherData(startLat, startLon);
-                    
-                    // Update the weather factor for price calculation
-                    weatherFactor = weatherData.weatherFactor;
-                    
-                    // Update the weather UI
-                    updateWeatherUI(weatherData);
-                    
-                    // Recalculate price with new weather factor
-                    updatePriceCalculation();
-                } catch (error) {
-                    console.error('Failed to load weather data:', error);
-                    // Use default values in case of error
-                    weatherFactor = 1.0;
-                    updateWeatherUIError();
-                    updatePriceCalculation();
-                }
-            }
-            
-            function updateWeatherUI(weatherData) {
-                // Get the appropriate CSS class based on weather factor
-                let weatherFactorClass = 'weather-factor-good';
-                if (weatherFactor > 1.3) weatherFactorClass = 'weather-factor-difficult';
-                else if (weatherFactor > 1.2) weatherFactorClass = 'weather-factor-challenging';
-                else if (weatherFactor > 1.1) weatherFactorClass = 'weather-factor-moderate';
-                else if (weatherFactor > 1.0) weatherFactorClass = 'weather-factor-mild';
-                
-                // Create weather HTML
-                weatherContainer.innerHTML = `
-                    <div class="weather-icon">
-                        <i class="fas ${weatherData.icon}"></i>
-                    </div>
-                    <div>
-                        <p class="mb-0"><strong>Current Weather:</strong> ${weatherData.description}</p>
-                        <p class="mb-0">${weatherData.temperature}°C, Wind: ${weatherData.windSpeed} m/s</p>
-                        <p class="mt-1 mb-0">
-                            <span class="weather-factor ${weatherFactorClass}">
-                                ${weatherService.getWeatherDescription(weatherFactor)}
-                            </span>
-                        </p>
-                    </div>
-                `;
-            }
-            
-            function updateWeatherUIError() {
-                weatherContainer.innerHTML = `
-                    <div class="weather-icon">
-                        <i class="fas fa-sun"></i>
-                    </div>
-                    <div>
-                        <p class="mb-0"><strong>Current Weather:</strong> Not available</p>
-                        <p class="mb-0">Using default conditions</p>
-                        <small class="text-muted">No weather surcharge applied</small>
-                    </div>
-                `;
-            }
+            // Apply weather factor (simulated for now)
+            const weatherFactor = 1.0; // Normal rate
             
             function updatePriceCalculation() {
-                // Update price calculation with BETTER LOGIC
-                // Base deposit on 3 hours to ensure sufficient coverage
-                const baseHours = 3;
-                const estimatedDeposit = (hourlyRate * weatherFactor * baseHours).toFixed(3);
+                // Get estimated duration
+                const duration = parseInt(estimatedDurationSelect.value);
+                
+                // Apply distance factor (optional, can be adjusted as needed)
+                const distance = parseFloat(distanceInput.value) || 5;
+                const distanceFactor = distance > 20 ? 1.1 : 1.0; // 10% extra for longer trips
+                
+                // Check if return station is different from pickup station
+                const differentStation = estimatedReturnStationSelect.value && 
+                                         estimatedReturnStationSelect.value !== "{{ bicycle.bicycleStation.idStation }}";
+                const stationFactor = differentStation ? 1.05 : 1.0; // 5% surcharge for different station
+                
+                // Calculate estimated deposit (for pre-authorization)
+                // We use a multiplier to ensure there's enough deposit for longer rentals
+                const depositMultiplier = 1.5; // 50% buffer for unexpected extended usage
+                const estimatedDeposit = (duration * hourlyRate * weatherFactor * distanceFactor * stationFactor * depositMultiplier).toFixed(3);
                 
                 // Update display
                 totalCostSpan.textContent = estimatedDeposit;
                 estimatedCostInput.value = estimatedDeposit;
-                durationInput.value = baseHours; // Set default duration
+                durationInput.value = duration;
                 
                 // Update weather condition text
-                weatherConditionSpan.textContent = weatherService.getWeatherDescription(weatherFactor);
+                if (weatherFactor > 1) {
+                    weatherConditionSpan.textContent = 'Challenging (10% surcharge)';
+                } else {
+                    weatherConditionSpan.textContent = 'Good (no surcharge)';
+                }
             }
             
-            // Load initial weather data
-            loadWeatherData();
+            // Add event listeners to all inputs
+            estimatedDurationSelect.addEventListener('change', updatePriceCalculation);
+            distanceInput.addEventListener('input', updatePriceCalculation);
+            estimatedReturnStationSelect.addEventListener('change', updatePriceCalculation);
+            
+            // Initialize calculation
+            updatePriceCalculation();
         });
     </script>
 {% endblock %}

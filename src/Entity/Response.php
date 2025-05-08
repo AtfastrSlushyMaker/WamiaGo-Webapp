@@ -6,7 +6,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Symfony\Component\Validator\Constraints as Assert;
 
 use App\Repository\ResponseRepository;
 
@@ -32,7 +31,6 @@ class Response
 
     #[ORM\ManyToOne(targetEntity: Reclamation::class, inversedBy: 'responses')]
     #[ORM\JoinColumn(name: 'id_reclamation', referencedColumnName: 'id_reclamation')]
-    #[Assert\NotNull(message: 'Please select a reclamation')]
     private ?Reclamation $reclamation = null;
 
     public function getReclamation(): ?Reclamation
@@ -47,13 +45,6 @@ class Response
     }
 
     #[ORM\Column(type: 'string', nullable: false)]
-    #[Assert\NotBlank(message: 'The response content cannot be empty')]
-    #[Assert\Length(
-        min: 10,
-        max: 1000,
-        minMessage: 'The response content should be at least {{ limit }} characters',
-        maxMessage: 'The response content cannot be longer than {{ limit }} characters'
-    )]
     private ?string $content = null;
 
     public function getContent(): ?string
@@ -68,8 +59,6 @@ class Response
     }
 
     #[ORM\Column(type: 'datetime', nullable: false)]
-    #[Assert\NotNull(message: 'Please provide a date')]
-    #[Assert\Type("\DateTimeInterface", message: 'Please provide a valid date')]
     private ?\DateTimeInterface $date = null;
 
     public function getDate(): ?\DateTimeInterface

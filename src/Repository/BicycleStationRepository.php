@@ -51,33 +51,28 @@ class BicycleStationRepository extends ServiceEntityRepository
         $stmt->executeStatement();
     }
 
+    //    /**
+    //     * @return BicycleStation[] Returns an array of BicycleStation objects
+    //     */
+    //    public function findByExampleField($value): array
+    //    {
+    //        return $this->createQueryBuilder('b')
+    //            ->andWhere('b.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->orderBy('b.id', 'ASC')
+    //            ->setMaxResults(10)
+    //            ->getQuery()
+    //            ->getResult()
+    //        ;
+    //    }
 
-    public function getStationsWithRentalActivity(int $limit = 5): array
-    {
-        $conn = $this->getEntityManager()->getConnection();
-
-        $sql = '
-        SELECT 
-            s.id_station, 
-            s.name, 
-            COUNT(r.id_rental) as rental_count
-        FROM 
-            bicycle_station s
-        LEFT JOIN 
-            bicycle_rental r 
-        ON 
-            s.id_station = r.id_start_station
-        GROUP BY 
-            s.id_station, s.name
-        ORDER BY 
-            rental_count DESC
-        LIMIT :limit
-    ';
-
-        $stmt = $conn->prepare($sql);
-        $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
-        $result = $stmt->executeQuery()->fetchAllAssociative();
-
-        return $result;
-    }
+    //    public function findOneBySomeField($value): ?BicycleStation
+    //    {
+    //        return $this->createQueryBuilder('b')
+    //            ->andWhere('b.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->getQuery()
+    //            ->getOneOrNullResult()
+    //        ;
+    //    }
 }

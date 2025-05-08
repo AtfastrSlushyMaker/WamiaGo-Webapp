@@ -3,119 +3,117 @@
 {% block title %}Bicycle Unlocked - WamiaGo{% endblock %}
 
 {% block page_stylesheets %}
-    <link href="{{ asset('css/front/Bicycle/bicycle-rental.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
     <style>
         .success-container {
-            max-width: 800px;
-            margin: 3rem auto;
-            background: white;
-            border-radius: 16px;
-            padding: 3rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px 15px;
         }
         
         .success-icon {
-            width: 120px;
-            height: 120px;
-            background: linear-gradient(135deg, #28a745, #20c997);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 2rem;
-            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.2);
-            color: white;
-            font-size: 4rem;
-        }
-        
-        .success-title {
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
-            color: #212529;
-            font-weight: 700;
-        }
-        
-        .btn-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            max-width: 500px;
-            margin: 2rem auto 0;
-        }
-        
-        @media (max-width: 576px) {
-            .btn-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .stats-card {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-top: 2rem;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-        }
-        
-        .stat-item {
-            padding: 1rem;
+            font-size: 80px;
+            color: #28a745;
             text-align: center;
+            margin: 20px 0;
         }
         
-        .stat-label {
-            font-size: 0.9rem;
-            color: #6c757d;
-            margin-bottom: 0.5rem;
+        .countdown {
+            font-size: 18px;
+            text-align: center;
+            margin: 30px 0;
         }
         
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 600;
+        .bicycle-details {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .instruction {
+            margin-bottom: 10px;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .instruction i {
+            position: absolute;
+            left: 0;
+            top: 3px;
             color: #28a745;
         }
     </style>
 {% endblock %}
 
 {% block content %}
-    <div class="container">
-        <div class="success-container">
-            <div class="success-icon">
-                <i class="fas fa-check"></i>
-            </div>
-            
-            <h1 class="success-title">Bicycle Unlocked</h1>
-            <p class="lead">Your bicycle is now ready to ride! Enjoy your journey.</p>
-            
-            <div class="stats-card">
-                <div class="stat-item">
-                    <div class="stat-label">Battery Level</div>
-                    <div class="stat-value">{{ bicycle.batteryLevel }}%</div>
+<div class="container py-5">
+    <div class="success-container">
+        <div class="card border-0 shadow">
+            <div class="card-body p-4 text-center">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-label">Range</div>
-                    <div class="stat-value">{{ bicycle.rangeKm }} km</div>
+                
+                <h1 class="mb-4">Bicycle Unlocked!</h1>
+                
+                <p class="lead">Your bicycle has been successfully unlocked. You can now begin your ride.</p>
+                
+                <div class="alert alert-success my-4">
+                    <p class="mb-0"><strong>Bicycle ID:</strong> #{{ bicycle.idBike }}</p>
+                    <p class="mb-0"><strong>Reservation Code:</strong> {{ code }}</p>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-label">Bicycle Type</div>
-                    <div class="stat-value">{{ bicycle.batteryLevel > 90 ? 'Premium' : 'Standard' }}</div>
+                
+                <div class="countdown" id="timerDisplay">
+                    Your ride started at <strong>{{ "now"|date('H:i') }}</strong> on <strong>{{ "now"|date('F d, Y') }}</strong>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-label">Hourly Rate</div>
-                    <div class="stat-value">{{ (bicycle.batteryLevel > 90 ? 5.000 : 3.500)|number_format(3) }} TND</div>
-                </div>
-            </div>
-            
-            <div class="btn-grid">
-                <a href="{{ path('app_front_my_reservations') }}" class="btn btn-bicycle btn-bicycle-primary">
-                    <i class="fas fa-list me-2"></i> My Reservations
-                </a>
-                <a href="{{ path('app_front_services_bicycle') }}" class="btn btn-bicycle btn-bicycle-outline">
-                    <i class="fas fa-bicycle me-2"></i> Browse Bicycles
-                </a>
             </div>
         </div>
+        
+        <div class="bicycle-details mt-4">
+            <h4>Bicycle Information</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Type:</strong> {{ bicycle.batteryLevel > 90 ? 'Premium' : 'Standard' }} E-Bike</p>
+                    <p><strong>Battery Level:</strong> {{ bicycle.batteryLevel }}%</p>
+                    <p><strong>Estimated Range:</strong> {{ bicycle.rangeKm }} km</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Station:</strong> {{ bicycle.bicycleStation.name }}</p>
+                    <p><strong>Hourly Rate:</strong> {{ (bicycle.batteryLevel > 90 ? 15.000 : 10.500)|number_format(3) }} TND</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4 border-0 shadow-sm">
+            <div class="card-body">
+                <h4>Important Information</h4>
+                <div class="instruction">
+                    <i class="fas fa-info-circle"></i>
+                    <p>Your ride time has started and you will be charged based on the time you use the bicycle.</p>
+                </div>
+                <div class="instruction">
+                    <i class="fas fa-info-circle"></i>
+                    <p>You can return the bicycle to any station when you're done.</p>
+                </div>
+                <div class="instruction">
+                    <i class="fas fa-info-circle"></i>
+                    <p>Make sure to properly dock the bicycle at a station to end your rental.</p>
+                </div>
+                <div class="instruction">
+                    <i class="fas fa-info-circle"></i>
+                    <p>For assistance, please call our support team at +216 71 123 456.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4 text-center">
+            <a href="{{ path('app_front_my_reservations') }}" class="btn btn-primary">
+    <i class="fas fa-list-alt me-2"></i> View My Reservations
+</a>
+            <a href="{{ path('app_front_services_bicycle') }}" class="btn btn-outline-secondary ms-2">
+                <i class="fas fa-bicycle me-2"></i> Back to Bicycles
+            </a>
+        </div>
     </div>
+</div>
 {% endblock %}

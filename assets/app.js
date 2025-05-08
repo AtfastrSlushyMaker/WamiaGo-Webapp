@@ -1,5 +1,4 @@
 import './bootstrap.js';
-
 /*
  * Welcome to your app's main JavaScript file!
  *
@@ -9,15 +8,3 @@ import './bootstrap.js';
 import './styles/app.css';
 
 console.log('This log comes from assets/app.js - welcome to AssetMapper! 🎉');
-
-// Importez Flatpickr si nécessaire
-import flatpickr from 'flatpickr';
-import 'flatpickr/dist/flatpickr.min.css';
-
-// Importez votre classe de recherche
-import AnnouncementSearch from './components/AnnouncementSearch';
-
-// Initialisation
-document.addEventListener('DOMContentLoaded', () => {
-    new AnnouncementSearch();
-});

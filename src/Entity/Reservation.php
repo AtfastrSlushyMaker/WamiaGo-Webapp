@@ -3,11 +3,11 @@
 namespace App\Entity;
 
 use App\Enum\ReservationStatus;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use App\Repository\ReservationRepository;
-use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ReservationRepository::class)]
 #[ORM\Table(name: 'reservation')]
@@ -19,35 +19,20 @@ class Reservation
     private ?int $id_reservation = null;
 
     #[ORM\Column(type: 'datetime', nullable: false)]
-    #[Assert\NotBlank(message: "The date is required")]
-    #[Assert\GreaterThan("today", message: "The date must be in the future")]
     private ?\DateTimeInterface $date = null;
 
     #[ORM\Column(enumType: ReservationStatus::class)]
     private ?ReservationStatus $status = null;
 
     #[ORM\Column(type: 'string', nullable: false)]
-    #[Assert\NotBlank(message: "Description is required")]
-    #[Assert\Length(
-        min: 10,
-        max: 500,
-        minMessage: "Description must be at least {{ limit }} characters",
-        maxMessage: "Description cannot be longer than {{ limit }} characters"
-    )]
     private ?string $description = null;
 
     #[ORM\ManyToOne(targetEntity: Location::class, inversedBy: 'reservations')]
     #[ORM\JoinColumn(name: 'id_start_location', referencedColumnName: 'id_location')]
-    #[Assert\NotNull(message: "Start location is required")]
     private ?Location $startLocation = null;
 
     #[ORM\ManyToOne(targetEntity: Location::class, inversedBy: 'reservations')]
     #[ORM\JoinColumn(name: 'id_end_location', referencedColumnName: 'id_location')]
-    #[Assert\NotNull(message: "End location is required")]
-    #[Assert\Expression(
-        "this.getStartLocation() !== this.getEndLocation()",
-        message: "Start and end locations must be different"
-    )]
     private ?Location $endLocation = null;
 
     #[ORM\ManyToOne(targetEntity: Announcement::class, inversedBy: 'reservations')]
@@ -159,20 +144,23 @@ class Reservation
      */
     public function getRelocations(): Collection
     {
+        if (!$this->relocations instanceof Collection) {
+            $this->relocations = new ArrayCollection();
+        }
         return $this->relocations;
     }
 
     public function addRelocation(Relocation $relocation): self
     {
-        if (!$this->relocations->contains($relocation)) {
-            $this->relocations->add($relocation);
+        if (!$this->getRelocations()->contains($relocation)) {
+            $this->getRelocations()->add($relocation);
         }
         return $this;
     }
 
     public function removeRelocation(Relocation $relocation): self
     {
-        $this->relocations->removeElement($relocation);
+        $this->getRelocations()->removeElement($relocation);
         return $this;
     }
 

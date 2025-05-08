@@ -6,7 +6,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Symfony\Component\Validator\Constraints as Assert;
 
 use App\Repository\BicycleRentalRepository;
 use App\Entity\User;
@@ -36,7 +35,6 @@ class BicycleRental
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'bicycleRentals')]
     #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id_user')]
-    #[Assert\NotNull(message: 'A user must be specified for the rental')]
     private ?User $user = null;
 
     public function getUser(): ?User
@@ -52,7 +50,6 @@ class BicycleRental
 
     #[ORM\ManyToOne(targetEntity: Bicycle::class, inversedBy: 'bicycleRentals')]
     #[ORM\JoinColumn(name: 'id_bike', referencedColumnName: 'id_bike')]
-    #[Assert\NotNull(message: 'A bicycle must be specified for the rental')]
     private ?Bicycle $bicycle = null;
 
     public function getBicycle(): ?Bicycle
@@ -68,7 +65,6 @@ class BicycleRental
 
     #[ORM\ManyToOne(targetEntity: BicycleStation::class, inversedBy: 'bicycleRentals')]
     #[ORM\JoinColumn(name: 'id_start_station', referencedColumnName: 'id_station')]
-    #[Assert\NotNull(message: 'A start station must be specified for the rental')]
     private ?BicycleStation $start_station = null;
 
     public function getStartBicycleStation(): ?BicycleStation
@@ -106,8 +102,6 @@ class BicycleRental
         return $this->start_station;
     }
     #[ORM\Column(type: 'datetime', nullable: false)]
-    #[Assert\NotNull(message: 'Start time must be specified')]
-    #[Assert\Type(\DateTimeInterface::class)]
     private ?\DateTimeInterface $start_time = null;
 
     public function getStart_time(): ?\DateTimeInterface
@@ -122,7 +116,6 @@ class BicycleRental
     }
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    #[Assert\Type(\DateTimeInterface::class)]
     private ?\DateTimeInterface $end_time = null;
 
     public function getEnd_time(): ?\DateTimeInterface
@@ -137,12 +130,6 @@ class BicycleRental
     }
 
     #[ORM\Column(type: 'float', nullable: false)]
-    #[Assert\NotNull(message: 'Distance must be specified')]
-    #[Assert\Type('float')]
-    #[Assert\GreaterThanOrEqual(
-        value: 0,
-        message: 'Distance must be a positive number'
-    )]
     private ?float $distance_km = null;
 
     public function getDistance_km(): ?float
@@ -157,13 +144,6 @@ class BicycleRental
     }
 
     #[ORM\Column(type: 'float', nullable: false)]
-    #[Assert\NotNull(message: 'Battery usage must be specified')]
-    #[Assert\Type('float')]
-    #[Assert\Range(
-        min: 0,
-        max: 100,
-        notInRangeMessage: 'Battery usage must be between {{ min }}% and {{ max }}%'
-    )]
     private ?float $battery_used = null;
 
     public function getBattery_used(): ?float
@@ -178,12 +158,6 @@ class BicycleRental
     }
 
     #[ORM\Column(type: 'float', nullable: false)]
-    #[Assert\NotNull(message: 'Cost must be specified')]
-    #[Assert\Type('float')]
-    #[Assert\GreaterThanOrEqual(
-        value: 0,
-        message: 'Cost must be greater than or equal to 0'
-    )]
     private ?float $cost = null;
 
     public function getCost(): ?float
@@ -207,14 +181,9 @@ class BicycleRental
         return $this->start_time;
     }
 
-    public function setStartTime(?\DateTimeInterface $start_time): static
+    public function setStartTime(\DateTimeInterface $start_time): static
     {
-        // If null is provided, use the current date and time
-        if ($start_time === null) {
-            $this->start_time = new \DateTime();
-        } else {
-            $this->start_time = $start_time;
-        }
+        $this->start_time = $start_time;
 
         return $this;
     }
