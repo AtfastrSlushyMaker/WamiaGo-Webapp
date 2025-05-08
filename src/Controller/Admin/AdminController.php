@@ -15,7 +15,6 @@ use App\Service\BicycleService;
 use App\Form\BicycleType;
 use App\Form\BicycleStationType;
 use Symfony\Component\Form\FormFactoryInterface;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Knp\Component\Pager\PaginatorInterface;
 
