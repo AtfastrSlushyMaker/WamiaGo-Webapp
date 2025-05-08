@@ -60,21 +60,17 @@ class UserRepository extends ServiceEntityRepository
         try {
             $qb = $this->createQueryBuilder('u');
             
-            // Apply search filter (case-insensitive, accent-insensitive if possible)
             if (!empty($search)) {
                 $search = trim($search);
                 $qb->andWhere('LOWER(u.name) LIKE LOWER(:search) OR LOWER(u.email) LIKE LOWER(:search) OR LOWER(u.phone_number) LIKE LOWER(:search)')
                    ->setParameter('search', '%' . mb_strtolower($search, 'UTF-8') . '%');
             }
             
-            // Add additional criteria
             $this->addCriteriaToQueryBuilder($qb, $criteria);
             
-            // Add sorting - make sure the column exists or use a fallback
             if (property_exists(User::class, $sortBy)) {
                 $qb->orderBy('u.' . $sortBy, strtoupper($sortDir) === 'DESC' ? 'DESC' : 'ASC');
             } else {
-                // Fallback to ID if the sort column doesn't exist
                 $qb->orderBy('u.id_user', 'ASC');
             }
             

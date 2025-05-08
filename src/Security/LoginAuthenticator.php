@@ -113,6 +113,7 @@ class LoginAuthenticator extends AbstractLoginFormAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
+        /** @var User $user */
         $user = $token->getUser();
         $session = $request->getSession();
         
@@ -120,19 +121,9 @@ class LoginAuthenticator extends AbstractLoginFormAuthenticator
         $attemptKey = '_security.login_attempts.' . md5($user->getUserIdentifier());
         $session->remove($attemptKey);
         
-        // Get the target URL from the session if it exists
-        $targetPath = $this->getTargetPath($session, $firewallName);
-        
-        // Default redirect based on user role if no target path
-        if (!$targetPath) {
-            if ($user->hasRole('ROLE_ADMIN')) {
-                $targetPath = $this->urlGenerator->generate('admin_dashboard');
-            } elseif ($user->hasRole('ROLE_DRIVER')) {
-                $targetPath = $this->urlGenerator->generate('driver_dashboard');
-            } else {
-                $targetPath = $this->urlGenerator->generate('app_front_home');
-            }
-        }
+        // Clear any 2FA redirect loop detection
+        $session->remove('2fa_page_access_count');
+        $session->remove('2fa_loop_check_time');
         
         // Store user info in session for JavaScript access
         $session->set('user_account_status', $user->getAccountStatus());
@@ -140,8 +131,64 @@ class LoginAuthenticator extends AbstractLoginFormAuthenticator
         $session->set('user_id', $user->getId_user());
         $session->set('user_name', $user->getName());
         
-        // Create response
-        $response = new RedirectResponse($targetPath);
+        // Determine if 2FA is needed based on user having a valid OTP secret
+        $requiresOtp = $user instanceof User && $user->isVerified() && $user->getOtpSecret();
+        
+        // Log for debugging
+        error_log('LoginAuthenticator: User ' . $user->getEmail() . ' login success, requires 2FA: ' . 
+            ($requiresOtp ? 'yes' : 'no') . ', verified: ' . ($user->isVerified() ? 'yes' : 'no'));
+        
+        // Check if the flag for missing TOTP secret is set
+        $missingSecret = $session->get('missing_totp_secret', false);
+        
+        if ($user->isVerified() && $missingSecret) {
+            // This is a verified user who needs to set up 2FA
+            error_log('LoginAuthenticator: User needs to set up 2FA, redirecting to setup');
+            
+            // Clear the flag
+            $session->remove('missing_totp_secret');
+            
+            // Redirect to 2FA setup
+            $response = new RedirectResponse($this->urlGenerator->generate('app_2fa_setup'));
+            
+            // Add basic cookie for the user to be identifiable
+            $secure = $request->isSecure();
+            $response->headers->setCookie(new \Symfony\Component\HttpFoundation\Cookie(
+                'auth_setup_required', 
+                '1',
+                time() + 3600, 
+                '/', 
+                null, 
+                $secure, 
+                true, 
+                false, 
+                'lax'
+            ));
+            
+            return $response;
+        } else if ($requiresOtp) {
+            // Set flag that 2FA is enabled and in progress
+            $session->set('2fa_enabled', true);
+            $session->set('2fa_in_progress', true);
+            
+            // Redirect to 2FA page
+            $twoFactorUrl = $this->urlGenerator->generate('app_2fa_login');
+            $response = new RedirectResponse($twoFactorUrl);
+            
+            // Log that we're redirecting to 2FA
+            error_log('LoginAuthenticator: Redirecting verified user to 2FA page: ' . $twoFactorUrl);
+        } else {
+            // User doesn't need 2FA, redirect to home page
+            error_log('LoginAuthenticator: User does not require 2FA, redirecting to home');
+            
+            // Clear any 2FA-related session variables
+            $session->remove('2fa_enabled');
+            $session->remove('totp_secret');
+            $session->remove('permanent_totp_secret');
+            $session->remove('2fa_in_progress');
+            
+            $response = new RedirectResponse($this->urlGenerator->generate('app_front_home'));
+        }
         
         // Add secured cookies with user data
         $secure = $request->isSecure();
@@ -171,11 +218,23 @@ class LoginAuthenticator extends AbstractLoginFormAuthenticator
 
         // Handle AJAX requests
         if ($request->isXmlHttpRequest()) {
+            $redirectUrl = $this->urlGenerator->generate('app_front_home');
+            
+            if ($requiresOtp) {
+                if ($missingSecret) {
+                    $redirectUrl = $this->urlGenerator->generate('app_2fa_setup');
+                } else {
+                    $redirectUrl = $twoFactorUrl;
+                }
+            }
+            
             return new JsonResponse([
                 'success' => true,
-                'redirectUrl' => $targetPath,
+                'redirectUrl' => $redirectUrl,
                 'user_status' => $user->getAccountStatus(),
-                'user_role' => $user->getRole()
+                'user_role' => $user->getRole(),
+                'requires_2fa' => $requiresOtp,
+                'needs_setup' => $missingSecret
             ]);
         }
 

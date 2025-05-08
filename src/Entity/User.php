@@ -16,11 +16,14 @@ use App\Enum\ROLE;
 use App\Enum\GENDER;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Scheb\TwoFactorBundle\Model\Totp\TotpConfiguration;
+use Scheb\TwoFactorBundle\Model\Totp\TotpConfigurationInterface;
+use Scheb\TwoFactorBundle\Model\Totp\TwoFactorInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'user')]
 #[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFactorInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -90,16 +93,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $is_verified = false;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $faceRecognitionEnabled = false;
+
     #[ORM\Column(type: 'string', length: 20, enumType: ACCOUNT_STATUS::class, options: ['default' => 'ACTIVE'])]
-    private ACCOUNT_STATUS $account_status = ACCOUNT_STATUS::ACTIVE;    #[Groups(['user:read'])]
+    private ACCOUNT_STATUS $account_status = ACCOUNT_STATUS::ACTIVE;
+
+    #[Groups(['user:read'])]
     #[ORM\Column(type: 'date', nullable: true)]
     #[Assert\NotNull(message: 'Date of birth is required')]
     #[Assert\LessThanOrEqual('today', message: 'Date of birth cannot be in the future')]
     #[Assert\GreaterThan('-120 years', message: 'Please enter a valid date of birth')]
     private ?\DateTimeInterface $date_of_birth = null;
 
-    #[ORM\Column(type: 'string', length: 20, enumType: \App\Enum\STATUS::class, options: ['default' => 'OFFLINE'])]
+    #[ORM\Column(type: 'string', length: 20, enumType: STATUS::class, options: ['default' => 'OFFLINE'])]
     private STATUS $status = STATUS::OFFLINE;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $otpSecret = null;
 
     #[ORM\OneToMany(targetEntity: BicycleRental::class, mappedBy: 'user')]
     private Collection $bicycleRentals;
@@ -117,7 +128,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $reclamations;
 
     #[ORM\OneToMany(targetEntity: Request::class, mappedBy: 'user')]
-    private Collection $requests;    #[ORM\OneToMany(targetEntity: Reservation::class, mappedBy: 'user')]
+    private Collection $requests;
+
+    #[ORM\OneToMany(targetEntity: Reservation::class, mappedBy: 'user')]
     private Collection $reservations;
 
     /**
@@ -238,7 +251,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->location = $location;
         return $this;
-    }    #[Groups(['user:read'])]
+    }
+
+    #[Groups(['user:read'])]
     public function getGender(): GENDER
     {
         return $this->gender;
@@ -283,17 +298,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setProfilePicture(?string $profilePicture): static
     {
         $this->profilePicture = $profilePicture;
-        return $this;
-    }
-
-    public function is_verified(): ?bool
-    {
-        return $this->is_verified;
-    }
-
-    public function setIs_verified(bool $is_verified): self
-    {
-        $this->is_verified = $is_verified;
         return $this;
     }
 
@@ -557,7 +561,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function hasRole(string $role): bool
     {
         return in_array($role, $this->getRoles(), true);
-    }    public function getProfilePicturePath(): ?string
+    }
+
+    public function getProfilePicturePath(): ?string
     {
         if (!$this->profilePicture) {
             return null;
@@ -586,6 +592,99 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->resetTokenExpiry = $resetTokenExpiry;
         return $this;
     }
+    
+    /**
+     * This method is used to determine if TOTP authentication is enabled for this user.
+     */
+    public function isTotpAuthenticationEnabled(): bool
+    {
+        // Check if we have a stored OTP secret in the database
+        if ($this->otpSecret) {
+            error_log('User has 2FA enabled in database: ' . $this->getEmail());
+            return true;
+        }
+        
+        // If we don't have a secret in the database, check if the user is verified
+        // This is a temporary fix to prevent redirect loops
+        error_log('User does not have 2FA enabled in database: ' . $this->getEmail());
+        return false;
+    }
 
-    // ...existing code...
+    /**
+     * Returns the username used in the TOTP QR code.
+     */
+    public function getTotpAuthenticationUsername(): string
+    {
+        return $this->email;
+    }
+    
+    /**
+     * Returns the TOTP authentication configuration for this user.
+     */
+    public function getTotpAuthenticationConfiguration(): ?TotpConfigurationInterface
+    {
+        // If we have a stored OTP secret in the database, use that
+        if ($this->otpSecret) {
+            error_log('Using stored OTP secret from database for user: ' . $this->getEmail());
+            return new TotpConfiguration(
+                $this->otpSecret,
+                TotpConfiguration::ALGORITHM_SHA1,
+                30,
+                6
+            );
+        }
+        
+        // If we don't have an OTP secret, return null
+        error_log('No OTP secret available for user: ' . $this->getEmail());
+        return null;
+    }
+
+    /**
+     * Check if the user has a strong password
+     * This is for UI display only and is not an accurate representation
+     * of the user's actual password strength since we don't store passwords in plain text
+     */
+    public function hasStrongPassword(): bool
+    {
+        // Since we don't have access to the plain password,
+        // we'll assume true if the user has 2FA enabled (which is a good security practice)
+        // If 2FA is not available, assume it's based on verification status
+        return $this->isVerified();
+    }
+
+    public function getOtpSecret(): ?string
+    {
+        return $this->otpSecret;
+    }
+
+    public function setOtpSecret(?string $otpSecret): self
+    {
+        $this->otpSecret = $otpSecret;
+        return $this;
+    }
+
+    /**
+     * Check if facial recognition is enabled for this user
+     */
+    public function isFaceRecognitionEnabled(): bool
+    {
+        return $this->faceRecognitionEnabled ?? false;
+    }
+    
+    /**
+     * Get facial recognition enabled status
+     */
+    public function getFaceRecognitionEnabled(): bool
+    {
+        return $this->faceRecognitionEnabled ?? false;
+    }
+    
+    /**
+     * Set facial recognition enabled status
+     */
+    public function setFaceRecognitionEnabled(bool $faceRecognitionEnabled): self
+    {
+        $this->faceRecognitionEnabled = $faceRecognitionEnabled;
+        return $this;
+    }
 }

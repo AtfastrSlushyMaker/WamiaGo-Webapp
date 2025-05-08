@@ -1,0 +1,11 @@
+# Define route for 2FA form
+app_2fa_login:
+    path: /2fa
+    defaults:
+        _controller: 'App\Controller\TwoFactorController::login2fa'
+
+# This route handles the 2FA code verification
+# This is handled by the scheb/2fa-bundle internally
+2fa_login_check:
+    path: /2fa_check
+    methods: [POST]

@@ -1,0 +1,147 @@
+/* Enhanced styles for 2FA setup */
+.auth-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.setup-step {
+    transition: all 0.3s ease;
+}
+
+.qr-code-container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    display: inline-block;
+    margin: 0 auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.step-indicator {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.step-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 15px;
+    position: relative;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.step-dot.active {
+    background-color: #4e73df;
+    color: white;
+    transform: scale(1.2);
+}
+
+.step-dot.completed {
+    background-color: #1cc88a;
+    color: white;
+}
+
+.step-dot::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 3px;
+    background-color: #e9ecef;
+}
+
+.step-dot:last-child::after {
+    display: none;
+}
+
+.step-dot.completed::after {
+    background-color: #1cc88a;
+}
+
+.verification-input {
+    letter-spacing: 0.5em;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.app-download-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    border-radius: 10px;
+    background-color: #f8f9fa;
+    color: #212529;
+    text-decoration: none;
+    margin: 10px;
+    transition: all 0.3s ease;
+}
+
+.app-download-link:hover {
+    background-color: #e9ecef;
+    transform: translateY(-3px);
+}
+
+.app-icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+}
+
+.verification-help {
+    background-color: #f8f9fa;
+    border-left: 4px solid #4e73df;
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 0 5px 5px 0;
+}
+
+.token-container {
+    background-color: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-family: monospace;
+    letter-spacing: 2px;
+    font-size: 1.1rem;
+    color: #495057;
+    text-align: center;
+    position: relative;
+}
+
+.copy-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+}
+
+.copy-btn:hover {
+    color: #4e73df;
+}
+
+/* Animation for transitions */
+.setup-step {
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 0.3s ease;
+}
+
+.setup-step.d-none {
+    opacity: 0;
+    transform: translateY(20px);
+}

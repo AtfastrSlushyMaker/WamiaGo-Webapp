@@ -1,0 +1,176 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Manage Facial Recognition{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .manage-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0.5rem;
+    }
+    
+    .feature-card {
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: #4e73df;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between">
+            <h1 class="mb-0">Manage Facial Recognition</h1>
+            <a href="{{ path('app_profile') }}" class="btn btn-light">
+                <i class="fas fa-arrow-left me-2"></i> Back to Profile
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container manage-container">
+    <div class="alert alert-success mb-4">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-check-circle fa-2x me-3"></i>
+            <div>
+                <strong>Facial Recognition Enabled</strong>
+                <p class="mb-0">You can now use facial recognition to log in to your account without entering your password.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card feature-card h-100">
+                <div class="card-body text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </div>
+                    <h5 class="card-title">Easy Login</h5>
+                    <p class="card-text">Log in quickly without typing your password by using facial recognition.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card feature-card h-100">
+                <div class="card-body text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h5 class="card-title">Enhanced Security</h5>
+                    <p class="card-text">Your face adds an extra layer of security to your account.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card feature-card h-100">
+                <div class="card-body text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h5 class="card-title">Secure Storage</h5>
+                    <p class="card-text">Your facial data is encrypted and securely stored in our system.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Facial Recognition Settings</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-4">
+                <h6>Disable Facial Recognition</h6>
+                <p class="text-muted">If you want to disable facial recognition, you can do so here. You'll need to set it up again if you want to use it in the future.</p>
+                <form id="disableFaceRecognitionForm" action="{{ path('app_profile_disable_face') }}" method="post">
+                    <input type="hidden" name="_csrf_token" id="disable_csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" class="btn btn-danger" id="disableFaceButton">
+                        <i class="fas fa-trash-alt me-2"></i> Disable Facial Recognition
+                    </button>
+                </form>
+            </div>
+            
+            <hr>
+            
+            <div>
+                <h6>Login with Facial Recognition</h6>
+                <p class="text-muted">Next time you log in, click on "Login with Face" to use facial recognition instead of typing your password.</p>
+                <a href="{{ path('app_login_face') }}" class="btn btn-outline-primary" target="_blank">
+                    <i class="fas fa-external-link-alt me-2"></i> Try Facial Login
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const disableForm = document.getElementById('disableFaceRecognitionForm');
+    const disableButton = document.getElementById('disableFaceButton');
+    
+    if (disableForm && disableButton) {
+        disableForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!confirm('Are you sure you want to disable facial recognition? You will need to set it up again if you want to use it in the future.')) {
+                return;
+            }
+            
+            disableButton.disabled = true;
+            disableButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Processing...';
+            
+            try {
+                const response = await fetch(disableForm.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.getElementById('disable_csrf_token').value
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Redirect to profile
+                    window.location.href = '{{ path('app_profile') }}';
+                } else {
+                    alert(result.message || 'Failed to disable facial recognition. Please try again.');
+                    disableButton.disabled = false;
+                    disableButton.innerHTML = '<i class="fas fa-trash-alt me-2"></i> Disable Facial Recognition';
+                }
+            } catch (error) {
+                console.error('Error disabling facial recognition:', error);
+                alert('An error occurred. Please try again.');
+                disableButton.disabled = false;
+                disableButton.innerHTML = '<i class="fas fa-trash-alt me-2"></i> Disable Facial Recognition';
+            }
+        });
+    }
+});
+</script>
+{% endblock %} 

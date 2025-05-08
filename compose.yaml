@@ -27,7 +27,6 @@ services:
     command: --default-authentication-plugin=mysql_native_password
     networks:
       - app_network
-
   phpmyadmin:
     image: phpmyadmin:latest
     container_name: wamia_phpmyadmin
@@ -43,10 +42,32 @@ services:
       - mysql
     networks:
       - app_network
+      
+  facial-recognition:
+    build:
+      context: ./facial-recognition
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    volumes:
+      - facial_recognition_data:/app/data
+    environment:
+      - MODEL_PATH=/app/models
+      - THRESHOLD=0.6
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+      - PORT=5001
+    networks:
+      - app_network
+      - facial_recognition_network
 
 volumes:
   mysql_data:
+  facial_recognition_data:
 
 networks:
   app_network:
+    driver: bridge
+  facial_recognition_network:
     driver: bridge

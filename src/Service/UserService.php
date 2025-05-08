@@ -37,31 +37,32 @@ class UserService
         $qb = $this->userRepository->createQueryBuilder('u')
             ->select('u');
             
-        // Apply search filter
         if (!empty($filters['search'])) {
             $qb->andWhere('u.name LIKE :search OR u.email LIKE :search OR u.phone_number LIKE :search')
                ->setParameter('search', '%' . $filters['search'] . '%');
         }
-          // Apply role filter
+        
         if (!empty($filters['role'])) {
                 $qb->andWhere('u.role = :role')
                ->setParameter('role', $filters['role']);
         }
         
-        // Apply account status filter
+        if (!empty($filters['account_status'])) {
+            $qb->andWhere('u.account_status = :account_status')
+               ->setParameter('account_status', $filters['account_status']);
+        }
+
         if (!empty($filters['status'])) {
-                $qb->andWhere('u.account_status = :status')
+            $qb->andWhere('u.account_status = :status')
                ->setParameter('status', $filters['status']);
         }
         
-        // Apply verification filter
         if (isset($filters['verified']) && $filters['verified'] !== '') {
             $isVerified = $filters['verified'] == '1' ? true : false;
             $qb->andWhere('u.is_verified = :verified')
                ->setParameter('verified', $isVerified);
         }
         
-        // Apply ordering
         $orderBy = $filters['orderBy'] ?? 'id_user';
         $orderDirection = $filters['orderDirection'] ?? 'DESC';
         

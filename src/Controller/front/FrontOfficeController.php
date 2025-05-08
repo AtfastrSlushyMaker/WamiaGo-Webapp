@@ -62,50 +62,8 @@ class FrontOfficeController extends AbstractController
             'title' => 'Contact Us',
             'meta_description' => 'Get in touch with WamiaGo for inquiries, support, or feedback.'
         ]);
-    }    #[Route('/profile', name: 'app_profile')]
-    public function profile(): Response
-    {
-        $user = $this->getUser();
-        
-        if (!$user) {
-            return $this->redirectToRoute('app_login');
-        }
-
-        try {
-            $profileCompletion = $this->calculateProfileCompletion($user);
-
-            return $this->render('front/userProfile.html.twig', [
-                'user' => $user,
-                'profileCompletion' => $profileCompletion,
-                'title' => 'My Profile',
-                'meta_description' => 'View and manage your WamiaGo profile information.'
-            ]);
-        } catch (\Exception $e) {
-            // Log the error
-            if ($this->container->has('logger')) {
-                $this->container->get('logger')->error('Profile rendering error: ' . $e->getMessage());
-            }
-            
-            $this->addFlash('error', 'There was an error loading your profile. Please try again later.');
-            return $this->redirectToRoute('app_front_home');
-        }
-    }
-
-    private function calculateProfileCompletion($user): int
-    {
-        $completion = 0;
-        $totalFields = 7; // Total number of fields to check
-
-        if ($user->getName()) $completion++;
-        if ($user->getEmail()) $completion++;
-        if ($user->getPhoneNumber()) $completion++;
-        if ($user->getLocation()) $completion++;
-        if ($user->getDateOfBirth()) $completion++;
-        if ($user->getProfilePicture()) $completion++;
-        if ($user->isVerified()) $completion++;
-
-        return (int) (($completion / $totalFields) * 100);
-    }    #[Route('/profile/edit', name: 'app_profile_edit')]
+    }    
+    #[Route('/profile/edit', name: 'app_profile_edit')]
     public function editProfile(Request $request): Response
     {
         $user = $this->getUser();
@@ -187,5 +145,21 @@ class FrontOfficeController extends AbstractController
         ];
         
         return $this->json($checkResult);
+    }
+
+    private function calculateProfileCompletion($user): int
+    {
+        $completion = 0;
+        $totalFields = 7; // Total number of fields to check
+
+        if ($user->getName()) $completion++;
+        if ($user->getEmail()) $completion++;
+        if ($user->getPhoneNumber()) $completion++;
+        if ($user->getLocation()) $completion++;
+        if ($user->getDateOfBirth()) $completion++;
+        if ($user->getProfilePicture()) $completion++;
+        if ($user->isVerified()) $completion++;
+
+        return (int) (($completion / $totalFields) * 100);
     }
 }

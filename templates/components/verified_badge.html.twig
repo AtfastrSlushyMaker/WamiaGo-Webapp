@@ -1,0 +1,19 @@
+{% if user.verified or twoFactorEnabled or user.faceRecognitionEnabled %}
+    <div class="verified-status d-inline-flex align-items-center">
+        <i class="fas fa-shield-alt text-success me-1"></i>
+        <span class="fs-6 badge 
+            {% if twoFactorEnabled and user.faceRecognitionEnabled %}bg-success
+            {% elseif twoFactorEnabled or user.faceRecognitionEnabled %}bg-info
+            {% else %}bg-secondary{% endif %}">
+            {% if twoFactorEnabled and user.faceRecognitionEnabled %}
+                Verified + 2FA + Face
+            {% elseif twoFactorEnabled %}
+                Verified + 2FA
+            {% elseif user.faceRecognitionEnabled %}
+                Verified + Face
+            {% else %}
+                Verified
+            {% endif %}
+        </span>
+    </div>
+{% endif %}

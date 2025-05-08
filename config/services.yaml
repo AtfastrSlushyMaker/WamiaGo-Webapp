@@ -10,6 +10,7 @@ parameters:
     cloudinary_cloud_name: '%env(CLOUDINARY_CLOUD_NAME)%'
     cloudinary_api_key: '%env(CLOUDINARY_API_KEY)%'
     cloudinary_api_secret: '%env(CLOUDINARY_API_SECRET)%'
+    facial_recognition_api_url: 'http://localhost:5001'
 
 services:
     # default configuration for services in *this* file
@@ -17,6 +18,11 @@ services:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
         public: false
+        # Autowire common 2FA interfaces
+        bind:
+            Scheb\TwoFactorBundle\Security\TwoFactor\Provider\Totp\TotpAuthenticatorInterface: '@App\Security\TwoFactor\SessionBasedTotpAuthenticator'
+            Scheb\TwoFactorBundle\Security\TwoFactor\Provider\TwoFactorFormRendererInterface: '@scheb_two_factor.default_form_renderer'
+
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
     App\:
@@ -28,7 +34,8 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
-      # Configure ResetPasswordService
+    
+    # Configure ResetPasswordService
     App\Service\ResetPasswordService:
         arguments:
             $params: '@parameter_bag'
@@ -39,8 +46,28 @@ services:
             $cloudName: '%cloudinary_cloud_name%'
             $apiKey: '%cloudinary_api_key%'
             $apiSecret: '%cloudinary_api_secret%'
-
+            
     # Make the UserRepository service available in templates
     App\Service\UserRepository:
         autowire: true
         public: true
+
+    # 2FA Services
+    App\Security\TwoFactor\SessionBasedTotpAuthenticator:
+        arguments:
+            $totpFactory: '@scheb_two_factor.security.totp_factory'
+            $sessionHandler: '@App\Service\TwoFactorSessionHandler'
+            $parameterBag: '@parameter_bag'
+
+    # Register the authenticator with the bundle
+    scheb_two_factor.security.totp.authenticator:
+        alias: App\Security\TwoFactor\SessionBasedTotpAuthenticator
+
+    App\Service\FacialRecognitionService:
+        arguments:
+            $params: '@parameter_bag'
+            $facialRecognitionApiUrl: '%facial_recognition_api_url%'
+
+# Import Two-Factor configuration
+imports:
+    - { resource: services/two_factor.yaml }

@@ -1,0 +1,131 @@
+<?php
+namespace App\Controller;
+
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Annotation\Route;
+use App\Repository\UserRepository;
+use App\Service\TwoFactorSessionHandler;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Scheb\TwoFactorBundle\Security\TwoFactor\Provider\Totp\TotpAuthenticatorInterface;
+use Endroid\QrCode\Color\Color;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelHigh;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
+use Endroid\QrCode\Writer\PngWriter;
+
+class ProfileController extends AbstractController
+{
+    private UserRepository $userRepository;
+    private TwoFactorSessionHandler $twoFactorSessionHandler;
+    
+    public function __construct(
+        UserRepository $userRepository,
+        TwoFactorSessionHandler $twoFactorSessionHandler
+    ) 
+    {
+        $this->userRepository = $userRepository;
+        $this->twoFactorSessionHandler = $twoFactorSessionHandler;
+    }
+    
+    #[Route('/profile', name: 'app_profile')]
+    public function index(): Response
+    {
+        $user = $this->getUser();
+        
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $profileCompletion = $this->calculateProfileCompletionPercentage($user);
+        $twoFactorEnabled = $this->twoFactorSessionHandler->is2faEnabled();
+        
+        return $this->render('front/profile.html.twig', [
+            'user' => $user,
+            'profileCompletion' => $profileCompletion,
+            'twoFactorEnabled' => $twoFactorEnabled
+        ]);
+    }
+    
+    #[Route('/profile/edit', name: 'app_profile_edit')]
+    public function edit(): Response
+    {
+        // You'll implement this method for profile editing
+        return $this->render('front/profile_edit.html.twig', [
+            'user' => $this->getUser()
+        ]);
+    }
+    
+    #[Route('/profile/two-factor-setup', name: 'app_profile_2fa_setup')]
+    public function twoFactorSetup(TotpAuthenticatorInterface $totpAuthenticator, Request $request): Response
+    {
+        $user = $this->getUser();
+        
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+        
+        // Check if 2FA is already enabled
+        $twoFactorEnabled = $this->twoFactorSessionHandler->is2faEnabled();
+        if ($twoFactorEnabled) {
+            return $this->redirectToRoute('app_profile');
+        }
+        
+        // Generate a new TOTP secret
+        $secret = $this->twoFactorSessionHandler->setTemporaryTotpSecret();
+        
+        // Create the QR code content
+        $qrContent = $totpAuthenticator->getQRContent($user);
+        
+        // If this is an AJAX request, return JSON data
+        if ($request->isXmlHttpRequest()) {
+            // Generate QR code image
+            $writer = new PngWriter();
+            $qrCode = QrCode::create($qrContent)
+                ->setEncoding(new Encoding('UTF-8'))
+                ->setErrorCorrectionLevel(new ErrorCorrectionLevelHigh())
+                ->setSize(300)
+                ->setMargin(10)
+                ->setRoundBlockSizeMode(new RoundBlockSizeModeMargin())
+                ->setForegroundColor(new Color(0, 0, 0));
+            
+            $result = $writer->write($qrCode);
+            
+            // Return QR code as data URL
+            return $this->json([
+                'qrCodeUrl' => $result->getDataUri(),
+                'secret' => $secret
+            ]);
+        }
+        
+        // For non-AJAX requests, render the template
+        return $this->render('profile/2fa_setup.html.twig', [
+            'user' => $user,
+            'secret' => $secret,
+            'qrContent' => $qrContent
+        ]);
+    }
+    
+    private function calculateProfileCompletionPercentage($user): int
+    {
+        $completion = 0;
+        
+        if ($user->getProfilePicture()) {
+            $completion += 30;
+        }
+        
+        if ($user->isVerified()) {
+            $completion += 20;
+        }
+        
+        $completion += $user->getName() ? 4 : 0;
+        $completion += $user->getEmail() ? 4 : 0;
+        $completion += $user->getPhoneNumber() ? 4 : 0;
+        $completion += $user->getDateOfBirth() ? 4 : 0;
+        $completion += $user->getLocation() ? 4 : 0;
+        
+        return min($completion, 100);
+    }
+}

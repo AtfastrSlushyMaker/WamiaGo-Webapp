@@ -83,6 +83,12 @@
                         <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                     </button>
                     
+                    <div class="alternate-login-options" style="margin-top: 20px;">
+                        <a href="{{ path('app_login_face') }}" class="btn btn-outline-primary face-recognition-btn">
+                            <i class="fas fa-camera me-2"></i> Login with Face Recognition
+                        </a>
+                    </div>
+                    
                     <div class="social-media-section">
                         <p>or login with</p>
                         <div class="social-icons">
@@ -353,7 +359,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />    <link rel="stylesheet" href="{{ asset('css/front/loginSignup.css') }}" />    
     <link rel="stylesheet" href="{{ asset('css/front/eye-toggle-updated.css') }}?v={{ random() }}" />
     <link rel="stylesheet" href="{{ asset('css/front/step-indicators-fix.css') }}" />
-    <link rel="stylesheet" href="{{ asset('css/front/password-eye-final-fix.css') }}" /><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="{{ asset('css/front/password-eye-final-fix.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/front/login-buttons-spacing.css') }}?v={{ random() }}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
     <link rel="stylesheet" href="{{ asset('css/front/flatpickr-custom.css') }}?v={{ random() }}">
     <link rel="stylesheet" href="{{ asset('css/front/step-navigation-fix.css') }}?v={{ random() }}">
     <link rel="stylesheet" href="{{ asset('css/front/message-styles.css') }}?v={{ random() }}">
