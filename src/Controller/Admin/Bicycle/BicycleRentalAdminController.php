@@ -517,14 +517,14 @@ class BicycleRentalAdminController extends AbstractController
             $rentals = $queryBuilder->getQuery()->getResult();
             $this->logger->info('Retrieved ' . count($rentals) . ' rentals');
             
-            // Special handling for empty results
+           
             if (empty($rentals)) {
                 $this->logger->info('No rentals found for export');
                 $this->addFlash('warning', 'No rentals found matching the selected criteria');
                 return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => 'rentals']);
             }
             
-            // Get stats for PDF export
+            
             $stats = [
                 'totalRentals' => count($rentals),
                 'completedCount' => 0,
@@ -533,7 +533,7 @@ class BicycleRentalAdminController extends AbstractController
                 'totalRevenue' => 0
             ];
             
-            // Prepare data for export
+            
             $headers = [
                 'ID', 'Customer', 'Bicycle', 'Pick-up Station', 'Return Station', 
                 'Start Time', 'End Time', 'Duration', 'Distance (km)', 
@@ -543,15 +543,15 @@ class BicycleRentalAdminController extends AbstractController
             $this->logger->info('Processing rental data for export');
             $exportData = [];
             
-            // Initialize with zero to catch missing values
+           
             foreach ($rentals as $index => $rental) {
-                // Safety check for null objects
+                
                 if (!$rental) {
                     $this->logger->warning('Found null rental at index ' . $index);
                     continue;
                 }
                 
-                // Set defaults for numeric fields that should never be null
+                
                 if ($rental->getDistance_km() === null) {
                     $rental->setDistance_km(0);
                     $this->logger->info('Fixed null distance for rental #' . $rental->getIdUserRental());
@@ -567,7 +567,7 @@ class BicycleRentalAdminController extends AbstractController
                     $this->logger->info('Fixed null cost for rental #' . $rental->getIdUserRental());
                 }
                 
-                // Determine status
+                
                 $rentalStatus = 'Reserved';
                 if ($rental->getEndTime()) {
                     $rentalStatus = 'Completed';
@@ -579,7 +579,7 @@ class BicycleRentalAdminController extends AbstractController
                     $stats['reservedCount']++;
                 }
                 
-                // Calculate duration for completed rentals
+                
                 $duration = '';
                 if ($rental->getStartTime() && $rental->getEndTime()) {
                     try {
@@ -593,15 +593,15 @@ class BicycleRentalAdminController extends AbstractController
                     }
                 }
                 
-                // Add to total revenue
+               
                 if ($rental->getCost()) {
                     $stats['totalRevenue'] += $rental->getCost();
                 }
                 
-                // Safe string access with fallback values
+                
                 $rentalId = 'B' . str_pad($rental->getIdUserRental(), 5, '0', STR_PAD_LEFT);
                 
-                // Safe access to related entities
+               
                 $user = $rental->getUser();
                 $customerName = $user ? $user->getName() ?? 'Unknown' : 'Unknown';
                 
@@ -617,12 +617,12 @@ class BicycleRentalAdminController extends AbstractController
                 $startTime = $rental->getStartTime() ? $rental->getStartTime()->format('Y-m-d H:i') : '';
                 $endTime = $rental->getEndTime() ? $rental->getEndTime()->format('Y-m-d H:i') : '';
                 
-                // Safe numeric value handling - use 0 instead of null for numeric fields
+               
                 $distanceKm = $rental->getDistance_km();
                 $batteryUsed = $rental->getBattery_used();
                 $cost = $rental->getCost();
                 
-                // Add row to export data
+                
                 $exportData[] = [
                     $rentalId,
                     $customerName,
@@ -653,10 +653,10 @@ class BicycleRentalAdminController extends AbstractController
             
             $this->logger->info('Starting export generation in ' . $format . ' format');
             
-            // Create response object directly to avoid memory issues
+            
             $response = null;
             
-            // Generate export file and create response
+            
             switch ($format) {
                 case 'excel':
                     $this->logger->info('Generating Excel export');
@@ -702,12 +702,12 @@ class BicycleRentalAdminController extends AbstractController
             
             $this->logger->info('Generated export, preparing response');
             
-            // Add extra headers to force download
+            
             $response->headers->set('Content-Description', 'File Transfer');
             $response->headers->set('Cache-Control', 'private');
             $response->headers->set('X-Accel-Buffering', 'no');
             
-            // Explicitly turn off output buffering to prevent interference with headers
+           
             while (ob_get_level()) {
                 ob_end_clean();
             }
@@ -715,7 +715,7 @@ class BicycleRentalAdminController extends AbstractController
             $this->logger->info('Export complete, sending response');
             return $response;
         } catch (\Exception $e) {
-            // Detailed error logging with full context
+          
             $this->logger->error('Export error: ' . $e->getMessage(), [
                 'exception_class' => get_class($e),
                 'file' => $e->getFile(),
@@ -725,7 +725,7 @@ class BicycleRentalAdminController extends AbstractController
                 'format' => $request->query->get('format', 'unknown')
             ]);
             
-            // Add helpful message for the user
+          
             $this->addFlash('error', 'Error creating export: ' . $e->getMessage());
             return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => 'rentals']);
         }
@@ -737,7 +737,7 @@ class BicycleRentalAdminController extends AbstractController
     #[Route('/dashboard', name: 'admin_bicycle_rental_dashboard')]
     public function dashboard(Request $request): Response 
     {
-        // Forward all request parameters to maintain any filters
+        
         $params = ['tab' => 'rentals'];
         $queryParams = $request->query->all();
         if (!empty($queryParams)) {
@@ -757,7 +757,7 @@ class BicycleRentalAdminController extends AbstractController
             return $this->redirectToRoute('admin_bicycle_rentals_index');
         }
         
-        // Create all necessary forms
+      
         $forms = $this->createCommonForms();
         
         return $this->render('back-office/bicycle/rental-details.html.twig', array_merge([

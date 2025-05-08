@@ -78,7 +78,6 @@
     </div>
 </section>
 
-{# Find a Bicycle Station Section #}
 <section id="stations-section" class="py-5 bg-light">
     <div class="container">
         <h2 class="text-center mb-5">Find a Bicycle Station</h2>
@@ -122,18 +121,14 @@
         </div>
         
         <div class="row">
-            {# Map on the left - Fixed height with overflow #}
             <div class="col-lg-8 mb-4">
                 <div class="card h-100 border-0 shadow-sm">
                     <div class="card-body p-0">
-                        <div id="bicycleMap" class="map-container" style="height: 600px; min-height: 600px;">
-                            {# Map will be initialized with JavaScript #}
-                        </div>
+                        <div id="bicycleMap" class="map-container" style="height: 600px; min-height: 600px;"></div>
                     </div>
                 </div>
             </div>
             
-            {# Station list on the right - With scrollable container #}
             <div class="col-lg-4">
                 <div class="card border-0 shadow-sm" style="height: 600px;">
                     <div class="card-header bg-bicycle text-white d-flex justify-content-between align-items-center">
@@ -174,7 +169,6 @@
                                             </a>
                                         </div>
                                         
-                                        {# Weather information for this station #}
                                         <div class="station-weather mt-2 p-2 border-top" data-station-id="{{ station.idStation }}" data-lat="{{ station.location ? station.location.latitude : 36.8065 }}" data-lon="{{ station.location ? station.location.longitude : 10.1815 }}">
                                             <div class="d-flex align-items-center">
                                                 <div class="weather-icon me-2">
@@ -194,7 +188,6 @@
     </div>
 </section>
 
-{# Bicycle Types Section #}
 <section class="py-5">
     <div class="container">
         <h2 class="text-center mb-5">Our Bicycle Types</h2>
@@ -259,7 +252,6 @@
     </div>
 </section>
 
-{# Pricing Section #}
 <section class="py-5 bg-light">
     <div class="container">
         <h2 class="text-center mb-5">Rental Pricing</h2>
@@ -304,7 +296,6 @@
     </div>
 </section>
 
-{# My Reservations Section (only for logged in users) - Direct from controller #}
 {% if app.user %}
     <section class="py-5">
         <div class="container">
@@ -364,7 +355,6 @@
     </section>
 {% endif %}
 
-{# FAQ Section #}
 <section class="py-5 bg-light">
     <div class="container">
         <h2 class="text-center mb-5">Frequently Asked Questions</h2>
@@ -425,7 +415,6 @@
     </div>
 </section>
 
-{# Call to Action Section #}
 <section class="py-5 bg-bicycle text-white text-center">
     <div class="container">
         <h2 class="mb-3">Ready to Start Riding?</h2>
@@ -454,11 +443,9 @@
 {% endblock %}
 
 {% block page_javascripts %}
-<!-- Load Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="{{ asset('js/front/bicycle/weatherService.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
 <script>
-// Map initialization
 document.addEventListener('DOMContentLoaded', function() {
     initializeMap();
     initializeFloatingButton();
@@ -466,37 +453,27 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeSearch();
 });
 
-// Initialize weather service for all stations
+// Fetches and displays weather data for all stations using the WeatherService
 async function initializeWeatherService() {
-    console.log("Initializing weather service...");
-    
-    // Create a new weather service instance
     const weatherService = new WeatherService();
-    
-    // Initialize the API key from the backend
     await weatherService.init();
     
-    // Get all station weather containers
     const stationWeatherElements = document.querySelectorAll('.station-weather');
     
-    // Load weather for each station
     stationWeatherElements.forEach(async function(stationWeatherEl) {
         const stationId = stationWeatherEl.getAttribute('data-station-id');
         const latitude = parseFloat(stationWeatherEl.getAttribute('data-lat'));
         const longitude = parseFloat(stationWeatherEl.getAttribute('data-lon'));
         
         try {
-            // Get weather data for this station's location
             const weatherData = await weatherService.getWeatherData(latitude, longitude);
             
-            // Get weather factor class
             let weatherFactorClass = 'text-success';
             if (weatherData.weatherFactor > 1.3) weatherFactorClass = 'text-danger';
             else if (weatherData.weatherFactor > 1.2) weatherFactorClass = 'text-warning';
             else if (weatherData.weatherFactor > 1.1) weatherFactorClass = 'text-info';
             else if (weatherData.weatherFactor > 1.0) weatherFactorClass = 'text-primary';
             
-            // Update the weather UI for this station
             stationWeatherEl.innerHTML = `
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
@@ -516,9 +493,6 @@ async function initializeWeatherService() {
                 </div>
             `;
         } catch (error) {
-            console.error(`Failed to load weather for station ${stationId}:`, error);
-            
-            // Show error state
             stationWeatherEl.innerHTML = `
                 <div class="d-flex align-items-center">
                     <div class="weather-icon me-2">
@@ -529,14 +503,10 @@ async function initializeWeatherService() {
             `;
         }
     });
-    
-    console.log("Weather service initialized for all stations");
 }
 
-// Initialize search functionality
+// Sets up searching, filtering and highlighting functionality for station list
 function initializeSearch() {
-    console.log("Initializing station search...");
-    
     const searchInput = document.getElementById('stationSearchInput');
     const clearButton = document.getElementById('clearSearchBtn');
     const showAvailableOnlyCheck = document.getElementById('showAvailableOnlyCheck');
@@ -545,15 +515,13 @@ function initializeSearch() {
     const filterButtons = document.querySelectorAll('.filter-buttons .btn');
     
     if (!searchInput || !clearButton || !showAvailableOnlyCheck) {
-        console.error("Search elements not found");
         return;
     }
     
-    // Current filter type
     let activeFilter = 'all';
     let userLocation = null;
     
-    // Get user's location for "nearest" filter
+    // Gets user's geolocation for the "nearest" filter
     function getUserLocation() {
         return new Promise((resolve, reject) => {
             if (navigator.geolocation) {
@@ -566,21 +534,18 @@ function initializeSearch() {
                         resolve(userLocation);
                     },
                     error => {
-                        console.error("Error getting user location:", error);
                         reject(error);
                     }
                 );
             } else {
-                const error = new Error("Geolocation is not supported by this browser");
-                console.error(error);
-                reject(error);
+                reject(new Error("Geolocation is not supported by this browser"));
             }
         });
     }
     
-    // Calculate distance between two points using Haversine formula
+    // Calculates distance between two coordinates using the Haversine formula
     function calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; // Radius of the earth in km
+        const R = 6371;
         const dLat = deg2rad(lat2 - lat1);
         const dLon = deg2rad(lon2 - lon1);
         const a = 
@@ -588,7 +553,7 @@ function initializeSearch() {
             Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
             Math.sin(dLon/2) * Math.sin(dLon/2); 
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-        const distance = R * c; // Distance in km
+        const distance = R * c;
         return distance;
     }
     
@@ -596,7 +561,7 @@ function initializeSearch() {
         return deg * (Math.PI/180);
     }
     
-    // Function to filter stations based on search criteria
+    // Applies all active filters to the station list
     function filterStations() {
         const searchTerm = searchInput.value.toLowerCase().trim();
         const showAvailableOnly = showAvailableOnlyCheck.checked;
@@ -604,7 +569,6 @@ function initializeSearch() {
         let visibleCount = 0;
         let stations = Array.from(stationItems);
         
-        // If we're using the nearest filter, sort stations by distance from user
         if (activeFilter === 'nearest' && userLocation) {
             stations.sort((a, b) => {
                 const aLat = parseFloat(a.querySelector('.station-weather').getAttribute('data-lat'));
@@ -624,29 +588,23 @@ function initializeSearch() {
             const stationAddress = station.getAttribute('data-station-address');
             const availableBikes = parseInt(station.getAttribute('data-available-bikes'));
             
-            // Check if station matches search criteria
             const matchesSearch = searchTerm === '' || 
                 stationName.includes(searchTerm) || 
                 stationAddress.includes(searchTerm);
             
-            // Check if station has available bikes (if that filter is active)
             const hasAvailableBikes = !showAvailableOnly || availableBikes > 0;
             
-            // Check if station matches the current filter type
             let matchesFilter = true;
             if (activeFilter === 'available' && availableBikes <= 0) {
                 matchesFilter = false;
             }
             
-            // Show or hide based on combined filters
             if (matchesSearch && hasAvailableBikes && matchesFilter) {
                 station.style.display = 'block';
                 
-                // Highlight search terms in the station name and address
                 if (searchTerm !== '') {
                     highlightSearchTerms(station, searchTerm);
                 } else {
-                    // Reset highlighting when search is cleared
                     resetHighlighting(station);
                 }
                 
@@ -656,7 +614,6 @@ function initializeSearch() {
             }
         });
         
-        // When using 'nearest', reorder the stations in the DOM to match our sorted array
         if (activeFilter === 'nearest' && userLocation) {
             const stationList = document.querySelector('.station-list');
             stations.forEach(station => {
@@ -664,11 +621,10 @@ function initializeSearch() {
             });
         }
         
-        // Update the results count
         searchResultsCount.textContent = visibleCount;
     }
     
-    // Highlight search terms in text
+    // Adds highlighting to matched search terms
     function highlightSearchTerms(stationElement, searchTerm) {
         const stationName = stationElement.querySelector('h5');
         const stationAddress = stationElement.querySelector('p.text-muted');
@@ -686,7 +642,7 @@ function initializeSearch() {
         }
     }
     
-    // Reset highlighting
+    // Removes search term highlighting
     function resetHighlighting(stationElement) {
         const stationName = stationElement.querySelector('h5');
         const stationAddress = stationElement.querySelector('p.text-muted');
@@ -700,40 +656,32 @@ function initializeSearch() {
         }
     }
     
-    // Highlight text helper function
+    // Helper function to highlight matching text
     function highlightText(text, searchTerm) {
         const regex = new RegExp('(' + escapeRegExp(searchTerm) + ')', 'gi');
         return text.replace(regex, '<span class="search-highlight">$1</span>');
     }
     
-    // Escape regex special characters
+    // Escapes special characters for regex
     function escapeRegExp(string) {
         return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
     
-    // Filter button click handler
     filterButtons.forEach(button => {
         button.addEventListener('click', function() {
             const filterType = this.getAttribute('data-filter');
             
-            // Remove active class from all buttons
             filterButtons.forEach(btn => btn.classList.remove('active'));
-            
-            // Add active class to clicked button
             this.classList.add('active');
             
-            // Set the active filter
             activeFilter = filterType;
             
-            // If nearest filter is selected, get user location
             if (filterType === 'nearest' && !userLocation) {
                 getUserLocation()
                     .then(() => filterStations())
                     .catch((error) => {
-                        console.error("Could not get user location:", error);
                         alert("Could not get your location. Please allow location access to use this filter.");
                         
-                        // Reset to 'all' filter if location access is denied
                         filterButtons.forEach(btn => {
                             if (btn.getAttribute('data-filter') === 'all') {
                                 btn.classList.add('active');
@@ -744,13 +692,11 @@ function initializeSearch() {
                         });
                     });
             } else {
-                // Run the filter
                 filterStations();
             }
         });
     });
     
-    // Add event listeners
     searchInput.addEventListener('input', filterStations);
     showAvailableOnlyCheck.addEventListener('change', filterStations);
     clearButton.addEventListener('click', function() {
@@ -758,37 +704,30 @@ function initializeSearch() {
         stationItems.forEach(resetHighlighting);
         filterStations();
     });
-    
-    console.log("Station search initialized successfully");
 }
 
+// Initializes the Leaflet map with station markers
 function initializeMap() {
     const mapElement = document.getElementById('bicycleMap');
     if (!mapElement) return;
     
-    console.log("Initializing map...");
-    
     const map = L.map('bicycleMap').setView([40.7128, -74.006], 13);
     
-    // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19
     }).addTo(map);
     
-    // Make sure map renders properly
     setTimeout(function() {
         map.invalidateSize();
     }, 100);
     
-    // Ensure map fills container on window resize
     window.addEventListener('resize', function() {
         setTimeout(function() {
             map.invalidateSize();
         }, 100);
     });
     
-    // Station icon definition
     const stationIcon = L.divIcon({
         className: 'station-marker-icon',
         html: '<div><i class="fas fa-bicycle"></i></div>',
@@ -796,13 +735,10 @@ function initializeMap() {
         iconAnchor: [18, 18]
     });
     
-    // Bounds for auto-zoom
     const bounds = L.latLngBounds();
     
-    // Add station markers
     {% for station in stations %}
         {% if station.location %}
-            // Create marker
             const marker{{ station.idStation }} = L.marker(
                 [{{ station.location.latitude|default(0) }}, {{ station.location.longitude|default(0) }}], 
                 {
@@ -811,10 +747,8 @@ function initializeMap() {
                 }
             ).addTo(map);
             
-            // Extend bounds for auto-zoom
             bounds.extend([{{ station.location.latitude|default(0) }}, {{ station.location.longitude|default(0) }}]);
             
-            // Create popup
             marker{{ station.idStation }}.bindPopup(`
                 <div class="station-info p-2">
                     <h5>{{ station.name }}</h5>
@@ -835,28 +769,19 @@ function initializeMap() {
         {% endif %}
     {% endfor %}
     
-    // Fit map to bounds if we have stations
     if(bounds.isValid()) {
         map.fitBounds(bounds);
     }
-    
-    console.log("Map initialized successfully");
 }
 
+// Initializes the floating "My Reservations" button
 function initializeFloatingButton() {
-    console.log("Initializing floating button...");
-    
     const reservationsBtn = document.getElementById('reservationsButton');
-    if (!reservationsBtn) {
-        console.error("Floating button element not found");
-        return;
-    }
+    if (!reservationsBtn) return;
     
-    // Apply direct styling for visibility
     reservationsBtn.style.opacity = '0';
     reservationsBtn.style.transform = 'translateY(20px)';
     
-    // Add hover effect to button
     const buttonLink = reservationsBtn.querySelector('a');
     if (buttonLink) {
         buttonLink.style.transition = 'transform 0.2s ease';
@@ -870,7 +795,6 @@ function initializeFloatingButton() {
         });
     }
     
-    // Function to update button visibility based on scroll position
     function updateButtonVisibility() {
         const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
         if (scrollPosition > 300) {
@@ -882,20 +806,12 @@ function initializeFloatingButton() {
         }
     }
     
-    // Set initial state
-
-    
-    // Add scroll event listener
     window.addEventListener('scroll', updateButtonVisibility);
-    
-    console.log("Floating button initialized successfully");
-    
-    // Force a refresh of the button state after a short delay
     setTimeout(updateButtonVisibility, 200);
 }   
 </script>
 <script>
-// Force floating button to appear
+// Ensures the floating button is visible regardless of scroll position
 document.addEventListener('DOMContentLoaded', function() {
     const forceButton = function() {
         const btn = document.getElementById('reservationsButton');
@@ -914,10 +830,6 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
             btn.style.opacity = '1';
             btn.style.transform = 'none';
-            
-            console.log('FORCE APPLIED TO BUTTON');
-        } else {
-            console.error('Button not found for force fix');
         }
     };
     

@@ -936,7 +936,7 @@
             }
         }
         
-        // View receipt functionality
+
         const receiptButtons = document.querySelectorAll('.view-receipt');
         const receiptModal = new bootstrap.Modal(document.getElementById('receiptModal'));
         const receiptContent = document.getElementById('receiptContent');
@@ -945,8 +945,7 @@
             button.addEventListener('click', function() {
                 const rentalId = this.dataset.rentalId;
                 
-                // In a real app, you would load receipt data from the server
-                // For this example, we'll just use placeholder content
+            
                 receiptContent.innerHTML = `
                     <div class="text-center mb-4">
                         <h4 class="mb-1">WamiaGo Bicycle Rental</h4>
