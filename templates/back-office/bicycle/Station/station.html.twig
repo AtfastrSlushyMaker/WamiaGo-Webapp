@@ -1,0 +1,1483 @@
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="{{ asset('css/back/bicycle/station.css') }}?v={{ 'now'|date('YmdHi') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/back/bicycle/station-edit-modal.css') }}">
+    <style>
+        /* Purple Theme for Station Management */
+        
+        /* Main Header with Purple Theme */
+        .station-header {
+            background: linear-gradient(135deg, #8540f5 0%, #6f42c1 100%);
+            border-radius: 0.75rem;
+            box-shadow: 0 0.5rem 1.5rem rgba(111, 66, 193, 0.15);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            position: relative;
+            padding: 2rem;
+            color: white;
+        }
+        
+        .station-header h2 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .station-header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        
+        /* Purple Stats Cards */
+        .stat-card.purple-theme {
+            border-radius: 1rem;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card.purple-theme:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(111, 66, 193, 0.15);
+        }
+        
+        .stat-card.purple-theme .stat-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(111, 66, 193, 0.1);
+            color: #8540f5;
+            border-radius: 1rem;
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+        
+        .stat-card.purple-theme .stat-title {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-card.purple-theme .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #212529;
+        }
+        
+        /* Station Map Container */
+        .station-map-container {
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
+            height: 400px;
+        }
+        
+        /* Station Filters - Purple Theme */
+        .station-filters {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .station-filters .form-control,
+        .station-filters .form-select {
+            border-color: #e9ecef;
+            padding: 0.75rem 1rem;
+        }
+        
+        .station-filters .form-control:focus,
+        .station-filters .form-select:focus {
+            border-color: rgba(111, 66, 193, 0.25);
+            box-shadow: 0 0 0 0.25rem rgba(111, 66, 193, 0.15);
+        }
+        
+        /* Purple Theme Button */
+        .btn-purple {
+            background: linear-gradient(135deg, #8540f5 0%, #6f42c1 100%);
+            border: none;
+            color: white;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.2s;
+        }
+        
+        .btn-purple:hover {
+            box-shadow: 0 0.5rem 1rem rgba(111, 66, 193, 0.25);
+            transform: translateY(-2px);
+            color: white;
+        }
+        
+        .btn-outline-purple {
+            color: #8540f5;
+            border-color: #8540f5;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.2s;
+        }
+        
+        .btn-outline-purple:hover {
+            background-color: #8540f5;
+            color: white;
+        }
+        
+        /* Station Table - Purple Theme */
+        .station-table th {
+            background-color: rgba(111, 66, 193, 0.05);
+            color: #495057;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+        
+        .station-table td {
+            vertical-align: middle;
+        }
+        
+        .station-table tr:hover {
+            background-color: rgba(111, 66, 193, 0.05) !important;
+        }
+        
+        /* Status Badges - Purple Theme */
+        .badge-active {
+            background-color: rgba(25, 135, 84, 0.1);
+            color: #198754;
+            padding: 0.35em 0.65em;
+            font-size: 0.75em;
+        }
+        
+        .badge-inactive {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+            padding: 0.35em 0.65em;
+            font-size: 0.75em;
+        }
+        
+        .badge-maintenance {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+            padding: 0.35em 0.65em;
+            font-size: 0.75em;
+        }
+        
+        /* Station Card - Purple Theme */
+        .station-card {
+            border-radius: 1rem;
+            background-color: white;
+            box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .station-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+        }
+        
+        .station-card .station-card-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .station-card .station-card-header h5 {
+            margin-bottom: 0;
+            font-weight: 600;
+        }
+        
+        .station-card .station-card-body {
+            padding: 1.25rem;
+        }
+        
+        /* Ensure pagination visibility */
+        .ajax-pagination {
+            display: block !important;
+            visibility: visible !important;
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            z-index: 10;
+            position: relative;
+        }
+        
+        /* Make sure the pagination container stays visible */
+        .d-flex.justify-content-center.mt-4 {
+            display: flex !important;
+            visibility: visible !important;
+        }
+        
+        /* Pagination - Purple Theme - Enhanced to ensure visibility */
+        .pagination-purple .page-item .page-link {
+            color: #8540f5;
+        }
+        
+        .pagination-purple .page-item.active .page-link {
+            background: linear-gradient(135deg, #8540f5 0%, #6f42c1 100%);
+            border-color: #6f42c1;
+            color: white;
+            box-shadow: 0 0.25rem 0.5rem rgba(111, 66, 193, 0.25);
+        }
+        
+        /* Modal - Purple Theme */
+        .modal-purple .modal-header {
+            background: linear-gradient(135deg, #8540f5 0%, #6f42c1 100%);
+            color: white;
+            border: none;
+        }
+        
+        .modal-purple .btn-close {
+            filter: brightness(0) invert(1);
+        }
+        
+        /* Available Bikes Progress - Purple Theme */
+        .availability-progress {
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            background-color: #e9ecef;
+        }
+        
+        .availability-progress .progress-bar {
+            background: linear-gradient(135deg, #8540f5 0%, #6f42c1 100%);
+        }
+        
+        /* Capacity Ring - Purple Theme */
+        .capacity-ring {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: conic-gradient(#8540f5 0% var(--percentage), #e9ecef var(--percentage) 100%);
+        }
+        
+        .capacity-ring::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            background: white;
+            border-radius: 50%;
+        }
+        
+        .capacity-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #8540f5;
+        }
+
+        /* Ensure modal-content height is constrained and scrollable */
+        #stationFormModal .modal-content,
+        #editStationModal .modal-content {
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+        #stationFormModal .modal-body,
+        #editStationModal .modal-body {
+            flex: 1 1 auto;
+            overflow-y: auto;
+        }
+
+        /* Station Search Box - Purple Theme */
+        .search-box {
+            position: relative;
+        }
+
+        .search-box .input-group {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .search-box .input-group-text {
+            background: linear-gradient(135deg, #8540f5 0%, #6f42c1 100%);
+            border: none;
+            color: white;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .search-box input.form-control {
+            border: 1px solid #e9ecef;
+            border-left: none;
+            padding-left: 0.75rem;
+            padding-right: 2.5rem;
+            height: 38px;
+        }
+
+        .search-box input.form-control:focus {
+            box-shadow: none;
+            border-color: #8540f5;
+        }
+
+        .search-box #stationSearchClearBtn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            border: none;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            padding: 0 0.75rem;
+            color: #6c757d;
+            z-index: 5;
+        }
+
+        .search-box #stationSearchClearBtn:hover {
+            color: #dc3545;
+        }
+    </style>
+
+
+
+<!-- Hero Section with New Button -->
+<div class="hero-section mb-4 p-4 text-white rounded-3 shadow-sm" style="background: linear-gradient(135deg, #8540f5 0%, #6f42c1 100%);">
+    <div class="row align-items-center">
+        <div class="col-lg-7">
+            <div class="d-flex align-items-center">
+                <div class="tab-icon-container bg-white bg-opacity-25 rounded-circle p-3 me-3">
+                    <i class="fas fa-map-marker-alt fa-3x text-white"></i>
+                </div>
+                <div>
+                    <h2 class="fw-bold mb-1">Station Network Management</h2>
+                    <p class="lead mb-0 opacity-75">Manage your bicycle rental stations and charging infrastructure</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5 text-lg-end mt-3 mt-lg-0">
+            <div class="btn-group me-2">
+                <button class="btn btn-light btn-lg shadow-sm dropdown-toggle" type="button" id="stationExportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-download me-2"></i> Export
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="stationExportDropdown">
+                    <li><a class="dropdown-item" href="{{ path('admin_bicycle_station_export', app.request.query.all|merge({'format': 'csv'})) }}"><i class="fas fa-file-csv me-2 text-primary"></i>Export to CSV</a></li>
+                    <li><a class="dropdown-item" href="{{ path('admin_bicycle_station_export', app.request.query.all|merge({'format': 'excel'})) }}"><i class="fas fa-file-excel me-2 text-success"></i>Export to Excel</a></li>
+                    <li><a class="dropdown-item" href="{{ path('admin_bicycle_station_export', app.request.query.all|merge({'format': 'pdf'})) }}"><i class="fas fa-file-pdf me-2 text-danger"></i>Export to PDF</a></li>
+                </ul>
+            </div>
+            <button class="btn btn-light btn-lg shadow-sm" data-bs-toggle="modal" data-bs-target="#stationFormModal">
+                <i class="fas fa-plus-circle me-2"></i> Add New Station
+            </button>
+            <a class="btn btn-outline-light btn-lg ms-2" href="#stationsMap"  id="viewMapBtn" data-bs-toggle="tooltip" data-bs-placement="top" title="View all stations on the map">
+                <i class="fas fa-map me-2"></i> View Map
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Section -->
+<div class="container-fluid px-4">
+    <!-- Enhanced stats with visual indicators -->
+    <div class="row g-4 mb-4">
+        <!-- Active stations card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card station-stat-card border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted fw-semibold d-block">Active Stations</span>
+                            <h3 class="mt-2 mb-0 fw-bold">{{ stationCounts.active }}</h3>
+                            {% set activePercentage = (stationCounts.active / stations|length * 100)|round %}
+
+                            <div class="small mt-2">
+                                <span class="text-success">
+                                    <i class="fas fa-arrow-trend-up me-1"></i> {{ activePercentage }}%
+                                </span> of network
+                            </div>
+                        </div>
+                        <div class="stats-icon bg-success-subtle">
+                            <i class="fas fa-check-circle text-success"></i>
+                        </div>
+                    </div>
+                    <div class="progress mt-3" style="height: 6px">
+                        <div class="progress-bar bg-success" style="width: {{ activePercentage }}%" role="progressbar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total bicycle capacity -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card station-stat-card border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted fw-semibold d-block">Total Docks</span>
+                            <h3 class="mt-2 mb-0 fw-bold">{{ totalCapacity|default(0) }}</h3>
+                            <div class="small mt-2">
+                                <span class="text-info">
+                                    <i class="fas fa-arrow-right me-1"></i> {{ (totalCapacity / stations|length)|round(1) }} avg per station
+                                </span>
+                            </div>
+                        </div>
+                        <div class="stats-icon bg-primary-subtle">
+                            <i class="fas fa-bicycle text-primary"></i>
+                        </div>
+                    </div>
+                    {% set availableBikesTotal = stations|reduce((sum, station) => sum + station.availableBikes, 0) %}
+                    {% set bikeUsagePercentage = (availableBikesTotal / totalCapacity * 100)|round %}
+                    <div class="progress mt-3" style="height: 6px">
+                        <div class="progress-bar bg-primary" style="width: {{ bikeUsagePercentage }}%" role="progressbar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Maintenance stations -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card station-stat-card border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted fw-semibold d-block">Under Maintenance</span>
+                            <h3 class="mt-2 mb-0 fw-bold">{{ stationCounts.maintenance }}</h3>
+                            {% set maintenancePercentage = (stationCounts.maintenance / stations|length * 100)|round %}
+                            <div class="small mt-2">
+                                <span class="text-warning">
+                                    <i class="fas fa-tools me-1"></i> {{ maintenancePercentage }}%
+                                </span> of network
+                            </div>
+                        </div>
+                        <div class="stats-icon bg-warning-subtle">
+                            <i class="fas fa-triangle-exclamation text-warning"></i>
+                        </div>
+                    </div>
+                    <div class="progress mt-3" style="height: 6px">
+                        <div class="progress-bar bg-warning" style="width: {{ maintenancePercentage }}%" role="progressbar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Available bikes -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card station-stat-card border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted fw-semibold d-block">Available Bikes</span>
+                            <h3 class="mt-2 mb-0 fw-bold">{{ stations|reduce((sum, station) => sum + station.availableBikes, 0) }}</h3>
+                            {% set availabilityPercentage = (stations|reduce((sum, station) => sum + station.availableBikes, 0) / totalCapacity * 100)|round %}
+                            <div class="small mt-2">
+                                <span class="{% if availabilityPercentage < 30 %}text-danger{% else %}text-success{% endif %}">
+                                    <i class="fas fa-percent me-1"></i> {{ availabilityPercentage }}%
+                                </span> availability
+                            </div>
+                        </div>
+                        <div class="stats-icon bg-info-subtle">
+                            <i class="fas fa-bicycle text-info"></i>
+                        </div>
+                    </div>
+                    <div class="progress mt-3" style="height: 6px">
+                        <div class="progress-bar bg-info" style="width: {{ availabilityPercentage }}%" role="progressbar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Enhanced map and list view in tabs -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-map me-2"></i> Interactive Network Map
+                    </h5>
+                    <div class="map-controls">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-secondary" id="showAllStations">
+                                <i class="fas fa-map-pin"></i> All
+                            </button>
+                            <button type="button" class="btn btn-outline-success" id="showActiveStations">
+                                <i class="fas fa-check-circle"></i> Active
+                            </button>
+                            <button type="button" class="btn btn-outline-warning" id="showMaintenanceStations">
+                                <i class="fas fa-tools"></i> Maintenance
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="showInactiveStations">
+                                <i class="fas fa-pause-circle"></i> Inactive
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" id="showDisabledStations">
+                                <i class="fas fa-times-circle"></i> Disabled
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div id="stationsMap" class="station-map"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list me-2"></i> Station Status
+                        </h5>
+                        <div class="input-group input-group-sm" style="width: 140px;">
+                            <span class="input-group-text border-end-0 bg-transparent">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" id="quickStationSearch" class="form-control border-start-0" placeholder="Find...">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="station-quick-list">
+                        <ul class="list-group list-group-flush">
+                            {% for station in stations|sort((a, b) => a.name <=> b.name) %}
+                                <li class="list-group-item station-list-item p-3" data-station-id="{{ station.idStation }}">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="station-info">
+                                            <h6 class="mb-1 station-name">{{ station.name }}</h6>
+                                            <p class="mb-1 small text-muted station-address">
+                                                <i class="fas fa-map-marker-alt me-1"></i>
+                                                {{ station.location ? station.location.address|slice(0, 40) ~ (station.location.address|length > 40 ? '...' : '') : 'No address set' }}
+                                            </p>
+                                            <div class="d-flex align-items-center mt-2">
+                                                <div class="me-3">
+                                                    <span class="badge bg-primary-subtle text-primary">
+                                                        <i class="fas fa-bicycle me-1"></i> {{ station.availableBikes }}/{{ station.totalDocks }}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <span class="status-indicator 
+                                                    {% if station.status.value == 'active' %}status-success{% 
+                                                    elseif station.status.value == 'maintenance' %}status-warning{% 
+                                                    else %}status-danger{% endif %}">
+                                                        {{ station.status.value|capitalize }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-sm btn-icon btn-outline-primary station-locate-btn" 
+                                                data-station-id="{{ station.idStation }}">
+                                            <i class="fas fa-crosshairs"></i>
+                                        </button>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Enhanced stations data table with actions -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0"><i class="fas fa-table me-2"></i>Stations Management</h5>
+            <div class="actions">
+                <div class="search-box">
+                    <div class="input-group" style="width: 300px;">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" id="stationSearchInput" class="form-control" placeholder="Search by ID, name, or location...">
+                        <button type="button" id="stationSearchClearBtn" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive" style="overflow-x: auto; min-height: 300px;">
+                <table class="table table-hover table-striped align-middle mb-0 station-table">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="py-3 sortable" data-sort="id">ID</th>
+                            <th class="py-3 sortable" data-sort="name">Station Name</th>
+                            <th class="py-3 sortable" data-sort="location">Location</th>
+                            <th class="py-3 sortable" data-sort="capacity">Capacity</th>
+                            <th class="py-3 sortable" data-sort="status">Status</th>
+                            <th class="py-3 sortable" data-sort="utilization">Utilization</th>
+                            <th class="py-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for station in stations %}
+                        <tr class="station-row" data-station-id="{{ station.idStation }}">
+                            <td>
+                                <span class="fw-semibold text-primary">ST-{{ '%04d'|format(station.idStation) }}</span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="station-icon me-2 
+                                        {% if station.status.value == 'active' %}bg-success{% 
+                                        elseif station.status.value == 'maintenance' %}bg-warning{% 
+                                        elseif station.status.value == 'inactive' %}bg-secondary{% 
+                                        elseif station.status.value == 'disabled' %}bg-danger{% 
+                                        else %}bg-secondary{% endif %}">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </div>
+                                    <div>
+                                        <span class="fw-medium d-block">{{ station.name }}</span>
+                                        <small class="text-muted">{{ station.availableBikes }} bikes available</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="text-muted">{{ station.location ? station.location.address|slice(0, 30) ~ (station.location.address|length > 30 ? '...' : '') : 'No location set' }}</span>
+                                    {% if station.location %}
+                                    <button class="btn btn-sm btn-icon ms-2 view-on-map-btn" data-station-id="{{ station.idStation }}" title="View on map">
+                                        <i class="fas fa-map text-primary"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-bicycle me-2 text-primary"></i> {{ station.totalDocks }}
+                                    {% if station.chargingDocks is defined %}
+                                    <span class="ms-2 text-muted small">
+                                        ({{ station.chargingDocks }} charging)
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="station-status-badge 
+                                    {% if station.status.value == 'active' %}bg-success-subtle text-success{% 
+                                    elseif station.status.value == 'maintenance' %}bg-warning-subtle text-warning{% 
+                                    elseif station.status.value == 'inactive' %}bg-secondary-subtle text-secondary{% 
+                                    elseif station.status.value == 'disabled' %}bg-danger-subtle text-danger{% 
+                                    else %}bg-secondary-subtle text-secondary{% endif %}">
+                                    <i class="fas fa-{% if station.status.value == 'active' %}check-circle{% 
+                                        elseif station.status.value == 'maintenance' %}tools{% 
+                                        elseif station.status.value == 'inactive' %}pause-circle{% 
+                                        elseif station.status.value == 'disabled' %}times-circle{% 
+                                        else %}times-circle{% endif %} me-1"></i>
+                                    {{ station.status.value|capitalize }}
+                                </span>
+                            </td>
+                            <td>
+                                {% set utilizationPercentage = (station.availableBikes / station.totalDocks * 100)|round %}
+                                <div class="d-flex align-items-center">
+                                    <div class="utilization-bar me-2">
+                                        <div class="progress" style="height: 8px; width: 100px;">
+                                            <div class="progress-bar 
+                                                {% if utilizationPercentage > 70 %}bg-success
+                                                {% elseif utilizationPercentage > 30 %}bg-info
+                                                {% else %}bg-danger{% endif %}" 
+                                                style="width: {{ utilizationPercentage }}%">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="small">{{ utilizationPercentage }}%</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-icon btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center" href="{{ path('admin_bicycle_station_detail', {'id': station.idStation}) }}">
+                                                <i class="fas fa-info-circle me-2"></i> View Details
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center station-edit-btn" href="#" data-station-id="{{ station.idStation }}">
+                                                <i class="fas fa-edit me-2"></i> Edit Station
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center text-danger" href="#" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-station-id="{{ station.idStation }}">
+                                                <i class="fas fa-trash me-2"></i> Delete
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Pagination container outside table-responsive -->
+        <div class="pagination-container py-3 bg-light border-top" style="position: relative; z-index: 100;">
+            <div class="d-flex justify-content-center">
+                {{ knp_pagination_render(stations, 'back-office/bicycle/ajax-pagination.html.twig') }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete confirmation modal -->
+<div class="modal fade" id="confirmDeleteModal" data-bs-backdrop="false" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">
+                    <i class="fas fa-trash me-2"></i> Confirm Deletion
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                    <h4 class="mt-3">Are you sure?</h4>
+                    <p class="text-muted">Do you really want to delete this station? This process cannot be undone.</p>
+                </div>
+                <form id="deleteStationForm" method="post" action="">
+                    {% if csrf_token is defined %}
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete-station') }}">
+                    {% endif %}
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="fas fa-trash me-1"></i> Yes, Delete It
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Station Form Modal -->
+<div class="modal fade" id="stationFormModal" data-bs-backdrop="false" tabindex="-1" aria-labelledby="stationFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-gradient-primary text-white">
+                <h5 class="modal-title" id="stationFormModalLabel">
+                    <i class="fas fa-plus-circle me-2"></i> Add New Station
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% if stationForm %}
+                    {{ form_start(stationForm, { 
+                        'attr': { 
+                            'id': 'stationForm', 
+                            'novalidate': true,
+                            'class': 'needs-validation'
+                        }
+                    }) }}
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form_label(stationForm.name, 'Station Name', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                                {{ form_widget(stationForm.name, {
+                                    'attr': {
+                                        'class': 'form-control' ~ (stationForm.name.vars.valid ? '' : ' is-invalid'),
+                                        'placeholder': 'Enter station name'
+                                    }
+                                }) }}
+                                {{ form_errors(stationForm.name, {'attr': {'class': 'invalid-feedback'}}) }}
+                                <div class="form-text text-muted">A descriptive name for this station</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form_label(stationForm.totalDocks, 'Total Docks', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                                <div class="input-group">
+                                    {{ form_widget(stationForm.totalDocks, {
+                                        'attr': {
+                                            'class': 'form-control' ~ (stationForm.totalDocks.vars.valid ? '' : ' is-invalid'),
+                                            'min': '1',
+                                            'placeholder': 'Number of docks'
+                                        }
+                                    }) }}
+                                    <span class="input-group-text"><i class="fas fa-bicycle"></i></span>
+                                    {{ form_errors(stationForm.totalDocks, {'attr': {'class': 'invalid-feedback'}}) }}
+                                </div>
+                                <div class="form-text text-muted">Maximum bike capacity at this station</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form_label(stationForm.status, 'Status', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                                {{ form_widget(stationForm.status, {
+                                    'attr': {
+                                        'class': 'form-select' ~ (stationForm.status.vars.valid ? '' : ' is-invalid')
+                                    }
+                                }) }}
+                                {{ form_errors(stationForm.status, {'attr': {'class': 'invalid-feedback'}}) }}
+                            </div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <hr>
+                            <h5 class="mb-3"><i class="fas fa-map-marker-alt me-2"></i>Location Information</h5>
+                        </div>
+                        
+                        <div class="col-12 mb-3">
+                            <div class="input-group">
+                                <input type="text" id="locationSearch" class="form-control" placeholder="Search for a location...">
+                                <button type="button" id="searchLocationBtn" class="btn btn-primary">
+                                    <i class="fas fa-search me-1"></i> Search
+                                </button>
+                            </div>
+                            <div class="form-text text-muted">Enter an address, city, or landmark</div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="showOtherStations" checked>
+                                <label class="form-check-label" for="showOtherStations">
+                                    Show other stations on map
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Map Container -->
+                        <div class="col-12 mb-4">
+                            <div id="stationMap" style="height: 300px;" class="border rounded"></div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <h6 class="text-muted mb-1">Selected Location</h6>
+                            <div class="card bg-light rounded p-3 mb-3">
+                                <div class="d-flex">
+                                    <div class="me-3">
+                                        <div id="selectedLatitude"><strong>Lat:</strong> Not selected</div>
+                                        <div id="selectedLongitude"><strong>Lng:</strong> Not selected</div>
+                                    </div>
+                                    <div class="ms-auto">
+                                        <span class="badge bg-primary px-3 py-2">
+                                            <i class="fas fa-map-pin me-1"></i> Location
+                                        </span>
+                                    </div>
+                                </div>
+                                <div id="selectedAddress" class="mt-2 text-truncate">No location selected</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Hidden fields for location data -->
+                        <input type="hidden" id="station_latitude" name="station_latitude" value="">
+                        <input type="hidden" id="station_longitude" name="station_longitude" value="">
+                        <input type="hidden" id="station_address" name="station_address" value="">
+                        <input type="hidden" id="station_location_id" name="station_location_id" value="">
+                        
+                        <div class="col-12">
+                            <hr>
+                            <h5 class="mb-3"><i class="fas fa-bicycle me-2"></i>Current Capacity</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="availableBikes" class="form-label fw-bold">Available Bikes</label>
+                                        <div class="input-group">
+                                            <input type="number" id="availableBikes" name="availableBikes" class="form-control" min="0" value="0">
+                                            <span class="input-group-text"><i class="fas fa-bicycle"></i></span>
+                                        </div>
+                                        <div class="form-text text-muted">Number of bikes currently at this station</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Visual capacity representation -->
+                        <div class="col-12">
+                            <div class="card bg-light mb-4">
+                                <div class="card-body">
+                                    <h6 class="mb-3">Capacity Visualization</h6>
+                                    <div class="row text-center mb-3">
+                                        <div class="col">
+                                            <div class="small text-muted">Available Bikes</div>
+                                            <div id="availableBikesValue" class="fw-bold fs-4 text-primary">0</div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="small text-muted">Available Docks</div>
+                                            <div id="availableDocksValue" class="fw-bold fs-4 text-success">0</div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="small text-muted">Charging Docks</div>
+                                            <div id="chargingBikesValue" class="fw-bold fs-4 text-info">0</div>
+                                        </div>
+                                    </div>
+                                    <div class="progress" style="height: 12px;">
+                                        <div id="bikeSegment" class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
+                                        <div id="dockSegment" class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                                        <div id="chargingSegment" class="progress-bar bg-info" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i> Cancel
+                        </button>
+                        <button type="submit" id="saveStationBtn" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Save Station
+                        </button>
+                    </div>
+                    
+                    {{ form_end(stationForm) }}
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Unable to load the station form. Please refresh the page and try again.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Station Modal -->
+<div class="modal fade" id="editStationModal" data-bs-backdrop="false" tabindex="-1" aria-labelledby="editStationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+         <div class="modal-content">
+            <div class="modal-header bg-gradient-primary text-white">
+                <h5 class="modal-title" id="editStationModalLabel">
+                    <i class="fas fa-edit me-2"></i> Edit Station
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="editStationFormContainer">
+                    <div class="text-center p-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading station data...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Loading Overlay -->
+<div id="stationModalLoadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style="background-color: rgba(0, 0, 0, 0.7); z-index: 9999; display: none !important;">
+    <div class="text-center text-white">
+        <div class="spinner-border" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Processing...</p>
+    </div>
+</div>
+
+<!-- JavaScript to manage modals and loading overlays -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Immediately hide all loading overlays on page load
+    document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+        if (overlay) {
+            overlay.style.display = 'none';
+            overlay.style.visibility = 'hidden';
+        }
+    });
+    
+    // Form submission with loading overlay
+    const stationForm = document.querySelector('#stationModal form');
+    if (stationForm) {
+        stationForm.addEventListener('submit', function(e) {
+            // Only show loading if form is valid
+            if (this.checkValidity()) {
+                // Use setTimeout to ensure the form submits before showing overlay
+                setTimeout(function() {
+                    const overlay = document.getElementById('stationModalLoadingOverlay');
+                    if (overlay) overlay.style.display = 'none';
+                }, 5000);
+            }
+        });
+    }
+    
+    // Edit station form
+    const editStationForm = document.querySelector('#editStationModal form');
+    if (editStationForm) {
+        editStationForm.addEventListener('submit', function(e) {
+            // Only show loading if form is valid
+            if (this.checkValidity()) {
+                // Use setTimeout to ensure the form submits before showing overlay
+                setTimeout(function() {
+                    const overlay = document.getElementById('stationModalLoadingOverlay');
+                    if (overlay) overlay.style.display = 'none';
+                }, 5000);
+            }
+        });
+    }
+    
+    // Handle modal close events
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('hidden.bs.modal', function() {
+            // When modal is closed, hide loading overlay
+            document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+                if (overlay) {
+                    overlay.style.display = 'none';
+                    overlay.style.visibility = 'hidden';
+                }
+            });
+        });
+    });
+    
+    // Add click handler on overlays to dismiss them
+    document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+        if (overlay) {
+            overlay.addEventListener('click', function(e) {
+                this.style.display = 'none';
+                this.style.visibility = 'hidden';
+            });
+        }
+    });
+    
+    // Add escape key handler to close stuck loading overlays
+    document.addEventListener('keydown', function(e) {
+        // If Escape key is pressed
+        if (e.key === 'Escape') {
+            // Hide all loading overlays
+            document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+                if (overlay) {
+                    overlay.style.display = 'none';
+                    overlay.style.visibility = 'hidden';
+                }
+            });
+        }
+    });
+    
+    // Load edit station form via AJAX
+    document.querySelectorAll('.station-edit-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const stationId = this.getAttribute('data-station-id');
+            const container = document.getElementById('editStationFormContainer');
+            const modalElement = document.getElementById('editStationModal'); // Get modal element
+            const bsModal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement); // Get or create modal instance
+
+            if (!stationId || !container) {
+                console.error('Missing station ID or container element.');
+                return;
+            }
+
+            // Show spinner
+            container.innerHTML = `
+                <div class="text-center p-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading station details...</p>
+                </div>
+            `;
+            bsModal.show(); // Show modal immediately with loading indicator
+
+            // Construct URL manually
+            const url = `/admin/bicycle/station/${stationId}/edit-form`;
+            console.log('Fetching edit form from URL:', url); // Log the URL
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        // Throw an error with status text to provide more context
+                        throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    container.innerHTML = html;
+                    // Any necessary initialization scripts for the loaded form should be called here
+                    // e.g., initialize map, datepickers, etc., if they are part of the loaded 'html'
+                    console.log('Station edit form loaded successfully.');
+                    // Re-initialize components if needed, e.g., map from station-modal.js
+                    if (window.initializeStationMap) {
+                         // Assuming station-modal.js exposes an init function
+                         // You might need to pass data extracted from the loaded 'html' or fetch it separately
+                         // window.initializeStationMap('stationMap', { lat: ..., lng: ... });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching station edit form:', error);
+                    // Display a user-friendly error inside the modal container
+                    container.innerHTML = `<div class="alert alert-danger m-3">Failed to load station data. Please try again: ${error.message}</div>`;
+                });
+        });
+    });
+    
+    // Client-side search functionality for stations
+    const stationSearchInput = document.getElementById('stationSearchInput');
+    const stationSearchClearBtn = document.getElementById('stationSearchClearBtn');
+    
+    if (stationSearchInput) {
+        // Only trigger search when user presses Enter or changes focus (onblur)
+        stationSearchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const searchTerm = this.value.toLowerCase().trim();
+                performSearch(searchTerm);
+            }
+        });
+        
+        // Also trigger search on blur (when focus leaves the input)
+        stationSearchInput.addEventListener('blur', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            if (searchTerm.length >= 1) { // Only search if there's something to search for
+                performSearch(searchTerm);
+            }
+        });
+        
+        // Clear search button functionality
+        if (stationSearchClearBtn) {
+            stationSearchClearBtn.addEventListener('click', function() {
+                stationSearchInput.value = '';
+                clearSearch();
+                stationSearchInput.focus();
+            });
+        }
+    }
+    
+    // Function to perform the search
+    function performSearch(searchTerm) {
+        // Show loading indicator
+        document.querySelector('.card-body').classList.add('loading');
+        
+        // Store the search term in a data attribute on the search input
+        // This prevents other scripts from clearing the search
+        stationSearchInput.setAttribute('data-current-search', searchTerm);
+        
+        if (searchTerm && searchTerm.length >= 1) {
+            // Create URL with search parameter
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set('search', searchTerm);
+            
+            // Fetch filtered results
+            fetch(currentUrl.toString(), {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                processSearchResults(html, searchTerm, currentUrl);
+            })
+            .catch(error => {
+                console.error('Error during search:', error);
+                fallbackToClientSideSearch(searchTerm);
+            });
+        } else {
+            clearSearch();
+        }
+    }
+    
+    // Function to process search results from server
+    function processSearchResults(html, searchTerm, currentUrl) {
+        // Parse the response HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // Replace the table content
+        const newTableBody = doc.querySelector('.station-table tbody');
+        if (newTableBody) {
+            document.querySelector('.station-table tbody').innerHTML = newTableBody.innerHTML;
+        }
+        
+        // Update pagination if needed
+        const newPagination = doc.querySelector('.pagination-container');
+        if (newPagination) {
+            document.querySelector('.pagination-container').innerHTML = newPagination.innerHTML;
+        }
+        
+        // Check if there are any results
+        const rows = document.querySelectorAll('.station-table tbody tr:not(.empty-search-stations)');
+        const hasResults = rows.length > 0;
+        
+        // Update URL to preserve search on page refresh
+        window.history.replaceState({}, '', currentUrl.toString());
+        
+        if (!hasResults) {
+            showEmptySearchMessage();
+        }
+        
+        // Reattach event listeners to new pagination links
+        reattachPaginationEventListeners(searchTerm);
+        
+        // Remove loading indicator
+        document.querySelector('.card-body').classList.remove('loading');
+    }
+    
+    // Function to clear search
+    function clearSearch() {
+        // Remove the stored search term
+        stationSearchInput.removeAttribute('data-current-search');
+        
+        // Reset URL to remove search parameter
+        const currentUrl = new URL(window.location.href);
+        if (currentUrl.searchParams.has('search')) {
+            currentUrl.searchParams.delete('search');
+            window.history.replaceState({}, '', currentUrl.toString());
+        }
+        
+        // Show loading indicator
+        document.querySelector('.card-body').classList.add('loading');
+        
+        // Reload the page content without the search parameter
+        fetch(currentUrl.toString(), {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Parse the response HTML
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Replace the table content
+            const newTableBody = doc.querySelector('.station-table tbody');
+            if (newTableBody) {
+                document.querySelector('.station-table tbody').innerHTML = newTableBody.innerHTML;
+            }
+            
+            // Update pagination if needed
+            const newPagination = doc.querySelector('.pagination-container');
+            if (newPagination) {
+                document.querySelector('.pagination-container').innerHTML = newPagination.innerHTML;
+            }
+            
+            // Reattach event listeners
+            reattachPaginationEventListeners('');
+            
+            // Remove empty state if it exists
+            const emptyStateRow = document.querySelector('.empty-search-stations');
+            if (emptyStateRow) {
+                emptyStateRow.remove();
+            }
+            
+            // Remove loading indicator
+            document.querySelector('.card-body').classList.remove('loading');
+        })
+        .catch(error => {
+            console.error('Error clearing search:', error);
+            // Remove loading indicator on error
+            document.querySelector('.card-body').classList.remove('loading');
+        });
+    }
+    
+    // Fallback to client-side search if server search fails
+    function fallbackToClientSideSearch(searchTerm) {
+        const tableRows = document.querySelectorAll('.station-table tbody tr:not(.empty-search-stations)');
+        let hasResults = false;
+        
+        tableRows.forEach(row => {
+            if (!searchTerm) {
+                // If search is empty, show all rows
+                row.style.display = '';
+                hasResults = true;
+            } else {
+                const cells = row.querySelectorAll('td');
+                let rowMatches = false;
+                
+                // Check each cell for match
+                cells.forEach(cell => {
+                    const cellText = cell.textContent.toLowerCase();
+                    if (cellText.includes(searchTerm)) {
+                        rowMatches = true;
+                    }
+                });
+                
+                // Show or hide row based on match
+                if (rowMatches) {
+                    row.style.display = '';
+                    hasResults = true;
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+        
+        // Show empty state if no results
+        if (!hasResults) {
+            showEmptySearchMessage();
+        } else {
+            // Remove empty state if it exists
+            const emptyStateRow = document.querySelector('.empty-search-stations');
+            if (emptyStateRow) {
+                emptyStateRow.remove();
+            }
+        }
+        
+        // Remove loading indicator
+        setTimeout(() => {
+            document.querySelector('.card-body').classList.remove('loading');
+        }, 300);
+    }
+    
+    // Function to reattach event listeners to pagination links after search
+    function reattachPaginationEventListeners(searchTerm) {
+        const paginationLinks = document.querySelectorAll('.pagination .page-link');
+        paginationLinks.forEach(link => {
+            // Remove old event listeners
+            const newLink = link.cloneNode(true);
+            link.parentNode.replaceChild(newLink, link);
+            
+            // Add new event listener
+            newLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Use the stored search term if available, otherwise use the parameter
+                const currentSearchTerm = stationSearchInput.getAttribute('data-current-search') || searchTerm;
+                
+                // Preserve search parameter when navigating pages
+                let targetUrl = new URL(this.href, window.location.href);
+                
+                if (currentSearchTerm) {
+                    targetUrl.searchParams.set('search', currentSearchTerm);
+                }
+                
+                // Show loading indicator
+                document.querySelector('.card-body').classList.add('loading');
+                
+                // Fetch the new page with search term preserved
+                fetch(targetUrl.toString(), {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    // Parse the response HTML
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    // Replace the table content
+                    const newTableBody = doc.querySelector('.station-table tbody');
+                    if (newTableBody) {
+                        document.querySelector('.station-table tbody').innerHTML = newTableBody.innerHTML;
+                    }
+                    
+                    // Update pagination links
+                    const newPagination = doc.querySelector('.pagination-container');
+                    if (newPagination) {
+                        document.querySelector('.pagination-container').innerHTML = newPagination.innerHTML;
+                    }
+                    
+                    // Update the URL to reflect the new page with search parameter
+                    window.history.pushState({}, '', targetUrl.toString());
+                    
+                    // Reattach event listeners to the new pagination links
+                    reattachPaginationEventListeners(currentSearchTerm);
+                    
+                    // Remove loading indicator
+                    document.querySelector('.card-body').classList.remove('loading');
+                })
+                .catch(error => {
+                    console.error('Error during pagination with search:', error);
+                    // Remove loading indicator
+                    document.querySelector('.card-body').classList.remove('loading');
+                });
+            });
+        });
+    }
+    
+    // Helper function to show empty search message
+    function showEmptySearchMessage() {
+        // Remove any existing message first
+        const existingEmptyState = document.querySelector('.empty-search-stations');
+        if (existingEmptyState) {
+            existingEmptyState.remove();
+        }
+        
+        const tbody = document.querySelector('.station-table tbody');
+        const newRow = document.createElement('tr');
+        newRow.className = 'empty-search-stations';
+        newRow.innerHTML = `
+            <td colspan="7" class="text-center py-4">
+                <div class="mb-3">
+                    <i class="fas fa-search fa-3x text-muted opacity-50"></i>
+                </div>
+                <h5>No stations found</h5>
+                <p class="text-muted mb-3">No station records match your search criteria</p>
+                <button type="button" class="btn btn-purple clear-search-btn">
+                    <i class="fas fa-times-circle me-2"></i>Clear Search
+                </button>
+            </td>
+        `;
+        tbody.appendChild(newRow);
+        
+        // Add event listener to clear search button
+        newRow.querySelector('.clear-search-btn').addEventListener('click', function() {
+            if (stationSearchInput) {
+                stationSearchInput.value = '';
+                clearSearch();
+                stationSearchInput.focus();
+            }
+        });
+    }
+    
+    // Check for search param on page load and apply it
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchParam = urlParams.get('search');
+        
+        if (searchParam && stationSearchInput) {
+            stationSearchInput.value = searchParam;
+            stationSearchInput.setAttribute('data-current-search', searchParam);
+            // Don't need to perform search as the server should have already filtered the results
+        }
+    });
+});
+
+// Make a global reset function available to clear any stuck overlays
+window.resetStationOverlays = function() {
+    document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+        if (overlay) {
+            overlay.style.display = 'none';
+            overlay.style.visibility = 'hidden';
+        }
+    });
+    console.log('All loading overlays have been reset');
+};
+
+// Call resetStationOverlays every 10 seconds as a failsafe
+setInterval(window.resetStationOverlays, 10000);
+</script>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    // Pass failsafe station data to scripts as a fallback
+    // This will only be used if the API fetch fails
+    window.stationDataFallback = {{ stations|map(s => {
+        id: s.idStation,
+        name: s.name,
+        lat: s.location ? s.location.latitude : null,
+        lng: s.location ? s.location.longitude : null,
+        status: s.status.value,
+        address: s.location ? s.location.address : 'No address',
+        availableBikes: s.availableBikes,
+        totalDocks: s.totalDocks,
+        chargingDocks: s.chargingDocks is defined ? s.chargingDocks : null
+    })|json_encode|raw }};
+</script>
+<!-- Core station functionality scripts -->
+<script src="{{ asset('js/back/bicycle/station-map.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
+<script src="{{ asset('js/back/bicycle/station-pagination.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
+<script src="{{ asset('js/back/bicycle/station-modal.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
+<script src="{{ asset('js/back/bicycle/station-edit-modal.js') }}?v={{ 'now'|date('YmdHi') }}"></script>

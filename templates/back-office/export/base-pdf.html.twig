@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}WamiaGo Export{% endblock %}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4285F4;
+            padding-bottom: 10px;
+        }
+        .header img {
+            max-height: 60px;
+        }
+        h1 {
+            color: #4285F4;
+            margin: 5px 0;
+            font-size: 24px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .date {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th {
+            background-color: #4285F4;
+            color: white;
+            padding: 8px;
+            text-align: left;
+            font-size: 13px;
+        }
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+            font-size: 12px;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .stats-section {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        .stats-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        .stat-item {
+            flex-basis: 22%;
+            background: white;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #4285F4;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+        .filters {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .filters strong {
+            color: #333;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 11px;
+            color: #999;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+        .page-break {
+            page-break-after: always;
+        }
+        /* Charts section */
+        .charts {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+        .chart {
+            flex-basis: 48%;
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .chart h3 {
+            font-size: 16px;
+            margin-top: 0;
+            color: #333;
+        }
+        /* Type-specific styles */
+        .bicycles th { background-color: #28a745; }
+        .bicycles .stat-value { color: #28a745; }
+        .bicycles .header { border-bottom-color: #28a745; }
+        .bicycles h1 { color: #28a745; }
+        
+        .stations th { background-color: #8540f5; }
+        .stations .stat-value { color: #8540f5; }
+        .stations .header { border-bottom-color: #8540f5; }
+        .stations h1 { color: #8540f5; }
+        
+        .rentals th { background-color: #0d6efd; }
+        .rentals .stat-value { color: #0d6efd; }
+        .rentals .header { border-bottom-color: #0d6efd; }
+        .rentals h1 { color: #0d6efd; }
+    </style>
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    <div class="header">
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABh0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzT7MfTgAAABZ0RVh0Q3JlYXRpb24gVGltZQAwNi8yNC8xNVoFK6QAAAbeSURBVHic7d3Pa1V1HMfx92furmaaOCcR2WQJ0R9QEkKLFi1aGCSEi1ZBq/6M/oZaxe5FYC2EoEW0DRRcFEISRElkE9J0sJ25c++Z7+d+W5z549yre8/nnPfzAYLOw+He7/me9/me+/sJGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhjTx7/J1MOOTYyoVAAAAABJRU5ErkJggg==" alt="WamiaGo Logo" />
+        <h1>{% block report_title %}WamiaGo Export{% endblock %}</h1>
+        <div class="subtitle">{% block subtitle %}Bicycle Management System{% endblock %}</div>
+        <div class="date">Generated on {{ "now"|date("F j, Y, g:i a") }}</div>
+    </div>
+
+    <div class="filters">
+        {% if filters is defined and filters %}
+            <strong>Filters applied:</strong>
+            {% for key, value in filters %}
+                {% if value is not empty %}
+                    {{ key }}: {{ value }}{% if not loop.last %} | {% endif %}
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <strong>No filters applied</strong>
+        {% endif %}
+    </div>
+
+    {% block content %}{% endblock %}
+
+    <div class="footer">
+        <p>WamiaGo Bicycle Management System &copy; {{ "now"|date("Y") }}</p>
+        <p>Page 1 of 1</p>
+    </div>
+</body>
+</html>

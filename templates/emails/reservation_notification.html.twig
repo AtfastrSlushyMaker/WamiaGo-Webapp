@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>New Reservation - WamiaGo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #0088cc 0%, #005580 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            padding: 30px;
+        }
+        .reservation-details {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .detail-row {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .label {
+            font-weight: bold;
+            color: #005580;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 0 0 8px 8px;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #0088cc;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>New Transportation Reservation</h1>
+        </div>
+        
+        <div class="content">
+            <p>Dear {{ transporterName }},</p>
+            
+            <p>You have received a new reservation request. Here are the details:</p>
+            
+            <div class="reservation-details">
+                <div class="detail-row">
+                    <span class="label">Date:</span>
+                    <span>{{ reservationDate|date('F d, Y H:i') }}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="label">Client:</span>
+                    <span>{{ clientName }}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="label">Pickup Location:</span>
+                    <span>{{ startLocation }}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="label">Destination:</span>
+                    <span>{{ endLocation }}</span>
+                </div>
+                
+                {% if description %}
+                <div class="detail-row">
+                    <span class="label">Additional Notes:</span>
+                    <span>{{ description }}</span>
+                </div>
+                {% endif %}
+                
+                <div class="detail-row">
+                    <span class="label">Announcement:</span>
+                    <span>{{ announcementTitle }}</span>
+                </div>
+            </div>
+
+            <p>Please log in to your WamiaGo account to review and respond to this reservation request.</p>
+            
+            <p>Best regards,<br>The WamiaGo Team</p>
+        </div>
+        
+        <div class="footer">
+            <p>&copy; {{ "now"|date("Y") }} WamiaGo. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

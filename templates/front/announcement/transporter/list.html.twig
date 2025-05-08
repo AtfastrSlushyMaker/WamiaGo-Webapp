@@ -1,0 +1,190 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}My Announcements | WamiaGo{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/front/announcement/transporter-announcement.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/front/announcement/announcement-cards.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/front/announcement/modal-details.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="transporter-announcements-container">
+    <!-- Header Section -->
+    <div class="announcements-header text-center"> 
+        <h1><i class="fas fa-truck"></i> My Transport Announcements</h1>
+        
+        <div class="action-buttons d-flex justify-content-center gap-3"> 
+            <a href="{{ path('app_transporter_announcement_new') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-2"></i> New Announcement
+            </a>
+            <a href="{{ path('app_transporter_reservation_list') }}" class="btn btn-info" id="btn-reservations">
+    <i class="fas fa-calendar-check me-2"></i> See Reservations
+</a>
+           <a href="{{ path('app_transporter_relocation_calendar') }}" class="btn btn-warning" id="btn-relocations">
+    <i class="fas fa-truck-moving me-2"></i> See Relocations
+</a>
+
+        </div>
+    </div>
+    
+    <!-- Contenu dynamique -->
+    <div id="dynamic-content" class="mt-4">
+        <!-- Le contenu sera chargé ici via AJAX -->
+    </div>
+</div>
+
+     <!-- Search Filters Section -->
+    <div class="filters-section mb-5">
+        <div class="advanced-search-container bg-light p-4 rounded-3 shadow-sm">
+            <div class="search-filter mb-3">
+                <input type="text" 
+                       id="transporterKeywordSearch" 
+                       placeholder="Search my announcements..." 
+                       class="form-control form-control-lg"
+                       value="{{ app.request.query.get('keyword') }}">
+            </div>
+
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="transporterZoneFilter" class="form-label">
+                        <i class="fas fa-map-marker-alt me-2"></i>Zone
+                    </label>
+                    <select id="transporterZoneFilter" class="form-select">
+                        <option value="">All Zones</option>
+                        {% for zone in zones %}
+                            <option value="{{ zone.value }}" 
+                                {{ app.request.query.get('zone') == zone.value ? 'selected' }}>
+                                {{ zone.value }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="transporterDateFilter" class="form-label">
+                        <i class="fas fa-calendar-alt me-2"></i>Date
+                    </label>
+                    <input type="date" 
+                           id="transporterDateFilter" 
+                           class="form-control"
+                           value="{{ app.request.query.get('date') }}">
+                </div>
+
+                <div class="col-md-4">
+                    <button class="btn btn-outline-danger w-100" id="transporterClearFilters">
+                        <i class="fas fa-eraser me-2"></i>Clear Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Announcements Grid -->
+    <div id="transporterAnnouncementsList">
+    {% if announcements is empty %}
+        <div class="empty-state">
+            <img src="{{ asset('images/front/announcement/empty-state.png') }}" alt="No announcements">
+            <h3>No announcements yet</h3>
+            <p>Start by creating your first transport announcement</p>
+            <a href="{{ path('app_transporter_announcement_new') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create Announcement
+            </a>
+        </div>
+    {% else %}
+         <div class="announcements-grid">
+            {% for announcement in announcements %}
+                <div class="announcement-card" data-id="{{ announcement.id_announcement }}">
+                    <div class="card-header">
+                        <div class="card-badge {{ announcement.status ? 'active' : 'inactive' }}">
+                            {{ announcement.status ? 'ACTIVE' : 'INACTIVE' }}
+                        </div>
+                        <h3 class="card-title">{{ announcement.title }}</h3>
+                    </div>
+                    
+                    <div class="card-body">
+                        <p class="card-content">
+                            {{ announcement.content|length > 120 ? announcement.content|slice(0, 120) ~ '...' : announcement.content }}
+                        </p>
+                        
+                        <div class="card-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>{{ announcement.zone.value }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>{{ announcement.date|date('d M Y, H:i') }}</span>
+                            </div>
+                        </div>
+                   
+                    </div>
+                    
+                    <div class="card-footer">
+                        <button class="btn-details" data-id="{{ announcement.id_announcement }}">
+                            <i class="fas fa-eye"></i> Details
+                        </button>
+                        <div class="card-actions">
+                           <button class="btn-edit" data-id="{{ announcement.id_announcement }}">
+    <i class="fas fa-edit"></i>
+</button>
+                            <button class="btn-delete" 
+                                    data-id="{{ announcement.id_announcement }}" 
+                                    data-title="{{ announcement.title }}"
+                                    data-csrf="{{ csrf_token('delete' ~ announcement.id_announcement) }}">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        <div class="card-footer clearfix">
+            <div class="float-right">
+                {{ knp_pagination_render(announcements, '@KnpPaginator/Pagination/twitter_bootstrap_v4_pagination.html.twig') }}
+            </div>
+        </div>
+    {% endif %}
+</div>
+    <!-- Delete Modal -->
+    {% include 'front/announcement/transporter/_partials/delete_modal.html.twig' %}
+
+    <!-- Edit Modal -->
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0">
+            <div class="modal-header bg-gradient-primary text-white">
+                <h5 class="modal-title" id="editModalLabel">
+                    <i class="fas fa-edit me-3"></i>
+                    EDIT ANNOUNCEMENT
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" id="editModalBody">
+                <!-- Contenu chargé dynamiquement -->
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    
+    <!-- Details Modal -->
+    {% include 'front/announcement/transporter/_partials/details_modal.html.twig' %}
+
+   
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.19.1/dist/sweetalert2.all.min.js"></script>
+    <script src="{{ asset('js/front/announcement/transporter-announcement.js') }}" defer></script>
+    <script src="{{ asset('js/front/announcement/announcement-modals.js') }}" defer></script>
+    <script src="{{ asset('js/front/announcement/transporter-search.js') }}" defer></script>
+
+{% endblock %}

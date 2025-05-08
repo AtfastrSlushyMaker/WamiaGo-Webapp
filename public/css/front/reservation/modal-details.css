@@ -1,0 +1,81 @@
+/* public/css/front/reservation/modal-details.css */
+#detailsModal .modal-dialog {
+    max-width: 700px;
+    margin: 1.75rem auto;
+}
+
+#detailsModal .modal-content {
+    border-radius: 12px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+#detailsModal .modal-header {
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #5A6BE5 0%, #3A4BCC 100%);
+    border-bottom: none;
+}
+
+#detailsModal .modal-title {
+    font-weight: 600;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+}
+
+#detailsModal .modal-body {
+    padding: 1.5rem 2rem;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+/* Detail cards in modal */
+.detail-card {
+    margin-bottom: 1.5rem;
+    padding: 1.25rem;
+    background: #F8F9FA;
+    border-radius: 8px;
+    border-left: 3px solid #5A6BE5;
+}
+
+.detail-card h4 {
+    color: #2D3748;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+}
+
+.detail-card .text-muted {
+    color: #718096 !important;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.detail-card hr {
+    margin: 1.25rem 0;
+    border-color: #EDF2F7;
+}
+
+.location-details p {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    color: #4A5568;
+}
+
+.location-details i {
+    margin-right: 0.75rem;
+    width: 1.25rem;
+    text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #detailsModal .modal-dialog {
+        margin: 0.5rem auto;
+    }
+    
+    #detailsModal .modal-body {
+        padding: 1rem;
+    }
+}

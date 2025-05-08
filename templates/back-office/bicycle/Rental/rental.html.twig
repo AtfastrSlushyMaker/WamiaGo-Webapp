@@ -1,0 +1,1319 @@
+{% block stylesheets %}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+<style>
+    /* Blue Theme for Rental Management */
+    
+    /* Main Banner Styles */
+    .bicycle-fleet-banner {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 0.75rem;
+        box-shadow: 0 0.5rem 1.5rem rgba(13, 110, 253, 0.15);
+        margin-bottom: 2rem;
+        overflow: hidden;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .bicycle-fleet-banner::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .bicycle-fleet-banner:hover {
+        transform: scale(1.01);
+    }
+
+    .banner-icon {
+        width: 80px;
+        height: 80px;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        margin-right: 2rem;
+        transition: all 0.3s ease;
+    }
+
+    .banner-icon:hover {
+        transform: scale(1.05) rotate(5deg);
+    }
+
+    .banner-title {
+        font-size: 2.25rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .banner-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        max-width: 80%;
+    }
+
+    /* Enhanced Stat Cards */
+    .stats-section {
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+        background: white;
+        position: relative;
+    }
+
+    .stat-card::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, #0d6efd, #0a58ca);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1.5rem rgba(13, 110, 253, 0.15);
+    }
+
+    .stat-card-body {
+        padding: 1.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card-icon {
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-right: 1rem;
+    }
+
+    .stat-card-info {
+        flex: 1;
+    }
+
+    .stat-card-title {
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-card-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        color: #212529;
+    }
+
+    .stat-card-trend {
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .trend-up {
+        color: #28a745;
+    }
+
+    .trend-down {
+        color: #dc3545;
+    }
+
+    /* Filter Card */
+    .filter-card {
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
+        border: none;
+        margin-bottom: 2rem;
+        animation-delay: 0.2s;
+    }
+
+    .filter-card .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 1.25rem 1.5rem;
+    }
+
+    .filter-card .card-body {
+        padding: 1.5rem;
+    }
+
+    .form-control, .form-select {
+        border-color: #ced4da;
+        border-radius: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    /* Data Card */
+    .data-card {
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
+        border: none;
+        animation-delay: 0.3s;
+    }
+
+    .data-card .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 1.25rem 1.5rem;
+    }
+
+    /* Custom Primary Button */
+    .btn-custom-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        border: none;
+        color: white;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+        box-shadow: 0 0.25rem 0.5rem rgba(13, 110, 253, 0.15);
+        transition: all 0.2s ease;
+    }
+
+    .btn-custom-primary:hover {
+        box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.35);
+        transform: translateY(-2px);
+    }
+    
+    /* Soft background colors */
+    .bg-primary-soft {
+        background-color: rgba(13, 110, 253, 0.15);
+    }
+
+    .bg-success-soft {
+        background-color: rgba(40, 167, 69, 0.15);
+    }
+
+    .bg-warning-soft {
+        background-color: rgba(255, 193, 7, 0.15);
+    }
+
+    .bg-danger-soft {
+        background-color: rgba(220, 53, 69, 0.15);
+    }
+    
+    /* Enhanced Pagination Styling */
+    .pagination-wrapper {
+        padding: 1.5rem;
+        border-top: 1px solid #e9ecef;
+        background: #f8f9fa;
+        border-radius: 0 0 1rem 1rem;
+        text-align: center; /* Center any text in the wrapper */
+    }
+    
+    .pagination-modern {
+        display: flex;
+        align-items: center;
+        justify-content: center; /* Ensure the pagination itself is centered */
+        width: 100%; /* Take full width of parent */
+    }
+    
+    .pagination-modern .page-item .page-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: 0;
+        margin: 0 0.25rem;
+        font-weight: 500;
+        border: none;
+        border-radius: 0.75rem;
+        background-color: white;
+        color: #495057;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        transition: all 0.2s ease;
+    }
+    
+    .pagination-modern .page-item.active .page-link {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        color: white;
+        box-shadow: 0 0.25rem 0.75rem rgba(13, 110, 253, 0.25);
+        transform: translateY(-2px);
+    }
+    
+    .pagination-modern .page-item .page-link:hover:not(.active) {
+        background-color: #e9ecef;
+        transform: translateY(-2px);
+    }
+    
+    .pagination-info {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-bottom: 0.75rem;
+        text-align: center;
+    }
+    
+    .pagination-per-page {
+        margin-top: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .pagination-per-page select {
+        width: auto;
+        margin: 0 0.5rem;
+        padding: 0.25rem 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid #ced4da;
+    }
+    
+    .pagination-per-page label {
+        color: #6c757d;
+        margin-bottom: 0;
+        margin-right: 0.5rem;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 576px) {
+        .bicycle-fleet-banner {
+            padding: 1.5rem;
+        }
+        
+        .banner-icon {
+            width: 4rem;
+            height: 4rem;
+            font-size: 2rem;
+            margin-right: 1rem;
+        }
+        
+        .banner-title {
+            font-size: 1.75rem;
+        }
+        
+        .banner-subtitle {
+            font-size: 1rem;
+            max-width: 100%;
+        }
+        
+        .stat-card-body {
+            padding: 1.25rem;
+        }
+        
+        .stat-card-value {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- Hero Section with New Button -->
+<div class="hero-section mb-4 p-4 text-white rounded-3 shadow-sm" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
+    <div class="row align-items-center">
+        <div class="col-lg-7">
+            <div class="d-flex align-items-center">
+                <div class="tab-icon-container bg-white bg-opacity-25 rounded-circle p-3 me-3">
+                    <i class="fas fa-receipt fa-3x text-white"></i>
+                </div>
+                <div>
+                    <h2 class="fw-bold mb-1">Bicycle Rental Management</h2>
+                    <p class="lead mb-0 opacity-75">View, track and manage all bicycle rentals across the city network</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5 text-lg-end mt-3 mt-lg-0">
+            <a href="{{ path('admin_bicycle_rental_new') }}" class="btn btn-light btn-lg shadow-sm">
+                <i class="fas fa-plus-circle me-2"></i> New Rental
+            </a>
+            <div class="btn-group ms-2">
+                <button type="button" class="btn btn-outline-light btn-lg dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-file-export me-2"></i> Export
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="{{ path('admin_bicycle_rental_export', app.request.query.all|merge({'format': 'csv'})) }}"><i class="fas fa-file-csv me-2 text-primary"></i>Export to CSV</a></li>
+                    <li><a class="dropdown-item" href="{{ path('admin_bicycle_rental_export', app.request.query.all|merge({'format': 'excel'})) }}"><i class="fas fa-file-excel me-2 text-success"></i>Export to Excel</a></li>
+                    <li><a class="dropdown-item" href="{{ path('admin_bicycle_rental_export', app.request.query.all|merge({'format': 'pdf'})) }}"><i class="fas fa-file-pdf me-2 text-danger"></i>Export to PDF</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-4">
+    <!-- Statistics Cards Section -->
+    <div class="stats-section animate__animated animate__fadeInUp animate__delay-1s">
+        <div class="row g-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-card-body">
+                        <div class="stat-card-icon bg-primary-soft text-primary">
+                            <i class="fas fa-bicycle"></i>
+                        </div>
+                        <div class="stat-card-info">
+                            <div class="stat-card-title">Total Rentals</div>
+                            <div class="stat-card-value">{{ stats.totalRentals is defined ? stats.totalRentals : (rentals is defined ? rentals|length : 0) }}</div>
+                            <div class="stat-card-trend">
+                                <i class="fas fa-arrow-up me-1"></i> 12% this week
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-card-body">
+                        <div class="stat-card-icon bg-success-soft text-success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-card-info">
+                            <div class="stat-card-title">Completed</div>
+                            <div class="stat-card-value">{{ stats.completedCount is defined ? stats.completedCount : 0 }}</div>
+                            <div class="stat-card-trend">
+                                <i class="fas fa-arrow-up me-1"></i> 8% this week
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-card-body">
+                        <div class="stat-card-icon bg-primary-soft text-primary">
+                            <i class="fas fa-biking"></i>
+                        </div>
+                        <div class="stat-card-info">
+                            <div class="stat-card-title">Active</div>
+                            <div class="stat-card-value">{{ stats.activeCount is defined ? stats.activeCount : 0 }}</div>
+                            <div class="stat-card-trend">
+                                <i class="fas fa-arrow-up me-1"></i> 15% this week
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-card-body">
+                        <div class="stat-card-icon bg-warning-soft text-warning">
+                            <i class="fas fa-bookmark"></i>
+                        </div>
+                        <div class="stat-card-info">
+                            <div class="stat-card-title">Reserved</div>
+                            <div class="stat-card-value">{{ stats.reservedCount is defined ? stats.reservedCount : 0 }}</div>
+                            <div class="stat-card-trend trend-down">
+                                <i class="fas fa-arrow-down me-1"></i> 3% this week
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filters Card -->
+    <div class="filter-card animate__animated animate__fadeInUp animate__delay-2s">
+        <div class="card-header">
+            <h5 class="fw-bold"><i class="fas fa-filter"></i> Search & Filters</h5>
+        </div>
+        <div class="card-body">
+            <form action="{{ path('admin_bicycle_rentals', {tab:"rentals"}) }}" method="GET" id="rentalFilterForm">
+                <div class="row g-3 mb-3">
+                    <div class="col-lg-12">
+                        <div class="search-box">
+                            <div class="input-group">
+                                <span class="input-group-text bg-primary text-white"><i class="fas fa-search"></i></span>
+                                <input type="text" id="rentalSearchInput" class="form-control" placeholder="Search by customer name, bicycle ID, rental ID, station..." value="{{ app.request.query.get('search') }}">
+                                <button type="button" id="searchClearBtn" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label">Rental Status</label>
+                        <select name="status" class="form-select filter-select">
+                            <option value="">All Statuses</option>
+                            <option value="active" {{ app.request.query.get('status') == 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="completed" {{ app.request.query.get('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                            <option value="reserved" {{ app.request.query.get('status') == 'reserved' ? 'selected' : '' }}>Reserved</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label">Pickup Station</label>
+                        <select name="station" class="form-select filter-select">
+                            <option value="">All Stations</option>
+                            {% for station in stations %}
+                                <option value="{{ station.idStation }}" {% if app.request.query.get('station') == station.idStation|number_format(0) %}selected{% endif %}>
+                                    {{ station.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label">From Date</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                            <input type="date" name="dateFrom" class="form-control filter-date" value="{{ app.request.query.get('dateFrom') }}">
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label">To Date</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                            <input type="date" name="dateTo" class="form-control filter-date" value="{{ app.request.query.get('dateTo') }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 d-flex flex-wrap justify-content-between">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn-custom-primary">
+                            <i class="fas fa-search me-2"></i>Search
+                        </button>
+                        <a href="{{ path('admin_bicycle_rentals', {tab:"rentals"}) }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-redo me-2"></i>Reset Filters
+                        </a>
+                    </div>
+                    <a href="{{ path('admin_bicycle_rental_new') }}" class="btn btn-success">
+                        <i class="fas fa-plus-circle me-2"></i>Create New Rental
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Rentals Data Table Card -->
+    <div class="data-card animate__animated animate__fadeInUp animate__delay-3s">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold"><i class="fas fa-list me-2"></i>Bicycle Rentals</h5>
+        </div>
+        
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} alert-dismissible fade show m-3" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-{{ label == 'success' ? 'check-circle' : (label == 'danger' ? 'exclamation-circle' : 'info-circle') }} me-2"></i>
+                        <div>{{ message }}</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+        
+        <div class="table-responsive">
+            <table class="table datatable">
+                <thead>
+                    <tr>
+                        <th class="sortable" data-sort="id">ID</th>
+                        <th class="sortable" data-sort="customer">Customer</th>
+                        <th class="sortable" data-sort="bicycle">Bicycle</th>
+                        <th class="sortable" data-sort="pickupStation">Pick-up Station</th>
+                        <th class="sortable" data-sort="startTime">Start Time</th>
+                        <th class="sortable" data-sort="returnStation">Return Station</th>
+                        <th class="sortable" data-sort="endTime">End Time</th>
+                        <th class="sortable" data-sort="duration">Duration</th>
+                        <th class="sortable" data-sort="cost">Cost</th>
+                        <th class="sortable" data-sort="status">Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if rentals is defined and rentals|length > 0 %}
+                        {% for rental in rentals %}
+                            {% set status = 'Reserved' %}
+                            {% set rowClass = '' %}
+                            {% if rental.endTime is defined and rental.endTime %}
+                                {% set status = 'Completed' %}
+                                {% set rowClass = 'completed-rental' %}
+                            {% elseif rental.startTime is defined and rental.startTime %}
+                                {% set status = 'Active' %}
+                                {% set rowClass = 'active-rental' %}
+                            {% endif %}
+                            
+                            <tr class="{{ rowClass }}">
+                                <td>
+                                    <a href="{{ path('admin_bicycle_rental_show', {'id': rental.idUserRental}) }}" class="fw-bold text-decoration-none">
+                                        B{{ '%05d'|format(rental.idUserRental) }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle bg-primary-soft text-primary me-2">
+                                            {{ rental.user is defined and rental.user ? rental.user.name|slice(0, 1)|upper : 'U' }}
+                                        </div>
+                                        <div>
+                                            {% if rental.user is defined and rental.user %}
+                                                {{ rental.user.name|default(rental.user.email)|default('Unknown') }}
+                                            {% else %}
+                                                Unknown
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if rental.bicycle is defined and rental.bicycle %}
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-medium text-dark">Bike #{{ rental.bicycle.idBike }}</span>
+                                            <small class="text-muted">
+                                                {% if rental.bicycle.batteryLevel > 90 %}
+                                                    <span class="badge bg-success text-white rounded-pill">Premium</span>
+                                                {% else %}
+                                                    <span class="badge bg-info text-white rounded-pill">Standard</span>
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">Unknown</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rental.startStation is defined and rental.startStation %}
+                                        <div class="station-badge">
+                                            <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                                            {{ rental.startStation.name|default('Unknown') }}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">Unknown</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rental.startTime is defined and rental.startTime %}
+                                        <div class="d-flex flex-column">
+                                            <span>{{ rental.startTime|date('M d, Y') }}</span>
+                                            <small class="text-muted">{{ rental.startTime|date('h:i A') }}</small>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">Not started</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rental.endStation is defined and rental.endStation %}
+                                        <div class="station-badge">
+                                            <i class="fas fa-flag-checkered text-success me-1"></i>
+                                            {{ rental.endStation.name|default('Unknown') }}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rental.endTime is defined and rental.endTime %}
+                                        <div class="d-flex flex-column">
+                                            <span>{{ rental.endTime|date('M d, Y') }}</span>
+                                            <small class="text-muted">{{ rental.endTime|date('h:i A') }}</small>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if status == 'Completed' and rental.startTime is defined and rental.endTime is defined %}
+                                        {% set duration = date(rental.endTime).diff(date(rental.startTime)) %}
+                                        {% set hours = duration.h + (duration.d * 24) %}
+                                        {% set minutes = duration.i %}
+                                        <div class="duration-badge">{{ hours }}h {{ minutes }}m</div>
+                                    {% elseif status == 'Active' and rental.startTime is defined %}
+                                        {% set duration = date().diff(date(rental.startTime)) %}
+                                        {% set hours = duration.h + (duration.d * 24) %}
+                                        {% set minutes = duration.i %}
+                                        <div class="duration-badge running">
+                                            <i class="fas fa-stopwatch me-1"></i>
+                                            {{ hours }}h {{ minutes }}m
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rental.cost is defined and rental.cost %}
+                                        <div class="cost-badge">
+                                            <span class="fw-bold">{{ rental.cost|number_format(3) }}</span>
+                                            <small class="text-muted">TND</small>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if status == 'Completed' %}
+                                        <span class="status-badge completed">
+                                            <i class="fas fa-check-circle"></i>
+                                            Completed
+                                        </span>
+                                    {% elseif status == 'Active' %}
+                                        <span class="status-badge active">
+                                            <i class="fas fa-bicycle"></i>
+                                            In Progress
+                                        </span>
+                                    {% else %}
+                                        <span class="status-badge reserved">
+                                            <i class="fas fa-clock"></i>
+                                            Reserved
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex justify-content-center">
+                                        <a href="{{ path('admin_bicycle_rental_show', {'id': rental.idUserRental}) }}" 
+                                           class="btn btn-outline-primary btn-action" 
+                                           data-bs-toggle="tooltip" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        
+                                        <a href="{{ path('admin_bicycle_rental_edit', {'id': rental.idUserRental}) }}" 
+                                           class="btn btn-outline-secondary btn-action" 
+                                           data-bs-toggle="tooltip" title="Edit">
+                                            <i class="fas fa-pen"></i>
+                                        </a>
+                                        
+                                        {% if status == 'Reserved' %}
+                                            <button type="button" 
+                                                    class="btn btn-outline-success btn-action activate-rental-btn" 
+                                                    data-rental-id="{{ rental.idUserRental }}"
+                                                    data-bs-toggle="tooltip" title="Activate Rental">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                            
+                                            <button type="button" 
+                                                    class="btn btn-outline-danger btn-action cancel-rental-btn" 
+                                                    data-rental-id="{{ rental.idUserRental }}"
+                                                    data-bs-toggle="tooltip" title="Cancel">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        {% endif %}
+                                        
+                                        <button type="button" 
+                                                class="btn btn-outline-danger btn-action delete-rental-btn" 
+                                                data-rental-id="{{ rental.idUserRental }}"
+                                                data-bs-toggle="tooltip" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="11">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">
+                                        <i class="fas fa-search"></i>
+                                    </div>
+                                    <h5>No rentals found</h5>
+                                    <p class="text-muted mb-3">No rental records match your search criteria</p>
+                                    <a href="{{ path('admin_bicycle_rental_new') }}" class="btn btn-primary">
+                                        <i class="fas fa-plus-circle me-2"></i>Create New Rental
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if rentals|length > 0 %}
+            <div class="pagination-wrapper">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="pagination-modern">
+                        {% if rentals.isPaginationObject is defined or rentals.getTotalItemCount is defined %}
+                            {{ knp_pagination_render(rentals, 'back-office/bicycle/ajax-pagination.html.twig') }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Hidden Forms for POST actions -->
+<form id="activateRentalForm" method="POST" style="display: none;"></form>
+<form id="cancelRentalForm" method="POST" style="display: none;"></form>
+<form id="deleteRentalForm" method="POST" style="display: none;"></form>
+
+<!-- Activation Confirmation Modal -->
+<div class="modal fade modal-success" id="activateRentalModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-play-circle me-2"></i>Activate Rental</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to activate this rental? This will mark the bicycle as in use and start the rental timer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-light activate-confirm-btn">
+                    <i class="fas fa-play me-2"></i>Activate Rental
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancellation Confirmation Modal -->
+<div class="modal fade modal-danger" id="cancelRentalModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-ban me-2"></i>Cancel Rental</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel this rental? The bicycle will be marked as available again, and the reservation will be removed.</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    This action cannot be undone.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Keep Rental</button>
+                <button type="button" class="btn btn-light cancel-confirm-btn">
+                    <i class="fas fa-ban me-2"></i>Cancel Rental
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade modal-danger" id="deleteRentalModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-trash me-2"></i>Delete Rental</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to permanently delete this rental record?</p>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Warning:</strong> This action will permanently delete all data associated with this rental and cannot be recovered.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-light delete-confirm-btn">
+                    <i class="fas fa-trash me-2"></i>Delete Permanently
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+    
+    // Initialize modals
+    const activateModal = new bootstrap.Modal(document.getElementById('activateRentalModal'));
+    const cancelModal = new bootstrap.Modal(document.getElementById('cancelRentalModal'));
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteRentalModal'));
+    
+    // Form references
+    const activateForm = document.getElementById('activateRentalForm');
+    const cancelForm = document.getElementById('cancelRentalForm');
+    const deleteForm = document.getElementById('deleteRentalForm');
+    
+    // Set up activate buttons
+    document.querySelectorAll('.activate-rental-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const rentalId = this.getAttribute('data-rental-id');
+            activateForm.setAttribute('action', `{{ path('admin_bicycle_rental_activate', {'id': '0'}) }}`.replace('/0', `/${rentalId}`));
+            activateModal.show();
+        });
+    });
+    
+    // Set up cancel buttons
+    document.querySelectorAll('.cancel-rental-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const rentalId = this.getAttribute('data-rental-id');
+            cancelForm.setAttribute('action', `{{ path('admin_bicycle_rental_cancel', {'id': '0'}) }}`.replace('/0', `/${rentalId}`));
+            cancelModal.show();
+        });
+    });
+    
+    // Set up delete buttons
+    document.querySelectorAll('.delete-rental-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const rentalId = this.getAttribute('data-rental-id');
+            deleteForm.setAttribute('action', `{{ path('admin_bicycle_rental_delete', {'id': '0'}) }}`.replace('/0', `/${rentalId}`));
+            deleteModal.show();
+        });
+    });
+    
+    // Confirm button actions
+    document.querySelector('.activate-confirm-btn').addEventListener('click', function() {
+        activateForm.submit();
+    });
+    
+    document.querySelector('.cancel-confirm-btn').addEventListener('click', function() {
+        cancelForm.submit();
+    });
+    
+    document.querySelector('.delete-confirm-btn').addEventListener('click', function() {
+        deleteForm.submit();
+    });
+    
+    // Row hover effects
+    document.querySelectorAll('.datatable tr').forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.querySelectorAll('.btn-action').forEach(btn => {
+                btn.classList.add('visible');
+            });
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.querySelectorAll('.btn-action').forEach(btn => {
+                btn.classList.remove('visible');
+            });
+        });
+    });
+    
+    // Add some animations for a more dynamic UI
+    setTimeout(() => {
+        document.querySelectorAll('.stat-card').forEach((card, index) => {
+            setTimeout(() => {
+                card.classList.add('animate__animated', 'animate__fadeInUp');
+            }, index * 100);
+        });
+    }, 500);
+    
+    // Client-side search functionality
+    const rentalSearchInput = document.getElementById('rentalSearchInput');
+    const searchClearBtn = document.getElementById('searchClearBtn');
+    
+    if (rentalSearchInput) {
+        rentalSearchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            filterRentalsTable(searchTerm);
+        });
+        
+        // Clear search button
+        if (searchClearBtn) {
+            searchClearBtn.addEventListener('click', function() {
+                rentalSearchInput.value = '';
+                filterRentalsTable(''); // Reset filter
+            });
+        }
+    }
+    
+    // Function to filter rentals table based on search term
+    function filterRentalsTable(searchTerm) {
+        const tableRows = document.querySelectorAll('.datatable tbody tr');
+        let hasResults = false;
+        
+        // Show loading indicator
+        document.querySelector('.data-card').classList.add('loading');
+        
+        tableRows.forEach(row => {
+            if (!searchTerm) {
+                // If search is empty, show all rows
+                row.style.display = '';
+                hasResults = true;
+            } else {
+                const cells = row.querySelectorAll('td');
+                let rowMatches = false;
+                
+                // Check each cell for match
+                cells.forEach(cell => {
+                    const cellText = cell.textContent.toLowerCase();
+                    if (cellText.includes(searchTerm)) {
+                        rowMatches = true;
+                    }
+                });
+                
+                // Show or hide row based on match
+                if (rowMatches) {
+                    row.style.display = '';
+                    hasResults = true;
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+        
+        // Show empty state if no results
+        const emptyStateRow = document.querySelector('.empty-search-results');
+        if (!hasResults) {
+            if (!emptyStateRow) {
+                const tbody = document.querySelector('.datatable tbody');
+                const newRow = document.createElement('tr');
+                newRow.className = 'empty-search-results';
+                newRow.innerHTML = `
+                    <td colspan="11">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <h5>No rentals found</h5>
+                            <p class="text-muted mb-3">No rental records match your search criteria</p>
+                            <button type="button" class="btn btn-primary clear-search-btn">
+                                <i class="fas fa-times-circle me-2"></i>Clear Search
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(newRow);
+                
+                // Add event listener to clear search button
+                newRow.querySelector('.clear-search-btn').addEventListener('click', function() {
+                    rentalSearchInput.value = '';
+                    filterRentalsTable('');
+                });
+            }
+        } else if (emptyStateRow) {
+            emptyStateRow.remove();
+        }
+        
+        // Remove loading indicator
+        setTimeout(() => {
+            document.querySelector('.data-card').classList.remove('loading');
+        }, 300);
+    }
+    
+    // AJAX functionality for form filters
+    function setupAjaxFilters() {
+        const filterForm = document.getElementById('rentalFilterForm');
+        if (!filterForm) return;
+        
+        const filterSelects = filterForm.querySelectorAll('.filter-select');
+        const filterDates = filterForm.querySelectorAll('.filter-date');
+        
+        // Handle filter changes
+        filterSelects.forEach(select => {
+            select.addEventListener('change', function() {
+                filterForm.submit();
+            });
+        });
+        
+        filterDates.forEach(date => {
+            date.addEventListener('change', function() {
+                filterForm.submit();
+            });
+        });
+    }
+    
+    // Handle pagination AJAX
+    function handlePaginationClick() {
+        document.addEventListener('click', function(e) {
+            const paginationLink = e.target.closest('.pagination-modern a');
+            if (paginationLink && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                
+                const url = paginationLink.getAttribute('href');
+                if (url) {
+                    // Update URL without page reload
+                    window.history.pushState({}, '', url);
+                    
+                    // Apply client-side filtering to newly visible items
+                    const searchTerm = document.getElementById('rentalSearchInput')?.value?.toLowerCase()?.trim() || '';
+                    if (searchTerm) {
+                        setTimeout(() => filterRentalsTable(searchTerm), 100);
+                    }
+                }
+            }
+        });
+    }
+    
+    // Setup event handlers for dynamic elements after AJAX updates
+    function setupButtonHandlers() {
+        // Reset tooltips for new elements
+        const newTooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        [...newTooltipTriggerList].forEach(tooltipTriggerEl => {
+            const tooltip = new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Set up action buttons for newly loaded rows
+        document.querySelectorAll('.activate-rental-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const rentalId = this.getAttribute('data-rental-id');
+                const activateForm = document.getElementById('activateRentalForm');
+                activateForm.setAttribute('action', `{{ path('admin_bicycle_rental_activate', {'id': '0'}) }}`.replace('/0', `/${rentalId}`));
+                const activateModal = new bootstrap.Modal(document.getElementById('activateRentalModal'));
+                activateModal.show();
+            });
+        });
+        
+        document.querySelectorAll('.cancel-rental-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const rentalId = this.getAttribute('data-rental-id');
+                const cancelForm = document.getElementById('cancelRentalForm');
+                cancelForm.setAttribute('action', `{{ path('admin_bicycle_rental_cancel', {'id': '0'}) }}`.replace('/0', `/${rentalId}`));
+                const cancelModal = new bootstrap.Modal(document.getElementById('cancelRentalModal'));
+                cancelModal.show();
+            });
+        });
+        
+        document.querySelectorAll('.delete-rental-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const rentalId = this.getAttribute('data-rental-id');
+                const deleteForm = document.getElementById('deleteRentalForm');
+                deleteForm.setAttribute('action', `{{ path('admin_bicycle_rental_delete', {'id': '0'}) }}`.replace('/0', `/${rentalId}`));
+                const deleteModal = new bootstrap.Modal(document.getElementById('deleteRentalModal'));
+                deleteModal.show();
+            });
+        });
+        
+        // Row hover effects
+        document.querySelectorAll('.datatable tr').forEach(row => {
+            row.addEventListener('mouseenter', function() {
+                this.querySelectorAll('.btn-action').forEach(btn => {
+                    btn.classList.add('visible');
+                });
+            });
+            
+            row.addEventListener('mouseleave', function() {
+                this.querySelectorAll('.btn-action').forEach(btn => {
+                    btn.classList.remove('visible');
+                });
+            });
+        });
+    }
+    
+    // Initialize AJAX filters and pagination
+    setupAjaxFilters();
+    handlePaginationClick();
+    
+    // Per page selection
+    const perPageSelect = document.getElementById('perPageSelect');
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', function() {
+            // Get current URL and parameters
+            const url = new URL(window.location.href);
+            const params = new URLSearchParams(url.search);
+            
+            // Update perPage parameter
+            params.set('perPage', this.value);
+            
+            // Reset page to 1 when changing items per page
+            params.set('page', '1');
+            
+            // Use AJAX to load with new parameters
+            const newUrl = `${url.pathname}?${params.toString()}`;
+            loadFilteredData(newUrl);
+        });
+    }
+    
+    // Active filters highlighting
+    const highlightActiveFilters = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Highlight search input
+        const searchTerm = urlParams.get('search');
+        if (searchTerm) {
+            const searchInput = document.querySelector('input[name="search"]');
+            if (searchInput) {
+                searchInput.classList.add('border-primary');
+            }
+        }
+        
+        // Highlight status filter
+        const statusFilter = urlParams.get('status');
+        if (statusFilter) {
+            const statusSelect = document.querySelector('select[name="status"]');
+            if (statusSelect) {
+                statusSelect.classList.add('border-primary');
+            }
+        }
+        
+        // Highlight station filter
+        const stationFilter = urlParams.get('station');
+        if (stationFilter) {
+            const stationSelect = document.querySelector('select[name="station"]');
+            if (stationSelect) {
+                stationSelect.classList.add('border-primary');
+            }
+        }
+        
+        // Highlight date filters
+        const dateFrom = urlParams.get('dateFrom');
+        if (dateFrom) {
+            const dateFromInput = document.querySelector('input[name="dateFrom"]');
+            if (dateFromInput) {
+                dateFromInput.classList.add('border-primary');
+            }
+        }
+        
+        const dateTo = urlParams.get('dateTo');
+        if (dateTo) {
+            const dateToInput = document.querySelector('input[name="dateTo"]');
+            if (dateToInput) {
+                dateToInput.classList.add('border-primary');
+            }
+        }
+    };
+    
+    // Call the function to highlight active filters
+    highlightActiveFilters();
+    
+    // Active timer updater for in-progress rentals
+    const updateActiveTimers = () => {
+        document.querySelectorAll('.duration-badge.running').forEach(timer => {
+            const startTimeStr = timer.getAttribute('data-start-time');
+            if (startTimeStr) {
+                const startTime = new Date(startTimeStr);
+                const now = new Date();
+                const diffSeconds = Math.floor((now - startTime) / 1000);
+                const hours = Math.floor(diffSeconds / 3600);
+                const minutes = Math.floor((diffSeconds % 3600) / 60);
+                
+                timer.innerHTML = `<i class="fas fa-stopwatch me-1"></i> ${hours}h ${minutes}m`;
+            }
+        });
+    };
+    
+    // Update active timers every minute
+    if (document.querySelector('.duration-badge.running')) {
+        updateActiveTimers();
+        setInterval(updateActiveTimers, 60000);
+    }
+    
+    // Helper function for AJAX loading
+    function loadFilteredData(url) {
+        // Show loading state
+        const tableSection = document.querySelector('.data-card');
+        if (tableSection) {
+            // Create and append loading overlay if it doesn't exist
+            let loadingOverlay = document.querySelector('.loading-overlay');
+            if (!loadingOverlay) {
+                loadingOverlay = document.createElement('div');
+                loadingOverlay.className = 'loading-overlay';
+                loadingOverlay.innerHTML = `
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                `;
+                document.body.appendChild(loadingOverlay);
+            }
+            loadingOverlay.style.display = 'flex';
+        }
+        
+        // Make AJAX request
+        fetch(url + (url.includes('?') ? '&' : '?') + 'ajax=1')
+            .then(response => response.text())
+            .then(html => {
+                // Parse the HTML response
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Update the table content
+                const newTableContent = doc.querySelector('.table-responsive');
+                const currentTable = document.querySelector('.table-responsive');
+                if (newTableContent && currentTable) {
+                    currentTable.innerHTML = newTableContent.innerHTML;
+                }
+                
+                // Update pagination if it exists
+                const newPagination = doc.querySelector('.pagination-wrapper');
+                const currentPagination = document.querySelector('.pagination-wrapper');
+                if (newPagination && currentPagination) {
+                    currentPagination.innerHTML = newPagination.innerHTML;
+                }
+                
+                // Update browser URL without page reload
+                window.history.pushState({path: url}, '', url);
+                
+                // Re-initialize event handlers
+                setupButtonHandlers();
+                
+                // Update active filters highlighting
+                highlightActiveFilters();
+                
+                // Hide loading overlay
+                const loadingOverlay = document.querySelector('.loading-overlay');
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading filtered data:', error);
+                
+                // Hide loading overlay on error
+                const loadingOverlay = document.querySelector('.loading-overlay');
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = 'none';
+                }
+            });
+    }
+});
+</script>
+
+<style>
+    /* Loading overlay for AJAX requests */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.7);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+    
+    /* Style for search box */
+    .search-box {
+        position: relative;
+    }
+    
+    .search-box .input-group-text {
+        border-radius: 0.5rem 0 0 0.5rem;
+    }
+    
+    .search-box input.form-control {
+        border-radius: 0 0.5rem 0.5rem 0;
+        padding-right: 2.5rem;
+    }
+    
+    .search-box #searchClearBtn {
+        position: absolute;
+        right: 0;
+        top: 0;
+        height: 100%;
+        border: none;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        padding: 0 0.75rem;
+        color: #6c757d;
+        z-index: 5;
+    }
+    
+    .search-box #searchClearBtn:hover {
+        color: #dc3545;
+    }
+</style>
+{% endblock %}

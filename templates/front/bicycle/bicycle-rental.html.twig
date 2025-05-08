@@ -1,4 +1,3 @@
-
 {% extends 'front/base.html.twig' %}
 
 {% block title %}Bicycle Rentals - WamiaGo{% endblock %}
@@ -84,35 +83,76 @@
     <div class="container">
         <h2 class="text-center mb-5">Find a Bicycle Station</h2>
         
+        <div class="row mb-4">
+            <div class="col-lg-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-bicycle text-white border-0">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" id="stationSearchInput" class="form-control form-control-lg border-start-0 shadow-none" placeholder="Search for stations by name, address or area...">
+                            <button class="btn btn-bicycle" type="button" id="clearSearchBtn">
+                                <i class="fas fa-times"></i> Clear
+                            </button>
+                        </div>
+                        <div class="mt-3 d-flex flex-wrap justify-content-between align-items-center">
+                            <div class="mb-2 mb-md-0">
+                                <span class="badge bg-bicycle rounded-pill py-2 px-3 me-2">
+                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                    <span id="searchResultsCount">{{ stations|length }}</span> stations found
+                                </span>
+                                
+                                <div class="btn-group btn-group-sm filter-buttons ms-2 d-inline-flex">
+                                    <button type="button" class="btn btn-outline-bicycle active" data-filter="all">All</button>
+                                    <button type="button" class="btn btn-outline-bicycle" data-filter="available">Available</button>
+                                    <button type="button" class="btn btn-outline-bicycle" data-filter="nearest">Nearest</button>
+                                </div>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="showAvailableOnlyCheck">
+                                <label class="form-check-label" for="showAvailableOnlyCheck">
+                                    <span class="d-none d-sm-inline">Show stations with </span>available bikes only
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div class="row">
-            {# Map on the left #}
+            {# Map on the left - Fixed height with overflow #}
             <div class="col-lg-8 mb-4">
                 <div class="card h-100 border-0 shadow-sm">
                     <div class="card-body p-0">
-                        <div id="bicycleMap" class="map-container" style="height: 500px;">
+                        <div id="bicycleMap" class="map-container" style="height: 600px; min-height: 600px;">
                             {# Map will be initialized with JavaScript #}
                         </div>
                     </div>
                 </div>
             </div>
             
-            {# Station list on the right - With corrected available bikes count #}
+            {# Station list on the right - With scrollable container #}
             <div class="col-lg-4">
-                <div class="card h-100 border-0 shadow-sm">
+                <div class="card border-0 shadow-sm" style="height: 600px;">
                     <div class="card-header bg-bicycle text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Available Stations</h5>
                         <span class="badge bg-white text-bicycle">{{ stations|length }} Found</span>
                     </div>
-                    <div class="card-body p-0">
-                        <div class="station-list">
+                    <div class="card-body p-0" style="height: calc(600px - 53px); overflow: hidden;">
+                        <div class="station-list" style="height: 100%; overflow-y: auto; scrollbar-width: thin;">
                             {% if stations is empty %}
                                 <div class="text-center py-4">
                                     <p class="text-muted">No bicycle stations available</p>
                                 </div>
                             {% else %}
                                 {% for station in stations %}
-                                    <div class="station-item p-3 mb-2">
-                                        <h5>{{ station.name }}</h5>
+                                    <div class="station-item p-3 border-bottom" 
+                                         data-station-name="{{ station.name|lower }}" 
+                                         data-station-address="{{ station.location ? station.location.address|lower : '' }}"
+                                         data-available-bikes="{{ station.availableBikes }}">
+                                        <h5 class="mb-1">{{ station.name }}</h5>
                                         <p class="text-muted mb-2">
                                             {% if station.location %}
                                                 {{ station.location.address }}
@@ -120,9 +160,8 @@
                                                 No address available
                                             {% endif %}
                                         </p>
-                                        <div class="d-flex justify-content-between">
+                                        <div class="d-flex justify-content-between mb-2">
                                             <div>
-                                            
                                                 <small class="me-3">
                                                     <i class="fas fa-bicycle me-1 text-bicycle"></i> {{ station.availableBikes }} available
                                                 </small>
@@ -133,6 +172,16 @@
                                             <a href="{{ path('app_front_services_bicycle_station', {'id': station.idStation}) }}" class="btn btn-sm btn-bicycle">
                                                 View Bicycles
                                             </a>
+                                        </div>
+                                        
+                                        {# Weather information for this station #}
+                                        <div class="station-weather mt-2 p-2 border-top" data-station-id="{{ station.idStation }}" data-lat="{{ station.location ? station.location.latitude : 36.8065 }}" data-lon="{{ station.location ? station.location.longitude : 10.1815 }}">
+                                            <div class="d-flex align-items-center">
+                                                <div class="weather-icon me-2">
+                                                    <i class="fas fa-sync fa-spin text-bicycle"></i>
+                                                </div>
+                                                <small class="text-muted">Loading weather...</small>
+                                            </div>
                                         </div>
                                     </div>
                                 {% endfor %}
@@ -407,12 +456,311 @@
 {% block page_javascripts %}
 <!-- Load Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="{{ asset('js/front/bicycle/weatherService.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
 <script>
 // Map initialization
 document.addEventListener('DOMContentLoaded', function() {
     initializeMap();
     initializeFloatingButton();
+    initializeWeatherService();
+    initializeSearch();
 });
+
+// Initialize weather service for all stations
+async function initializeWeatherService() {
+    console.log("Initializing weather service...");
+    
+    // Create a new weather service instance
+    const weatherService = new WeatherService();
+    
+    // Initialize the API key from the backend
+    await weatherService.init();
+    
+    // Get all station weather containers
+    const stationWeatherElements = document.querySelectorAll('.station-weather');
+    
+    // Load weather for each station
+    stationWeatherElements.forEach(async function(stationWeatherEl) {
+        const stationId = stationWeatherEl.getAttribute('data-station-id');
+        const latitude = parseFloat(stationWeatherEl.getAttribute('data-lat'));
+        const longitude = parseFloat(stationWeatherEl.getAttribute('data-lon'));
+        
+        try {
+            // Get weather data for this station's location
+            const weatherData = await weatherService.getWeatherData(latitude, longitude);
+            
+            // Get weather factor class
+            let weatherFactorClass = 'text-success';
+            if (weatherData.weatherFactor > 1.3) weatherFactorClass = 'text-danger';
+            else if (weatherData.weatherFactor > 1.2) weatherFactorClass = 'text-warning';
+            else if (weatherData.weatherFactor > 1.1) weatherFactorClass = 'text-info';
+            else if (weatherData.weatherFactor > 1.0) weatherFactorClass = 'text-primary';
+            
+            // Update the weather UI for this station
+            stationWeatherEl.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="weather-icon me-2">
+                            <i class="fas ${weatherData.icon}"></i>
+                        </div>
+                        <div>
+                            <small class="d-block">${weatherData.temperature}°C, ${weatherData.description}</small>
+                            <small class="d-block ${weatherFactorClass}">
+                                ${weatherService.getWeatherDescription(weatherData.weatherFactor)}
+                            </small>
+                        </div>
+                    </div>
+                    <div>
+                        <small class="text-muted">Wind: ${weatherData.windSpeed} m/s</small>
+                    </div>
+                </div>
+            `;
+        } catch (error) {
+            console.error(`Failed to load weather for station ${stationId}:`, error);
+            
+            // Show error state
+            stationWeatherEl.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="weather-icon me-2">
+                        <i class="fas fa-sun"></i>
+                    </div>
+                    <small class="text-muted">Weather data unavailable</small>
+                </div>
+            `;
+        }
+    });
+    
+    console.log("Weather service initialized for all stations");
+}
+
+// Initialize search functionality
+function initializeSearch() {
+    console.log("Initializing station search...");
+    
+    const searchInput = document.getElementById('stationSearchInput');
+    const clearButton = document.getElementById('clearSearchBtn');
+    const showAvailableOnlyCheck = document.getElementById('showAvailableOnlyCheck');
+    const searchResultsCount = document.getElementById('searchResultsCount');
+    const stationItems = document.querySelectorAll('.station-item');
+    const filterButtons = document.querySelectorAll('.filter-buttons .btn');
+    
+    if (!searchInput || !clearButton || !showAvailableOnlyCheck) {
+        console.error("Search elements not found");
+        return;
+    }
+    
+    // Current filter type
+    let activeFilter = 'all';
+    let userLocation = null;
+    
+    // Get user's location for "nearest" filter
+    function getUserLocation() {
+        return new Promise((resolve, reject) => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        userLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        resolve(userLocation);
+                    },
+                    error => {
+                        console.error("Error getting user location:", error);
+                        reject(error);
+                    }
+                );
+            } else {
+                const error = new Error("Geolocation is not supported by this browser");
+                console.error(error);
+                reject(error);
+            }
+        });
+    }
+    
+    // Calculate distance between two points using Haversine formula
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Radius of the earth in km
+        const dLat = deg2rad(lat2 - lat1);
+        const dLon = deg2rad(lon2 - lon1);
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2); 
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+        const distance = R * c; // Distance in km
+        return distance;
+    }
+    
+    function deg2rad(deg) {
+        return deg * (Math.PI/180);
+    }
+    
+    // Function to filter stations based on search criteria
+    function filterStations() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const showAvailableOnly = showAvailableOnlyCheck.checked;
+        
+        let visibleCount = 0;
+        let stations = Array.from(stationItems);
+        
+        // If we're using the nearest filter, sort stations by distance from user
+        if (activeFilter === 'nearest' && userLocation) {
+            stations.sort((a, b) => {
+                const aLat = parseFloat(a.querySelector('.station-weather').getAttribute('data-lat'));
+                const aLon = parseFloat(a.querySelector('.station-weather').getAttribute('data-lon'));
+                const bLat = parseFloat(b.querySelector('.station-weather').getAttribute('data-lat'));
+                const bLon = parseFloat(b.querySelector('.station-weather').getAttribute('data-lon'));
+                
+                const distanceA = calculateDistance(userLocation.lat, userLocation.lng, aLat, aLon);
+                const distanceB = calculateDistance(userLocation.lat, userLocation.lng, bLat, bLon);
+                
+                return distanceA - distanceB;
+            });
+        }
+        
+        stations.forEach(function(station) {
+            const stationName = station.getAttribute('data-station-name');
+            const stationAddress = station.getAttribute('data-station-address');
+            const availableBikes = parseInt(station.getAttribute('data-available-bikes'));
+            
+            // Check if station matches search criteria
+            const matchesSearch = searchTerm === '' || 
+                stationName.includes(searchTerm) || 
+                stationAddress.includes(searchTerm);
+            
+            // Check if station has available bikes (if that filter is active)
+            const hasAvailableBikes = !showAvailableOnly || availableBikes > 0;
+            
+            // Check if station matches the current filter type
+            let matchesFilter = true;
+            if (activeFilter === 'available' && availableBikes <= 0) {
+                matchesFilter = false;
+            }
+            
+            // Show or hide based on combined filters
+            if (matchesSearch && hasAvailableBikes && matchesFilter) {
+                station.style.display = 'block';
+                
+                // Highlight search terms in the station name and address
+                if (searchTerm !== '') {
+                    highlightSearchTerms(station, searchTerm);
+                } else {
+                    // Reset highlighting when search is cleared
+                    resetHighlighting(station);
+                }
+                
+                visibleCount++;
+            } else {
+                station.style.display = 'none';
+            }
+        });
+        
+        // When using 'nearest', reorder the stations in the DOM to match our sorted array
+        if (activeFilter === 'nearest' && userLocation) {
+            const stationList = document.querySelector('.station-list');
+            stations.forEach(station => {
+                stationList.appendChild(station);
+            });
+        }
+        
+        // Update the results count
+        searchResultsCount.textContent = visibleCount;
+    }
+    
+    // Highlight search terms in text
+    function highlightSearchTerms(stationElement, searchTerm) {
+        const stationName = stationElement.querySelector('h5');
+        const stationAddress = stationElement.querySelector('p.text-muted');
+        
+        if (stationName) {
+            const originalName = stationName.getAttribute('data-original-text') || stationName.textContent;
+            stationName.setAttribute('data-original-text', originalName);
+            stationName.innerHTML = highlightText(originalName, searchTerm);
+        }
+        
+        if (stationAddress) {
+            const originalAddress = stationAddress.getAttribute('data-original-text') || stationAddress.textContent;
+            stationAddress.setAttribute('data-original-text', originalAddress);
+            stationAddress.innerHTML = highlightText(originalAddress, searchTerm);
+        }
+    }
+    
+    // Reset highlighting
+    function resetHighlighting(stationElement) {
+        const stationName = stationElement.querySelector('h5');
+        const stationAddress = stationElement.querySelector('p.text-muted');
+        
+        if (stationName && stationName.hasAttribute('data-original-text')) {
+            stationName.textContent = stationName.getAttribute('data-original-text');
+        }
+        
+        if (stationAddress && stationAddress.hasAttribute('data-original-text')) {
+            stationAddress.textContent = stationAddress.getAttribute('data-original-text');
+        }
+    }
+    
+    // Highlight text helper function
+    function highlightText(text, searchTerm) {
+        const regex = new RegExp('(' + escapeRegExp(searchTerm) + ')', 'gi');
+        return text.replace(regex, '<span class="search-highlight">$1</span>');
+    }
+    
+    // Escape regex special characters
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    
+    // Filter button click handler
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const filterType = this.getAttribute('data-filter');
+            
+            // Remove active class from all buttons
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Set the active filter
+            activeFilter = filterType;
+            
+            // If nearest filter is selected, get user location
+            if (filterType === 'nearest' && !userLocation) {
+                getUserLocation()
+                    .then(() => filterStations())
+                    .catch((error) => {
+                        console.error("Could not get user location:", error);
+                        alert("Could not get your location. Please allow location access to use this filter.");
+                        
+                        // Reset to 'all' filter if location access is denied
+                        filterButtons.forEach(btn => {
+                            if (btn.getAttribute('data-filter') === 'all') {
+                                btn.classList.add('active');
+                                activeFilter = 'all';
+                            } else {
+                                btn.classList.remove('active');
+                            }
+                        });
+                    });
+            } else {
+                // Run the filter
+                filterStations();
+            }
+        });
+    });
+    
+    // Add event listeners
+    searchInput.addEventListener('input', filterStations);
+    showAvailableOnlyCheck.addEventListener('change', filterStations);
+    clearButton.addEventListener('click', function() {
+        searchInput.value = '';
+        stationItems.forEach(resetHighlighting);
+        filterStations();
+    });
+    
+    console.log("Station search initialized successfully");
+}
 
 function initializeMap() {
     const mapElement = document.getElementById('bicycleMap');
