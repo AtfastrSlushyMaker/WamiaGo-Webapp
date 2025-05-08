@@ -6,14 +6,9 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 use App\Repository\UserRepository;
-<<<<<<< HEAD
-
-#[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ORM\Table(name: 'user')]
-class User
-=======
 use Symfony\Component\Serializer\Annotation\Groups;
 use App\Enum\ACCOUNT_STATUS;
 use App\Enum\STATUS;
@@ -29,15 +24,12 @@ use Scheb\TwoFactorBundle\Model\Totp\TwoFactorInterface;
 #[ORM\Table(name: 'user')]
 #[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFactorInterface
->>>>>>> main
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id_user = null;
 
-<<<<<<< HEAD
-=======
     #[Groups(['user:read'])]
     #[ORM\Column(name: 'name', type: 'string', nullable: false)]
     #[Assert\NotBlank(message: 'Name cannot be blank', groups: ['Default'])]
@@ -185,7 +177,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     }
 
     // Original getters and setters
->>>>>>> main
     public function getId_user(): ?int
     {
         return $this->id_user;
@@ -196,9 +187,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         $this->id_user = $id_user;
         return $this;
     }
-
-    #[ORM\Column(type: 'string', nullable: false)]
-    private ?string $name = null;
 
     public function getName(): ?string
     {
@@ -211,9 +199,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         return $this;
     }
 
-    #[ORM\Column(type: 'string', nullable: false)]
-    private ?string $email = null;
-
     public function getEmail(): ?string
     {
         return $this->email;
@@ -224,9 +209,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         $this->email = $email;
         return $this;
     }
-
-    #[ORM\Column(type: 'string', nullable: false)]
-    private ?string $password = null;
 
     public function getPassword(): ?string
     {
@@ -239,9 +221,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         return $this;
     }
 
-    #[ORM\Column(type: 'string', nullable: false)]
-    private ?string $phone_number = null;
-
     public function getPhone_number(): ?string
     {
         return $this->phone_number;
@@ -253,27 +232,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         return $this;
     }
 
-<<<<<<< HEAD
-    #[ORM\Column(type: 'string', nullable: false)]
-    private ?string $role = null;
-
-    public function getRole(): ?string
-=======
     public function getRole(): string
->>>>>>> main
     {
-        return $this->role;
+        return $this->role->value;
     }
 
-    public function setRole(string $role): self
+    public function setRole(ROLE $role): void
     {
         $this->role = $role;
-        return $this;
     }
-
-    #[ORM\ManyToOne(targetEntity: Location::class, inversedBy: 'users')]
-    #[ORM\JoinColumn(name: 'id_location', referencedColumnName: 'id_location')]
-    private ?Location $location = null;
 
     public function getLocation(): ?Location
     {
@@ -286,20 +253,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         return $this;
     }
 
-    #[ORM\Column(type: 'string', nullable: false)]
-    private ?string $gender = null;
-
-    public function getGender(): ?string
+    #[Groups(['user:read'])]
+    public function getGender(): GENDER
     {
         return $this->gender;
     }
 
-<<<<<<< HEAD
-    public function setGender(string $gender): self
-    {
-        $this->gender = $gender;
-        return $this;
-=======
     /**
      * Get gender as string value
      */
@@ -323,11 +282,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
                 throw new \InvalidArgumentException("Invalid gender value: $gender. Must be one of: MALE, FEMALE");
             }
         }
->>>>>>> main
     }
 
-    #[ORM\Column(type: 'string', nullable: true)]
-    private ?string $profile_picture = null;
+    #[Groups(['user:read'])]
+    public function getDateOfBirth(): ?string
+    {
+        return $this->date_of_birth?->format('Y-m-d');
+    }
 
     public function getProfilePicture(): ?string
     {
@@ -340,42 +301,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         return $this;
     }
 
-<<<<<<< HEAD
-    #[ORM\Column(type: 'boolean', nullable: false)]
-    private ?bool $is_verified = null;
-
-    public function is_verified(): ?bool
-    {
-        return $this->is_verified;
-    }
-
-    public function setIs_verified(bool $is_verified): self
-    {
-        $this->is_verified = $is_verified;
-        return $this;
-    }
-
-    #[ORM\Column(type: 'string', nullable: false)]
-    private ?string $account_status = null;
-
-    public function getAccount_status(): ?string
-    {
-        return $this->account_status;
-=======
     public function getAccount_status(): string
     {
         return $this->account_status->value;
->>>>>>> main
     }
 
-    public function setAccount_status(string $account_status): self
+    public function setAccount_status(ACCOUNT_STATUS $account_status): void
     {
         $this->account_status = $account_status;
-        return $this;
     }
-
-    #[ORM\Column(type: 'date', nullable: true)]
-    private ?\DateTimeInterface $date_of_birth = null;
 
     public function getDate_of_birth(): ?\DateTimeInterface
     {
@@ -388,30 +322,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         return $this;
     }
 
-<<<<<<< HEAD
-    #[ORM\Column(type: 'string', nullable: false)]
-    private ?string $status = null;
-
-    public function getStatus(): ?string
-=======
     public function getStatus(): string
->>>>>>> main
     {
         return $this->status->value;
     }
 
-<<<<<<< HEAD
-    public function setStatus(string $status): self
-=======
     public function setStatus(STATUS $status): self
->>>>>>> main
     {
+        error_log('setStatus called with value: ' . print_r($status, true));
+
+        if (!$status instanceof \App\Enum\STATUS) {
+            throw new \InvalidArgumentException('Invalid value passed to setStatus. Expected an instance of STATUS enum.');
+        }
+
         $this->status = $status;
         return $this;
     }
-
-    #[ORM\OneToMany(targetEntity: BicycleRental::class, mappedBy: 'user')]
-    private Collection $bicycleRentals;
 
     /**
      * @return Collection<int, BicycleRental>
@@ -438,9 +364,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         return $this;
     }
 
-    #[ORM\OneToMany(targetEntity: Booking::class, mappedBy: 'user')]
-    private Collection $bookings;
-
     /**
      * @return Collection<int, Booking>
      */
@@ -465,9 +388,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         $this->getBookings()->removeElement($booking);
         return $this;
     }
-
-    #[ORM\OneToMany(targetEntity: Driver::class, mappedBy: 'user')]
-    private Collection $drivers;
 
     /**
      * @return Collection<int, Driver>
@@ -494,9 +414,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         return $this;
     }
 
-    #[ORM\OneToMany(targetEntity: Rating::class, mappedBy: 'user')]
-    private Collection $ratings;
-
     /**
      * @return Collection<int, Rating>
      */
@@ -521,9 +438,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         $this->getRatings()->removeElement($rating);
         return $this;
     }
-
-    #[ORM\OneToMany(targetEntity: Reclamation::class, mappedBy: 'user')]
-    private Collection $reclamations;
 
     /**
      * @return Collection<int, Reclamation>
@@ -550,9 +464,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         return $this;
     }
 
-    #[ORM\OneToMany(targetEntity: Request::class, mappedBy: 'user')]
-    private Collection $requests;
-
     /**
      * @return Collection<int, Request>
      */
@@ -576,20 +487,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     {
         $this->getRequests()->removeElement($request);
         return $this;
-    }
-
-    #[ORM\OneToMany(targetEntity: Reservation::class, mappedBy: 'user')]
-    private Collection $reservations;
-
-    public function __construct()
-    {
-        $this->bicycleRentals = new ArrayCollection();
-        $this->bookings = new ArrayCollection();
-        $this->drivers = new ArrayCollection();
-        $this->ratings = new ArrayCollection();
-        $this->reclamations = new ArrayCollection();
-        $this->requests = new ArrayCollection();
-        $this->reservations = new ArrayCollection();
     }
 
     /**
@@ -617,6 +514,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         return $this;
     }
 
+    // PSR-compliant getters and setters for Symfony Form component
     public function getIdUser(): ?int
     {
         return $this->id_user;
@@ -630,25 +528,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     public function setPhoneNumber(string $phone_number): static
     {
         $this->phone_number = $phone_number;
-
         return $this;
     }
 
-<<<<<<< HEAD
-    public function getProfilePicture(): ?string
-    {
-        return $this->profile_picture;
-    }
-
-    public function setProfilePicture(?string $profile_picture): static
-    {
-        $this->profile_picture = $profile_picture;
-
-        return $this;
-    }
-
-=======
->>>>>>> main
     public function isVerified(): ?bool
     {
         return $this->isVerified;
@@ -656,48 +538,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
 
     public function setIsVerified(bool $isVerified): static
     {
-<<<<<<< HEAD
-        $this->is_verified = $is_verified;
-
-        return $this;
-    }
-
-    public function getAccountStatus(): ?string
-=======
         $this->isVerified = $isVerified;
         return $this;
     }
 
     public function getAccountStatus(): string
->>>>>>> main
     {
         return $this->account_status->value;
     }
 
-    public function setAccountStatus(string $account_status): static
+    public function setAccountStatus(ACCOUNT_STATUS $account_status): void
     {
         $this->account_status = $account_status;
-
-        return $this;
     }
 
-<<<<<<< HEAD
-    public function getDateOfBirth(): ?\DateTimeInterface
-    {
-        return $this->date_of_birth;
-    }
-
-=======
->>>>>>> main
     public function setDateOfBirth(?\DateTimeInterface $date_of_birth): static
     {
         $this->date_of_birth = $date_of_birth;
-
         return $this;
     }
-<<<<<<< HEAD
-}
-=======
 
     public function hasRole(string $role): bool
     {
@@ -829,4 +688,3 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         return $this;
     }
 }
->>>>>>> main
