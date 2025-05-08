@@ -72,8 +72,7 @@ function loadExistingLocations() {
             // Hide loading overlay
             hideAllLoadingOverlays();
 
-            // Show error notification
-            alert('Failed to load existing locations. Please try again later.');
+
         });
 }
 
