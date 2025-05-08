@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Reservation #{{ reservation.id_reservation }}</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            font-size: 12px; 
+            margin: 30px;
+            color: #333;
+        }
+        .header { 
+            text-align: center; 
+            margin-bottom: 30px; 
+        }
+        .footer { 
+            text-align: center; 
+            font-size: 10px; 
+            margin-top: 40px;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .info-item {
+            margin-bottom: 10px;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            color: white;
+            background-color: {{ reservation.status.getColor() }};
+        }
+        .signature {
+            margin-top: 50px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Reservation Details</h1>
+        <p>Reference: #{{ reservation.id_reservation }}</p>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-item">
+            <span class="info-label">Announcement:</span>
+            {{ reservation.announcement.title }}
+        </div>
+        <div class="info-item">
+            <span class="info-label">Client:</span>
+            {{ reservation.user.name }}
+        </div>
+        <div class="info-item">
+            <span class="info-label">Start Location:</span>
+            {{ reservation.startLocation.address }}
+        </div>
+        <div class="info-item">
+            <span class="info-label">End Location:</span>
+            {{ reservation.endLocation.address }}
+        </div>
+        <div class="info-item">
+            <span class="info-label">Date:</span>
+            {{ reservation.date|date('M d, Y H:i') }}
+        </div>
+        <div class="info-item">
+            <span class="info-label">Status:</span>
+            <span class="status-badge">
+                {{ reservation.status.getDisplayName() }}
+            </span>
+        </div>
+    </div>
+
+    <div class="signature">
+        <p><strong>WamiaGo Transport System</strong></p>
+        <p>Authorized by: ______________________</p>
+        <p>Date: {{ "now"|date('M d, Y') }}</p>
+    </div>
+
+    <div class="footer">
+        WamiaGo Transport System
+    </div>
+</body>
+</html>

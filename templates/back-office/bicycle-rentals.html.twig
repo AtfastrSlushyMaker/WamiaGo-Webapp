@@ -1,10 +1,934 @@
 {% extends 'back-office/base.html.twig' %}
 
+{% block title %}Bicycle Management Dashboard{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+<link href="{{ asset('css/back/modal-positioning.css') }}" rel="stylesheet">
+<style>
+    /* Enhanced Tab Navigation - Modern UI Design */
+    .nav-tabs-custom {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 2.5rem;
+        border-bottom: none;
+        position: relative;
+    }
+    
+    .nav-tabs-custom::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60%;
+        height: 1px;
+        background: rgba(0,0,0,0.08);
+        z-index: 0;
+    }
+    
+    .nav-tabs-custom .nav-item {
+        position: relative;
+        z-index: 1;
+        margin: 0 15px;
+    }
+    
+    /* Modern Tab Links */
+    .nav-tabs-custom .nav-link {
+        color: #6c757d;
+        border: none;
+        padding: 15px 0;
+        font-size: 16px;
+        font-weight: 500;
+        position: relative;
+        transition: all 0.3s ease;
+        background: transparent;
+        box-shadow: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .nav-tabs-custom .nav-link .icon-container {
+        height: 55px;
+        width: 55px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+        background-color: #f8f9fa;
+    }
+    
+    .nav-tabs-custom .nav-link .fas {
+        font-size: 20px;
+        transition: all 0.3s ease;
+    }
+    
+    /* Tab Indicator & Animation */
+    .nav-tabs-custom .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 3px;
+        transition: all 0.3s ease;
+        border-radius: 3px;
+    }
+    
+    /* Active and Hover Styles */
+    .nav-tabs-custom .nav-link:hover {
+        color: #495057;
+        transform: translateY(-3px);
+    }
+    
+    .nav-tabs-custom .nav-link:hover .icon-container {
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transform: translateY(-2px);
+    }
+    
+    .nav-tabs-custom .nav-link.active {
+        font-weight: 600;
+        color: #495057;
+        transform: translateY(-3px);
+        box-shadow: none;
+        background: transparent;
+    }
+    
+    .nav-tabs-custom .nav-link.active::after {
+        width: 40px;
+    }
+    
+    /* Rentals Tab - Blue theme */
+    .nav-tabs-custom .nav-link[href*="rentals"]:hover .icon-container {
+        background-color: rgba(13, 110, 253, 0.08);
+    }
+    
+    .nav-tabs-custom .nav-link[href*="rentals"]:hover .fas {
+        color: #0d6efd;
+    }
+    
+    .nav-tabs-custom .nav-link[href*="rentals"].active .icon-container {
+        background-color: rgba(13, 110, 253, 0.12);
+        box-shadow: 0 5px 15px rgba(13, 110, 253, 0.15);
+    }
+    
+    .nav-tabs-custom .nav-link[href*="rentals"].active .fas {
+        color: #0d6efd;
+    }
+    
+    .nav-tabs-custom .nav-link[href*="rentals"]::after {
+        background: linear-gradient(90deg, #0d6efd, #0a58ca);
+    }
+    
+    /* Bicycles Tab - Green theme */
+    .nav-tabs-custom .nav-link[href*="bicycles"]:hover .icon-container {
+        background-color: rgba(40, 167, 69, 0.08);
+    }
+    
+    .nav-tabs-custom .nav-link[href*="bicycles"]:hover .fas {
+        color: #28a745;
+    }
+    
+    .nav-tabs-custom .nav-link[href*="bicycles"].active .icon-container {
+        background-color: rgba(40, 167, 69, 0.12);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.15);
+    }
+    
+    .nav-tabs-custom .nav-link[href*="bicycles"].active .fas {
+        color: #28a745;
+    }
+    
+    .nav-tabs-custom .nav-link[href*="bicycles"]::after {
+        background: linear-gradient(90deg, #28a745, #20c997);
+    }
+    
+    /* Stations Tab - Purple theme */
+    .nav-tabs-custom .nav-link[href*="stations"]:hover .icon-container {
+        background-color: rgba(133, 64, 245, 0.08);
+    }
+    
+    .nav-tabs-custom .nav-link[href*="stations"]:hover .fas {
+        color: #8540f5;
+    }
+    
+    .nav-tabs-custom .nav-link[href*="stations"].active .icon-container {
+        background-color: rgba(133, 64, 245, 0.12);
+        box-shadow: 0 5px 15px rgba(133, 64, 245, 0.15);
+    }
+    
+    .nav-tabs-custom .nav-link[href*="stations"].active .fas {
+        color: #8540f5;
+    }
+    
+    .nav-tabs-custom .nav-link[href*="stations"]::after {
+        background: linear-gradient(90deg, #8540f5, #6f42c1);
+    }
+    
+    /* Loading indicator for AJAX */
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 30px;
+    }
+    
+    .loading-spinner .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+    
+    /* Tab content animation */
+    .tab-pane {
+        opacity: 0;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        transform: translateY(10px);
+    }
+    
+    .tab-pane.active {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Curved background for tab indicator */
+    .tab-indicator-bg {
+        position: absolute;
+        top: 10px;
+        left: 0;
+        right: 0;
+        height: 75px;
+        background-color: #f5f7fa;
+        border-radius: 50px;
+        z-index: -1;
+    }
+    
+    /* Enhanced Pagination Styling */
+    .pagination-modern {
+        display: flex;
+        justify-content: center;
+        margin: 1.5rem 0;
+    }
+    
+    .pagination-modern .page-item .page-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        margin: 0 0.2rem;
+        border-radius: 50%;
+        font-weight: 500;
+        border: none;
+        background-color: #f8f9fa;
+        color: #495057;
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .pagination-modern .page-item .page-link:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        z-index: 3;
+    }
+
+    
+    .pagination-modern .page-item.active .page-link {
+        transform: scale(1.1);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Pagination color themes */
+    .ajax-pagination[data-tab="rentals"] .page-item.active .page-link {
+        background-color: #0d6efd;
+        color: white;
+        box-shadow: 0 5px 15px rgba(13, 110, 253, 0.25);
+    }
+    
+    .ajax-pagination[data-tab="bicycles"] .page-item.active .page-link {
+        background-color: #28a745;
+        color: white;
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.25);
+    }
+    
+    .ajax-pagination[data-tab="stations"] .page-item.active .page-link {
+        background-color: #8540f5;
+        color: white;
+        box-shadow: 0 5px 15px rgba(133, 64, 245, 0.25);
+    }
+
+    /* Sortable Table Headers */
+    .sortable {
+        cursor: pointer;
+        position: relative;
+        padding-right: 20px !important;
+        transition: all 0.2s ease;
+    }
+
+    .sortable:hover {
+        background-color: rgba(0, 0, 0, 0.03);
+    }
+
+    .sortable::after {
+        content: '↕';
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #aaa;
+        font-size: 0.8em;
+    }
+
+    .sortable.asc::after {
+        content: '↑';
+        color: #333;
+    }
+
+    .sortable.desc::after {
+        content: '↓';
+        color: #333;
+    }
+
+    /* Theme-specific sort colors */
+    .rentals-tab .sortable.asc::after,
+    .rentals-tab .sortable.desc::after {
+        color: #0d6efd;
+    }
+
+    .bicycles-tab .sortable.asc::after,
+    .bicycles-tab .sortable.desc::after {
+        color: #28a745;
+    }
+    
+    .stations-tab .sortable.asc::after,
+    .stations-tab .sortable.desc::after {
+        color: #8540f5;
+    }
+    
+    /* Pagination Loading Spinner */
+    .pagination-loading {
+        display: none;
+        width: 100%;
+        text-align: center;
+        padding: 1rem;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background-color: rgba(255, 255, 255, 0.8);
+        z-index: 5;
+        border-radius: 0.5rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
+{% set active_tab = app.request.get('tab', 'rentals') %}
 
+<div class="container-fluid px-4">
+    <!-- Dashboard Header with Stats Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-2">Bicycle Management Dashboard</h1>
+                    <p class="mb-0">Manage your bicycle rentals, stations and fleet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modernized Tab Navigation -->
+    <div class="row">
+        <div class="col-12">
+            <ul class="nav nav-tabs-custom" id="bicycleManagementTabs">
+                <div class="tab-indicator-bg"></div>
+                <li class="nav-item">
+                    <a class="nav-link tab-ajax-link {{ active_tab == 'rentals' ? 'active' : '' }}" 
+                       href="{{ path('admin_bicycle_rentals', {'tab': 'rentals'}) }}" 
+                       data-tab="rentals">
+                        <div class="icon-container">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <span>Rentals</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link tab-ajax-link {{ active_tab == 'bicycles' ? 'active' : '' }}" 
+                       href="{{ path('admin_bicycle_rentals', {'tab': 'bicycles'}) }}" 
+                       data-tab="bicycles">
+                        <div class="icon-container">
+                            <i class="fas fa-bicycle"></i>
+                        </div>
+                        <span>Bicycles</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link tab-ajax-link {{ active_tab == 'stations' ? 'active' : '' }}" 
+                       href="{{ path('admin_bicycle_rentals', {'tab': 'stations'}) }}" 
+                       data-tab="stations">
+                        <div class="icon-container">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <span>Stations</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- AJAX Loading Indicator -->
+    <div class="loading-spinner" id="tabLoadingSpinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 text-muted">Loading content...</p>
+    </div>
+
+    <!-- Tab Content to be loaded via AJAX -->
+    <div class="tab-content" id="bicycleManagementTabsContent">
+        <div id="rentalsTab" class="tab-pane {{ active_tab == 'rentals' ? 'active' : '' }}">
+            {% if active_tab == 'rentals' %}
+                {% include 'back-office/bicycle/Rental/rental.html.twig' with {
+                    'rentals': rentals|default([]),
+                    'stations': stations|default([]),
+                    'stats': stats|default({})
+                } %}
+            {% endif %}
+        </div>
+        <div id="bicyclesTab" class="tab-pane {{ active_tab == 'bicycles' ? 'active' : '' }}">
+            {% if active_tab == 'bicycles' %}
+                {% include 'back-office/bicycle/Bicycle/bicycle.html.twig' with {
+                    'bicycles': bicycles|default([]),
+                    'stations': stations|default([]),
+                    'addBicycleForm': addBicycleForm is defined ? addBicycleForm : false,
+                    'editBicycleForm': editBicycleForm is defined ? editBicycleForm : false,
+                    'stationAssignForm': stationAssignForm is defined ? stationAssignForm : false,
+                    'maintenanceForm': maintenanceForm is defined ? maintenanceForm : false,
+                    'availableCount': availableCount is defined ? availableCount : 0,
+                    'inUseCount': inUseCount is defined ? inUseCount : 0,
+                    'maintenanceCount': maintenanceCount is defined ? maintenanceCount : 0,
+                    'chargingCount': chargingCount is defined ? chargingCount : 0
+                } %}
+            {% endif %}
+        </div>
+        <div id="stationsTab" class="tab-pane {{ active_tab == 'stations' ? 'active' : '' }}">
+            {% if active_tab == 'stations' %}
+                {% include 'back-office/bicycle/Station/station.html.twig' with {
+                    'stations': stations|default([]),
+                    'stationForm': stationForm is defined ? stationForm : false,
+                    'stationCounts': stationCounts|default([]),
+                    'totalCapacity': totalCapacity|default(0),
+                    'totalChargingDocks': totalChargingDocks|default(0),
+                    'stationActivity': stationActivity|default([])
+                } %}
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}
 
-{% block title %}
+{% block javascripts %}
+{{ parent() }}
+<script src="{{ asset('js/back/bicycle/station-pagination.js?v=' ~ date().format('YmdHi')) }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    initAjaxTabs();
+    initAjaxPagination();
+    
+    // Clean up any stuck loading overlays on page load
+    document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+        if (overlay) overlay.style.display = 'none';
+    });
+    
+    // Handle modal close events to ensure overlay is hidden
+    document.addEventListener('hidden.bs.modal', function(event) {
+        // When any modal is closed, check and hide all loading overlays
+        document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+            if (overlay) overlay.style.display = 'none';
+        });
+    }, true);
+    
+    // Add escape key handler to hide any visible loading overlay
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+                if (overlay && overlay.style.display === 'flex') {
+                    overlay.style.display = 'none';
+                }
+            });
+        }
+    });
+});
 
+function initAjaxTabs() {
+    const tabLinks = document.querySelectorAll('.tab-ajax-link');
+    const tabContent = document.getElementById('bicycleManagementTabsContent');
+    const loadingSpinner = document.getElementById('tabLoadingSpinner');
+    
+    if (!tabLinks.length || !tabContent || !loadingSpinner) {
+        console.error('Tab elements not found');
+        return;
+    }
+    
+    // Track the currently active tab
+    let activeTab = document.querySelector('.tab-ajax-link.active').getAttribute('data-tab');
+    
+    tabLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const tabName = this.getAttribute('data-tab');
+            const url = this.getAttribute('href');
+            
+            // Don't reload if it's the same tab
+            if (tabName === activeTab) {
+                return;
+            }
+            
+            // Update URL without reloading
+            window.history.pushState({tab: tabName}, '', url);
+            
+            // Update active tab state
+            activeTab = tabName;
+            
+            // Update active class on tabs
+            tabLinks.forEach(tab => tab.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show loading spinner
+            loadingSpinner.style.display = 'block';
+            
+            // Hide all tab content
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            tabPanes.forEach(pane => pane.classList.remove('active'));
+            
+            // Fetch tab content via AJAX
+            fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
+            .then(html => {
+                // Parse the HTML to extract the tab content
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Find the specific tab content in the response
+                const targetTabId = tabName + 'Tab';
+                const targetTabContent = doc.getElementById(targetTabId);
+                
+                if (targetTabContent) {
+                    // Update the tab content
+                    const currentTab = document.getElementById(targetTabId);
+                    currentTab.innerHTML = targetTabContent.innerHTML;
+                    currentTab.classList.add('active');
+                    
+                    // Initialize any scripts that might be needed for the tab
+                    initTabSpecificFunctionality(tabName);
+                    // Initialize pagination after tab content is loaded
+                    initAjaxPagination();
+                } else {
+                    console.error('Tab content not found in response');
+                }
+                
+                // Hide loading spinner
+                loadingSpinner.style.display = 'none';
+            })
+            .catch(error => {
+                console.error('Error loading tab content:', error);
+                
+                // Show error message in tab content
+                const targetTab = document.getElementById(tabName + 'Tab');
+                if (targetTab) {
+                    targetTab.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Error loading content. Please try again or refresh the page.
+                        </div>
+                    `;
+                    targetTab.classList.add('active');
+                }
+                
+                // Hide loading spinner
+                loadingSpinner.style.display = 'none';
+            });
+        });
+    });
+    
+    // Handle back/forward browser navigation
+    window.addEventListener('popstate', function(event) {
+        if (event.state && event.state.tab) {
+            // Find the tab link for this state
+            const tabLink = document.querySelector(`.tab-ajax-link[data-tab="${event.state.tab}"]`);
+            if (tabLink) {
+                // Simulate a click on the tab
+                tabLink.click();
+            }
+        }
+    });
+    
+    // Initialize the first history state
+    window.history.replaceState({tab: activeTab}, '', window.location.href);
+}
+
+function initTabSpecificFunctionality(tabName) {
+    console.log(`Initializing ${tabName} tab specific functionality`);
+    // This function is intentionally minimal as each tab template now contains its own scripts
+    
+    // Extra initialization for form modals to ensure loading overlays are properly handled
+    if (tabName === 'bicycles' || tabName === 'stations') {
+        // Make sure all "cancel" and "close" buttons in modals hide loading overlays
+        document.querySelectorAll('.modal .btn-close, .modal .btn-secondary').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+                    if (overlay) overlay.style.display = 'none';
+                });
+            });
+        });
+        
+        // Ensure all forms have submit event listeners to hide overlays on validation errors
+        document.querySelectorAll('.modal form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                // If form validation fails, hide loading overlay
+                if (!this.checkValidity()) {
+                    document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+                        if (overlay) overlay.style.display = 'none';
+                    });
+                }
+            });
+        });
+    }
+}
+
+function initAjaxPagination() {
+    // Find all AJAX pagination links
+    const paginationLinks = document.querySelectorAll('.ajax-pagination .ajax-page-link');
+    
+    if (!paginationLinks.length) {
+        return;
+    }
+    
+    paginationLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const url = this.getAttribute('href');
+            const tabContainer = this.closest('.tab-pane');
+            const pagination = this.closest('.ajax-pagination');
+            
+            if (!tabContainer) {
+                console.error('Tab container not found');
+                return;
+            }
+            
+            // Create and show loading spinner
+            const loadingSpinner = document.createElement('div');
+            loadingSpinner.className = 'pagination-loading';
+            loadingSpinner.innerHTML = `
+                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <span class="ms-2">Loading...</span>
+            `;
+            
+            // Add loading spinner to the container
+            const tableContainer = tabContainer.querySelector('.table-responsive') || tabContainer;
+            tableContainer.style.position = 'relative';
+            tableContainer.appendChild(loadingSpinner);
+            loadingSpinner.style.display = 'flex';
+            
+            // Update URL without reloading
+            window.history.pushState({tab: pagination.dataset.tab, page: this.dataset.page}, '', url);
+            
+            // Fetch paginated content via AJAX
+            fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
+            .then(html => {
+                // Parse the HTML to extract the content
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const tabName = pagination.dataset.tab;
+                const targetTabId = tabName + 'Tab';
+                const targetTabContent = doc.getElementById(targetTabId);
+                
+                if (targetTabContent) {
+                    // Update the tab content
+                    const currentTab = document.getElementById(targetTabId);
+                    currentTab.innerHTML = targetTabContent.innerHTML;
+                    currentTab.classList.add('active');
+                    
+                    // Re-initialize pagination for the new content
+                    initAjaxPagination();
+                } else {
+                    console.error('New paginated content not found in response');
+                }
+                
+                // Remove loading spinner
+                loadingSpinner.remove();
+            })
+            .catch(error => {
+                console.error('Error loading paginated content:', error);
+                
+                // Show error message
+                tabContainer.innerHTML += `
+                    <div class="alert alert-danger mt-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error loading content. Please try again or refresh the page.
+                    </div>
+                `;
+                
+                // Remove loading spinner
+                loadingSpinner.remove();
+            });
+        });
+    });
+    
+    // Apply dynamic styles based on tab theme
+    const ajaxPaginations = document.querySelectorAll('.ajax-pagination');
+    ajaxPaginations.forEach(pagination => {
+        const themeColor = pagination.dataset.themeColor || '#0d6efd';
+        const activeLinks = pagination.querySelectorAll('.page-item.active .page-link');
+        
+        activeLinks.forEach(link => {
+            link.style.backgroundColor = themeColor;
+        });
+    });
+}
+
+const sortableTable = {
+    initialize: function() {
+        // Apply sortable functionality to all tables with sortable headers
+        document.querySelectorAll('.sortable').forEach(header => {
+            header.addEventListener('click', function() {
+                const table = this.closest('table');
+                const sortKey = this.dataset.sort;
+                const isAsc = !this.classList.contains('asc');
+                
+                // Remove sorting indicators from all headers
+                table.querySelectorAll('.sortable').forEach(h => {
+                    h.classList.remove('asc', 'desc');
+                });
+                
+                // Add the appropriate sorting indicator to the clicked header
+                this.classList.add(isAsc ? 'asc' : 'desc');
+                
+                // Sort the table
+                sortableTable.sortTable(table, sortKey, isAsc);
+                
+                // Save sorting preference to local storage
+                const tabElement = this.closest('.tab-pane');
+                if (tabElement) {
+                    const tabId = tabElement.id;
+                    localStorage.setItem(`${tabId}_sortKey`, sortKey);
+                    localStorage.setItem(`${tabId}_sortDirection`, isAsc ? 'asc' : 'desc');
+                    console.log(`Saved sorting: ${tabId}, ${sortKey}, ${isAsc ? 'asc' : 'desc'}`);
+                }
+            });
+        });
+        
+        // Apply initial sorting based on saved preferences
+        document.querySelectorAll('.tab-pane').forEach(tabPane => {
+            const tabId = tabPane.id;
+            const sortKey = localStorage.getItem(`${tabId}_sortKey`);
+            const sortDirection = localStorage.getItem(`${tabId}_sortDirection`);
+            
+            if (sortKey && sortDirection) {
+                console.log(`Restoring sorting: ${tabId}, ${sortKey}, ${sortDirection}`);
+                const header = tabPane.querySelector(`.sortable[data-sort="${sortKey}"]`);
+                if (header) {
+                    // Apply the saved sort direction class
+                    header.classList.add(sortDirection);
+                    
+                    // Perform the actual sorting
+                    const table = header.closest('table');
+                    if (table) {
+                        sortableTable.sortTable(table, sortKey, sortDirection === 'asc');
+                    }
+                }
+            }
+        });
+    },
+    
+    sortTable: function(table, sortKey, isAsc) {
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        
+        // Skip empty state rows and special rows
+        const dataRows = rows.filter(row => !row.classList.contains('empty-search-stations') && 
+                                          !row.classList.contains('empty-search-results') &&
+                                          !row.classList.contains('empty-bicycle-search-results'));
+        
+        // Sort the rows
+        dataRows.sort((rowA, rowB) => {
+            // Find the correct cells based on the sortKey
+            const cellIndexMap = {
+                // Rental tab
+                'id': 0,
+                'customer': 1,
+                'bicycle': 2,
+                'pickupStation': 3,
+                'startTime': 4,
+                'returnStation': 5,
+                'endTime': 6,
+                'duration': 7,
+                'cost': 8,
+                'status': 9,
+                
+                // Bicycles tab (correct columns from table)
+                'range': 4,      // Correctly map Range column
+                'battery': 3,    // Correctly map Battery column
+                'location': 5,   // Correctly map Location column
+                'lastUpdate': 6, // Correctly map Last Updated column
+                
+                // Station tab
+                'name': 1,
+                'capacity': 3,
+                'utilization': 5
+            };
+            
+            // If Bicycles tab and sortKey is 'id', handle the first column (after the checkbox column)
+            let cellIndex;
+            const isBicyclesTable = table.id === 'bicyclesTable';
+            
+            if (isBicyclesTable && sortKey === 'id') {
+                cellIndex = 1; // ID is in the second column (index 1) in bicycles table (after checkbox)
+            } else {
+                // Default to first column if sortKey not found
+                cellIndex = cellIndexMap[sortKey] !== undefined ? cellIndexMap[sortKey] : 0;
+            }
+            
+            const cellA = rowA.cells[cellIndex];
+            const cellB = rowB.cells[cellIndex];
+            
+            if (!cellA || !cellB) return 0;
+            
+            // Get text content for comparison
+            let valueA = cellA.textContent.trim();
+            let valueB = cellB.textContent.trim();
+            
+            // Special handling for ID fields that may contain prefixes like 'ST-' or 'BIKE-'
+            if (sortKey === 'id') {
+                valueA = valueA.replace(/[^\d]/g, ''); // Extract only numbers
+                valueB = valueB.replace(/[^\d]/g, '');
+                return isAsc ? 
+                    parseInt(valueA || 0) - parseInt(valueB || 0) : 
+                    parseInt(valueB || 0) - parseInt(valueA || 0);
+            }
+            
+            // Special handling for battery percentages
+            if (sortKey === 'battery') {
+                const numA = parseFloat(valueA.match(/\d+(\.\d+)?/)?.[0] || 0);
+                const numB = parseFloat(valueB.match(/\d+(\.\d+)?/)?.[0] || 0);
+                return isAsc ? numA - numB : numB - numA;
+            }
+            
+            // Special handling for range (extract numbers followed by km)
+            if (sortKey === 'range') {
+                const numA = parseFloat(valueA.match(/\d+(\.\d+)?/)?.[0] || 0);
+                const numB = parseFloat(valueB.match(/\d+(\.\d+)?/)?.[0] || 0);
+                return isAsc ? numA - numB : numB - numA;
+            }
+            
+            // Special handling for capacity/utilization (extract numbers)
+            if (sortKey === 'capacity' || sortKey === 'utilization') {
+                const numA = parseFloat(valueA.match(/\d+(\.\d+)?/)?.[0] || 0);
+                const numB = parseFloat(valueB.match(/\d+(\.\d+)?/)?.[0] || 0);
+                return isAsc ? numA - numB : numB - numA;
+            }
+            
+            // Handle date strings for Last Updated columns
+            if (sortKey === 'lastUpdate' || sortKey.includes('Time')) {
+                // Try to extract dates in format "Jan 1, 2023" or "2023-01-01" or "Jan 1, 2023 HH:MM"
+                const dateA = this.extractDate(valueA);
+                const dateB = this.extractDate(valueB);
+                
+                if (dateA && dateB) {
+                    return isAsc ? dateA - dateB : dateB - dateA;
+                }
+            }
+            
+            // Default string comparison
+            return isAsc ? 
+                valueA.localeCompare(valueB) : 
+                valueB.localeCompare(valueA);
+        });
+        
+        // Reorder the rows in the table
+        dataRows.forEach(row => tbody.appendChild(row));
+        
+        // Move any special rows (like empty states) to the end
+        rows.filter(row => !dataRows.includes(row)).forEach(row => {
+            tbody.appendChild(row);
+        });
+    },
+    
+    extractDate: function(text) {
+        // Enhanced date extraction - looks for date formats like:
+        // "Jan 1, 2023", "2023-01-01", "Jan 1, 2023 12:34" or "Jan 1, 2023 12:34:56"
+        const dateMatch = text.match(/(\d{4}-\d{2}-\d{2}( \d{2}:\d{2}(:\d{2})?)?)|([A-Za-z]{3}\s+\d{1,2},\s+\d{4}( \d{2}:\d{2}(:\d{2})?)?)/);
+        
+        if (dateMatch) {
+            return new Date(dateMatch[0]);
+        }
+        return null;
+    }
+};
+
+// Initialize the sorting functionality when the document is ready
+document.addEventListener('DOMContentLoaded', function() {
+    sortableTable.initialize();
+    
+    // Re-initialize sorting functionality when tab content changes
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList' && mutation.addedNodes.length) {
+                // Check if any sortable tables were added
+                const hasSortableTable = Array.from(mutation.addedNodes).some(node => {
+                    return node.nodeType === 1 && (
+                        node.querySelector('.sortable') || 
+                        node.classList && node.classList.contains('sortable')
+                    );
+                });
+                
+                if (hasSortableTable) {
+                    setTimeout(sortableTable.initialize, 100);
+                }
+            }
+        });
+    });
+    
+    // Watch for changes in all tab panes
+    document.querySelectorAll('.tab-pane').forEach(tabPane => {
+        observer.observe(tabPane, { childList: true, subtree: true });
+    });
+});
+
+// Add a global emergency reset function that can be called from console if needed
+window.resetAllOverlays = function() {
+    document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
+        overlay.style.display = 'none';
+    });
+    console.log("All loading overlays have been reset!");
+};
+</script>
 {% endblock %}
-
