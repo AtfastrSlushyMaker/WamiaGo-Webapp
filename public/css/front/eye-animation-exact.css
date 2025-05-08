@@ -1,0 +1,105 @@
+/* Perfect Eye Animation CSS - Final Version */
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border: none;
+  background: none;
+  color: #555;
+  cursor: pointer;
+  padding: 0;
+}
+
+.toggle-password:focus {
+  outline: none;
+  color: #333;
+}
+
+.toggle-password svg {
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+}
+
+/* Transition eye parts */
+.toggle-password .lid {
+  transition: transform 0.2s ease;
+}
+
+.toggle-password .eye {
+  transition: transform 0.2s ease;
+}
+
+/* When password is shown, make the upper lid drop */
+.toggle-password[aria-pressed="true"] .lid--upper {
+  transform: translateY(3.5px);
+}
+
+/* Hide the entire eye when closed */
+.toggle-password[aria-pressed="true"] .eye {
+  opacity: 0;
+}
+
+/* Password container styling */
+.password-container {
+  position: relative;
+  width: 100%;
+}
+
+.password-container input {
+  width: 100%;
+  padding-right: 45px; /* Space for the toggle button */
+  transition: all 0.3s ease;
+}
+
+/* Text animation */
+@keyframes textReveal {
+  0% {
+    color: transparent;
+    text-shadow: 0 0 8px rgba(0,0,0,0.5);
+  }
+  100% {
+    color: inherit;
+    text-shadow: none;
+  }
+}
+
+.password-container input[type="text"] {
+  animation: textReveal 0.5s ease-out forwards;
+}
+
+/* Ripple effect for input */
+@keyframes ripple {
+  0% {
+    box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.3);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(66, 133, 244, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(66, 133, 244, 0);
+  }
+}
+
+.password-reveal-animation {
+  animation: ripple 0.6s ease-out;
+}
+
+/* Screen reader only class */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}

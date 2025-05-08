@@ -1,0 +1,367 @@
+    {% extends 'front/base.html.twig' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block page_stylesheets %}
+{{ parent() }}
+<style>
+    /* Custom styles for profile page */
+    .profile-header {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        color: white;
+        padding: 3rem 0;
+        border-radius: 0.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .profile-image {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border: 5px solid white;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .profile-image:hover {
+        transform: scale(1.05);
+    }
+    
+    .profile-card {
+        border-radius: 0.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        transition: all 0.3s ease;
+    }
+    
+    .profile-card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        transform: translateY(-5px);
+    }
+    
+    .section-heading {
+        border-left: 4px solid #4e73df;
+        padding-left: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .info-item {
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        background-color: #f8f9fa;
+        transition: all 0.3s ease;
+    }
+    
+    .info-item:hover {
+        background-color: #e9ecef;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .info-value {
+        color: #212529;
+    }
+    
+    .btn-action {
+        border-radius: 50px;
+        padding: 0.5rem 1.5rem;
+    }
+    
+    .progress {
+        height: 10px;
+        border-radius: 5px;
+    }
+    
+    .progress-bar {
+        background: linear-gradient(90deg, #4e73df 0%, #224abe 100%);
+    }
+    
+    .badge-status {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 500;
+        font-size: 0.8rem;
+    }
+    
+    .verified {
+        background-color: #1cc88a;
+        color: white;
+    }
+    
+    .unverified {
+        background-color: #f6c23e;
+        color: white;
+    }
+    
+    .modal-content {
+        border-radius: 0.5rem;
+        border: none;
+    }
+    
+    .nav-pills .nav-link.active {
+        background-color: #4e73df;
+    }
+    
+    .nav-pills .nav-link {
+        color: #4e73df;
+    }
+    
+    /* Fix for standard modals */
+    .modal {
+        z-index: 1050;
+        padding-right: 0 !important;
+    }
+    
+    .modal-backdrop {
+        z-index: 1040;
+    }
+    
+    .modal-dialog {
+        margin: 1.75rem auto;
+    }
+    
+    .modal-content {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    @media (max-width: 768px) {
+        .modal-dialog {
+            margin: 0.5rem;
+            max-width: calc(100% - 1rem);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Override any facial recognition links that might still be using the modal approach
+    const faceLinks = document.querySelectorAll('[data-bs-target="#facialRecognitionModal"]');
+    
+    faceLinks.forEach(link => {
+        // Remove modal attributes
+        link.removeAttribute('data-bs-toggle');
+        link.removeAttribute('data-bs-target');
+        
+        // Add proper href based on user status
+        {% if user.faceRecognitionEnabled %}
+            link.setAttribute('href', '{{ path("app_face_manage") }}');
+        {% else %}
+            link.setAttribute('href', '{{ path("app_face_setup") }}');
+        {% endif %}
+        
+        // Ensure click goes to the right page
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            {% if user.faceRecognitionEnabled %}
+                window.location.href = '{{ path("app_face_manage") }}';
+            {% else %}
+                window.location.href = '{{ path("app_face_setup") }}';
+            {% endif %}
+        });
+    });
+});
+</script>
+{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <!-- Profile Header -->
+    <div class="profile-header mb-4 text-center text-lg-start">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-3 text-center mb-4 mb-lg-0">
+                    <img src="{{ user.profilePicture ? user.profilePicture : asset('images/default-avatar.png') }}" 
+                         alt="{{ user.name }}" class="rounded-circle img-fluid profile-image">
+                </div>
+                <div class="col-lg-6">
+                    <h2 class="mb-1">{{ user.name }}</h2>
+                    <p class="lead mb-0"><i class="fas fa-envelope me-2"></i>{{ user.email }}</p>
+                    <div class="mt-3">
+                        <span class="badge badge-status {{ user.isVerified ? 'verified' : 'unverified' }}">
+                            <i class="fas {{ user.isVerified ? 'fa-check-circle' : 'fa-exclamation-triangle' }} me-1"></i>
+                            {{ user.isVerified ? 'Verified Account' : 'Unverified Account' }}
+                        </span>
+                    </div>
+                </div>
+                <div class="col-lg-3 text-center text-lg-end mt-4 mt-lg-0">
+                    <a href="{{ path('app_profile_edit') }}" class="btn btn-light btn-action">
+                        <i class="fas fa-user-edit me-2"></i>Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <!-- Profile Completion Card -->
+            <div class="card profile-card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3"><i class="fas fa-tasks me-2"></i>Profile Completion</h5>
+                    <div class="progress mb-3">
+                        <div class="progress-bar" role="progressbar" style="width: {{ profileCompletion }}%;" 
+                             aria-valuenow="{{ profileCompletion }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <p class="card-text text-center">
+                        <strong>{{ profileCompletion }}% Complete</strong>
+                    </p>
+                    {% if profileCompletion < 100 %}
+                    <div class="alert alert-info mt-3" role="alert">
+                        <i class="fas fa-info-circle me-2"></i> Complete your profile to unlock all features!
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="card profile-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{{ path('app_profile_edit') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-user-edit me-2"></i>Edit Personal Info
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                        <i class="fas fa-key me-2"></i>Change Password
+                    </a>
+                    <a href="{{ path('app_profile_2fa_setup') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-shield-alt me-2"></i>Security Settings
+                    </a>
+                    {% if "ROLE_DRIVER" not in user.roles %}
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="fas fa-car me-2"></i>Become a Driver
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <!-- Account Settings -->
+            <div class="card profile-card mb-4">
+                <div class="card-header bg-transparent">
+                    <h4 class="section-heading mb-0">Account Information</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="info-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <p class="info-label mb-1"><i class="fas fa-envelope me-2"></i>Email</p>
+                                        <p class="info-value mb-0">{{ user.email }}</p>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#changeEmailModal">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="info-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <p class="info-label mb-1"><i class="fas fa-phone me-2"></i>Phone Number</p>
+                                        <p class="info-value mb-0">{{ user.phoneNumber ? user.phoneNumber : 'Not provided' }}</p>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#changePhoneModal">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="info-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <p class="info-label mb-1"><i class="fas fa-birthday-cake me-2"></i>Date of Birth</p>
+                                        <p class="info-value mb-0">{{ user.dateOfBirth ? user.dateOfBirth|date('F d, Y') : 'Not provided' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="info-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <p class="info-label mb-1"><i class="fas fa-map-marker-alt me-2"></i>Location</p>
+                                        <p class="info-value mb-0">{{ user.location ? user.location : 'Not provided' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Security Settings Card -->
+            <div class="card profile-card mb-4">
+                <div class="card-header bg-transparent">
+                    <h4 class="section-heading mb-0">Security Settings</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="info-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <p class="info-label mb-1"><i class="fas fa-lock me-2"></i>Password</p>
+                                        <p class="info-value mb-0">••••••••</p>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>                        <div class="col-md-6 mb-3">
+                            <div class="info-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <p class="info-label mb-1"><i class="fas fa-shield-alt me-2"></i>Two-Factor Authentication</p>
+                                        <p class="info-value mb-0">{{ twoFactorEnabled ? 'Enabled' : 'Disabled' }}</p>
+                                    </div>
+                                    <a href="{{ path('app_profile_2fa_setup') }}" class="btn btn-sm {{ twoFactorEnabled ? 'btn-success' : 'btn-outline-warning' }}">
+                                        {{ twoFactorEnabled ? '<i class="fas fa-check"></i>' : '<i class="fas fa-toggle-off"></i>' }} {{ twoFactorEnabled ? 'Enabled' : 'Enable' }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="info-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <p class="info-label mb-1"><i class="fas fa-camera me-2"></i>Facial Recognition</p>
+                                        <p class="info-value mb-0">{{ user.faceRecognitionEnabled ? 'Enabled' : 'Disabled' }}</p>
+                                    </div>
+                                    {% if user.faceRecognitionEnabled %}
+                                        <a href="{{ path('app_face_manage') }}" class="btn btn-sm btn-success">
+                                            <i class="fas fa-check me-1"></i> Manage
+                                        </a>
+                                    {% else %}
+                                        <a href="{{ path('app_face_setup') }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-user-plus me-1"></i> Setup
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+{% include 'components/profile_modals.html.twig' %}
+{% endblock %}

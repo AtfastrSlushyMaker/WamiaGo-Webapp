@@ -1,0 +1,417 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Login with Face Recognition{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<link rel="stylesheet" href="{{ asset('css/face-recognition-simplified.css') }}?v={{ 'now'|date('YmdHis') }}">
+<style>
+    .login-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .webcam-container {
+        position: relative;
+        margin: 2rem 0;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+      #webcam {
+        width: 100%;
+        max-height: 450px;
+        transform: scaleX(-1);
+        background-color: #f8f9fa;
+    }
+      #face-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 280px;
+        height: 280px;
+        border: 4px dashed rgba(255,255,255,0.8);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 10;
+        transition: border-color 0.3s ease;
+    }
+      /* Face positioning grid lines */
+    #face-overlay::before,
+    #face-overlay::after {
+        content: '';
+        position: absolute;
+        background-color: rgba(255, 255, 255, 0.3);
+        z-index: 11;
+    }
+    
+    /* Horizontal line */
+    #face-overlay::before {
+        width: 100%;
+        height: 1px;
+        top: 50%;
+        left: 0;
+    }
+    
+    /* Vertical line */
+    #face-overlay::after {
+        width: 1px;
+        height: 100%;
+        top: 0;
+        left: 50%;
+    }
+      /* Face detection indicators */
+    #face-detection-status {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(0,0,0,0.5);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        z-index: 15;
+        transition: opacity 0.2s ease;
+        margin-top: 10px;
+    }
+    
+    /* Additional guidance elements */    .face-guide {
+        position: absolute;
+        border: 1px dashed rgba(255, 255, 255, 0.4);
+        pointer-events: none;
+        z-index: 12;
+        border-radius: 50%;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .face-guide.visible {
+        opacity: 1;
+    }
+    
+    /* Simplified indicators - removed emotion detection related styles */
+    @keyframes pulse-detection {
+        0% { opacity: 0.5; }
+        50% { opacity: 1; }
+        100% { opacity: 0.5; }
+    }
+      #scan-line {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(to right, transparent, #4e73df, transparent);
+        opacity: 0;
+        z-index: 20;
+        transition: opacity 0.3s ease;
+    }
+      @keyframes scan {
+        0% { top: 0; }
+        100% { top: 100%; }
+    }
+    
+    @keyframes pulse {
+        0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+        50% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+        100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+    }
+    
+    @keyframes countdown {
+        0% { transform: scale(1.5); opacity: 0; }
+        10% { transform: scale(1); opacity: 1; }
+        90% { transform: scale(1); opacity: 1; }
+        100% { transform: scale(0.5); opacity: 0; }
+    }
+    
+    #face-overlay.pulse {
+        animation: pulse 2s infinite ease-in-out;
+    }
+    
+    #countdown span {
+        animation: countdown 1s ease-in-out forwards;
+    }
+    
+    .action-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1.5rem;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0.5rem;
+    }
+    
+    .recognition-steps {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+    }
+    
+    .step {
+        text-align: center;
+        padding: 1rem;
+        flex: 1;
+        position: relative;
+    }
+    
+    .step:not(:last-child):after {
+        content: '';
+        position: absolute;
+        top: 2.5rem;
+        right: -0.5rem;
+        width: 1rem;
+        height: 1px;
+        background-color: #dee2e6;
+    }
+    
+    .step-icon {
+        width: 4rem;
+        height: 4rem;
+        border-radius: 50%;
+        background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.5rem;
+        color: #6c757d;
+    }
+    
+    .step.active .step-icon {
+        background-color: #4e73df;
+        color: white;
+    }
+    
+    /* Accessibility styles for reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+        #face-overlay.pulse,
+        .detection-dot.searching,
+        @keyframes pulse,
+        @keyframes pulse-detection,
+        @keyframes scan {
+            animation: none !important;
+        }
+        #scan-line {
+            transition: none !important;
+        }
+    }
+    
+    /* Helper class for manually disabling animations */
+    .reduce-motion * {
+        animation: none !important;
+        transition: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between">
+            <h1 class="mb-0">Login with Face Recognition</h1>
+            <a href="{{ path('app_login') }}" class="btn btn-light">
+                <i class="fas fa-arrow-left me-2"></i> Back to Login
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container login-container">
+    <div class="card">
+        <div class="card-body">
+            <div class="recognition-steps">
+                <div class="step active" id="step-camera">
+                    <div class="step-icon">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <h5>Camera</h5>
+                    <p class="text-muted">Enable your camera</p>
+                </div>
+                <div class="step" id="step-face">
+                    <div class="step-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h5>Position</h5>
+                    <p class="text-muted">Position your face</p>
+                </div>
+                <div class="step" id="step-verify">
+                    <div class="step-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <h5>Verify</h5>
+                    <p class="text-muted">Verification complete</p>
+                </div>
+            </div>            <div class="alert alert-info mb-4">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-info-circle fa-2x me-3"></i>
+                    <div>
+                        <strong>Login with Face Recognition</strong>
+                        <p class="mb-0">Position your face within the circle and we'll verify your identity.</p>
+                        <p class="small mt-2 mb-0">
+                            <i class="fas fa-lightbulb me-1"></i> Tips: Ensure good lighting, remove glasses if possible, and look directly at the camera.
+                        </p>
+                    </div>
+                </div>
+            </div><div class="webcam-container">                <video id="webcam" autoplay playsinline class="border"></video>                <div id="face-overlay"></div>
+                <div id="scan-line"></div>
+                <div id="face-detection-status" class="position-absolute top-0 start-50 translate-middle-x mt-3 p-2 bg-dark bg-opacity-75 text-white rounded-pill d-none" style="z-index: 15;">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <div class="spinner-border spinner-border-sm me-2" role="status" style="width: 10px; height: 10px;"></div>
+                       
+                    </div>
+                </div>
+                <div id="liveness-indicator" class="position-absolute top-0 start-50 translate-middle-x mt-12 p-2 bg-dark bg-opacity-75 text-white rounded-pill d-none" style="z-index: 15; margin-top: 50px;">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <div class="spinner-border spinner-border-sm me-2" role="status" style="width: 10px; height: 10px;"></div>
+                        <span>Checking liveness...</span>
+                    </div>
+                </div>                <div id="quality-meter" class="position-absolute bottom-0 start-50 translate-middle-x mb-3 p-2 bg-dark bg-opacity-75 text-white rounded-pill" style="z-index: 15; display: none;">
+                    <div class="d-flex align-items-center">
+                        <span class="me-2">Image Quality:</span>
+                        <div class="progress" style="width: 100px; height: 6px; background-color: rgba(255,255,255,0.2);">
+                            <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="countdown" class="position-absolute top-50 start-50 translate-middle d-none">
+                    <span class="display-1 text-white" style="text-shadow: 0 0 10px rgba(0,0,0,0.7);">3</span>
+                </div>                <div id="verification-status" class="position-absolute bottom-0 start-50 translate-middle-x mb-3 p-2 bg-dark bg-opacity-75 text-white rounded-pill d-none" style="z-index: 15;">
+                    <div class="d-flex justify-content-center align-items-center">
+                        <div class="spinner-border spinner-border-sm me-2" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span id="verification-status-text">Processing...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="status-message" class="alert alert-warning d-none"></div><div class="action-buttons">
+                <button id="switch-camera" class="btn btn-outline-secondary">
+                    <i class="fas fa-sync-alt me-2"></i> Switch Camera
+                </button>
+                <button id="capture-face" class="btn btn-primary btn-lg" 
+                        data-verify-url="{{ path('app_face_verify') }}"
+                        data-check-url="{{ path('app_face_check') }}">
+                    <i class="fas fa-camera me-2"></i> Verify My Face
+                </button>
+                {% if app.environment == 'dev' %}
+                <button id="test-api" class="btn btn-outline-info ms-2"
+                        data-check-url="{{ path('app_face_check') }}">
+                    <i class="fas fa-wrench me-2"></i> Test API Connection
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card-footer bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted">
+                    <i class="fas fa-lock me-2"></i> Your face data is securely processed and not stored
+                </span>
+                <a href="{{ path('app_login') }}" class="btn btn-outline-secondary">Back to Password Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<canvas id="canvas" style="display: none;"></canvas>
+
+
+
+<!-- Include the external face recognition script with cache busting -->
+<script src="{{ asset('js/face-scan-animation.js') }}?v={{ 'now'|date('YmdHis') }}"></script>
+<script src="{{ asset('js/face-quality-check.js') }}?v={{ 'now'|date('YmdHis') }}"></script>
+<script src="{{ asset('js/face-recognition-enhancement.js') }}?v={{ 'now'|date('YmdHis') }}"></script>
+<script src="{{ asset('js/face-recognition.js') }}?v={{ 'now'|date('YmdHis') }}"></script>
+
+<!-- Fallback inline script in case the external one fails -->
+<script>
+// Fallback for logDebug in case the main script fails to load
+if (typeof logDebug === 'undefined') {
+    function logDebug(message, data = null) {
+        console.log(`[Face Recognition Fallback] ${message}`, data);
+        const debugContent = document.getElementById('debug-content');
+        if (debugContent) {
+            const div = document.createElement('div');
+            div.textContent = `${message} ${data ? JSON.stringify(data) : ''}`;
+            debugContent.appendChild(div);
+        }
+    }
+    console.warn('Using fallback logDebug function - main script may not have loaded properly');
+}
+
+// Check if camera is available and display informative message if not
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('webcam');
+    const statusMessage = document.getElementById('status-message');
+    
+    // Show debug section in development mode
+    const debugSection = document.getElementById('debug-section');
+    if (debugSection) {
+        debugSection.classList.remove('d-none');
+        logDebug('Debug mode activated');
+    }
+    
+    // Check browser compatibility if the enhancement API is available
+    if (window.FaceRecognitionEnhancement) {
+        const compatibility = window.FaceRecognitionEnhancement.checkBrowserCompatibility();
+        logDebug('Browser compatibility check:', compatibility);
+        
+        if (!compatibility.compatible) {
+            // Show compatibility warning
+            if (statusMessage) {
+                statusMessage.textContent = compatibility.supportMessage || 'Your browser may not fully support face recognition';
+                statusMessage.classList.remove('d-none');
+                statusMessage.classList.add('alert-warning');
+            }
+        } else if (!compatibility.faceDetection) {
+            // Show limited support message
+            logDebug('Face Detection API not available in this browser');
+            if (statusMessage) {
+                statusMessage.textContent = 'Limited face recognition support detected. Basic features will work, but advanced detection is unavailable.';
+                statusMessage.classList.remove('d-none');
+                statusMessage.classList.add('alert-info');
+                
+                // Hide the warning after 5 seconds
+                setTimeout(() => {
+                    statusMessage.classList.add('d-none');
+                }, 5000);
+            }
+        }
+    }
+    
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.error('getUserMedia not supported in this browser');
+        if (statusMessage) {
+            statusMessage.textContent = 'Camera access is not supported in this browser. Please try using a modern browser like Chrome, Firefox, or Edge.';
+            statusMessage.classList.remove('d-none');
+            statusMessage.classList.add('alert-danger');
+        }
+        return;
+    }
+    
+    // Check if camera permissions are allowed
+    navigator.permissions.query({name: 'camera'}).then(function(result) {
+        logDebug('Camera permission status:', result.state);
+        
+        if (result.state === 'denied') {
+            if (statusMessage) {
+                statusMessage.textContent = 'Camera access denied. Please allow camera access in your browser settings and reload the page.';
+                statusMessage.classList.remove('d-none');
+                statusMessage.classList.add('alert-danger');
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

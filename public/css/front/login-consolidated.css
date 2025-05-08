@@ -1,0 +1,1074 @@
+/**
+ * WamiaGo Login System - Consolidated CSS
+ * 
+ * This file contains all original CSS from the separate files, organized by component.
+ * All original styling has been preserved exactly as it was in the separate files.
+ */
+
+/* =================== CSS FROM loginSignup.css =================== */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@600&display=swap');
+
+:root {
+    --primary-color: #3a7bd5;
+    --primary-color-rgb: 58, 123, 213;
+    --secondary-color: #3eadcf;
+    --secondary-color-rgb: 62, 173, 207;
+    --tertiary-color: #00d2b8;
+    --tertiary-color-rgb: 0, 210, 184;
+    --quaternary-color: #56b4d3;
+    --quaternary-color-rgb: 86, 180, 211;
+    --accent-color: #00b894;
+    --accent-color-rgb: 0, 184, 148;
+    --success-color: #00b894;
+    --success-color-rgb: 0, 184, 148;
+    --error-color: #ff7675;
+    --error-color-rgb: 255, 118, 117;
+    --text-color: #2d3436;
+    --text-light: #636e72;
+    --background-color: #f9f9f9;
+    --card-bg: #ffffff;
+    --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 5px 20px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+    --border-radius-sm: 8px;
+    --border-radius-md: 12px;
+    --border-radius-lg: 20px;
+    --transition-fast: 0.2s ease;
+    --transition-normal: 0.3s ease;
+    --transition-slow: 0.5s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background: var(--background-color);
+    color: var(--text-color);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+}
+
+.login-container {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.container {
+    background-color: #fff;
+    border-radius: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+    width: 768px;
+    max-width: 100%;
+    min-height: 600px;
+    display: flex;
+}
+
+.form-box {
+    position: absolute;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    transition: all 0.6s ease-in-out;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.login {
+    left: 0;
+    z-index: 2;
+}
+
+.register {
+    left: 0;
+    z-index: 1;
+    opacity: 0;
+}
+
+.container.active .login {
+    transform: translateX(100%);
+}
+
+.container.active .register {
+    transform: translateX(100%);
+    opacity: 1;
+    z-index: 5;
+}
+
+.toggle-box {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+    transition: all 0.6s ease-in-out;
+    z-index: 10;
+    background: linear-gradient(135deg, #3a7bd5, #3eadcf);
+}
+
+.container.active .toggle-box {
+    transform: translateX(-100%);
+}
+
+.toggle-panel {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    text-align: center;
+    color: #fff;
+    transform: translateX(0);
+    transition: all 0.6s ease-in-out;
+}
+
+.toggle-left {
+    transform: translateX(0);
+}
+
+.toggle-right {
+    right: 0;
+    transform: translateX(100%);
+}
+
+.container.active .toggle-left {
+    transform: translateX(-100%);
+}
+
+.container.active .toggle-right {
+    transform: translateX(0);
+}
+
+h1 {
+    font-weight: 700;
+    margin-bottom: 20px;
+    font-size: 2rem;
+    color: var(--text-color);
+}
+
+.toggle-panel h1 {
+    color: #fff;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 400px;
+}
+
+.register-center-box {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 400px;
+    height: 100%;
+}
+
+.input-box {
+    position: relative;
+    margin: 10px 0;
+    width: 100%;
+}
+
+.input-box input,
+.input-box select {
+    width: 100%;
+    padding: 12px 15px;
+    background-color: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s ease;
+    padding-left: 40px; /* Space for icon */
+}
+
+.input-box input:focus,
+.input-box select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(58, 123, 213, 0.1);
+}
+
+.input-box label {
+    position: absolute;
+    top: -8px;
+    left: 12px;
+    color: #555;
+    font-size: 12px;
+    background-color: #fff;
+    padding: 0 5px;
+    z-index: 1;
+}
+
+.input-box i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #777;
+}
+
+.remember-forgot {
+    display: flex;
+    justify-content: space-between;
+    margin: 15px 0;
+    font-size: 14px;
+}
+
+.remember-forgot label {
+    display: flex;
+    align-items: center;
+}
+
+.remember-forgot a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.remember-forgot a:hover {
+    text-decoration: underline;
+}
+
+.btn {
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-top: 15px;
+}
+
+.btn:hover {
+    background-color: #2c62b3;
+    box-shadow: 0 5px 15px rgba(58, 123, 213, 0.3);
+    transform: translateY(-2px);
+}
+
+.toggle-panel .btn {
+    background-color: transparent;
+    border: 1px solid #fff;
+}
+
+.toggle-panel .btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.social-media-section {
+    margin-top: 25px;
+    text-align: center;
+}
+
+.social-media-section p {
+    font-size: 14px;
+    color: #777;
+    margin-bottom: 15px;
+}
+
+.social-icons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.social-icons a {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    color: #555;
+    text-decoration: none;
+}
+
+.social-icons a:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* Password Toggle Animation */
+.password-container {
+    position: relative;
+    width: 100%;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #888;
+    transition: all 0.3s ease;
+    padding: 5px;
+}
+
+.toggle-password svg {
+    width: 20px;
+    height: 20px;
+    transition: all 0.3s ease;
+}
+
+.toggle-password:hover {
+    color: var(--primary-color);
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Validation Styling */
+.is-invalid {
+    border-color: var(--error-color) !important;
+}
+
+.form-error {
+    color: var(--error-color);
+    font-size: 12px;
+    margin-top: 5px;
+    display: none;
+}
+
+.has-error .form-error {
+    display: block;
+}
+
+.has-error input, 
+.has-error select {
+    border-color: var(--error-color);
+}
+
+/* Alert Styling */
+.alert {
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    position: relative;
+    display: none;
+}
+
+.alert-danger {
+    background-color: rgba(255, 118, 117, 0.1);
+    border-left: 4px solid var(--error-color);
+    color: #d63031;
+}
+
+.alert-success {
+    background-color: rgba(0, 184, 148, 0.1);
+    border-left: 4px solid var(--success-color);
+    color: #00b894;
+}
+
+.alert i {
+    margin-right: 10px;
+}
+
+.btn-close {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: inherit;
+}
+
+/* Animation Container */
+.car-animation-container {
+    width: 100%;
+    height: 180px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.floating-platform {
+    width: 200px;
+    height: 140px;
+    position: relative;
+    animation: float 3s ease-in-out infinite;
+}
+
+.animated-car {
+    width: 100%;
+    height: 100%;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+.logo-container {
+    margin-bottom: 15px;
+}
+
+.logo {
+    max-width: 120px;
+    height: auto;
+}
+
+/* Multi-step Form */
+.steps-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 30px 0;
+    position: relative;
+}
+
+.step-indicator {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #fff;
+    border: 2px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #555;
+    position: relative;
+    z-index: 2;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.step-indicator.active {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background-color: rgba(58, 123, 213, 0.1);
+}
+
+.step-indicator.completed {
+    border-color: var(--success-color);
+    background-color: var(--success-color);
+    color: white;
+}
+
+.step-line {
+    flex: 1;
+    height: 2px;
+    background-color: #e0e0e0;
+    margin: 0 10px;
+    position: relative;
+}
+
+.step-line.active {
+    background-color: var(--success-color);
+}
+
+.step-content {
+    display: none;
+}
+
+.step-content.active {
+    display: block;
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.step-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+}
+
+.step-buttons-final {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+}
+
+/* Gender Selection */
+.input-group {
+    margin: 20px 0;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 10px;
+    color: #555;
+}
+
+.custom-radio-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.custom-radio-buttons input[type="radio"] {
+    display: none;
+}
+
+.gender-label {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+    justify-content: center;
+    font-weight: 500;
+}
+
+.gender-label:hover {
+    border-color: #ccc;
+}
+
+.gender-label.active[for="gender_male"] {
+    border-color: #2196F3;
+    background-color: rgba(33, 150, 243, 0.1);
+    color: #2196F3;
+}
+
+.gender-label.active[for="gender_female"] {
+    border-color: #FF4081;
+    background-color: rgba(255, 64, 129, 0.1);
+    color: #FF4081;
+}
+
+.gender-icon {
+    margin-right: 8px;
+}
+
+/* Terms Checkbox */
+.terms {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.terms input[type="checkbox"] {
+    margin-top: 4px;
+}
+
+.terms label {
+    font-size: 14px;
+    color: #555;
+}
+
+.terms a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.terms a:hover {
+    text-decoration: underline;
+}
+
+#terms-error {
+    display: none;
+}
+
+/* Success and Error Messages */
+.success-message, .error-message {
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    display: none;
+    align-items: center;
+}
+
+.success-message {
+    background-color: rgba(0, 184, 148, 0.1);
+    border-left: 4px solid var(--success-color);
+    color: var(--success-color);
+}
+
+.error-message {
+    background-color: rgba(255, 118, 117, 0.1);
+    border-left: 4px solid var(--error-color);
+    color: var(--error-color);
+}
+
+.success-message i, .error-message i {
+    margin-right: 10px;
+}
+
+/* Decorative Particle Animation */
+.particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+.particle {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+}
+
+.particle.small {
+    width: 10px;
+    height: 10px;
+    top: 20%;
+    left: 20%;
+    animation: particleFloat 15s infinite linear;
+}
+
+.particle.medium {
+    width: 20px;
+    height: 20px;
+    top: 40%;
+    left: 70%;
+    animation: particleFloat 20s infinite linear;
+}
+
+.particle.large {
+    width: 30px;
+    height: 30px;
+    top: 70%;
+    left: 30%;
+    animation: particleFloat 25s infinite linear;
+}
+
+.particle.star {
+    width: 15px;
+    height: 15px;
+    top: 30%;
+    left: 50%;
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    background-color: rgba(255, 255, 255, 0.8);
+    animation: particleFloat 30s infinite linear;
+}
+
+.particle.ring {
+    width: 25px;
+    height: 25px;
+    top: 60%;
+    left: 80%;
+    border: 3px solid rgba(255, 255, 255, 0.7);
+    background-color: transparent;
+    animation: particleFloat 35s infinite linear;
+}
+
+@keyframes particleFloat {
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+        transform: translate(30px, -30px) rotate(90deg);
+    }
+    50% {
+        transform: translate(0, -60px) rotate(180deg);
+    }
+    75% {
+        transform: translate(-30px, -30px) rotate(270deg);
+    }
+    100% {
+        transform: translate(0, 0) rotate(360deg);
+    }
+}
+
+/* Loading States */
+.spinner-border {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 0.15em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border 0.75s linear infinite;
+}
+
+@keyframes spinner-border {
+    to { transform: rotate(360deg); }
+}
+
+.d-none {
+    display: none !important;
+}
+
+/* Animation for validation */
+.shake {
+    animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+/* Confetti Animation */
+.confetti-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+.confetti {
+    position: absolute;
+    top: -20px;
+    width: 10px;
+    height: 10px;
+    opacity: 0.7;
+}
+
+@keyframes confetti-fall {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+    80% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+/* =================== CSS FROM step-indicators-fix.css =================== */
+.steps-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 25px 0;
+    position: relative;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 30px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(5px);
+    transition: all 0.5s ease;
+    width: 80%;
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.step-indicator {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    color: #999;
+    position: relative;
+    z-index: 2;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.step-indicator.active {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: rgba(58, 123, 213, 0.1);
+    box-shadow: 0 0 0 3px rgba(58, 123, 213, 0.2);
+    transform: scale(1.1);
+}
+
+.step-indicator.completed {
+    border-color: var(--success-color);
+    background: var(--success-color);
+    color: white;
+}
+
+.step-indicator.completed:before {
+    content: "✓";
+    font-size: 1.2em;
+}
+
+.step-line {
+    flex: 1;
+    height: 3px;
+    background: #e0e0e0;
+    margin: 0 5px;
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+.step-line.active {
+    background: var(--success-color);
+}
+
+/* =================== CSS FROM eye-animation-exact.css =================== */
+/* Perfect Eye Animation CSS - Final Version */
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border: none;
+  background: none;
+  color: #555;
+  cursor: pointer;
+  padding: 0;
+}
+
+.toggle-password:focus {
+  outline: none;
+  color: #333;
+}
+
+.toggle-password svg {
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+}
+
+/* Transition eye parts */
+.toggle-password .lid {
+  transition: transform 0.2s ease;
+}
+
+.toggle-password .eye {
+  transition: transform 0.2s ease;
+}
+
+/* When password is shown, make the upper lid drop */
+.toggle-password[aria-pressed="true"] .lid--upper {
+  transform: translateY(3.5px);
+}
+
+/* Hide the entire eye when closed */
+.toggle-password[aria-pressed="true"] .eye {
+  opacity: 0;
+}
+
+/* Password container styling */
+.password-container {
+  position: relative;
+  width: 100%;
+}
+
+.password-container input {
+  width: 100%;
+  padding-right: 45px; /* Space for the toggle button */
+  transition: all 0.3s ease;
+}
+
+/* Text animation */
+@keyframes textReveal {
+  0% {
+    color: transparent;
+    text-shadow: 0 0 8px rgba(0,0,0,0.5);
+  }
+  100% {
+    color: inherit;
+    text-shadow: none;
+  }
+}
+
+.password-container input[type="text"] {
+  animation: textReveal 0.5s ease-out forwards;
+}
+
+/* Ripple effect for input */
+@keyframes ripple {
+  0% {
+    box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.3);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(66, 133, 244, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(66, 133, 244, 0);
+  }
+}
+
+.password-reveal-animation {
+  animation: ripple 0.6s ease-out;
+}
+
+/* Step transitions from loginSignup.js */
+@keyframes step-slide-in-right {
+  0% { transform: translateX(30px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes step-slide-out-left {
+  0% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(-30px); opacity: 0; }
+}
+
+@keyframes step-slide-in-left {
+  0% { transform: translateX(-30px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes step-slide-out-right {
+  0% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(30px); opacity: 0; }
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    .container {
+        width: 90%;
+    }
+    
+    .form-box {
+        padding: 20px;
+    }
+    
+    h1 {
+        font-size: 1.8rem;
+    }
+    
+    .toggle-panel p {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 576px) {
+    .login-container {
+        padding: 20px;
+    }
+    
+    .container {
+        flex-direction: column-reverse;
+        height: auto;
+        min-height: 0;
+    }
+    
+    .form-box {
+        position: relative;
+        width: 100%;
+        height: auto;
+        transition: none;
+    }
+    
+    .login {
+        display: block;
+    }
+    
+    .register {
+        display: none;
+        opacity: 1;
+    }
+    
+    .toggle-box {
+        position: relative;
+        width: 100%;
+        height: 200px;
+        left: 0;
+    }
+    
+    .toggle-panel {
+        padding: 20px;
+    }
+    
+    .container.active .login {
+        display: none;
+        transform: none;
+    }
+    
+    .container.active .register {
+        display: block;
+        transform: none;
+    }
+    
+    .toggle-right, .toggle-left {
+        position: absolute;
+        width: 100%;
+    }
+    
+    .steps-container {
+        margin: 20px 0;
+    }
+    
+    .step-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .step-buttons button {
+        width: 100%;
+    }
+    
+    .car-animation-container {
+        height: 120px;
+    }
+}
+
+/* Fix for eye animation on Firefox */
+@-moz-document url-prefix() {
+    .toggle-password svg {
+        position: relative;
+        top: -2px;
+    }
+}

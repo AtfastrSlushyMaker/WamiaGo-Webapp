@@ -1,0 +1,351 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Setup Facial Recognition{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .setup-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .webcam-container {
+        position: relative;
+        margin: 2rem 0;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    
+    #webcam {
+        width: 100%;
+        max-height: 450px;
+        transform: scaleX(-1);
+        background-color: #f8f9fa;
+    }
+    
+    #face-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 280px;
+        height: 280px;
+        border: 4px dashed rgba(255,255,255,0.8);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 10;
+    }
+    
+    #scan-line {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(to right, transparent, #4e73df, transparent);
+        opacity: 0;
+        z-index: 20;
+    }
+    
+    @keyframes scan {
+        0% { top: 0; }
+        100% { top: 100%; }
+    }
+    
+    .action-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1.5rem;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between">
+            <h1 class="mb-0">Setup Facial Recognition</h1>
+            <a href="{{ path('app_profile') }}" class="btn btn-light">
+                <i class="fas fa-arrow-left me-2"></i> Back to Profile
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container setup-container">
+    <div class="card">
+        <div class="card-body">
+            <div class="alert alert-info mb-4">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-info-circle fa-2x me-3"></i>
+                    <div>
+                        <strong>Setup Face Recognition</strong>
+                        <p class="mb-0">Position your face within the circle and ensure you are in a well-lit environment for the best results.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="webcam-container">
+                <video id="webcam" autoplay playsinline class="border"></video>
+                <div id="face-overlay"></div>
+                <div id="scan-line"></div>
+            </div>
+            
+            <div id="status-message" class="alert alert-warning d-none"></div>
+            
+            <!-- Debug section - only shown in dev environment -->
+            <div id="debug-section" class="mt-3 p-3 bg-light rounded d-none">
+                <h5 class="text-muted">Debug Information</h5>
+                <div id="debug-content" class="small text-muted font-monospace mt-2" style="max-height: 200px; overflow-y: auto;"></div>
+            </div>
+            
+            <div class="action-buttons">
+                <button id="switch-camera" class="btn btn-outline-secondary">
+                    <i class="fas fa-sync-alt me-2"></i> Switch Camera
+                </button>
+                <button id="capture-face" class="btn btn-primary btn-lg">
+                    <i class="fas fa-camera me-2"></i> Capture and Register
+                </button>
+            </div>
+        </div>
+        
+        <div class="card-footer bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted">
+                    <i class="fas fa-lock me-2"></i> Your face data is securely stored and encrypted
+                </span>
+                <a href="{{ path('app_profile') }}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<canvas id="canvas" style="display: none;"></canvas>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('webcam');
+    const canvas = document.getElementById('canvas');
+    const captureButton = document.getElementById('capture-face');
+    const switchCameraButton = document.getElementById('switch-camera');
+    const statusMessage = document.getElementById('status-message');
+    const scanLine = document.getElementById('scan-line');
+    const debugSection = document.getElementById('debug-section');
+    const debugContent = document.getElementById('debug-content');
+    
+    // Show debug section in development environment
+    {% if app.environment == 'dev' %}
+    debugSection.classList.remove('d-none');
+    {% endif %}
+    
+    function logDebug(message, data = null) {
+        if (!debugContent) return;
+        
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString() + '.' + now.getMilliseconds().toString().padStart(3, '0');
+        let logEntry = `[${timeStr}] ${message}`;
+        
+        if (data) {
+            try {
+                if (typeof data === 'object') {
+                    logEntry += ': ' + JSON.stringify(data, null, 2);
+                } else {
+                    logEntry += ': ' + data;
+                }
+            } catch (e) {
+                logEntry += ': [Cannot stringify data]';
+            }
+        }
+        
+        const div = document.createElement('div');
+        div.textContent = logEntry;
+        debugContent.appendChild(div);
+        debugContent.scrollTop = debugContent.scrollHeight;
+    }
+    
+    let stream = null;
+    let facingMode = 'user'; // Front camera
+    
+    // Start webcam
+    async function startWebcam() {
+        try {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            
+            const constraints = {
+                video: {
+                    facingMode: facingMode,
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            };
+            
+            logDebug('Requesting camera with constraints', constraints);
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
+            video.srcObject = stream;
+            await video.play();
+            
+            logDebug('Camera started successfully');
+            captureButton.disabled = false;
+            
+        } catch (error) {
+            console.error('Error accessing webcam:', error);
+            logDebug('Camera access error', error.message);
+            showStatus('Could not access webcam. Please ensure camera permissions are allowed.', 'danger');
+            captureButton.disabled = true;
+        }
+    }
+    
+    // Switch camera
+    if (switchCameraButton) {
+        switchCameraButton.addEventListener('click', function() {
+            facingMode = facingMode === 'user' ? 'environment' : 'user';
+            logDebug(`Switching camera to ${facingMode}`);
+            startWebcam();
+        });
+    }
+    
+    // Capture and register face
+    if (captureButton) {
+        captureButton.addEventListener('click', async function() {
+            if (!stream) {
+                showStatus('Camera not available. Please refresh and try again.', 'danger');
+                return;
+            }
+            
+            // Start scanning animation
+            scanLine.style.opacity = '1';
+            scanLine.style.animation = 'scan 2s infinite';
+            
+            // Show processing message
+            showStatus('Processing your image...', 'info');
+            captureButton.disabled = true;
+            
+            try {
+                // Capture frame
+                const context = canvas.getContext('2d');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                // Convert to base64
+                const imageData = canvas.toDataURL('image/jpeg');
+                logDebug('Image captured, size: ' + Math.round(imageData.length / 1024) + 'KB');
+                
+                // Prepare form data
+                const formData = new URLSearchParams({
+                    'faceImage': imageData
+                });
+                
+                logDebug('Sending registration request to server');
+                
+                // Send to server
+                const response = await fetch('{{ path('app_profile_register_face') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                });
+                
+                logDebug(`Server response status: ${response.status} ${response.statusText}`);
+                
+                // Handle different response status codes
+                if (!response.ok) {
+                    let errorMessage = `Server error (${response.status})`;
+                    
+                    try {
+                        const errorBody = await response.text();
+                        logDebug('Error response body', errorBody);
+                        
+                        try {
+                            // Try to parse as JSON
+                            const errorJson = JSON.parse(errorBody);
+                            errorMessage = errorJson.message || errorMessage;
+                        } catch (jsonError) {
+                            // If not JSON, just use the text
+                            if (errorBody && errorBody.length < 100) {
+                                errorMessage += ': ' + errorBody;
+                            }
+                        }
+                    } catch (textError) {
+                        logDebug('Could not read error response body', textError);
+                    }
+                    
+                    throw new Error(errorMessage);
+                }
+                
+                // Parse JSON response
+                const responseText = await response.text();
+                logDebug('Response body', responseText);
+                
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (e) {
+                    logDebug('JSON parse error', e);
+                    throw new Error('Invalid response format from server: ' + responseText.substring(0, 100));
+                }
+                
+                if (result.success) {
+                    logDebug('Face registration successful', result);
+                    showStatus('Face registered successfully! You can now login using facial recognition.', 'success');
+                    
+                    // Redirect after a delay
+                    setTimeout(() => {
+                        window.location.href = '{{ path('app_face_manage') }}';
+                    }, 2000);
+                } else {
+                    logDebug('Face registration failed', result);
+                    showStatus(result.message || 'Failed to register face. Please try again.', 'danger');
+                    captureButton.disabled = false;
+                    scanLine.style.opacity = '0';
+                    scanLine.style.animation = 'none';
+                }
+            } catch (error) {
+                console.error('Error registering face:', error);
+                logDebug('Exception during registration', error.message);
+                showStatus('An error occurred during face registration: ' + error.message, 'danger');
+                captureButton.disabled = false;
+                scanLine.style.opacity = '0';
+                scanLine.style.animation = 'none';
+            }
+        });
+    }
+    
+    function showStatus(message, type) {
+        if (!statusMessage) return;
+        
+        logDebug(`Status message (${type}): ${message}`);
+        statusMessage.textContent = message;
+        statusMessage.classList.remove('d-none', 'alert-success', 'alert-danger', 'alert-warning', 'alert-info');
+        statusMessage.classList.add(`alert-${type}`);
+    }
+    
+    // Initialize webcam when page loads
+    logDebug('Initializing webcam');
+    startWebcam();
+    
+    // Stop webcam when page is unloaded
+    window.addEventListener('beforeunload', function() {
+        if (stream) {
+            logDebug('Stopping webcam stream');
+            stream.getTracks().forEach(track => track.stop());
+        }
+    });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,40 @@
+# Two-Factor Authentication services
+services:
+    # Session Handler for 2FA
+    App\Service\TwoFactorSessionHandler:
+        arguments:
+            $requestStack: '@request_stack'
+            
+    # Event listener for login success
+    App\EventListener\LoginSuccessListener:
+        arguments:
+            $requestStack: '@request_stack'
+            $twoFactorSessionHandler: '@App\Service\TwoFactorSessionHandler'
+        tags:
+            - { name: 'kernel.event_subscriber' }
+    
+    # 2FA condition checker
+    App\Security\TwoFactorCondition:
+        arguments:
+            $twoFactorSessionHandler: '@App\Service\TwoFactorSessionHandler'
+            
+    # Custom TOTP authenticator based on session data
+    App\Security\TwoFactor\SessionBasedTotpAuthenticator:
+        arguments:
+            $totpFactory: '@scheb_two_factor.security.totp_factory'
+            $sessionHandler: '@App\Service\TwoFactorSessionHandler'
+            $parameterBag: '@parameter_bag'
+        
+    # Register our custom authenticator as the TotpAuthenticator service
+    scheb_two_factor.security.totp.authenticator:
+        alias: App\Security\TwoFactor\SessionBasedTotpAuthenticator
+    
+    # Custom TOTP provider based on session data
+    App\Security\TwoFactor\SessionBasedTotpProvider:
+        arguments:
+            $authenticator: '@App\Security\TwoFactor\SessionBasedTotpAuthenticator'
+            $sessionHandler: '@App\Service\TwoFactorSessionHandler'
+            $urlGenerator: '@router'
+            $formRenderer: '@scheb_two_factor.default_form_renderer'
+        tags:
+            - { name: 'scheb_two_factor.provider', alias: 'totp' }

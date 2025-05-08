@@ -7,8 +7,11 @@
         "php": ">=8.1",
         "ext-ctype": "*",
         "ext-iconv": "*",
+<<<<<<< HEAD
         "babdev/pagerfanta": "^4.7",
         "doctrine/annotations": "^2.0",
+=======
+>>>>>>> main
         "doctrine/dbal": "^3",
         "doctrine/doctrine-bundle": "^2.14",
         "doctrine/doctrine-migrations-bundle": "^3.4",
@@ -20,6 +23,7 @@
         "guzzlehttp/guzzle": "^7.9",
         "knplabs/knp-paginator-bundle": "^6.8",
         "knplabs/knp-snappy-bundle": "*",
+        "knpuniversity/oauth2-client-bundle": "*",
         "nyholm/psr7": "^1.8",
         "php-http/discovery": "^1.20",
         "php-http/guzzle7-adapter": "^1.1",
@@ -28,6 +32,8 @@
         "phpoffice/phpspreadsheet": "^4.2",
         "phpstan/phpdoc-parser": "^2.1",
         "psr/http-factory-implementation": "*",
+        "scheb/2fa-bundle": "*",
+        "scheb/2fa-totp": "*",
         "symfony/asset": "6.4.*",
         "symfony/asset-mapper": "6.4.*",
         "symfony/console": "6.4.*",

@@ -1,0 +1,120 @@
+/* Updated Eye Animation CSS */
+.toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border: none;
+    background: none;
+    color: #555;
+    cursor: pointer;
+    padding: 0;
+}
+
+.toggle-password:focus {
+    outline: none;
+    color: #333;
+}
+
+.toggle-password svg {
+    width: 24px;
+    height: 24px;
+    pointer-events: none;
+}
+
+/* UPDATED EYE ANIMATION */
+.toggle-password .eye-svg {
+    overflow: visible;
+}
+
+.toggle-password .eye-shape {
+    transition: all 0.2s ease;
+}
+
+.toggle-password .eye-ball {
+    transition: all 0.2s ease;
+    transform-origin: center;
+    fill: currentColor;
+}
+
+.toggle-password .eye-pupil {
+    fill: #333;
+    transition: all 0.2s ease;
+}
+
+.toggle-password .eye-lash {
+    opacity: 0;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    transition: opacity 0.2s ease;
+}
+
+.toggle-password[aria-pressed="true"] .eye-shape {
+    d: path('M1 12C1 12 5 20 12 20C19 20 23 12 23 12');
+}
+
+.toggle-password[aria-pressed="true"] .eye-ball,
+.toggle-password[aria-pressed="true"] .eye-pupil {
+    opacity: 0 !important;
+    transform: scale(0);
+    visibility: hidden;
+}
+
+.toggle-password[aria-pressed="true"] .eye-lash {
+    opacity: 1;
+}
+
+.password-container {
+    position: relative;
+    width: 100%;
+}
+
+.password-container input {
+    width: 100%;
+    padding-right: 45px;
+}
+
+.password-container input.reveal {
+    animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+    0% {
+        box-shadow: 0 0 0 0 rgba(74, 111, 255, 0.3);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(74, 111, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(74, 111, 255, 0);
+    }
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .toggle-password {
+        right: 10px;
+    }
+    
+    .password-container input {
+        padding-right: 40px;
+    }
+} 

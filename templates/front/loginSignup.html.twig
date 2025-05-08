@@ -1,0 +1,413 @@
+{% block body %}
+    <div class="login-container">
+        <div class="container {% if show_signup_panel is defined and show_signup_panel %}active{% endif %}">
+            <!-- Login Form Box -->
+            <div class="form-box login">
+                <form id="login-ajax-form" method="post" action="{{ path('app_login') }}" novalidate>
+                    <h1>Welcome Back</h1>                    
+                    {# Include flash messages #}
+                    {% include 'components/flash_messages.html.twig' %}
+                    
+                    {% if error %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="display: block;">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>{{ error.messageKey|trans(error.messageData, 'security') }}</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}<div id="login-error-container" class="alert alert-danger alert-dismissible fade show" role="alert" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span class="error-message"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                    <div id="login-success-container" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="success-message"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                    <div class="input-box">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" 
+                               value="{{ app.session.get('_security.last_username') ?? '' }}"
+                               name="email" 
+                               id="email" 
+                               required 
+                               autocomplete="email"
+                               class="form-control {% if error %}is-invalid{% endif %}"
+                               data-validation="required|email"
+                               data-validation-message="Please enter a valid email address" />
+                        <i class='bx bxs-envelope'></i>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    
+                    <div class="input-box">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="password-container">
+                            <input type="password" 
+                                   name="password" 
+                                   id="password" 
+                                   required 
+                                   autocomplete="current-password"
+                                   class="form-control {% if error %}is-invalid{% endif %}"
+                                   data-validation="required|minLength:8"
+                                   data-validation-message="Password must be at least 8 characters long" />
+                            <button type="button" class="toggle-password" aria-label="Reveal password" aria-pressed="false">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="eye-svg">
+                                    <path class="eye-shape" d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12" stroke="currentColor"
+                                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                    <path class="eye-shape" d="M1 12C1 12 5 20 12 20C19 20 23 12 23 12" stroke="currentColor"
+                                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                    <circle class="eye-ball" cx="12" cy="12" r="4" />
+                                    <circle class="eye-pupil" cx="13" cy="11" r="1" />
+                                    <!-- Eyelashes for lower lid -->
+                                    <path class="eye-lash" d="M7 17C7 17 7 19 6 20" />
+                                    <path class="eye-lash" d="M11 18C11 18 11 20 11 21" />
+                                    <path class="eye-lash" d="M15 18C15 18 16 19 17 20" />
+                                </svg>
+                                <span class="sr-only">Reveal</span>
+                            </button>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>                    <div class="remember-forgot">
+                        <label>
+                            <input type="checkbox" name="_remember_me"> Remember me
+                        </label>
+                        <a href="{{ path('app_forgot_password') }}">Forgot Password?</a>
+                    </div>
+
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}" />
+
+                    <button type="submit" class="btn">
+                        <span class="button-text">Login</span>
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    </button>
+                    
+                    <div class="alternate-login-options" style="margin-top: 20px;">
+                        <a href="{{ path('app_login_face') }}" class="btn btn-outline-primary face-recognition-btn">
+                            <i class="fas fa-camera me-2"></i> Login with Face Recognition
+                        </a>
+                    </div>
+                    
+                    <div class="social-media-section">
+                        <p>or login with</p>
+                        <div class="social-icons">
+                            <a href="#"><i class='bx bxl-google'></i></a>
+                            <a href="#"><i class='bx bxl-facebook'></i></a>
+                            <a href="#"><i class='bx bxl-github'></i></a>
+                            <a href="#"><i class='bx bxl-linkedin'></i></a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Registration Form Box -->
+            <div class="form-box register">
+                <div class="register-center-box">
+                    {{ form_start(registrationForm, {'attr': {'id': 'registration-form', 'action': path('app_register')}}) }}                        <h1>Join Us</h1>                        <div id="signup-success-message" class="success-message" style="display: none; background-color: rgba(76, 175, 80, 0.15); border: 1px solid rgba(76, 175, 80, 0.3); color: #4caf50; padding: 10px 15px; border-radius: 5px; margin: 10px 0; align-items: center; gap: 10px;">
+                            <i class="fas fa-check-circle" style="font-size: 18px;"></i>
+                            <span>Account created successfully! Redirecting...</span>
+                        </div>
+
+                        <div id="signup-error-message" class="error-message" style="display: none; background-color: rgba(244, 67, 54, 0.15); border: 1px solid rgba(244, 67, 54, 0.3); color: #f44336; padding: 10px 15px; border-radius: 5px; margin: 10px 0; align-items: center; gap: 10px;">
+                            <i class="fas fa-exclamation-circle" style="font-size: 18px;"></i>
+                            <span>There was a problem with your registration. Please try again.</span>
+                        </div>
+
+                        {{ form_row(registrationForm._token) }}                        <!-- Step indicators -->
+                        <div class="steps-container">
+                            <div class="step-indicator active" data-step="1" title="Account Info">1</div>
+                            <div class="step-line"></div>
+                            <div class="step-indicator" data-step="2" title="Personal Details">2</div>
+                            <div class="step-line"></div>
+                            <div class="step-indicator" data-step="3" title="Password & Terms">3</div>
+                        </div>
+
+                        <!-- Step 1: Basic Information -->
+                        <div class="step-content active" data-step="1">
+                            <div class="input-box {% if registrationForm.email.vars.errors|length > 0 %}has-error{% endif %}">
+                                <label for="reg_email" class="form-label">Email</label>
+                                {{ form_widget(registrationForm.email, {'attr': {'id': 'reg_email', 'novalidate': 'novalidate'}}) }}
+                                {{ form_errors(registrationForm.email, {'attr': {'class': 'form-error'}}) }}
+                                <i class='bx bxs-envelope'></i>
+                            </div>
+
+                            <div class="input-box {% if registrationForm.firstName.vars.errors|length > 0 %}has-error{% endif %}">
+                                <label for="reg_first_name" class="form-label">First Name</label>
+                                {{ form_widget(registrationForm.firstName, {'attr': {'id': 'reg_first_name', 'novalidate': 'novalidate'}}) }}
+                                {{ form_errors(registrationForm.firstName, {'attr': {'class': 'form-error'}}) }}
+                                <i class='bx bxs-user'></i>
+                            </div>
+
+                            <div class="input-box {% if registrationForm.lastName.vars.errors|length > 0 %}has-error{% endif %}">
+                                <label for="reg_last_name" class="form-label">Last Name</label>
+                                {{ form_widget(registrationForm.lastName, {'attr': {'id': 'reg_last_name', 'novalidate': 'novalidate'}}) }}
+                                {{ form_errors(registrationForm.lastName, {'attr': {'class': 'form-error'}}) }}
+                                <i class='bx bxs-user'></i>
+                            </div>
+                            
+                            <div class="step-buttons">
+                                <button type="button" class="btn next-btn">Next</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Personal Details -->
+                        <div class="step-content" data-step="2">
+                            <div class="input-box {% if registrationForm.phone_number.vars.errors|length > 0 %}has-error{% endif %}">
+                                <label for="reg_phone" class="form-label">Phone Number</label>
+                                {{ form_widget(registrationForm.phone_number, {'attr': {'id': 'reg_phone', 'novalidate': 'novalidate'}}) }}
+                                {{ form_errors(registrationForm.phone_number, {'attr': {'class': 'form-error'}}) }}
+                                <i class='bx bxs-phone'></i>
+                            </div>                            <div class="input-box {% if registrationForm.dateOfBirth.vars.errors|length > 0 %}has-error{% endif %}">                                <label for="reg_date_of_birth" class="form-label">Date of Birth</label>
+                                {{ form_widget(registrationForm.dateOfBirth, {'attr': {
+                                    'class': 'date-input', 
+                                    'id': 'reg_date_of_birth', 
+                                    'novalidate': 'novalidate',
+                                    'onclick': 'if(typeof flatpickr === "function" && this._flatpickr) { this._flatpickr.open(); }'
+                                }}) }}
+                                {{ form_errors(registrationForm.dateOfBirth, {'attr': {'class': 'form-error'}}) }}
+                                <i class='bx bxs-calendar' onclick="document.getElementById('reg_date_of_birth').click()"></i>
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        setTimeout(function() {
+                                            if (typeof flatpickr === 'function' && document.getElementById('reg_date_of_birth')) {
+                                                flatpickr("#reg_date_of_birth", {
+                                                    dateFormat: "Y-m-d",
+                                                    maxDate: "today",
+                                                    allowInput: true,
+                                                    altInput: true,
+                                                    altFormat: "F j, Y"
+                                                });
+                                            }
+                                        }, 500); // Small delay to ensure the DOM is fully processed
+                                    });
+                                </script>
+                            </div>
+
+                            <div class="input-box {% if registrationForm.location.vars.errors|length > 0 %}has-error{% endif %}">
+                                <label for="reg_location" class="form-label">Location</label>
+                                {{ form_widget(registrationForm.location, {'attr': {'id': 'reg_location', 'novalidate': 'novalidate'}}) }}
+                                {{ form_errors(registrationForm.location, {'attr': {'class': 'form-error'}}) }}
+                                <i class='bx bxs-map'></i>
+                            </div>
+
+                            <div class="input-group {% if registrationForm.gender.vars.errors|length > 0 %}has-error{% endif %}">
+                                <label>Gender</label>
+                                <div class="custom-radio-buttons">
+                                    {{ form_widget(registrationForm.gender, {
+                                        'expanded': true,
+                                        'multiple': false,
+                                        'choice_attr': {
+                                            'male': {'id': 'gender_male'},
+                                            'female': {'id': 'gender_female'}
+                                        },
+                                        'attr': {'class': 'gender-radio-group'},
+                                        'label_attr': {'class': 'gender-label'},
+                                        'choice_label': {
+                                            'male': '<i class="fas fa-mars gender-icon"></i>Male',
+                                            'female': '<i class="fas fa-venus gender-icon"></i>Female'
+                                        }
+                                    }) }}
+                                </div>
+                                {{ form_errors(registrationForm.gender, {'attr': {'class': 'form-error'}}) }}
+                            </div>
+                            
+                            <div class="step-buttons">
+                                <button type="button" class="btn prev-btn">Previous</button>
+                                <button type="button" class="btn next-btn">Next</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Password and Terms -->
+                        <div class="step-content" data-step="3">
+                            <div class="input-box {% if registrationForm.plainPassword.vars.errors|length > 0 %}has-error{% endif %}">
+                                <label for="reg_password" class="form-label">Password</label>
+                                <div class="password-container">
+                                    {{ form_widget(registrationForm.plainPassword, {'attr': {'id': 'reg_password', 'novalidate': 'novalidate'}}) }}
+                                    <button type="button" class="toggle-password" aria-label="Reveal password" aria-pressed="false">
+                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="eye-svg">
+                                            <path class="eye-shape" d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12" stroke="currentColor"
+                                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                            <path class="eye-shape" d="M1 12C1 12 5 20 12 20C19 20 23 12 23 12" stroke="currentColor"
+                                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                            <circle class="eye-ball" cx="12" cy="12" r="4" />
+                                            <circle class="eye-pupil" cx="13" cy="11" r="1" />
+                                            <!-- Eyelashes for lower lid -->
+                                            <path class="eye-lash" d="M7 17C7 17 7 19 6 20" />
+                                            <path class="eye-lash" d="M11 18C11 18 11 20 11 21" />
+                                            <path class="eye-lash" d="M15 18C15 18 16 19 17 20" />
+                                        </svg>
+                                        <span class="sr-only">Reveal</span>
+                                    </button>
+                                </div>
+                                {{ form_errors(registrationForm.plainPassword, {'attr': {'class': 'form-error'}}) }}
+                            </div>
+                            
+                            <div class="input-box">
+                                <label for="reg_confirm_password" class="form-label">Confirm Password</label>
+                                <div class="password-container">
+                                    <input type="password" id="reg_confirm_password" novalidate />
+                                    <button type="button" class="toggle-password" aria-label="Reveal password" aria-pressed="false">
+                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="eye-svg">
+                                            <path class="eye-shape" d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12" stroke="currentColor"
+                                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                            <path class="eye-shape" d="M1 12C1 12 5 20 12 20C19 20 23 12 23 12" stroke="currentColor"
+                                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                            <circle class="eye-ball" cx="12" cy="12" r="4" />
+                                            <circle class="eye-pupil" cx="13" cy="11" r="1" />
+                                            <!-- Eyelashes for lower lid -->
+                                            <path class="eye-lash" d="M7 17C7 17 7 19 6 20" />
+                                            <path class="eye-lash" d="M11 18C11 18 11 20 11 21" />
+                                            <path class="eye-lash" d="M15 18C15 18 16 19 17 20" />
+                                        </svg>
+                                        <span class="sr-only">Reveal</span>
+                                    </button>
+                                </div>
+                                <span class="form-error" id="confirm-password-error" style="display: none;">Passwords do not match</span>
+                            </div>                            <div class="terms {% if registrationForm.vars.errors|length > 0 %}has-error{% endif %}">
+                                <input type="checkbox" id="terms" name="terms" required />
+                                <label for="terms">I agree to the <a href="#">Terms of Service</a> and
+                                    <a href="#">Privacy Policy</a></label>
+                                <div class="form-error" id="terms-error" style="display: none;">You must accept the terms and conditions</div>
+                            </div>
+                            
+                            <div class="step-buttons step-buttons-final">
+                                <button type="button" class="btn prev-btn">Previous</button>
+                                <button type="submit" class="btn create-account-btn">CREATE ACCOUNT</button>
+                            </div>
+                        </div>
+                    {{ form_end(registrationForm, { render_rest: false }) }}
+                    <div class="social-media-section">
+                        <p>or register with</p>
+                        <div class="social-icons">
+                            <a href="#"><i class='bx bxl-google'></i></a>
+                            <a href="#"><i class='bx bxl-facebook'></i></a>
+                            <a href="#"><i class='bx bxl-github'></i></a>
+                            <a href="#"><i class='bx bxl-linkedin'></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toggle Section with Animation and Logo -->
+            <div class="toggle-box">                <!-- Left toggle panel (visible when in login mode) -->
+                <div class="toggle-panel toggle-left">
+                    <div class="logo-container">
+                        <a href="{{ path('app_front_home') }}">
+                            <img src="{{ asset('images/logo/logo.png') }}" alt="WamiaGo Logo" class="logo" />
+                        </a>
+                    </div>
+                    
+                    <div class="car-animation-container">
+                        <div class="floating-platform">
+                            <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs"
+                                type="module"></script>
+                            <dotlottie-player src="https://lottie.host/99262306-ffaf-4895-b278-aeb39ea76131/KdSeoyzVbI.lottie"
+                                background="transparent" speed="1" loop autoplay
+                                class="animated-car"></dotlottie-player>
+                        </div>
+                    </div>
+                    
+                    <h1>Hello, Welcome!</h1>
+                    <p id="toggle-message">New here? Create an account</p>
+                    <button class="btn register-btn">Sign Up</button>                    <!-- Particles for decorative effect -->
+                    <div class="particles">
+                        <div class="particle small"></div>
+                        <div class="particle small"></div>
+                        <div class="particle small"></div>
+                        <div class="particle star"></div>
+                        <div class="particle ring"></div>
+                    </div>
+                </div>                <!-- Right toggle panel (visible when in register mode) -->
+                <div class="toggle-panel toggle-right">
+                    <div class="logo-container">
+                        <a href="{{ path('app_front_home') }}">
+                            <img src="{{ asset('images/logo/logo.png') }}" alt="WamiaGo Logo" class="logo" />
+                        </a>
+                    </div>
+                    
+                    <div class="car-animation-container">
+                        <div class="floating-platform">
+                            <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs"
+                                type="module"></script>
+                            <dotlottie-player src="https://lottie.host/99262306-ffaf-4895-b278-aeb39ea76131/KdSeoyzVbI.lottie"
+                                background="transparent" speed="1" loop autoplay
+                                class="animated-car"></dotlottie-player>
+                        </div>
+                    </div>
+                    
+                    <h1>Welcome Back!</h1>
+                    <p>Already have an account?</p>
+                    <button class="btn login-btn">Login</button>                    <!-- Particles for decorative effect -->
+                    <div class="particles">
+                        <div class="particle medium"></div>
+                        <div class="particle medium"></div>
+                        <div class="particle large"></div>
+                        <div class="particle star"></div>
+                        <div class="particle ring"></div>
+                    </div>
+                </div>
+            </div></div>
+            
+        </div>
+    </div>
+{% endblock %}
+
+{% block stylesheets %}
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@600&display=swap" rel="stylesheet" />
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />    <link rel="stylesheet" href="{{ asset('css/front/loginSignup.css') }}" />    
+    <link rel="stylesheet" href="{{ asset('css/front/eye-toggle-updated.css') }}?v={{ random() }}" />
+    <link rel="stylesheet" href="{{ asset('css/front/step-indicators-fix.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/front/password-eye-final-fix.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/front/login-buttons-spacing.css') }}?v={{ random() }}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="{{ asset('css/front/flatpickr-custom.css') }}?v={{ random() }}">
+    <link rel="stylesheet" href="{{ asset('css/front/step-navigation-fix.css') }}?v={{ random() }}">
+    <link rel="stylesheet" href="{{ asset('css/front/message-styles.css') }}?v={{ random() }}">
+{% endblock %}
+
+{% block javascripts %}
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script src="{{ asset('js/front/loginSignup.js') }}"></script>
+    <script src="{{ asset('js/front/eye-toggle-updated.js') }}?v={{ random() }}"></script>
+    <script src="{{ asset('js/front/password-validator.js') }}"></script>    <script src="{{ asset('js/front/flatpickr-init.js') }}?v={{ random() }}"></script>
+    <script src="{{ asset('js/user/user-status-manager.js') }}?v={{ random() }}"></script><script src="{{ asset('js/front/alert-handler.js') }}"></script>    <script src="{{ asset('js/front/direct-flatpickr.js') }}?v={{ random() }}"></script>
+    <script src="{{ asset('js/front/confetti-animation.js') }}?v={{ random() }}"></script>
+    <script src="{{ asset('js/front/step-navigation-fix.js') }}?v={{ random() }}"></script>
+    <script src="{{ asset('js/front/form-handler.js') }}?v={{ random() }}"></script>
+    <script src="{{ asset('js/front/direct-confetti.js') }}?v={{ random() }}"></script>
+    <script>
+        // Ensure flatpickr is applied to date fields
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait a moment to ensure all DOM elements are ready
+            setTimeout(function() {
+                // Try to find the date input by various methods
+                const dateInput = document.getElementById('reg_date_of_birth') || 
+                                 document.querySelector('input[name="registration_form[dateOfBirth]"]');
+                
+                if (dateInput && typeof flatpickr === 'function') {
+                    console.log('Directly initializing flatpickr on:', dateInput);
+                    
+                    // Force destroy any existing instance
+                    if (dateInput._flatpickr) {
+                        dateInput._flatpickr.destroy();
+                    }
+                    
+                    // Create new instance
+                    flatpickr(dateInput, {
+                        dateFormat: "Y-m-d",
+                        maxDate: "today",
+                        allowInput: true,
+                        altInput: true,
+                        altFormat: "F j, Y"
+                    });
+                    
+                    // Make the input more obvious that it's clickable
+                    dateInput.style.cursor = 'pointer';
+                    dateInput.parentNode.querySelector('i').style.pointerEvents = 'none';
+                }
+            }, 1000);
+        });
+    </script>
+{% endblock %}

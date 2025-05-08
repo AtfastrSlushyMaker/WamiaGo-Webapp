@@ -1,0 +1,428 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="{{ asset('css/user-management-enhanced.css') }}" rel="stylesheet">
+    
+    <style>
+        #debug-console {
+            background-color: #1e1e1e;
+            color: #dcdcdc;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            height: 300px;
+            overflow: auto;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        #debug-console .log { color: #dcdcdc; }
+        #debug-console .error { color: #f14c4c; }
+        #debug-console .warning { color: #e5e510; }
+        #debug-console .info { color: #3794ff; }
+        
+        .nav-tabs .nav-link.active {
+            font-weight: bold;
+        }
+        
+        .code-block {
+            background: #f5f5f5;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        
+        .test-control {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container-fluid py-4">
+        <h1 class="mb-4">User Management Debug</h1>
+        
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">API Testing</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="nav nav-tabs mb-3" id="apiTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="real-api-tab" data-bs-toggle="tab" data-bs-target="#real-api" type="button">Real API</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="mock-api-tab" data-bs-toggle="tab" data-bs-target="#mock-api" type="button">Mock API</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="real-api" role="tabpanel">
+                                <div class="test-control">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <label for="real-api-url" class="form-label">API URL:</label>
+                                            <input type="text" class="form-control" id="real-api-url" value="/admin/users/api">
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <label for="real-api-method" class="form-label">Method:</label>
+                                            <select class="form-select" id="real-api-method">
+                                                <option value="GET">GET</option>
+                                                <option value="POST">POST</option>
+                                                <option value="PUT">PUT</option>
+                                                <option value="DELETE">DELETE</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <label for="real-api-params" class="form-label">Query Parameters (JSON):</label>
+                                            <textarea class="form-control" id="real-api-params" rows="3">{"page": 1, "items": 10}</textarea>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <label for="real-api-body" class="form-label">Request Body (JSON):</label>
+                                            <textarea class="form-control" id="real-api-body" rows="3">{}</textarea>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mt-2">
+                                        <button class="btn btn-secondary" id="real-api-reset">Reset</button>
+                                        <button class="btn btn-primary" id="real-api-test">
+                                            <i class="fas fa-play me-2"></i> Test API
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="alert" id="real-api-status" style="display: none;"></div>
+                                <h6>Response:</h6>
+                                <pre id="real-api-response" class="code-block">// Results will appear here</pre>
+                            </div>
+                            <div class="tab-pane fade" id="mock-api" role="tabpanel">
+                                <div class="test-control">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <label for="mock-api-url" class="form-label">Mock API URL:</label>
+                                            <input type="text" class="form-control" id="mock-api-url" value="/debug-user-api.php">
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <label for="mock-api-method" class="form-label">Method:</label>
+                                            <select class="form-select" id="mock-api-method">
+                                                <option value="GET">GET</option>
+                                                <option value="POST">POST</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="mock-api-params" class="form-label">Query Parameters (JSON):</label>
+                                        <textarea class="form-control" id="mock-api-params" rows="3">{"test": true}</textarea>
+                                    </div>
+                                    <div class="d-flex justify-content-end">
+                                        <button class="btn btn-primary" id="mock-api-test">
+                                            <i class="fas fa-play me-2"></i> Test Mock API
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="alert" id="mock-api-status" style="display: none;"></div>
+                                <h6>Response:</h6>
+                                <pre id="mock-api-response" class="code-block">// Results will appear here</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">Debug Console</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="debug-console"></div>
+                        <button class="btn btn-sm btn-dark float-end" id="clear-console">Clear Console</button>
+                    </div>
+                </div>
+                
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">User Management Link</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>
+                            Click the button below to open the actual user management page in a new tab.
+                        </p>
+                        <a href="{{ path('admin_users') }}" class="btn btn-primary" target="_blank">
+                            <i class="fas fa-external-link-alt me-2"></i> Open User Management
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/user/debug-api.js') }}"></script>
+    
+    <script>
+        // Console logging
+        const debugConsole = document.getElementById('debug-console');
+        
+        function logToConsole(message, type = 'log') {
+            const line = document.createElement('div');
+            line.className = type;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            
+            if (typeof message === 'object') {
+                message = JSON.stringify(message, null, 2);
+            }
+            
+            line.innerHTML = `[${timestamp}] ${message}`;
+            debugConsole.appendChild(line);
+            
+            // Auto-scroll to bottom
+            debugConsole.scrollTop = debugConsole.scrollHeight;
+        }
+        
+        // Clear console
+        document.getElementById('clear-console').addEventListener('click', function() {
+            debugConsole.innerHTML = '';
+        });
+        
+        // Real API testing
+        document.getElementById('real-api-test').addEventListener('click', async function() {
+            const url = document.getElementById('real-api-url').value;
+            const method = document.getElementById('real-api-method').value;
+            const statusElement = document.getElementById('real-api-status');
+            const responseElement = document.getElementById('real-api-response');
+            
+            let params = {};
+            try {
+                params = JSON.parse(document.getElementById('real-api-params').value);
+            } catch (error) {
+                logToConsole(`Invalid JSON in params: ${error.message}`, 'error');
+                statusElement.className = 'alert alert-danger';
+                statusElement.style.display = 'block';
+                statusElement.textContent = `Invalid JSON in params: ${error.message}`;
+                return;
+            }
+            
+            // Build query string
+            const queryParams = new URLSearchParams();
+            Object.entries(params).forEach(([key, value]) => {
+                queryParams.append(key, value);
+            });
+            
+            // Handle request body for POST/PUT
+            let requestOptions = {
+                method,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            };
+            
+            if (['POST', 'PUT'].includes(method)) {
+                try {
+                    const body = JSON.parse(document.getElementById('real-api-body').value);
+                    requestOptions.body = JSON.stringify(body);
+                    requestOptions.headers['Content-Type'] = 'application/json';
+                } catch (error) {
+                    logToConsole(`Invalid JSON in request body: ${error.message}`, 'error');
+                    statusElement.className = 'alert alert-danger';
+                    statusElement.style.display = 'block';
+                    statusElement.textContent = `Invalid JSON in request body: ${error.message}`;
+                    return;
+                }
+            }
+            
+            // Show loading state
+            statusElement.className = 'alert alert-info';
+            statusElement.style.display = 'block';
+            statusElement.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="spinner-border spinner-border-sm me-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    Testing API...
+                </div>
+            `;
+            
+            try {
+                const apiUrl = queryParams.toString().length > 0 
+                    ? `${url}?${queryParams.toString()}` 
+                    : url;
+                
+                logToConsole(`Sending ${method} request to: ${apiUrl}`, 'info');
+                
+                const startTime = performance.now();
+                const response = await fetch(apiUrl, requestOptions);
+                const endTime = performance.now();
+                
+                const responseTime = Math.round(endTime - startTime);
+                
+                let responseBody;
+                const contentType = response.headers.get('content-type');
+                
+                if (contentType && contentType.includes('application/json')) {
+                    responseBody = await response.json();
+                } else {
+                    responseBody = await response.text();
+                }
+                
+                if (response.ok) {
+                    statusElement.className = 'alert alert-success';
+                    statusElement.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Success! Status: ${response.status} ${response.statusText}</span>
+                            <span class="badge bg-secondary">Response time: ${responseTime}ms</span>
+                        </div>
+                    `;
+                    
+                    logToConsole(`Response received in ${responseTime}ms with status ${response.status} ${response.statusText}`, 'info');
+                } else {
+                    statusElement.className = 'alert alert-warning';
+                    statusElement.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>API responded with error: ${response.status} ${response.statusText}</span>
+                            <span class="badge bg-secondary">Response time: ${responseTime}ms</span>
+                        </div>
+                    `;
+                    
+                    logToConsole(`Error response: ${response.status} ${response.statusText}`, 'warning');
+                }
+                
+                // Display the response
+                if (typeof responseBody === 'object') {
+                    responseElement.textContent = JSON.stringify(responseBody, null, 2);
+                    logToConsole('Response body:', 'info');
+                    console.log(responseBody);
+                } else {
+                    responseElement.textContent = responseBody;
+                }
+            } catch (error) {
+                statusElement.className = 'alert alert-danger';
+                statusElement.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error: ${error.message}
+                    </div>
+                `;
+                
+                responseElement.textContent = `Error: ${error.message}`;
+                logToConsole(`Error: ${error.message}`, 'error');
+                console.error(error);
+            }
+        });
+        
+        // Mock API testing
+        document.getElementById('mock-api-test').addEventListener('click', async function() {
+            const url = document.getElementById('mock-api-url').value;
+            const method = document.getElementById('mock-api-method').value;
+            const statusElement = document.getElementById('mock-api-status');
+            const responseElement = document.getElementById('mock-api-response');
+            
+            let params = {};
+            try {
+                params = JSON.parse(document.getElementById('mock-api-params').value);
+            } catch (error) {
+                logToConsole(`Invalid JSON in mock params: ${error.message}`, 'error');
+                statusElement.className = 'alert alert-danger';
+                statusElement.style.display = 'block';
+                statusElement.textContent = `Invalid JSON in params: ${error.message}`;
+                return;
+            }
+            
+            // Build query string
+            const queryParams = new URLSearchParams();
+            Object.entries(params).forEach(([key, value]) => {
+                queryParams.append(key, value);
+            });
+            
+            // Show loading state
+            statusElement.className = 'alert alert-info';
+            statusElement.style.display = 'block';
+            statusElement.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="spinner-border spinner-border-sm me-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    Testing Mock API...
+                </div>
+            `;
+            
+            try {
+                const apiUrl = queryParams.toString().length > 0 
+                    ? `${url}?${queryParams.toString()}` 
+                    : url;
+                
+                logToConsole(`Sending request to mock API: ${apiUrl}`, 'info');
+                
+                const response = await fetch(apiUrl, { method });
+                const contentType = response.headers.get('content-type');
+                
+                let responseBody;
+                if (contentType && contentType.includes('application/json')) {
+                    responseBody = await response.json();
+                } else {
+                    responseBody = await response.text();
+                }
+                
+                if (response.ok) {
+                    statusElement.className = 'alert alert-success';
+                    statusElement.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Success! Status: ${response.status} ${response.statusText}</span>
+                        </div>
+                    `;
+                } else {
+                    statusElement.className = 'alert alert-warning';
+                    statusElement.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Mock API responded with error: ${response.status} ${response.statusText}</span>
+                        </div>
+                    `;
+                }
+                
+                // Display the response
+                if (typeof responseBody === 'object') {
+                    responseElement.textContent = JSON.stringify(responseBody, null, 2);
+                } else {
+                    responseElement.textContent = responseBody;
+                }
+                
+                logToConsole('Mock API response received');
+            } catch (error) {
+                statusElement.className = 'alert alert-danger';
+                statusElement.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error: ${error.message}
+                    </div>
+                `;
+                
+                responseElement.textContent = `Error: ${error.message}`;
+                logToConsole(`Error with mock API: ${error.message}`, 'error');
+            }
+        });
+        
+        // Reset form
+        document.getElementById('real-api-reset').addEventListener('click', function() {
+            document.getElementById('real-api-params').value = '{"page": 1, "items": 10}';
+            document.getElementById('real-api-body').value = '{}';
+            document.getElementById('real-api-status').style.display = 'none';
+            document.getElementById('real-api-response').textContent = '// Results will appear here';
+        });
+        
+        // Initial log message
+        logToConsole('Debug console initialized', 'info');
+        logToConsole('User Management Debug page loaded', 'log');
+    </script>
+{% endblock %}

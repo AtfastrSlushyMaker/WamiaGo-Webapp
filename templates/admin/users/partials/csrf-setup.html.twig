@@ -1,0 +1,24 @@
+<!-- Meta tag for CSRF protection -->
+<meta name="csrf-token" content="{{ csrf_token('user_management') }}" />
+
+<!-- Add CSRF token for AJAX requests -->
+<script>
+    // Set up CSRF headers for all AJAX requests
+    document.addEventListener('DOMContentLoaded', function() {
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (token) {
+            // Add CSRF token to all AJAX requests
+            const originalFetch = window.fetch;
+            window.fetch = function(url, options = {}) {
+                // Only add for our own API endpoints
+                if (url.includes('/admin/users-management/api')) {
+                    if (!options.headers) options.headers = {};
+                    if (!options.headers['X-CSRF-TOKEN'] && !options.headers['x-csrf-token']) {
+                        options.headers['X-CSRF-TOKEN'] = token;
+                    }
+                }
+                return originalFetch(url, options);
+            };
+        }
+    });
+</script>

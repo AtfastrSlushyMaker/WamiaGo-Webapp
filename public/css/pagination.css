@@ -1,0 +1,81 @@
+.pagination-container {
+    display: flex;
+    justify-content: center;
+}
+
+.pagination {
+    margin-bottom: 0;
+}
+
+.pagination .page-item .page-link {
+    border-radius: 4px;
+    margin: 0 2px;
+    color: #3490dc;
+    border-color: #dee2e6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 32px;
+    height: 32px;
+    transition: all 0.2s ease;
+}
+
+.pagination .page-item .page-link:hover {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+    z-index: 2;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #3490dc;
+    border-color: #3490dc;
+    color: white;
+    font-weight: 500;
+    z-index: 1;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Fix to ensure pagination buttons stack properly on small screens */
+@media (max-width: 576px) {
+    .pagination .page-link {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        min-width: 28px;
+        height: 28px;
+    }
+
+    .d-flex.justify-content-between.align-items-center.mt-4 {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .d-flex.justify-content-between.align-items-center.mt-4>div {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Items per page dropdown styling */
+#page-size {
+    border-radius: 4px;
+    border-color: #dee2e6;
+    background-color: #fff;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+#page-size:focus {
+    border-color: #3490dc;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(52, 144, 220, 0.25);
+}

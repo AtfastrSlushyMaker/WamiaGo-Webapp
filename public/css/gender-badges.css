@@ -1,0 +1,106 @@
+/**
+ * Gender Badge Styles
+ * Attractive styling for gender indicators in the user management interface
+ */
+
+/* Base gender badge style */
+.gender-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.gender-badge i {
+    margin-right: 6px;
+    font-size: 0.9rem;
+}
+
+/* Gender-specific styling */
+.gender-badge.male {
+    background: linear-gradient(45deg, #0396FF, #3b82f6);
+    color: white;
+}
+
+.gender-badge.female {
+    background: linear-gradient(45deg, #FF6CAB, #FE636E);
+    color: white;
+}
+
+.gender-badge.other {
+    background: linear-gradient(45deg, #8E2DE2, #4A00E0);
+    color: white;
+}
+
+/* Hover effects */
+.gender-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* Icon shine effect */
+.gender-badge::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    opacity: 0;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+    transform: rotate(30deg);
+    transition: opacity 0.3s ease;
+}
+
+.gender-badge:hover::after {
+    opacity: 1;
+}
+
+/* Tooltip for gender badges */
+.gender-badge[data-tooltip] {
+    position: relative;
+    cursor: pointer;
+}
+
+.gender-badge[data-tooltip]::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%) scale(0.8);
+    opacity: 0;
+    padding: 5px 10px;
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: normal;
+    white-space: nowrap;
+    pointer-events: none;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.gender-badge[data-tooltip]:hover::before {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+    bottom: 120%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .gender-badge {
+        padding: 4px 10px;
+        font-size: 0.8rem;
+    }
+    
+    .gender-badge i {
+        margin-right: 4px;
+    }
+}

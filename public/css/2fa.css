@@ -1,0 +1,59 @@
+/* Two-Factor Authentication Styles */
+.verification-inputs input {
+    width: 45px;
+    height: 48px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.qr-code {
+    max-width: 200px;
+    border: 1px solid #eee;
+    padding: 8px;
+    background-color: white;
+    margin: 0 auto;
+}
+
+.setup-step {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+#secret-key {
+    letter-spacing: 1px;
+    font-size: 0.8rem;
+    font-family: monospace;
+}
+
+.verified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.35rem 0.65rem;
+}
+
+.success-pulse {
+    animation: pulse 1.5s;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(25, 135, 84, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0); }
+}
+
+/* Verified Status Display */
+.verified-status {
+    font-weight: 500;
+    animation: slide-in 0.3s ease-out;
+}
+
+@keyframes slide-in {
+    from { transform: translateY(-10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}

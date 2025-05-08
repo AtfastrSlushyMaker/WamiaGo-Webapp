@@ -1,0 +1,118 @@
+{% extends 'admin/users/_modal.html.twig' %}
+
+{% block modal_id %}edit-user-modal{% endblock %}
+{% block modal_title %}
+    <i class="fas fa-user-edit mr-2 text-primary"></i>Edit User
+{% endblock %}
+
+{% block modal_body %}
+    <div class="text-center mb-4" id="edit-user-avatar-container">
+        <img src="/images/default-avatar.png" alt="User Avatar" class="img-fluid rounded-circle" 
+             style="width: 100px; height: 100px; border: 3px solid #4776E6;" id="user-avatar-preview">
+        <h5 class="mt-2 mb-0" id="edit-user-header-name">{{ user.name is defined ? user.name : 'User Name' }}</h5>
+        <p class="text-muted small" id="edit-user-header-email">{{ user.email is defined ? user.email : 'user@example.com' }}</p>
+    </div>
+
+    {{ form_start(form, {'attr': {'id': 'edit-user-form', 'novalidate': 'novalidate'}}) }}
+    <input type="hidden" id="edit-user-id" value="{{ user.id_user is defined ? user.id_user : '' }}">
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                {{ form_label(form.name, null, {'label_attr': {'class': 'form-label', 'for': 'edit-name'}}) }}
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                    </div>
+                    {{ form_widget(form.name, {'attr': {'class': 'form-control', 'id': 'edit-name'}}) }}
+                </div>
+                {{ form_errors(form.name) }}
+            </div>
+            
+            <div class="form-group">
+                {{ form_label(form.email, null, {'label_attr': {'class': 'form-label', 'for': 'edit-email'}}) }}
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                    </div>
+                    {{ form_widget(form.email, {'attr': {'class': 'form-control', 'id': 'edit-email'}}) }}
+                </div>
+                {{ form_errors(form.email) }}
+            </div>
+            
+            <div class="form-group">
+                {{ form_label(form.phone_number, null, {'label_attr': {'class': 'form-label', 'for': 'edit-phone'}}) }}
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                    </div>
+                    {{ form_widget(form.phone_number, {'attr': {'class': 'form-control', 'id': 'edit-phone'}}) }}
+                </div>
+                {{ form_errors(form.phone_number) }}
+            </div>
+            
+            <div class="form-group">
+                {{ form_label(form.plainPassword, 'Password', {'label_attr': {'class': 'form-label', 'for': 'edit-password'}}) }}
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                    </div>
+                    {{ form_widget(form.plainPassword, {
+                        'attr': {
+                            'class': 'form-control', 
+                            'id': 'edit-password',
+                            'placeholder': 'Leave blank to keep current password'
+                        }
+                    }) }}
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary toggle-password" type="button">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                {{ form_errors(form.plainPassword) }}
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="form-group">
+                {{ form_label(form.role, null, {'label_attr': {'class': 'form-label', 'for': 'edit-role'}}) }}
+                {{ form_widget(form.role, {'attr': {'class': 'form-control', 'id': 'edit-role'}}) }}
+                {{ form_errors(form.role) }}
+            </div>
+            
+            <div class="form-group">
+                {{ form_label(form.account_status, null, {'label_attr': {'class': 'form-label', 'for': 'edit-account-status'}}) }}
+                {{ form_widget(form.account_status, {'attr': {'class': 'form-control', 'id': 'edit-account-status'}}) }}
+                {{ form_errors(form.account_status) }}
+            </div>
+            
+            <div class="form-group">
+                {{ form_label(form.gender, null, {'label_attr': {'class': 'form-label', 'for': 'edit-gender'}}) }}
+                {{ form_widget(form.gender, {'attr': {'class': 'form-control', 'id': 'edit-gender'}}) }}
+                {{ form_errors(form.gender) }}
+            </div>
+            
+            <div class="form-group">
+                <label class="d-block" for="edit-is-verified">Account Verification</label>
+                <div class="custom-control custom-switch">
+                    {{ form_widget(form.isVerified, {'attr': {'class': 'custom-control-input', 'id': 'edit-is-verified'}}) }}
+                    <label class="custom-control-label" for="edit-is-verified">
+                        Verified Account
+                    </label>
+                </div>
+                {{ form_errors(form.isVerified) }}
+            </div>
+        </div>
+    </div>
+    {{ form_end(form) }}
+{% endblock %}
+
+{% block modal_footer %}
+    <button type="button" class="btn btn-rounded btn-secondary" id="edit-cancel-btn">
+        <i class="fas fa-times mr-1"></i> Cancel
+    </button>
+    <button type="button" class="btn btn-rounded btn-primary" id="save-user-btn">
+        <i class="fas fa-save mr-1"></i> Save Changes
+    </button>
+{% endblock %}

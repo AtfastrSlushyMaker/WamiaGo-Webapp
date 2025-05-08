@@ -1,0 +1,18 @@
+<!-- Enhanced Pagination -->
+<div class="d-flex justify-content-between align-items-center mt-4">
+    <div class="text-muted">
+        Showing <span id="showing-results">0</span> of <span id="total-results">0</span> users
+    </div>
+    <div class="pagination-container" data-results-id="showing-results" data-total-id="total-results">
+        <!-- Dynamic pagination will be generated here -->
+    </div>
+    <div class="d-flex align-items-center">
+        <label for="page-size" class="mb-0 mr-2 text-nowrap">Items per page:</label>
+        <select id="page-size" class="form-control form-control-sm" style="width: 70px;">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+        </select>
+    </div>
+</div>

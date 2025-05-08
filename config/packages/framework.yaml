@@ -1,9 +1,14 @@
 # see https://symfony.com/doc/current/reference/configuration/framework.html
 framework:
     secret: '%env(APP_SECRET)%'
+<<<<<<< HEAD
     annotations: true
+=======
+    #csrf_protection: true
+>>>>>>> main
     http_method_override: false
     handle_all_throwables: true
+    default_locale: en
 
     # Enables session support. Note that the session will ONLY be started if you read or write from it.
     # Remove or comment this section to explicitly disable session support.
@@ -11,11 +16,25 @@ framework:
         handler_id: null
         cookie_secure: auto
         cookie_samesite: lax
+<<<<<<< HEAD
 
+=======
+        storage_factory_id: session.storage.factory.native
+        cookie_lifetime: 86400   # 24 hours
+        gc_maxlifetime: 86400    # 24 hours
+        gc_probability: 1
+        gc_divisor: 100          # 1% chance of garbage collection
+        name: wamiasession
+        
+>>>>>>> main
     #esi: true
     #fragments: true
     php_errors:
         log: true
+
+    # Security headers
+    trusted_hosts: ~
+    trusted_proxies: ~
 
 when@test:
     framework:

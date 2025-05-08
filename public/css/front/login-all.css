@@ -1,0 +1,352 @@
+/**
+ * Consolidated CSS for Login/Signup Page
+ * Combines all styles from separate files into a single optimized file
+ */
+
+/* Import fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* Root Variables */
+:root {
+  --primary-color: #3a7bd5;
+  --secondary-color: #3eadcf;
+  --accent-color: #00b894;
+  --text-color: #2d3436;
+  --text-light: #636e72;
+  --error-color: #ff7675;
+  --background-color: #f9f9f9;
+  --card-bg: #ffffff;
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 5px 20px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+  --border-radius-sm: 8px;
+  --border-radius-md: 12px;
+  --border-radius-lg: 20px;
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
+
+/* Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  background: var(--background-color);
+  color: var(--text-color);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: hidden;
+}
+
+/* Login Container */
+.login-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.container {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+  width: 768px;
+  max-width: 100%;
+  min-height: 600px;
+  display: flex;
+}
+
+/* Form Box */
+.form-box {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  transition: all var(--transition-normal);
+  background-color: var(--card-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  overflow-y: auto;
+}
+
+.login {
+  left: 0;
+  z-index: 2;
+}
+
+.register {
+  left: 0;
+  z-index: 1;
+  opacity: 0;
+}
+
+.container.active .login {
+  transform: translateX(100%);
+}
+
+.container.active .register {
+  transform: translateX(100%);
+  opacity: 1;
+  z-index: 5;
+}
+
+/* Toggle Box */
+.toggle-box {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  transition: all var(--transition-normal);
+  z-index: 10;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+}
+
+.container.active .toggle-box {
+  transform: translateX(-100%);
+}
+
+.toggle-panel {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  text-align: center;
+  color: #fff;
+  transform: translateX(0);
+  transition: all var(--transition-normal);
+}
+
+.toggle-left {
+  transform: translateX(0);
+}
+
+.toggle-right {
+  right: 0;
+  transform: translateX(100%);
+}
+
+.container.active .toggle-left {
+  transform: translateX(-100%);
+}
+
+.container.active .toggle-right {
+  transform: translateX(0);
+}
+
+/* Input Box */
+.input-box {
+  position: relative;
+  margin: 10px 0;
+  width: 100%;
+}
+
+.input-box input,
+.input-box select {
+  width: 100%;
+  padding: 12px 15px;
+  background-color: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: var(--border-radius-sm);
+  font-size: 14px;
+  outline: none;
+  transition: all var(--transition-fast);
+  padding-left: 40px; /* Space for icon */
+}
+
+.input-box input:focus,
+.input-box select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(58, 123, 213, 0.1);
+}
+
+.input-box label {
+  position: absolute;
+  top: -8px;
+  left: 12px;
+  color: #555;
+  font-size: 12px;
+  background-color: var(--card-bg);
+  padding: 0 5px;
+  z-index: 1;
+}
+
+.input-box i {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #777;
+}
+
+/* Password Toggle */
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #888;
+  transition: all var(--transition-fast);
+  padding: 5px;
+}
+
+.toggle-password svg {
+  width: 20px;
+  height: 20px;
+  transition: all var(--transition-fast);
+}
+
+.toggle-password:hover {
+  color: var(--primary-color);
+}
+
+/* Validation Styling */
+.is-invalid {
+  border-color: var(--error-color) !important;
+}
+
+.form-error {
+  color: var(--error-color);
+  font-size: 12px;
+  margin-top: 5px;
+  display: none;
+}
+
+.has-error .form-error {
+  display: block;
+}
+
+.has-error input,
+.has-error select {
+  border-color: var(--error-color);
+}
+
+/* Alert Styling */
+.alert {
+  padding: 12px;
+  border-radius: var(--border-radius-sm);
+  margin-bottom: 15px;
+  position: relative;
+  display: none;
+}
+
+.alert-danger {
+  background-color: rgba(255, 118, 117, 0.1);
+  border-left: 4px solid var(--error-color);
+  color: #d63031;
+}
+
+.alert-success {
+  background-color: rgba(0, 184, 148, 0.1);
+  border-left: 4px solid var(--accent-color);
+  color: var(--accent-color);
+}
+
+.alert i {
+  margin-right: 10px;
+}
+
+.btn-close {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: inherit;
+}
+
+/* Multi-step Form */
+.steps-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 30px 0;
+  position: relative;
+}
+
+.step-indicator {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #fff;
+  border: 2px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #555;
+  position: relative;
+  z-index: 2;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.step-indicator.active {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  background-color: rgba(58, 123, 213, 0.1);
+}
+
+.step-indicator.completed {
+  border-color: var(--accent-color);
+  background-color: var(--accent-color);
+  color: white;
+}
+
+.step-line {
+  flex: 1;
+  height: 2px;
+  background-color: #e0e0e0;
+  margin: 0 10px;
+  position: relative;
+}
+
+.step-line.active {
+  background-color: var(--accent-color);
+}
+
+.step-content {
+  display: none;
+}
+
+.step-content.active {
+  display: block;
+  animation: fadeIn var(--transition-slow);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

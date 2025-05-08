@@ -1,0 +1,77 @@
+/* Enhanced Password Field Eye Animation */
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border: none;
+  background: none;
+  color: #555;
+  cursor: pointer;
+  padding: 0;
+}
+
+.toggle-password:focus {
+  outline: none;
+  color: #333;
+}
+
+.toggle-password svg {
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+}
+
+/* Improved transitions for smoother animation */
+.toggle-password .lid {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggle-password .eye {
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+/* Create proper closed eye effect */
+.toggle-password[aria-pressed="true"] .eye {
+  opacity: 0.4; /* Dim the eye when closed */
+}
+
+/* Upper lid moves further down */
+.toggle-password[aria-pressed="true"] .lid--upper {
+  transform: translateY(5px);
+}
+
+/* Lower lid also moves slightly */
+.toggle-password[aria-pressed="true"] .lid--lower {
+  transform: translateY(-2px);
+}
+
+/* Ensure the password container is set up correctly */
+.password-container {
+  position: relative;
+  width: 100%;
+}
+
+.password-container input {
+  width: 100%;
+  padding-right: 45px; /* Make space for the eye icon */
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}

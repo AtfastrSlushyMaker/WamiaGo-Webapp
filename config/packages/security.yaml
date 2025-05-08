@@ -21,7 +21,9 @@ security:
         main:
             lazy: true
             provider: app_user_provider
-            custom_authenticator: App\Security\LoginAuthenticator
+            custom_authenticators:
+                - App\Security\LoginAuthenticator
+                - App\Security\FacialRecognitionAuthenticator
             logout:
                 path: app_logout
                 target: /login

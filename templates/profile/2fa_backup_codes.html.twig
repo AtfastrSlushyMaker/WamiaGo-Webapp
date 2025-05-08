@@ -1,0 +1,117 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Two-Factor Authentication Backup Codes{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Backup Codes</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <div class="d-flex">
+                            <i class="fas fa-exclamation-triangle me-3 align-self-center"></i>
+                            <div>
+                                <h6 class="alert-heading">Keep these codes safe!</h6>
+                                <p class="mb-0">If you lose your authentication device, you can use these backup codes to log in. Each code can only be used once. Store them in a safe place.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="backup-codes mb-4">
+                        <!-- Debug info -->
+                        {% if codes is empty %}
+                            <div class="alert alert-danger">
+                                <strong>No backup codes available.</strong> 
+                                This might be a technical issue - please try again or contact support.
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <strong>{{ codes|length }} backup codes available.</strong>
+                            </div>
+                        {% endif %}
+
+                        <div class="d-flex flex-wrap justify-content-center">
+                            {% for code in codes %}
+                                <div class="backup-code m-2 p-2 border rounded text-monospace user-select-all">
+                                    {{ code }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mb-4">
+                        <button id="print-codes" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-print me-2"></i> Print
+                        </button>
+                        <button id="copy-codes" class="btn btn-outline-primary">
+                            <i class="fas fa-copy me-2"></i> Copy All
+                        </button>
+                    </div>
+                    
+                    <div class="text-center">
+                        <a href="{{ path('app_profile') }}" class="btn btn-primary">
+                            I've saved these codes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<link href="{{ asset('css/2fa.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
+<style>
+.backup-code {
+    font-family: monospace;
+    font-size: 1.1rem;
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Print functionality
+    const printButton = document.getElementById('print-codes');
+    if (printButton) {
+        printButton.addEventListener('click', function() {
+            window.print();
+        });
+    }
+    
+    // Copy all codes functionality
+    const copyButton = document.getElementById('copy-codes');
+    if (copyButton) {
+        copyButton.addEventListener('click', function() {
+            const codeElements = document.querySelectorAll('.backup-code');
+            const codes = Array.from(codeElements).map(el => el.textContent.trim()).join('\n');
+            
+            navigator.clipboard.writeText(codes).then(() => {
+                // Visual feedback
+                copyButton.innerHTML = '<i class="fas fa-check me-2"></i> Copied!';
+                copyButton.classList.remove('btn-outline-primary');
+                copyButton.classList.add('btn-success');
+                
+                setTimeout(() => {
+                    copyButton.innerHTML = '<i class="fas fa-copy me-2"></i> Copy All';
+                    copyButton.classList.remove('btn-success');
+                    copyButton.classList.add('btn-outline-primary');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

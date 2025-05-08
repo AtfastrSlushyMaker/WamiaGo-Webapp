@@ -1,0 +1,25 @@
+# Configuration for scheb/2fa-bundle
+scheb_two_factor:
+    security_tokens:
+        - Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken
+        - Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken
+    
+    totp:
+        enabled: true
+        server_name: WamiaGo
+        issuer: WamiaGo App
+        leeway: 1
+        parameters:
+            digits: 6
+            algorithm: sha1
+            period: 30
+    
+    two_factor_condition: App\Security\TwoFactorCondition
+    
+    # Trusted device feature - comment out if you don't want to enable it
+    # trusted_device:
+    #     enabled: true
+    #     lifetime: 5184000 # 60 days
+    #     extend_lifetime: true
+    #     cookie_name: wamiagp_2fa_trusted
+    #     cookie_secure: false 

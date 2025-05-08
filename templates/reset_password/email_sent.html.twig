@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Reset Email Sent | WamiaGo</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<style>
+    :root {
+            --primary-color: #4A6FFF;
+            --primary-gradient: linear-gradient(135deg, #4A6FFF 0%, #5E89FF 100%);
+            --primary-dark: #385BD9;
+            --primary-light: #7A9CFF;
+            --accent-color: #FF7A5A;
+            --accent-gradient: linear-gradient(135deg, #FF7A5A 0%, #FFA26B 100%);
+            --success-color: #00C896;
+            --danger-color: #FF5A5A;
+            --warning-color: #FFB947;
+            --gray-light: #F9FAFF;
+            --gray-medium: #E6EBFF;
+            --gray-dark: #B0B7D0;
+            --text-dark: #1E2B4D;
+            --text-medium: #637094;
+            --text-light: #8A93AD;
+            --white: #FFFFFF;
+            --card-shadow: 0 15px 35px rgba(74, 111, 255, 0.1);
+            --input-shadow: 0 5px 15px rgba(74, 111, 255, 0.05);
+            --border-radius: 16px;
+            --animation-duration: 0.4s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes float {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(10px, 15px) rotate(5deg); }
+            50% { transform: translate(20px, 0) rotate(10deg); }
+            75% { transform: translate(10px, -15px) rotate(5deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+        
+        @keyframes wave {
+            0% { transform: translateY(0); }
+            25% { transform: translateY(-10px); }
+            50% { transform: translateY(0); }
+            75% { transform: translateY(10px); }
+            100% { transform: translateY(0); }
+        }
+        
+        @keyframes spinAround {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+    }
+    
+    body {
+            background-color: var(--gray-light);
+            background-image: radial-gradient(circle at top right, rgba(74, 111, 255, 0.1) 0%, transparent 60%),
+                          radial-gradient(circle at bottom left, rgba(255, 122, 90, 0.1) 0%, transparent 60%);
+            min-height: 100vh;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            padding: 30px 15px;
+            z-index: 10;
+        }
+        
+        .card {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+        overflow: hidden;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            animation: scaleIn var(--animation-duration) ease-out;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: var(--primary-gradient);
+        }
+        
+        .card-header {
+            padding: 32px 30px 20px;
+            border-bottom: 1px solid var(--gray-medium);
+            position: relative;
+        }
+        
+        .card-header h3 {
+            margin: 0;
+            color: var(--text-dark);
+            font-size: 28px;
+            font-weight: 700;
+        position: relative;
+            display: inline-block;
+    }
+    
+        .card-header h3::after {
+        content: '';
+        position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: var(--accent-gradient);
+            border-radius: 10px;
+        }
+        
+        .card-body {
+            padding: 35px 30px;
+        }
+        
+        .success-animation {
+            text-align: center;
+            margin-bottom: 30px;
+        position: relative;
+    }
+        
+        .animation-circle {
+            width: 110px;
+            height: 110px;
+        border-radius: 50%;
+            background: linear-gradient(135deg, rgba(74, 111, 255, 0.2) 0%, rgba(74, 111, 255, 0.1) 100%);
+            margin: 0 auto;
+        position: relative;
+            animation: scaleIn 0.5s ease-out;
+    }
+    
+        .animation-circle::before {
+        content: '';
+        position: absolute;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(74, 111, 255, 0.3) 0%, rgba(74, 111, 255, 0.2) 100%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulse 2s infinite ease-in-out;
+        }
+        
+        .animation-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 45px;
+            color: var(--primary-color);
+            animation: slideUp 0.7s ease-out forwards;
+        }
+        
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+        border-radius: 50%;
+        }
+        
+        .particle-1 {
+            top: 20%;
+            left: 20%;
+            background-color: var(--primary-light);
+            animation: float 15s infinite alternate ease-in-out;
+        }
+        
+        .particle-2 {
+            top: 70%;
+            left: 30%;
+            background-color: var(--accent-color);
+            animation: float 20s infinite alternate-reverse ease-in-out;
+        }
+        
+        .particle-3 {
+            top: 40%;
+            right: 25%;
+            background-color: var(--success-color);
+            animation: float 18s infinite alternate ease-in-out;
+        }
+        
+        .particle-4 {
+            bottom: 25%;
+            right: 20%;
+            background-color: var(--primary-color);
+            animation: float 22s infinite alternate-reverse ease-in-out;
+        }
+        
+        .step-item {
+            display: flex;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        
+        .step-item:nth-child(1) { animation-delay: 0.3s; }
+        .step-item:nth-child(2) { animation-delay: 0.6s; }
+        .step-item:nth-child(3) { animation-delay: 0.9s; }
+        
+        .step-number {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-right: 15px;
+            font-size: 18px;
+            box-shadow: 0 5px 15px rgba(74, 111, 255, 0.25);
+        }
+        
+        .step-content {
+            flex-grow: 1;
+        }
+        
+        .step-title {
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 17px;
+            margin-bottom: 5px;
+        }
+        
+        .step-description {
+            color: var(--text-medium);
+            font-size: 14px;
+            margin-top: 0;
+        }
+        
+        .countdown-container {
+            margin: 30px 0;
+        text-align: center;
+    }
+    
+        .countdown {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .countdown-item {
+            background: var(--primary-gradient);
+            border-radius: 12px;
+            padding: 15px 0;
+            width: 65px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(74, 111, 255, 0.2);
+            animation: slideUp 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        
+        .countdown-item:nth-child(1) { animation-delay: 0.2s; }
+        .countdown-item:nth-child(3) { animation-delay: 0.4s; }
+        .countdown-item:nth-child(5) { animation-delay: 0.6s; }
+        
+        .countdown-value {
+            font-size: 22px;
+            font-weight: 700;
+            display: block;
+            line-height: 1.2;
+        }
+        
+        .countdown-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+        
+        .countdown-separator {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+        
+        .info-box {
+            background-color: rgba(74, 111, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 25px 0;
+            border-left: 4px solid var(--primary-color);
+            animation: fadeIn 0.8s ease-out forwards;
+            animation-delay: 1s;
+            opacity: 0;
+        }
+        
+        .info-box-title {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .info-box-text {
+            color: var(--text-medium);
+            font-size: 14px;
+        margin: 0;
+    }
+    
+        .email-highlight {
+            background-color: rgba(74, 111, 255, 0.1);
+            color: var(--primary-color);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-family: monospace;
+            font-size: 15px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            animation: fadeIn 0.8s ease-out forwards;
+            animation-delay: 1.2s;
+            opacity: 0;
+        }
+        
+        .btn {
+        display: inline-block;
+        font-weight: 600;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: middle;
+            user-select: none;
+            border: none;
+            padding: 0 25px;
+            font-size: 16px;
+            line-height: 54px;
+            border-radius: 12px;
+            cursor: pointer;
+        transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        text-decoration: none;
+            flex-grow: 1;
+        }
+        
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: var(--white);
+            box-shadow: 0 10px 20px rgba(74, 111, 255, 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #385BD9 0%, #4A6FFF 100%);
+            box-shadow: 0 15px 25px rgba(74, 111, 255, 0.4);
+        transform: translateY(-2px);
+        }
+        
+        .btn-outline {
+            border: 2px solid var(--gray-medium);
+            background: transparent;
+            color: var(--text-medium);
+            line-height: 50px;
+        }
+        
+        .btn-outline:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background-color: rgba(74, 111, 255, 0.05);
+        }
+        
+        .resend-container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--gray-light);
+        border-radius: 12px;
+            opacity: 0;
+            animation: fadeIn 0.8s ease-out forwards;
+            animation-delay: 1.4s;
+        }
+        
+        .resend-title {
+            color: var(--text-dark);
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .resend-icon {
+            margin-right: 10px;
+        color: var(--primary-color);
+    }
+    
+        .cooldown-message {
+            color: var(--text-medium);
+            font-size: 14px;
+        margin-bottom: 0;
+    }
+    
+        .cooldown-timer {
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .resend-action {
+            color: var(--text-medium);
+            font-size: 14px;
+        margin-bottom: 0;
+    }
+    
+        .resend-btn {
+            color: var(--primary-color);
+            font-weight: 600;
+            background: none;
+        border: none;
+            padding: 0;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        
+        .resend-btn:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            color: var(--text-medium);
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 15px;
+            margin-top: 25px;
+            transition: color 0.3s ease;
+        }
+        
+        .back-link:hover {
+            color: var(--primary-color);
+        }
+        
+        .back-link i {
+            margin-right: 8px;
+            transition: transform 0.3s ease;
+        }
+        
+        .back-link:hover i {
+            transform: translateX(-3px);
+        }
+        
+        /* Animated background shapes */
+        .bg-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .shape {
+            position: absolute;
+            opacity: 0.2;
+            border-radius: 50%;
+        }
+        
+        .shape-1 {
+            width: 300px;
+            height: 300px;
+            background: var(--primary-light);
+            top: -150px;
+            right: 10%;
+            animation: float 30s infinite alternate ease-in-out;
+        }
+        
+        .shape-2 {
+            width: 200px;
+            height: 200px;
+            background: var(--accent-color);
+            bottom: -100px;
+            left: 10%;
+            animation: float 25s infinite alternate-reverse ease-in-out;
+        }
+        
+        .shape-3 {
+            width: 150px;
+            height: 150px;
+            background: var(--primary-color);
+            top: 40%;
+            left: -75px;
+            animation: float 20s infinite alternate ease-in-out;
+        }
+        
+        @media (max-width: 767px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .card-header {
+                padding: 25px 20px 15px;
+            }
+            
+            .card-header h3 {
+                font-size: 24px;
+            }
+            
+            .card-body {
+                padding: 25px 20px;
+            }
+            
+            .animation-circle {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .animation-circle::before {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .animation-icon {
+                font-size: 40px;
+            }
+            
+            .countdown-item {
+                width: 55px;
+                padding: 12px 0;
+            }
+            
+            .countdown-value {
+                font-size: 20px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h3>Reset Email Sent</h3>
+            </div>
+            <div class="card-body">
+                <div class="success-animation">
+                    <div class="animation-circle">
+                        <div class="particles">
+                            <div class="particle particle-1"></div>
+                            <div class="particle particle-2"></div>
+                            <div class="particle particle-3"></div>
+                            <div class="particle particle-4"></div>
+                        </div>
+                        <div class="animation-icon">
+                            <i class="fas fa-paper-plane"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <h4 style="text-align: center; margin-bottom: 24px; color: var(--text-dark);">Password Reset Email Sent!</h4>
+                
+                <p style="text-align: center; margin-bottom: 24px; color: var(--text-medium);">
+                    We've sent a password reset link to <span class="email-highlight">{{ email }}</span>. 
+                    The link will expire in 60 minutes.
+                </p>
+                
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div class="step-title">Check your inbox</div>
+                        <p class="step-description">Look for an email with the subject "Password Reset Request | WamiaGo".</p>
+                    </div>
+                </div>
+                
+                <div class="step-item">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div class="step-title">Click the reset link</div>
+                        <p class="step-description">Follow the link in the email and create your new password.</p>
+                    </div>
+                </div>
+                
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div class="step-title">Log in with your new password</div>
+                        <p class="step-description">Use your new password to access your account.</p>
+                    </div>
+                </div>
+                
+                <div class="countdown-container">
+                    <div style="color: var(--text-dark); font-weight: 600; font-size: 16px;">Link expires in:</div>
+                    <div class="countdown">
+                        <div class="countdown-item">
+                            <span class="countdown-value" id="hours-value">01</span>
+                            <span class="countdown-label">Hours</span>
+                        </div>
+                        <div class="countdown-separator">:</div>
+                        <div class="countdown-item">
+                            <span class="countdown-value" id="minutes-value">00</span>
+                            <span class="countdown-label">Minutes</span>
+                            </div>
+                        <div class="countdown-separator">:</div>
+                        <div class="countdown-item">
+                            <span class="countdown-value" id="seconds-value">00</span>
+                            <span class="countdown-label">Seconds</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-box">
+                    <h5 class="info-box-title">Can't find the email?</h5>
+                    <p class="info-box-text">
+                        Check your spam or junk folder. If you still don't see it, you can request a new link below after the cooldown period.
+                    </p>
+                </div>
+                
+                <div id="resend-container" class="resend-container" data-cooldown="{{ cooldown }}" data-email="{{ email }}">
+                    <h5 class="resend-title">
+                        <span class="resend-icon"><i class="fas fa-sync-alt"></i></span>
+                        Need another reset link?
+                    </h5>
+                    <p class="cooldown-message">
+                        You can request another email in <span id="cooldown-timer" class="cooldown-timer">{{ cooldown }}</span> seconds.
+                    </p>
+                    <p class="resend-action" style="display: none;">
+                        <input type="hidden" id="resend-token" value="{{ csrf_token('resend-email' ~ email) }}">
+                        <button id="resend-btn" class="resend-btn">
+                            <i class="fas fa-paper-plane"></i> Resend password reset email
+                        </button>
+                    </p>
+                </div>
+                
+                <div class="action-buttons">
+                    <a href="{{ path('app_login') }}" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Back to Login
+                    </a>
+                    <a href="{{ path('app_forgot_password_request') }}" class="btn btn-outline">
+                        <i class="fas fa-envelope"></i> Try Different Email
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+            // Create animated background shapes
+            const bgShapes = document.createElement('div');
+            bgShapes.className = 'bg-shapes';
+            bgShapes.innerHTML = `
+                <div class="shape shape-1"></div>
+                <div class="shape shape-2"></div>
+                <div class="shape shape-3"></div>
+            `;
+            document.body.appendChild(bgShapes);
+            
+            // Countdown timer
+            const countdownTimer = () => {
+                const hoursElement = document.getElementById('hours-value');
+                const minutesElement = document.getElementById('minutes-value');
+                const secondsElement = document.getElementById('seconds-value');
+                
+                let totalSeconds = 60 * 60; // 1 hour in seconds
+                
+                const updateTimer = () => {
+                    totalSeconds--;
+                    
+                    if (totalSeconds <= 0) {
+                        clearInterval(interval);
+                        hoursElement.textContent = '00';
+                        minutesElement.textContent = '00';
+                        secondsElement.textContent = '00';
+                return;
+            }
+            
+                    const hours = Math.floor(totalSeconds / 3600);
+                    const minutes = Math.floor((totalSeconds % 3600) / 60);
+                    const seconds = totalSeconds % 60;
+                    
+                    hoursElement.textContent = hours.toString().padStart(2, '0');
+                    minutesElement.textContent = minutes.toString().padStart(2, '0');
+                    secondsElement.textContent = seconds.toString().padStart(2, '0');
+                };
+                
+                const interval = setInterval(updateTimer, 1000);
+                updateTimer(); // Initialize the timer
+            };
+            
+            countdownTimer();
+            
+            // Handle cooldown timer for resend
+            const resendContainer = document.getElementById('resend-container');
+            if (resendContainer) {
+                const cooldownTimer = document.getElementById('cooldown-timer');
+                const resendAction = document.querySelector('.resend-action');
+                const cooldownMessage = document.querySelector('.cooldown-message');
+                const initialCooldown = parseInt(resendContainer.dataset.cooldown, 10);
+                
+                let timeLeft = initialCooldown;
+                
+                const countdownInterval = setInterval(() => {
+                    timeLeft--;
+                    
+                    if (cooldownTimer) {
+                        cooldownTimer.textContent = timeLeft;
+                    }
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(countdownInterval);
+                        if (cooldownMessage) cooldownMessage.style.display = 'none';
+                        if (resendAction) resendAction.style.display = 'block';
+            }
+        }, 1000);
+                
+                // Handle resend button
+                const resendBtn = document.getElementById('resend-btn');
+                if (resendBtn) {
+                    resendBtn.addEventListener('click', function() {
+                        const email = resendContainer.dataset.email;
+                        const csrfToken = document.getElementById('resend-token').value;
+                        
+                        // Visual feedback
+                        const originalText = resendBtn.innerHTML;
+        resendBtn.disabled = true;
+        resendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        
+                        fetch(`{{ path('app_resend_password_reset_email_admin', {'email': 'PLACEHOLDER'}) }}`.replace('PLACEHOLDER', email), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+                            body: new URLSearchParams({
+                                '_csrf_token': csrfToken
+        })
+        })
+                        .then(response => response.json())
+                        .then(data => {
+            if (data.success) {
+                                // Reset cooldown timer
+                                timeLeft = data.cooldown || 60;
+                                cooldownTimer.textContent = timeLeft;
+                                
+                                // Show cooldown message
+                                resendAction.style.display = 'none';
+                                cooldownMessage.style.display = 'block';
+                                
+                                // Start countdown again
+                                const countdownInterval = setInterval(() => {
+                                    timeLeft--;
+                                    cooldownTimer.textContent = timeLeft;
+                                    
+                                    if (timeLeft <= 0) {
+                                        clearInterval(countdownInterval);
+                                        cooldownMessage.style.display = 'none';
+                                        resendAction.style.display = 'block';
+                                    }
+                                }, 1000);
+                                
+                                // Create success message
+                                const successMessage = document.createElement('div');
+                                successMessage.className = 'info-box';
+                                successMessage.style.backgroundColor = 'rgba(0, 200, 150, 0.1)';
+                                successMessage.style.borderLeft = '4px solid var(--success-color)';
+                                successMessage.innerHTML = `
+                                    <h5 class="info-box-title" style="color: var(--success-color);">Email Sent!</h5>
+                                    <p class="info-box-text">A new password reset link has been sent to your email.</p>
+                                `;
+                                
+                                // Insert before the resend container
+                                resendContainer.before(successMessage);
+                                
+                                // Animate in
+                                successMessage.style.animation = 'slideUp 0.5s ease-out forwards';
+                                
+                                // Remove after a few seconds
+                                setTimeout(() => {
+                                    successMessage.style.opacity = '0';
+                                    successMessage.style.transition = 'opacity 0.5s ease';
+                                    setTimeout(() => {
+                                        successMessage.remove();
+                                    }, 500);
+                                }, 5000);
+                } else {
+                                // Create error message
+                                const errorMessage = document.createElement('div');
+                                errorMessage.className = 'info-box';
+                                errorMessage.style.backgroundColor = 'rgba(255, 90, 90, 0.1)';
+                                errorMessage.style.borderLeft = '4px solid var(--danger-color)';
+                                errorMessage.innerHTML = `
+                                    <h5 class="info-box-title" style="color: var(--danger-color);">Error</h5>
+                                    <p class="info-box-text">${data.message || 'Failed to send email. Please try again later.'}</p>
+                                `;
+                                
+                                // Insert before the resend container
+                                resendContainer.before(errorMessage);
+                                
+                                // Animate in
+                                errorMessage.style.animation = 'slideUp 0.5s ease-out forwards';
+                                
+                                // Remove after a few seconds
+                                setTimeout(() => {
+                                    errorMessage.style.opacity = '0';
+                                    errorMessage.style.transition = 'opacity 0.5s ease';
+                                    setTimeout(() => {
+                                        errorMessage.remove();
+                                    }, 500);
+                                }, 5000);
+                            }
+                
+                // Reset button
+                resendBtn.disabled = false;
+                            resendBtn.innerHTML = originalText;
+        })
+                        .catch(error => {
+            console.error('Error:', error);
+                            
+                            // Create error message
+                            const errorMessage = document.createElement('div');
+                            errorMessage.className = 'info-box';
+                            errorMessage.style.backgroundColor = 'rgba(255, 90, 90, 0.1)';
+                            errorMessage.style.borderLeft = '4px solid var(--danger-color)';
+                            errorMessage.innerHTML = `
+                                <h5 class="info-box-title" style="color: var(--danger-color);">Error</h5>
+                                <p class="info-box-text">Something went wrong. Please try again later.</p>
+                            `;
+                            
+                            // Insert before the resend container
+                            resendContainer.before(errorMessage);
+                            
+                            // Animate in
+                            errorMessage.style.animation = 'slideUp 0.5s ease-out forwards';
+                            
+                            // Remove after a few seconds
+                            setTimeout(() => {
+                                errorMessage.style.opacity = '0';
+                                errorMessage.style.transition = 'opacity 0.5s ease';
+                                setTimeout(() => {
+                                    errorMessage.remove();
+                                }, 500);
+                            }, 5000);
+            
+            // Reset button
+            resendBtn.disabled = false;
+                            resendBtn.innerHTML = originalText;
+                        });
+                    });
+                }
+            }
+            
+            // Add button hover effect
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(function(button) {
+                button.addEventListener('mouseenter', function() {
+                    this.style.animation = 'pulse 0.5s ease-in-out';
+                });
+                
+                button.addEventListener('animationend', function() {
+                    this.style.animation = '';
+                });
+            });
+});
+</script>
+</body>
+</html>
