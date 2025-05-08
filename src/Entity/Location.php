@@ -2,35 +2,109 @@
 
 namespace App\Entity;
 
-use Doctrine\DBAL\Types\Types;
-use Doctrine\ORM\Mapping as ORM;
+use App\Repository\LocationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-
-use App\Repository\LocationRepository;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: LocationRepository::class)]
 #[ORM\Table(name: 'location')]
 class Location
 {
+    private const EARTH_RADIUS_KM = 6371; // Earth's radius in kilometers
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private ?int $id_location = null;
+    #[ORM\Column(name: 'id_location', type: 'integer')]
+    private ?int $idLocation = null;
+
+    #[ORM\Column(name: 'latitude', type: 'decimal', precision: 10, scale: 6, nullable: false)]
+    #[Assert\NotBlank(message: "Latitude cannot be empty")]
+    #[Assert\Range(
+        min: -90,
+        max: 90,
+        notInRangeMessage: "Latitude must be between {{ min }} and {{ max }}"
+    )]
+    private string|float|null $latitude = null;
+
+    #[ORM\Column(name: 'longitude', type: 'decimal', precision: 10, scale: 6, nullable: false)]
+    #[Assert\NotBlank(message: "Longitude cannot be empty")]
+    #[Assert\Range(
+        min: -180,
+        max: 180,
+        notInRangeMessage: "Longitude must be between {{ min }} and {{ max }}"
+    )]
+    private string|float|null $longitude = null;
+
+    #[ORM\Column(name: 'address', type: 'string', length: 255, nullable: false)]
+    #[Assert\NotBlank(message: "Address cannot be empty")]
+    private ?string $address = null;
+
+    #[ORM\OneToMany(mappedBy: 'location', targetEntity: BicycleStation::class)]
+    private Collection $bicycleStations;
+
+    #[ORM\OneToMany(mappedBy: 'departureLocation', targetEntity: Request::class)]
+    private Collection $departureRequests;
+
+    #[ORM\OneToMany(mappedBy: 'arrivalLocation', targetEntity: Request::class)]
+    private Collection $arrivalRequests;
+
+    #[ORM\OneToMany(mappedBy: 'startLocation', targetEntity: Reservation::class)]
+    private Collection $startReservations;
+
+    #[ORM\OneToMany(mappedBy: 'endLocation', targetEntity: Reservation::class)]
+    private Collection $endReservations;
+
+    #[ORM\OneToMany(mappedBy: 'location', targetEntity: User::class)]
+    private Collection $users;
+
+    public function __construct()
+    {
+        $this->bicycleStations = new ArrayCollection();
+        $this->departureRequests = new ArrayCollection();
+        $this->arrivalRequests = new ArrayCollection();
+        $this->startReservations = new ArrayCollection();
+        $this->endReservations = new ArrayCollection();
+        $this->users = new ArrayCollection();
+    }
+
+    public function getIdLocation(): ?int
+    {
+        return $this->idLocation;
+    }
 
     public function getId_location(): ?int
     {
-        return $this->id_location;
+        return $this->idLocation;
     }
 
     public function setId_location(int $id_location): self
     {
-        $this->id_location = $id_location;
+        $this->idLocation = $id_location;
         return $this;
     }
 
-    #[ORM\Column(type: 'string', nullable: false)]
-    private ?string $address = null;
+    public function getLatitude(): string|float|null
+    {
+        return $this->latitude;
+    }
+
+    public function setLatitude(string|float $latitude): self
+    {
+        $this->latitude = $latitude;
+        return $this;
+    }
+
+    public function getLongitude(): string|float|null
+    {
+        return $this->longitude;
+    }
+
+    public function setLongitude(string|float $longitude): self
+    {
+        $this->longitude = $longitude;
+        return $this;
+    }
 
     public function getAddress(): ?string
     {
@@ -42,37 +116,6 @@ class Location
         $this->address = $address;
         return $this;
     }
-
-    #[ORM\Column(type: 'decimal', nullable: false)]
-    private ?float $latitude = null;
-
-    public function getLatitude(): ?float
-    {
-        return $this->latitude;
-    }
-
-    public function setLatitude(float $latitude): self
-    {
-        $this->latitude = $latitude;
-        return $this;
-    }
-
-    #[ORM\Column(type: 'decimal', nullable: false)]
-    private ?float $longitude = null;
-
-    public function getLongitude(): ?float
-    {
-        return $this->longitude;
-    }
-
-    public function setLongitude(float $longitude): self
-    {
-        $this->longitude = $longitude;
-        return $this;
-    }
-
-    #[ORM\OneToMany(targetEntity: BicycleStation::class, mappedBy: 'location')]
-    private Collection $bicycleStations;
 
     /**
      * @return Collection<int, BicycleStation>
@@ -89,18 +132,20 @@ class Location
     {
         if (!$this->getBicycleStations()->contains($bicycleStation)) {
             $this->getBicycleStations()->add($bicycleStation);
+            $bicycleStation->setLocation($this);
         }
         return $this;
     }
 
     public function removeBicycleStation(BicycleStation $bicycleStation): self
     {
-        $this->getBicycleStations()->removeElement($bicycleStation);
+        if ($this->getBicycleStations()->removeElement($bicycleStation)) {
+            if ($bicycleStation->getLocation() === $this) {
+                $bicycleStation->setLocation(null);
+            }
+        }
         return $this;
     }
-
-    #[ORM\OneToMany(targetEntity: Request::class, mappedBy: 'departureLocation')]
-    private Collection $departureRequests;
 
     /**
      * @return Collection<int, Request>
@@ -127,9 +172,6 @@ class Location
         return $this;
     }
 
-    #[ORM\OneToMany(targetEntity: Request::class, mappedBy: 'arrivalLocation')]
-    private Collection $arrivalRequests;
-
     /**
      * @return Collection<int, Request>
      */
@@ -154,9 +196,6 @@ class Location
         $this->getArrivalRequests()->removeElement($request);
         return $this;
     }
-
-    #[ORM\OneToMany(targetEntity: Reservation::class, mappedBy: 'startLocation')]
-    private Collection $startReservations;
 
     /**
      * @return Collection<int, Reservation>
@@ -183,9 +222,6 @@ class Location
         return $this;
     }
 
-    #[ORM\OneToMany(targetEntity: Reservation::class, mappedBy: 'endLocation')]
-    private Collection $endReservations;
-
     /**
      * @return Collection<int, Reservation>
      */
@@ -209,19 +245,6 @@ class Location
     {
         $this->getEndReservations()->removeElement($reservation);
         return $this;
-    }
-
-    #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'location')]
-    private Collection $users;
-
-    public function __construct()
-    {
-        $this->bicycleStations = new ArrayCollection();
-        $this->departureRequests = new ArrayCollection();
-        $this->arrivalRequests = new ArrayCollection();
-        $this->startReservations = new ArrayCollection();
-        $this->endReservations = new ArrayCollection();
-        $this->users = new ArrayCollection();
     }
 
     /**
@@ -249,13 +272,43 @@ class Location
         return $this;
     }
 
-    public function getIdLocation(): ?int
-    {
-        return $this->id_location;
-    }
 
-    public function __toString(): string
+    public static function calculateDistance(Location $location1, Location $location2): float
     {
-        return $this->address ?? '';
+        $lat1 = deg2rad($location1->getLatitude());
+        $lon1 = deg2rad($location1->getLongitude());
+        $lat2 = deg2rad($location2->getLatitude());
+        $lon2 = deg2rad($location2->getLongitude());
+    
+        $deltaLat = $lat2 - $lat1;
+        $deltaLon = $lon2 - $lon1;
+    
+        $a = sin($deltaLat/2) * sin($deltaLat/2) +
+             cos($lat1) * cos($lat2) * 
+             sin($deltaLon/2) * sin($deltaLon/2);
+        
+        $c = 2 * atan2(sqrt($a), sqrt(1-$a));
+        
+        return self::EARTH_RADIUS_KM * $c;
     }
+    
+    /**
+     * Get formatted distance between two locations
+     * 
+     * @param Location $location1 The first location
+     * @param Location $location2 The second location
+     * @return string Formatted distance (e.g. "1.2 km" or "800 m")
+     */
+    public static function getFormattedDistance(Location $location1, Location $location2): string
+    {
+        $distance = self::calculateDistance($location1, $location2);
+        
+        if ($distance < 1) {
+            // Convert to meters if less than 1 km
+            return round($distance * 1000) . ' m';
+        }
+        
+        return round($distance, 2) . ' km';
+    } 
+
 }

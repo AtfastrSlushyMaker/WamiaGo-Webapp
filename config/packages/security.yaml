@@ -1,59 +1,46 @@
 security:
     enable_authenticator_manager: true
+
     password_hashers:
         App\Entity\User:
             algorithm: auto
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+
     providers:
         app_user_provider:
             entity:
                 class: App\Entity\User
                 property: email
-                
+        users_in_memory: { memory: null }
+
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
-            
+
         main:
             lazy: true
             provider: app_user_provider
-            user_checker: App\Security\UserChecker
-            custom_authenticators:
-                - App\Security\LoginAuthenticator
-                - App\Security\FacialRecognitionAuthenticator
-            entry_point: App\Security\LoginAuthenticator
-            
-            # Configure 2FA with explicit routes
-            two_factor:
-                auth_form_path: app_2fa_login   # Path to the 2FA form
-                check_path: 2fa_login_check     # Path that checks the 2FA authentication
-                post_only: false                # Allow non-POST requests to check path
-                csrf_token_manager: security.csrf.token_manager
-                
+            custom_authenticator: App\Security\LoginAuthenticator
             logout:
                 path: app_logout
                 target: /login
                 invalidate_session: true
-                
+            form_login:
+                login_path: app_login
+                check_path: app_login
+                default_target_path: app_front_home
+            entry_point: form_login
+            # switch_user: true  # décommenter si tu veux activer l’usurpation d’utilisateur
+
     access_control:
-        # Allow access to the 2FA process paths for any authenticated user
-        - { path: ^/2fa, role: IS_AUTHENTICATED_PARTIALLY }
-        - { path: ^/profile/2fa, role: IS_AUTHENTICATED_REMEMBERED }
-        
-        # Public access to login, signup and similar routes
-        - { path: ^/(login|signup|reset-password|verify-email|css|js|images|fonts|favicon), roles: PUBLIC_ACCESS }
-        - { path: ^/login/face, roles: PUBLIC_ACCESS }
-        - { path: ^/login/face/verify, roles: PUBLIC_ACCESS }
-        - { path: ^/login/face/check, roles: PUBLIC_ACCESS }
-        - { path: ^/health-check, roles: PUBLIC_ACCESS }
-        - { path: ^/api/public, roles: PUBLIC_ACCESS }
-        
-        # Special access for 2FA check endpoints
-        - { path: ^/2fa/check, roles: IS_AUTHENTICATED_PARTIALLY }
-        
-        # Default route - require authenticated user
-        - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
-        
+        - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/signup, roles: PUBLIC_ACCESS }
+        - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/driver, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/, roles: PUBLIC_ACCESS }
+
 when@test:
     security:
         password_hashers:

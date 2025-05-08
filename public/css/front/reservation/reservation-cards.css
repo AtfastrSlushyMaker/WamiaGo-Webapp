@@ -1,0 +1,830 @@
+.reservations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+}
+
+.reservation-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border-left: 4px solid;
+    position: relative;
+}
+
+/* Status colors */
+.reservation-card.pending {
+    border-left-color: #FFC107;
+}
+.reservation-card.confirmed {
+    border-left-color: #28A745;
+    background-color: rgba(40, 167, 69, 0.03);
+}
+.reservation-card.cancelled {
+    border-left-color: #DC3545;
+    background-color: rgba(220, 53, 69, 0.03);
+}
+
+/* Card hover effect */
+.reservation-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+/* Badge styles */
+.card-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.card-badge.pending {
+    background-color: #FFF3CD;
+    color: #856404;
+}
+.card-badge.confirmed {
+    background-color: #D4EDDA;
+    color: #155724;
+}
+.card-badge.cancelled {
+    background-color: #F8D7DA;
+    color: #721C24;
+}
+
+/* Card content */
+.card-header {
+    padding: 1.25rem 1.25rem 0;
+}
+
+.card-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #2D3748;
+    margin-bottom: 0.75rem;
+}
+
+.card-body {
+    padding: 0 1.25rem 1.25rem;
+}
+
+.card-content {
+    color: #4A5568;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+/* Meta information */
+.card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: #718096;
+}
+
+.meta-item i {
+    width: 1rem;
+    text-align: center;
+}
+
+/* Locations section */
+.locations {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #EDF2F7;
+}
+
+/* Footer with buttons */
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    background-color: #F7FAFC;
+    border-top: 1px solid #E2E8F0;
+}
+
+/* Action buttons */
+.btn-details {
+    background-color: transparent;
+    border: 1px solid #4299E1;
+    color: #4299E1;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-details:hover {
+    background-color: #4299E1;
+    color: white;
+}
+
+.card-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-accept, .btn-refuse {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-accept {
+    background-color: #48BB78;
+    color: white;
+}
+
+.btn-accept:hover {
+    background-color: #38A169;
+    transform: scale(1.1);
+}
+
+.btn-refuse {
+    background-color: #F56565;
+    color: white;
+}
+
+.btn-refuse:hover {
+    background-color: #E53E3E;
+    transform: scale(1.1);
+}
+
+/* Disabled state */
+.reservation-card.confirmed .btn-accept,
+.reservation-card.confirmed .btn-refuse,
+.reservation-card.cancelled .btn-accept,
+.reservation-card.cancelled .btn-refuse {
+    display: none;
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.pagination {
+    display: flex;
+    padding-left: 0;
+    list-style: none;
+    border-radius: 0.25rem;
+}
+
+.page-item.active .page-link {
+    background-color: #5A6BE5;
+    border-color: #5A6BE5;
+}
+
+.page-link {
+    color: #5A6BE5;
+    padding: 0.5rem 0.75rem;
+    margin: 0 0.25rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.page-link:hover {
+    background-color: #e9ecef;
+}
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    background-color: #F7FAFC;
+    border-radius: 12px;
+    margin: 2rem 0;
+}
+
+.empty-state img {
+    max-width: 200px;
+    margin-bottom: 1.5rem;
+}
+
+.empty-state h3 {
+    color: #2D3748;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: #718096;
+    margin-bottom: 1.5rem;
+}
+
+/* Style pour les modales SweetAlert */
+.reservation-modal-container {
+    z-index: 99999 !important;
+    justify-content: center !important;
+}
+
+/* Supprimer ou modifier ces règles conflictuelles */
+.swal2-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    z-index: 99999 !important; /* Augmenter le z-index */
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+}
+
+/* Ajouter ces règles pour le message de succès */
+.swal2-success-popup {
+    background: white !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+    max-width: 400px !important;
+    width: 90% !important;
+    position: relative !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2) !important;
+    animation: swalSuccessIn 0.3s ease-out !important;
+}
+
+@keyframes swalSuccessIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Style pour le message de succès */
+.swal2-title.success-title {
+    color: #2D3748 !important;
+    font-size: 1.5rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.swal2-html-container.success-message {
+    color: #4A5568 !important;
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+}
+
+/* Suppression des styles conflictuels */
+.reservation-modal-container,
+.reservation-modal-popup {
+    position: static !important; /* This is causing the positioning issue */
+    margin: 0 !important;
+    transform: none !important;
+}
+
+/* Replace with these styles for proper modal centering */
+.reservation-modal-container {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 1060;
+}
+
+.reservation-modal-popup {
+    position: relative !important;
+    width: auto !important;
+    margin: 1.75rem auto !important;
+    max-width: 500px !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+}
+
+/* Améliorer l'animation d'apparition */
+@keyframes swal2-show {
+    0% {
+        transform: scale(0.7);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Corriger le scroll lock */
+body.swal2-shown {
+    overflow: hidden !important;
+    padding-right: 0 !important;
+}
+
+.reservation-modal-popup {
+    border-radius: 12px !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2) !important;
+}
+
+.reservation-success-modal {
+    border-radius: 12px !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2) !important;
+}
+
+@keyframes swal-popup-appear {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Améliorations des boutons dans les cartes */
+.card-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+/* Style amélioré pour les boutons accept/refuse */
+.btn-accept, .btn-refuse {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-accept {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.btn-accept:hover {
+    background-color: #388E3C;
+    transform: scale(1.15);
+    box-shadow: 0 5px 10px rgba(76, 175, 80, 0.3);
+}
+
+.btn-refuse {
+    background-color: #F44336;
+    color: white;
+}
+
+.btn-refuse:hover {
+    background-color: #D32F2F;
+    transform: scale(1.15);
+    box-shadow: 0 5px 10px rgba(244, 67, 54, 0.3);
+}
+
+/* Style amélioré pour le bouton details */
+.btn-details {
+    background-color: #f8f9fa;
+    border: 1px solid #4299E1;
+    color: #4299E1;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 2px 4px rgba(66, 153, 225, 0.1);
+}
+
+.btn-details:hover {
+    background-color: #4299E1;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(66, 153, 225, 0.2);
+}
+
+/* Style amélioré pour les boutons SweetAlert */
+.swal-confirm-button, .swal-cancel-button {
+    border-radius: 6px !important;
+    padding: 12px 24px !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.5px !important;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1) !important;
+    transition: all 0.2s ease !important;
+}
+
+.swal-confirm-button:hover, .swal-cancel-button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Améliorations de la forme et des inputs */
+.swal2-popup .form-control {
+    padding: 0.75rem 1rem !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 8px !important;
+    font-size: 1rem !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out !important;
+}
+
+.swal2-popup .form-control:focus {
+    border-color: #5A6BE5 !important;
+    box-shadow: 0 0 0 3px rgba(90, 107, 229, 0.25) !important;
+    outline: none !important;
+}
+
+.swal2-popup .form-label {
+    margin-bottom: 0.75rem !important;
+    display: block !important;
+    font-weight: 500 !important;
+    color: #2D3748 !important;
+    font-size: 0.95rem !important;
+}
+
+.swal-close-button {
+    padding: 10px !important;
+    font-size: 24px !important;
+    transition: transform 0.2s, color 0.2s !important;
+    z-index: 9999 !important; /* S'assurer qu'il est au-dessus de tout */
+    cursor: pointer !important;
+    color: #718096 !important;
+}
+
+.swal-close-button:hover {
+    transform: scale(1.2) !important;
+    color: #e53e3e !important;
+}
+
+/*  boutons de fermeture */
+.swal2-close {
+    position: absolute !important;
+    top: 15px !important;
+    right: 15px !important;
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 24px !important;
+    color: #6B7280 !important;
+    transition: all 0.2s ease !important;
+    z-index: 9999 !important;
+    background: none !important;
+    border: none !important;
+    cursor: pointer !important;
+}
+
+.swal2-close:hover {
+    color: #EF4444 !important;
+    transform: scale(1.1) !important;
+}
+
+/* Pour les modales Bootstrap */
+.btn-close {
+    filter: brightness(0) invert(1) !important;
+    opacity: 1 !important;
+    transition: transform 0.2s ease !important;
+}
+
+.btn-close:hover {
+    transform: rotate(90deg) !important;
+}
+
+/* Garantir que les modales sont toujours visibles */
+.reservation-modal-container {
+    z-index: 1060;  
+    display: none;  
+    justify-content: center !important;
+}
+
+.reservation-modal-popup {
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+}
+
+/* Animation d'apparition */
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.swal2-show {
+    animation: modalSlideIn 0.3s ease forwards !important;
+}
+
+/* Ajouter ces règles pour une meilleure gestion de la fermeture */
+.swal2-backdrop-hide {
+    opacity: 0 !important;
+}
+
+.swal2-hide {
+    opacity: 0 !important;
+    transform: scale(0.9) !important;
+}
+
+/* Améliorer l'animation de fermeture */
+.swal2-popup {
+    transition: all 0.3s ease-out !important;
+}
+
+.swal2-backdrop-show {
+    transition: background-color 0.3s !important;
+}
+
+/* Boutons plus visibles */
+.swal-confirm-button {
+    background-color: #5A6BE5 !important;
+    border: none !important;
+    padding: 10px 24px !important;
+    font-weight: 500 !important;
+}
+
+.swal-cancel-button {
+    background-color: #6B7280 !important;
+    border: none !important;
+    padding: 10px 24px !important;
+    font-weight: 500 !important;
+}
+
+/* Reset des styles de base de SweetAlert */
+.swal2-container {
+    overflow: hidden !important;
+    z-index: 99999 !important;
+}
+
+.swal2-close {
+    position: absolute !important;
+    top: 15px !important;
+    right: 15px !important;
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 24px !important;
+    color: #6B7280 !important;
+    transition: all 0.2s ease !important;
+    z-index: 99999 !important;
+    background: none !important;
+    border: none !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+}
+
+.swal2-close:hover {
+    color: #EF4444 !important;
+    transform: scale(1.1) !important;
+}
+
+/* Empêcher le body de se bloquer */
+body.swal2-shown {
+    overflow: hidden !important; 
+    padding-right: var(--swal2-padding-right) !important; 
+}
+
+/* Animation de fermeture */
+.swal2-container.swal2-shown {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(3px) !important;
+}
+
+/* Pagination Styles */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.pagination {
+    display: flex;
+    padding-left: 0;
+    list-style: none;
+    border-radius: 0.25rem;
+}
+
+.page-item .page-link {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    color: #5A6BE5;
+    border: 1px solid #ddd;
+    transition: all 0.3s ease;
+}
+
+.page-item.active .page-link {
+    background-color: #5A6BE5;
+    border-color: #5A6BE5;
+    color: white;
+}
+
+.page-item .page-link:hover {
+    background-color: #f0f2f5;
+}
+
+.page-item.disabled .page-link {
+    color: #bdc3c7;
+    pointer-events: none;
+}
+
+/* SweetAlert2 modal positioning fixes */
+.my-swal-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+}
+
+.my-swal-popup {
+    position: relative !important;
+    max-height: 90vh !important;
+    margin: 1.75rem auto !important;
+    transform: none !important;
+}
+
+/* Ensure modal is always visible */
+.swal2-container {
+    z-index: 9999 !important;
+}
+
+
+.filters-section {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.status-filter .form-select {
+    background-image: url("data:image/svg+xml,%3csvg...");
+    background-position: right 1rem center;
+    background-size: 16px 12px;
+}
+
+/* Custom styling for the relocation form modal */
+.relocation-modal-container {
+    z-index: 1500 !important;
+}
+
+.relocation-modal-popup {
+    border-radius: 12px !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2) !important;
+    animation: swal-popup-appear 0.3s !important;
+    border-left: 5px solid #5A6BE5 !important;
+}
+
+.relocation-form {
+    padding: 1rem 0.5rem;
+}
+
+.relocation-form .form-label {
+    font-weight: 500;
+    color: #2D3748;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    text-align: left;
+}
+
+.relocation-form .form-control {
+    padding: 0.75rem 1rem;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.relocation-form .form-control:focus {
+    border-color: #5A6BE5;
+    box-shadow: 0 0 0 3px rgba(90, 107, 229, 0.25);
+    outline: none;
+}
+
+/* SweetAlert customizations */
+.swal2-popup {
+    padding: 1.5rem !important;
+}
+
+.swal2-title {
+    font-size: 1.5rem !important;
+    margin-bottom: 1.5rem !important;
+    color: #2D3748 !important;
+}
+
+.swal2-html-container {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Custom buttons */
+.btn-primary {
+    background-color: #5A6BE5 !important;
+    border-color: #5A6BE5 !important;
+    padding: 0.5rem 1.25rem !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-primary:hover {
+    background-color: #4858D8 !important;
+    border-color: #4858D8 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(90, 107, 229, 0.3) !important;
+}
+
+.btn-outline-secondary {
+    color: #64748B !important;
+    border-color: #CBD5E0 !important;
+    padding: 0.5rem 1.25rem !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #F7FAFC !important;
+    color: #4A5568 !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Animation */
+@keyframes swal-popup-appear {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Input group styling */
+.input-group-text {
+    background-color: #F7FAFC;
+    border-color: #E2E8F0;
+    color: #4A5568;
+}
+
+/* Validation styling */
+.swal2-validation-message {
+    background-color: #FFF5F5 !important;
+    color: #E53E3E !important;
+    border-radius: 6px !important;
+    padding: 0.75rem !important;
+    margin-top: 1rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    border-left: 3px solid #E53E3E !important;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 576px) {
+    .relocation-modal-popup {
+        width: calc(100% - 2rem) !important;
+        margin: 1rem !important;
+    }
+    
+    .swal2-title {
+        font-size: 1.25rem !important;
+    }
+    
+    .relocation-form .form-label {
+        font-size: 0.875rem !important;
+    }
+}

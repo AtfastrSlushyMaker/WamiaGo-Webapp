@@ -1,0 +1,274 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Reclamation Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            <i class="bi bi-chat-square-text me-2"></i>Reclamations
+        </h1>
+        <div>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal">
+                <i class="bi bi-funnel"></i> Filters
+            </button>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="80">ID</th>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th width="180">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reclamation in reclamations %}
+                        <tr>
+                            <td class="fw-bold">#{{ reclamation.id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm bg-light rounded me-3">
+                                        <i class="bi bi-exclamation-triangle fs-4 text-warning"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ reclamation.title }}</h6>
+                                        <small class="text-muted">{{ reclamation.description|slice(0, 40) }}...</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">
+                                    {{ reclamation.category }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ reclamation.status == 'Pending' ? 'warning' : 
+                                    (reclamation.status == 'Resolved' ? 'success' : 'danger') }}">
+                                    <i class="bi bi-{{ reclamation.status == 'Pending' ? 'clock' : 
+                                        (reclamation.status == 'Resolved' ? 'check-circle' : 'x-circle') }} me-1"></i>
+                                    {{ reclamation.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <small>{{ reclamation.createdAt|date('d M Y, H:i') }}</small>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary view-btn" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#detailsModal"
+                                        data-id="{{ reclamation.id }}">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-success resolve-btn" 
+                                        data-id="{{ reclamation.id }}">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger delete-btn" 
+                                        data-id="{{ reclamation.id }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox fs-1"></i>
+                                <h5 class="mt-2">No reclamations found</h5>
+                                <p>All issues are resolved!</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# Pagination #}
+    {% if reclamations|length > 0 %}
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <div class="text-muted">
+            Showing <span class="fw-bold">{{ reclamations|length }}</span> of <span class="fw-bold">{{ totalReclamations }}</span> entries
+        </div>
+        <nav>
+            <ul class="pagination pagination-sm">
+                <li class="page-item {{ currentPage == 1 ? 'disabled' : '' }}">
+                    <a class="page-link" href="{{ path('admin_response', {page: currentPage-1}) }}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                {% for i in 1..totalPages %}
+                <li class="page-item {{ currentPage == i ? 'active' : '' }}">
+                    <a class="page-link" href="{{ path('admin_response', {page: i}) }}">{{ i }}</a>
+                </li>
+                {% endfor %}
+                <li class="page-item {{ currentPage == totalPages ? 'disabled' : '' }}">
+                    <a class="page-link" href="{{ path('admin_response', {page: currentPage+1}) }}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+{# Details Modal #}
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailsModalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <h6 class="text-muted">Category</h6>
+                            <p id="detailsCategory" class="fw-bold"></p>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="text-muted">Status</h6>
+                            <p id="detailsStatus"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <h6 class="text-muted">Date Submitted</h6>
+                            <p id="detailsDate" class="fw-bold"></p>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="text-muted">Submitted By</h6>
+                            <p id="detailsUser" class="fw-bold"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted">Description</h6>
+                    <div id="detailsDescription" class="bg-light p-3 rounded"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Take Action</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Filter Modal #}
+<div class="modal fade" id="filterModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Filter Reclamations</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="filterForm">
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status">
+                            <option value="">All Statuses</option>
+                            <option value="Pending">Pending</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Resolved">Resolved</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" name="category">
+                            <option value="">All Categories</option>
+                            <option value="Technical">Technical</option>
+                            <option value="Billing">Billing</option>
+                            <option value="Service">Service</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Date Range</label>
+                        <div class="input-group">
+                            <input type="date" class="form-control" name="dateFrom">
+                            <span class="input-group-text">to</span>
+                            <input type="date" class="form-control" name="dateTo">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // View Details
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            // In a real app, you would fetch details via AJAX
+            document.getElementById('detailsModalTitle').textContent = 'Reclamation #' + id;
+            document.getElementById('detailsCategory').textContent = 'Service';
+            document.getElementById('detailsStatus').innerHTML = '<span class="badge bg-warning"><i class="bi bi-clock me-1"></i>Pending</span>';
+            document.getElementById('detailsDate').textContent = new Date().toLocaleDateString();
+            document.getElementById('detailsUser').textContent = 'John Doe (user@example.com)';
+            document.getElementById('detailsDescription').textContent = 'Detailed description of the issue would appear here with all relevant information provided by the user.';
+        });
+    });
+
+    // Resolve Reclamation
+    document.querySelectorAll('.resolve-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            if (confirm('Mark this reclamation as resolved?')) {
+                fetch(`/admin/response/${id}/resolve`, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    }
+                });
+            }
+        });
+    });
+
+    // Delete Reclamation
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            if (confirm('Are you sure you want to delete this reclamation?')) {
+                fetch(`/admin/response/${id}/delete`, {
+                    method: 'DELETE',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    }
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

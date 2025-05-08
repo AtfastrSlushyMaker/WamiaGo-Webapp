@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use App\Repository\RideRepository;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: RideRepository::class)]
 #[ORM\Table(name: 'ride')]
@@ -57,7 +58,13 @@ class Ride
         return $this;
     }
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: 'integer', nullable: false)]
+    #[Assert\NotNull(message: "Duration cannot be null")]
+    #[Assert\Range(
+        min: 1,
+        max: 90,
+        notInRangeMessage: "Duration must be between {{ min }} and {{ max }} minutes",
+    )]
     private ?int $duration = null;
 
     public function getDuration(): ?int

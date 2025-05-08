@@ -11,6 +11,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="{{ asset('css/front/base.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
+
     <link href="{{ asset('css/front/dark-mode.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
     {% if app is defined and app.request is defined and app.request.attributes.get('_route') == 'app_front_home' %}
     <link href="{{ asset('css/front/index.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
@@ -114,7 +115,7 @@
                                 <li><a class="dropdown-item" href="{{ path('app_front_services_bicycle') }}"><i class="fas fa-bicycle me-2"></i>Bicycle Rentals</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><h6 class="dropdown-header">Special Services</h6></li>
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-truck-moving me-2"></i>Relocation Transport</a></li>
+                                <li><a class="dropdown-item" href="{{ path('app_front_announcements') }}"><i class="fas fa-truck-moving me-2"></i>Relocation Transport</a></li>
                                 <li><a class="dropdown-item" href="#"><i class="fas fa-info-circle me-2"></i>All Services<span class="ms-2 badge bg-primary">New</span></a></li>
                             </ul>
                         </li>
