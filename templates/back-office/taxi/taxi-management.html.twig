@@ -1,0 +1,1055 @@
+{% extends 'back-office/base.html.twig' %}
+
+{% block dashboard_comment %}<!-- Taxi Management Dashboard for Back Office -->{% endblock %}
+
+{% block title %}Taxi Management Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1 class="dashboard-title">Taxi Management Dashboard</h1>
+    <meta name="csrf-token" content="{{ csrf_token('delete_request') }}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<div style="margin-bottom: 20px;">
+    <a href="{{ path('admin_taxi_statistics') }}" class="btn btn-primary">
+        <i class="bi bi-graph-up"></i> View Statistics
+    </a>
+</div>
+    {# Dans votre base.html.twig #}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <div class="dashboard-layout" style="display: flex; gap: 20px;">
+        <!-- Requests Panel -->
+        <div class="dashboard-panel" style="flex: 1;">
+            <div class="panel-header requests-header">
+                <i class="bi bi-car-front-fill me-2"></i>Ride Requests
+            </div>
+            <div class="panel-body">
+                <!-- Search Bar -->
+                <form id="search-form" class="mb-3" method="get" action="">
+             
+                    <input type="text" 
+                           name="search" 
+                           id="search-input" 
+                           class="form-control" 
+                           value="{{ app.request.query.get('search') }}"
+                           placeholder="Enter value..." 
+                           style="width: 180px; display: inline-block; margin-right: 10px;">
+                    
+                    <select name="status" id="request-status-select" class="form-control" style="width: 150px; display: inline-block; margin-right: 10px;">
+                        <option value="">All Statuses</option>
+                        <option value="PENDING" {% if app.request.query.get('status') == 'PENDING' %}selected{% endif %}>Pending</option>
+                        <option value="ACCEPTED" {% if app.request.query.get('status') == 'ACCEPTED' %}selected{% endif %}>Accepted</option>
+                        <option value="REJECTED" {% if app.request.query.get('status') == 'REJECTED' %}selected{% endif %}>Rejected</option>
+                        <option value="CANCELED" {% if app.request.query.get('status') == 'CANCELED' %}selected{% endif %}>Canceled</option>
+                    </select>
+                    
+                    <button type="submit" class="btn btn-primary" style="background-color: #2c87c2; border-color: #2ab967;">Search</button>
+                    <button type="button" id="reset-request-search" class="btn btn-secondary">Reset</button>
+                 
+
+   <button type="button" id="export-pdf-btn-requests" class="btn btn-pdf" style="margin-left: 5px;" title="Export PDF">
+    <i class="bi bi-file-earmark-pdf" style="font-size: 1.2em;"></i> Export PDF
+</button>
+
+<!-- Add a link to the route that triggers the export -->
+<a href="{{ path('admin_taxi_export_pdf') }}" id="export-pdf-link" style="display: none;"></a>
+<script>
+ document.getElementById('export-pdf-btn-requests').addEventListener('click', function() {
+    // Trigger the hidden link click when the button is clicked
+    document.getElementById('export-pdf-link').click();
+});
+</script>
+ 
+
+
+
+
+<button type="button" id="export-excel-btn-requests" class="btn btn-excel" style="margin-left: 5px;" title="Export Excel">
+    <i class="bi bi-file-earmark-excel" style="font-size: 1.2em;"></i>
+</button>
+
+<script>
+    document.getElementById('export-excel-btn-requests').addEventListener('click', function () {
+        window.location.href = "{{ path('admin_taxi_export_excel') }}";
+    });
+</script>
+                </form>
+
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>User</th>
+                                <th>Pickup Location</th>
+                                <th>Dropoff Location</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody  class="requests-table-body">
+                            {% for request in availableRequests %}
+                                <tr>
+                                    <td>{{ request.id }}</td>
+                                    <td>{{ request.userName }}</td>
+                                    <td>{{ request.pickupLocation }}</td>
+                                    <td>{{ request.dropoffLocation }}</td>
+                                    <td><span class="status-badge status-{{ request.status|lower }}">{{ request.status }}</span></td>
+                                    <td>{{ request.time }}</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-danger delete-request-btn" data-id="{{ request.id }}">Delete</button>
+                                            <button class="btn btn-info view-ride-btn" 
+                                                    data-pickup-lat="{{ request.pickupLat }}" 
+                                                    data-pickup-lng="{{ request.pickupLng }}" 
+                                                    data-dropoff-lat="{{ request.dropoffLat }}" 
+                                                    data-dropoff-lng="{{ request.dropoffLng }}">View</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center">No requests available</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <!-- Pagination -->
+                    <div class="pagination-container" style="display: flex; justify-content: center; margin-top: 20px;">
+                        {% if paginationRequests.haveToPaginate %}
+                            <div class="pagination">
+                                {% if paginationRequests.currentPage > 1 %}
+                                    <a href="{{ path('admin_taxi_management', {
+                                        'page_requests': paginationRequests.currentPage - 1,
+                                        'page_rides': app.request.query.get('page_rides', 1),
+                                        'search': app.request.query.get('search'),
+                                        'status': app.request.query.get('status')
+                                    }) }}" class="btn btn-secondary">Previous</a>
+                                {% endif %}
+
+                                {% for page in 1..paginationRequests.getNbPages() %}
+                                    <a href="{{ path('admin_taxi_management', {
+                                        'page_requests': page,
+                                        'page_rides': app.request.query.get('page_rides', 1),
+                                        'search': app.request.query.get('search'),
+                                        'status': app.request.query.get('status')
+                                    }) }}" class="btn {% if page == paginationRequests.currentPage %}btn-primary{% else %}btn-secondary{% endif %}">
+                                        {{ page }}
+                                    </a>
+                                {% endfor %}
+
+                                {% if paginationRequests.currentPage < paginationRequests.getNbPages() %}
+                                    <a href="{{ path('admin_taxi_management', {
+                                        'page_requests': paginationRequests.currentPage + 1,
+                                        'page_rides': app.request.query.get('page_rides', 1),
+                                        'search': app.request.query.get('search'),
+                                        'status': app.request.query.get('status')
+                                    }) }}" class="btn btn-secondary">Next</a>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+document.addEventListener('DOMContentLoaded', function () {
+    let debounceTimer;
+
+    function loadRequests() {
+        const tbody = document.querySelector('.requests-table-body');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+        }
+
+        const search = document.getElementById('search-input').value;
+        const status = document.getElementById('request-status-select').value;
+        const url = new URL(window.location.href);
+        url.searchParams.set('search', search);
+        if (status) {
+            url.searchParams.set('status', status);
+        } else {
+            url.searchParams.delete('status');
+        }
+
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTbody = doc.querySelector('.requests-table-body');
+                const newPagination = doc.querySelector('.pagination');
+
+                if (newTbody && tbody) {
+                    tbody.innerHTML = newTbody.innerHTML;
+                }
+
+                const paginationContainer = document.querySelector('.pagination');
+                if (paginationContainer && newPagination) {
+                    paginationContainer.innerHTML = newPagination.innerHTML;
+                }
+
+                window.history.pushState({}, '', url);
+            });
+    }
+
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(loadRequests, 500);
+        });
+    }
+
+    const statusSelect = document.getElementById('request-status-select');
+    if (statusSelect) {
+        statusSelect.addEventListener('change', function () {
+            loadRequests();
+        });
+    }
+
+    const searchForm = document.getElementById('search-form');
+    if (searchForm) {
+        searchForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            loadRequests();
+        });
+    }
+
+    const resetBtn = document.getElementById('reset-request-search');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function () {
+            if (searchInput) searchInput.value = '';
+            if (statusSelect) statusSelect.selectedIndex = 0;
+            loadRequests();
+        });
+    }
+});
+</script>
+
+        <!-- Rides Panel -->
+        <div class="dashboard-panel" style="flex: 1;">
+            <div class="panel-header rides-header">Active Rides</div>
+            <div class="panel-body">
+            
+              <form id="rides-search-form" class="mb-3" method="get" action="">
+    <input type="text" name="search" id="rides-search-input" class="form-control" 
+           placeholder="Enter value..." style="width: 180px; display: inline-block; margin-right: 10px;"
+           value="{{ search }}">
+    <select name="status" id="rides-status-select" class="form-control" style="width: 150px; display: inline-block; margin-right: 10px;">
+        <option value="">All Statuses</option>
+        <option value="{{ constant('App\\Enum\\RIDE_STATUS::ONGOING').value }}" {% if status == constant('App\\Enum\\RIDE_STATUS::ONGOING').value %}selected{% endif %}>Ongoing</option>
+        <option value="{{ constant('App\\Enum\\RIDE_STATUS::COMPLETED').value }}" {% if status == constant('App\\Enum\\RIDE_STATUS::COMPLETED').value %}selected{% endif %}>Completed</option> 
+        <option value="{{ constant('App\\Enum\\RIDE_STATUS::CANCELED').value }}" {% if status == constant('App\\Enum\\RIDE_STATUS::CANCELED').value %}selected{% endif %}>Canceled</option>
+    </select>
+
+
+    <select name="sort" id="rides-sort-select" class="form-control" style="width: 150px; display: inline-block; margin-right: 10px;">
+        <option value="">Sort By</option>
+        <option value="date" {% if sort == 'date' %}selected{% endif %}>Date</option>
+        <option value="name" {% if sort == 'name' %}selected{% endif %}>Name</option>
+        <option value="status" {% if sort == 'status' %}selected{% endif %}>Status</option>
+        <option value="price" {% if sort == 'price' %}selected{% endif %}>Price</option>
+        <option value="distance" {% if sort == 'distance' %}selected{% endif %}>Distance</option>
+    </select>
+    <select name="direction" id="rides-direction-select" class="form-control" style="width: 100px; display: inline-block; margin-right: 10px;">
+        <option value="asc" {% if direction == 'asc' or direction is not defined %}selected{% endif %}>Ascending</option>
+        <option value="desc" {% if direction == 'desc' %}selected{% endif %}>Descending</option>
+    </select>
+    <button type="submit" class="btn btn-primary" style="background-color: #2ab967; border-color: #2ab967;">Search</button>
+    <button type="button" id="reset-search" class="btn btn-secondary" style="margin-left: 5px;">Reset</button>
+    <button type="button" id="export-pdf-btn-rides" class="btn btn-pdf" style="margin-left: 10px;" title="Export PDF">
+        <i class="bi bi-file-earmark-pdf" style="font-size: 1.2em;"></i>
+    </button>
+    <a href="{{ path('admin_taxi_export_excel_rides') }}" class="btn btn-excel" style="margin-left: 5px;" title="Export Excel">
+    <i class="bi bi-file-earmark-excel" style="font-size: 1.2em;"></i>
+</a>
+
+
+<!-- Hidden link to trigger PDF export -->
+<a href="{{ path('admin_taxi_export_pdf_ride') }}" id="export-pdf-link-rides" style="display: none;"></a>
+
+<script>
+    document.getElementById('export-pdf-btn-rides').addEventListener('click', function () {
+        // Trigger the hidden link click for PDF export
+        document.getElementById('export-pdf-link-rides').click();
+    });
+</script>
+
+
+<script>
+ document.getElementById('export-excel-btn-rides').addEventListener('click', function () {
+    window.location.href = '{{ path("admin_taxi_export_excel_rides") }}';
+});
+    </script>
+</form>
+
+
+<!-- AJAX Script for Dynamic Loading -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let debounceTimer;
+
+    // Attach event listeners initially
+    attachEventListeners();
+
+    // Function to attach event listeners
+    function attachEventListeners() {
+        ['rides-search-input', 'rides-status-select', 'rides-sort-select', 'rides-direction-select'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.removeEventListener('change', loadData);
+                element.addEventListener('change', loadData);
+            }
+        });
+
+        // Reattach view and delete buttons listeners if needed
+        document.querySelectorAll('.view-ride-btn, .delete-ride-btn').forEach(button => {
+            button.addEventListener('click', function (e) {
+                // Your button logic here
+            });
+        });
+    }
+
+    // Function to load data via AJAX
+    function loadData() {
+        const ridesTableBody = document.querySelector('.rides-table tbody');
+        if (ridesTableBody) {
+            ridesTableBody.innerHTML = '<tr><td colspan="8" class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+        }
+
+        const search = document.getElementById('rides-search-input').value;
+        const status = document.getElementById('rides-status-select').value;
+        const sort = document.getElementById('rides-sort-select').value;
+        const direction = document.getElementById('rides-direction-select').value;
+        const currentPage = new URLSearchParams(window.location.search).get('page_rides') || 1;
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('search', search);
+        url.searchParams.set('page_rides', currentPage);
+        status ? url.searchParams.set('status', status) : url.searchParams.delete('status');
+        sort ? url.searchParams.set('sort', sort) : url.searchParams.delete('sort');
+        direction ? url.searchParams.set('direction', direction) : url.searchParams.delete('direction');
+
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                const newTableBody = doc.querySelector('.rides-table tbody');
+                if (newTableBody && ridesTableBody) {
+                    ridesTableBody.innerHTML = newTableBody.innerHTML;
+                }
+
+                const paginationContainer = document.querySelector('.pagination');
+                const newPagination = doc.querySelector('.pagination');
+                if (paginationContainer && newPagination) {
+                    paginationContainer.innerHTML = newPagination.innerHTML;
+                }
+
+                window.history.pushState({}, '', url);
+                attachEventListeners();
+            });
+    }
+
+    // Debounced input event
+    const searchInput = document.getElementById('rides-search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(loadData, 500);
+        });
+    }
+
+    // Form submit
+    const searchForm = document.getElementById('rides-search-form');
+    if (searchForm) {
+        searchForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            loadData();
+        });
+    }
+
+    // Reset button
+    const resetButton = document.getElementById('reset-search');
+    if (resetButton) {
+        resetButton.addEventListener('click', function () {
+            if (searchInput) searchInput.value = '';
+            ['rides-status-select', 'rides-sort-select', 'rides-direction-select'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.selectedIndex = 0;
+            });
+            loadData();
+        });
+    }
+});
+</script>
+
+                <div class="table-responsive">
+                    <table class="admin-table rides-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Driver</th>
+                                <th>Pickup Location</th>
+                                <th>Dropoff Location</th>
+                                <th>Distance</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ride in availableRides %}
+                                <tr data-id="{{ ride.id }}" 
+                                    data-pickup-lat="{{ ride.pickupLat }}" 
+                                    data-pickup-lng="{{ ride.pickupLng }}" 
+                                    data-dropoff-lat="{{ ride.dropoffLat }}" 
+                                    data-dropoff-lng="{{ ride.dropoffLng }}">
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ ride.userName }}</td>
+                                    <td>{{ ride.pickupLocation }}</td>
+                                    <td>{{ ride.dropoffLocation }}</td>
+                                    <td>{{ ride.distance }} km</td>
+                                    <td>{{ ride.price }}Dt</td>
+                                    <td><span class="status-badge status-{{ ride.status|lower }}">{{ ride.status }}</span></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-danger delete-ride-btn" data-id="{{ ride.id }}">Delete</button>
+                                            <button class="btn btn-info view-ride-btn" 
+                                                    data-pickup-lat="{{ ride.pickupLat }}" 
+                                                    data-pickup-lng="{{ ride.pickupLng }}" 
+                                                    data-dropoff-lat="{{ ride.dropoffLat }}" 
+                                                    data-dropoff-lng="{{ ride.dropoffLng }}">View</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center">No rides available</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+      
+<!-- Rides Pagination -->
+<!-- Pagination Controls -->
+<div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
+    {% set currentPageRequests = app.request.query.get('page_requests', 1) %}
+    {% set currentPageRides = app.request.query.get('page_rides', 1) %}
+    {% set totalPagesRequests = paginationRequests.getNbPages() %}
+    {% set totalPagesRides = paginationRides.getNbPages() %}
+
+    {% if currentPageRides > 1 %}
+        <a href="{{ path('admin_taxi_management', {'page_requests': currentPageRequests, 'page_rides': currentPageRides - 1}) }}" class="btn btn-secondary">Previous</a>
+    {% endif %}
+
+    {% for page in 1..totalPagesRides %}
+        {% if page == currentPageRides %}
+            <span class="btn btn-primary">{{ page }}</span>
+        {% else %}
+            <a href="{{ path('admin_taxi_management', {'page_requests': currentPageRequests, 'page_rides': page}) }}" class="btn btn-secondary">{{ page }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if currentPageRides < totalPagesRides %}
+        <a href="{{ path('admin_taxi_management', {'page_requests': currentPageRequests, 'page_rides': currentPageRides + 1}) }}" class="btn btn-secondary">Next</a>
+    {% endif %}
+</div>
+
+                </div>
+                <!-- End Pagination Controls -->
+            </div>
+        </div>
+    </div>
+    <!-- Map Modal -->
+    <div class="modal fade" id="viewMapModal" tabindex="-1" aria-labelledby="viewMapModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="viewMapModalLabel">Ride Route</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" style="height: 400px;">
+            <div id="rideMap" style="width: 100%; height: 100%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let map;
+        let markers = [];
+
+        document.querySelectorAll('.view-ride-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const pickupLat = parseFloat(this.getAttribute('data-pickup-lat'));
+                const pickupLng = parseFloat(this.getAttribute('data-pickup-lng'));
+                const dropoffLat = parseFloat(this.getAttribute('data-dropoff-lat'));
+                const dropoffLng = parseFloat(this.getAttribute('data-dropoff-lng'));
+
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('viewMapModal'));
+                modal.show();
+
+                setTimeout(() => {
+                    // Initialize or reset map
+                    if (!map) {
+                        map = L.map('rideMap').setView([pickupLat, pickupLng], 13);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            maxZoom: 19,
+                            attribution: '© OpenStreetMap'
+                        }).addTo(map);
+                    } else {
+                        map.setView([pickupLat, pickupLng], 13);
+                        markers.forEach(m => map.removeLayer(m));
+                        markers = [];
+                    }
+
+                    // Add markers
+                    const pickupMarker = L.marker([pickupLat, pickupLng]).addTo(map).bindPopup('Pickup Location').openPopup();
+                    const dropoffMarker = L.marker([dropoffLat, dropoffLng]).addTo(map).bindPopup('Dropoff Location');
+                    markers.push(pickupMarker, dropoffMarker);
+
+                    // Fit bounds
+                    const group = new L.featureGroup([pickupMarker, dropoffMarker]);
+                    map.fitBounds(group.getBounds(), {padding: [50, 50]});
+                }, 400); // Wait for modal to render
+            });
+        });
+
+        // Optional: Reset map size when modal is shown
+        document.getElementById('viewMapModal').addEventListener('shown.bs.modal', function () {
+            if (map) {
+                setTimeout(() => {
+                    map.invalidateSize();
+                }, 100); // Delay to ensure modal is fully rendered
+            }
+        });
+    });
+    </script>
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Helper function to get the current page from the URL
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    // Request delete
+    document.querySelectorAll('.delete-request-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const row = button.closest('tr');
+            const requestId = button.getAttribute('data-id');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'Do you really want to delete this request? This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then(result => {
+                if (result.isConfirmed) {
+                    fetch(`/request/delete/${requestId}`, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            row.style.transition = 'opacity 0.5s ease';
+                            row.style.opacity = '0';
+                            setTimeout(() => row.remove(), 500);
+                            Swal.fire('Deleted!', 'The request has been deleted.', 'success');
+
+                            // After deletion, reload the table content or navigate to the current page
+                            const pageRequests = getQueryParam('page_requests') || 1;
+                            const pageRides = getQueryParam('page_rides') || 1;
+                            window.location.href = `/admin/taxi-management?page_requests=${pageRequests}&page_rides=${pageRides}`;
+                        } else {
+                            Swal.fire('Error!', data.message || 'Failed to delete request.', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire('Error!', 'Something went wrong. Try again later.', 'error');
+                    });
+                }
+            });
+        });
+    });
+
+    // Ride delete
+    document.querySelectorAll('.delete-ride-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const row = button.closest('tr');
+            const rideId = button.getAttribute('data-id');
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'Do you want to delete this ride? This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/ride/delete/${rideId}`, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            row.style.transition = 'opacity 0.5s ease';
+                            row.style.opacity = '0';
+                            setTimeout(() => row.remove(), 500);
+                            Swal.fire('Deleted!', data.message, 'success');
+
+                            // After deletion, reload the table content or navigate to the current page
+                            const pageRequests = getQueryParam('page_requests') || 1;
+                            const pageRides = getQueryParam('page_rides') || 1;
+                            window.location.href = `/admin/taxi-management?page_requests=${pageRequests}&page_rides=${pageRides}`;
+                        } else {
+                            Swal.fire('Error!', data.message || 'Deletion failed.', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire('Error!', 'Something went wrong. Try again later.', 'error');
+                    });
+                }
+            });
+        });
+    });
+});
+
+</script>
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+        <div class="summary-card card-requests">
+            <div class="card-title">Total Requests</div>
+            <div class="card-value">124</div>
+            <div class="card-subtitle">↑ 12% from last week</div>
+        </div>
+        <div class="summary-card card-rides">
+            <div class="card-title">Completed Rides</div>
+            <div class="card-value">96</div>
+            <div class="card-subtitle">↑ 8% from last week</div>
+        </div>
+        <div class="summary-card card-drivers">
+            <div class="card-title">Active Drivers</div>
+            <div class="card-value">18</div>
+            <div class="card-subtitle">Currently online</div>
+        </div>
+        <div class="summary-card card-revenue">
+            <div class="card-title">Revenue</div>
+            <div class="card-value">$1,245</div>
+            <div class="card-subtitle">This week</div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Enhanced Dashboard Styles */
+    .dashboard-container {
+        padding: 24px;
+        font-family: 'Source Sans 3', Arial, sans-serif;
+    }
+    
+    .dashboard-title {
+        font-size: 28px;
+        font-weight: 600;
+        margin-bottom: 24px;
+        color: #2c3e50;
+    }
+    
+    .dashboard-layout {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+    
+    .dashboard-panel {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .dashboard-panel:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .panel-header {
+        padding: 16px 20px;
+        color: #fff;
+        font-size: 18px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .panel-body {
+        padding: 0;
+    }
+    
+    .requests-header {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+    }
+    
+    .rides-header {
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+    }
+    
+    /* Enhanced Table Styles */
+    .table-responsive {
+        margin: 0;
+        padding: 0;
+        overflow-x: auto;
+    }
+    
+    .admin-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 14px;
+    }
+    
+    .admin-table th {
+        background-color: #f8fafc;
+        color: #475569;
+        text-align: left;
+        padding: 16px;
+        font-weight: 600;
+        border-bottom: 2px solid #e2e8f0;
+        white-space: nowrap;
+    }
+    
+    .admin-table td {
+        padding: 16px;
+        border-bottom: 1px solid #e2e8f0;
+        color: #334155;
+        vertical-align: middle;
+    }
+    
+    .admin-table tbody tr {
+        transition: all 0.2s ease;
+    }
+    
+    .admin-table tbody tr:hover {
+        background-color: #f1f5f9;
+    }
+    
+    /* Enhanced Status Badges */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1;
+        transition: all 0.2s ease;
+    }
+    
+    .status-pending {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+    
+    .status-accepted {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+    
+    .status-ongoing {
+        background-color: #dbeafe;
+        color: #1e40af;
+    }
+    
+    .status-completed {
+        background-color: #f1f5f9;
+        color: #475569;
+    }
+    
+    /* Enhanced Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-primary {
+        background-color: #3498db;
+        color: white;
+    }
+    
+    .btn-info {
+        background-color: #17a2b8;
+        color: white;
+    }
+    
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+    
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .pagination {
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+
+    .delete-btn:hover {
+        background-color: #c82333;
+        color: white;
+    }
+    
+    .pagination li {
+        margin: 0 2px;
+    }
+    
+    .pagination a {
+        display: block;
+        padding: 5px 10px;
+        text-decoration: none;
+        border: 1px solid #dee2e6;
+        color: #3498db;
+        border-radius: 4px;
+    }
+    
+    .pagination a:hover {
+        background-color: #e9ecef;
+    }
+    
+    .pagination .active a {
+        background-color: #3498db;
+        color: white;
+        border-color: #3498db;
+    }
+    
+    .pagination .disabled a {
+        color: #6c757d;
+        pointer-events: none;
+        background-color: #fff;
+    }
+    
+    .summary-cards {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    .summary-card {
+        flex: 1;
+        min-width: 200px;
+        padding: 15px;
+        border-radius: 6px;
+        color: white;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-requests {
+        background-color: #3498db;
+    }
+    
+    .card-rides {
+        background-color: #2ecc71;
+    }
+    
+    .card-drivers {
+        background-color: #17a2b8;
+    }
+    
+    .card-revenue {
+        background-color: #f39c12;
+    }
+    
+    .card-title {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+    
+    .card-value {
+        font-size: 26px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .card-subtitle {
+        font-size: 12px;
+        opacity: 0.8;
+    }
+    
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .dashboard-layout {
+            grid-template-columns: 1fr;
+        }
+        
+        .dashboard-panel {
+            margin-bottom: 20px;
+        }
+        
+        .admin-table {
+            font-size: 13px;
+        }
+        
+        .admin-table th,
+        .admin-table td {
+            padding: 12px;
+        }
+    }
+
+    .btn-pdf {
+    background-color: #e74c3c !important;   /* Red for PDF */
+    border-color: #e74c3c !important;
+    color: #fff !important;
+}
+.btn-pdf:hover {
+    background-color: #c0392b !important;
+    border-color: #c0392b !important;
+    color: #fff !important;
+}
+.btn-excel {
+    background-color: #27ae60 !important;   /* Green for Excel */
+    border-color: #27ae60 !important;
+    color: #fff !important;
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Export PDF for Requests Table
+    document.getElementById('export-pdf-btn').addEventListener('click', function () {
+        const table = document.querySelector('.admin-table'); // Requests table
+        html2canvas(table).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new window.jspdf.jsPDF('l', 'pt', 'a4');
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const imgWidth = pageWidth - 40;
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            const currentDate = new Date().toLocaleString(); // Get current date and time
+
+            // Add logo
+            const logo = new Image();
+            logo.src = '/images/logo/logo.png'; // Replace with the actual path to your logo
+            logo.onload = function () {
+                pdf.addImage(logo, 'PNG', 20, 20, 50, 50); // Adjust logo position and size
+                pdf.text('Requests Table', 30, 90);
+                pdf.text(`Generated on: ${currentDate}`, 30, 110); // Add timestamp
+                pdf.addImage(imgData, 'PNG', 20, 130, imgWidth, imgHeight);
+                pdf.save('requests-table.pdf');
+            };
+        });
+    });
+
+    // Export PDF for Rides Table
+    document.getElementById('export-pdf-btn-rides')?.addEventListener('click', function () {
+        const table = document.querySelector('.rides-table'); // Make sure your rides table has class="rides-table"
+        html2canvas(table).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new window.jspdf.jsPDF('l', 'pt', 'a4');
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const imgWidth = pageWidth - 40;
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            const currentDate = new Date().toLocaleString(); // Get current date and time
+
+            // Add logo
+            const logo = new Image();
+            logo.src = '/images/logo/logo.png'; // Replace with the actual path to your logo
+            logo.onload = function () {
+                pdf.addImage(logo, 'PNG', 20, 20, 50, 50); // Adjust logo position and size
+                pdf.text('Rides Table', 30, 90);
+                pdf.text(`Generated on: ${currentDate}`, 30, 110); // Add timestamp
+                pdf.addImage(imgData, 'PNG', 20, 130, imgWidth, imgHeight);
+                pdf.save('rides-table.pdf');
+            };
+        });
+    });
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Export Excel for Requests Table
+    document.getElementById('export-excel-btn').addEventListener('click', function () {
+        const table = document.querySelector('.admin-table');
+        // Remove the last column from the table
+        const clonedTable = table.cloneNode(true);
+        clonedTable.querySelectorAll('tr').forEach(row => {
+            row.removeChild(row.lastElementChild);
+        });
+        let wb = XLSX.utils.table_to_book(clonedTable, {sheet:"Requests"});
+        XLSX.writeFile(wb, 'requests-table.xlsx');
+    });
+
+    // Export Excel for Rides Table
+    document.getElementById('export-excel-btn-rides')?.addEventListener('click', function () {
+        const table = document.querySelector('.rides-table');
+        // Remove the last column from the table
+        const clonedTable = table.cloneNode(true);
+        clonedTable.querySelectorAll('tr').forEach(row => {
+            row.removeChild(row.lastElementChild);
+        });
+        let wb = XLSX.utils.table_to_book(clonedTable, {sheet:"Rides"});
+        XLSX.writeFile(wb, 'rides-table.xlsx');
+    });
+});
+</script>
+
+{% endblock %}

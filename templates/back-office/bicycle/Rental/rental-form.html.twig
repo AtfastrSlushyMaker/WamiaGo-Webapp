@@ -1,0 +1,466 @@
+{% extends 'back-office/base.html.twig' %}
+
+{% block title %}{{ mode == 'edit' ? 'Edit Rental #' ~ rental.idUserRental : 'Create New Rental' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Breadcrumb & Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{{ path('admin_bicycle_rentals', {tab:"rentals"}) }}">Rentals</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            {{ mode == 'edit' ? 'Edit Rental #' ~ rental.idUserRental : 'Create New Rental' }}
+                        </li>
+                    </ol>
+                </nav>
+                {% if mode == 'edit' %}
+                    <div class="d-flex">
+                        <a href="{{ path('admin_bicycle_rental_show', {'id': rental.idUserRental}) }}" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Details
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts Section -->
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">{{ mode == 'edit' ? 'Edit Rental Information' : 'Create New Rental' }}</h5>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-muted mb-3">Basic Information</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form_row(form.user) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(form.bicycle) }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-muted mb-3">Station Information</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form_row(form.startStation) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(form.endStation) }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-muted mb-3">Time Information</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form_row(form.startTime) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(form.endTime) }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-muted mb-3">Usage Information</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                {{ form_row(form.cost) }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form_row(form.distanceKm) }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form_row(form.batteryUsed) }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end">
+                        <a href="{{ mode == 'edit' ? path('admin_bicycle_rental_show', {'id': rental.idUserRental}) : {{ path('admin_bicycle_rentals', {tab:"rentals"}) }} class="btn btn-outline-secondary me-2">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>{{ mode == 'edit' ? 'Update Rental' : 'Create Rental' }}
+                        </button>
+                    </div>
+                    
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style>
+    /* Custom styling for select2 */
+    .select2-container--default .select2-selection--single {
+        height: 38px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 38px;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px;
+    }
+    
+    /* Validation styles */
+    .form-control.is-invalid,
+    .form-select.is-invalid,
+    .was-validated .form-control:invalid,
+    .was-validated .form-select:invalid {
+        border-color: #dc3545;
+        padding-right: calc(1.5em + 0.75rem);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+    
+    .invalid-feedback {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875em;
+        color: #dc3545;
+    }
+    
+    .form-control.is-invalid ~ .invalid-feedback,
+    .form-select.is-invalid ~ .invalid-feedback {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add custom validation class to the form
+        const form = document.querySelector('form');
+        form.classList.add('needs-validation');
+        
+        // Initialize Select2 for better dropdowns
+        if (typeof $.fn.select2 !== 'undefined') {
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
+        }
+        
+        // Form field elements
+        const userField = document.getElementById('bicycle_rental_user');
+        const bicycleField = document.getElementById('bicycle_rental_bicycle');
+        const startStationField = document.getElementById('bicycle_rental_startStation');
+        const endStationField = document.getElementById('bicycle_rental_endStation');
+        const startTimeField = document.getElementById('bicycle_rental_startTime');
+        const endTimeField = document.getElementById('bicycle_rental_endTime');
+        const costField = document.getElementById('bicycle_rental_cost');
+        const distanceKmField = document.getElementById('bicycle_rental_distanceKm');
+        const batteryUsedField = document.getElementById('bicycle_rental_batteryUsed');
+        
+        // Add validation feedback elements
+        addValidationFeedback(userField, 'Please select a user');
+        addValidationFeedback(bicycleField, 'Please select a bicycle');
+        addValidationFeedback(startStationField, 'Please select a start station');
+        addValidationFeedback(costField, 'Cost must be greater than 0');
+        
+        // Show/hide end time based on start time
+        const endTimeContainer = endTimeField?.closest('.mb-3');
+        
+        function updateEndTimeVisibility() {
+            if (startTimeField && endTimeField && endTimeContainer) {
+                if (startTimeField.value) {
+                    endTimeContainer.style.display = '';
+                } else {
+                    endTimeField.value = '';
+                    endTimeContainer.style.display = 'none';
+                }
+            }
+        }
+        
+        if (startTimeField) {
+            updateEndTimeVisibility();
+            startTimeField.addEventListener('change', updateEndTimeVisibility);
+        }
+        
+        // Automatically calculate cost based on duration when both start and end times are filled
+        function calculateCost() {
+            if (startTimeField && endTimeField && startTimeField.value && endTimeField.value) {
+                const bicycleId = bicycleField.value;
+                if (bicycleId) {
+                    const start = new Date(startTimeField.value);
+                    const end = new Date(endTimeField.value);
+                    
+                    if (end > start) {
+                        // Calculate hours difference
+                        const diffHours = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60)));
+                        
+                        // Fetch bicycle details to determine if it's premium (for the rate)
+                        fetch(`/admin/bicycle-rental/api/bicycle/${bicycleId}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                const hourlyRate = data.isPremium ? 5.0 : 3.5;
+                                const cost = (diffHours * hourlyRate).toFixed(3);
+                                costField.value = cost;
+                                validateField(costField);
+                            })
+                            .catch(error => {
+                                console.error('Error fetching bicycle details:', error);
+                            });
+                    } else {
+                        addInvalidFeedback(endTimeField, 'End time must be after start time');
+                    }
+                }
+            }
+        }
+        
+        // Set up additional validation for endTime if startTime is filled
+        if (startTimeField) {
+            startTimeField.addEventListener('change', function() {
+                if (endTimeField && endTimeField.value) {
+                    validateEndTime();
+                }
+            });
+        }
+        
+        if (endTimeField) {
+            endTimeField.addEventListener('change', function() {
+                validateEndTime();
+                calculateCost();
+            });
+        }
+        
+        function validateEndTime() {
+            if (startTimeField && endTimeField && startTimeField.value && endTimeField.value) {
+                const start = new Date(startTimeField.value);
+                const end = new Date(endTimeField.value);
+                
+                if (end <= start) {
+                    addInvalidFeedback(endTimeField, 'End time must be after start time');
+                } else {
+                    removeInvalidFeedback(endTimeField);
+                }
+            }
+        }
+        
+        // Validate battery used percentage
+        if (batteryUsedField) {
+            batteryUsedField.addEventListener('change', function() {
+                const value = parseFloat(this.value);
+                if (isNaN(value) || value < 0) {
+                    addInvalidFeedback(this, 'Battery used must be a positive number');
+                } else if (value > 100) {
+                    addInvalidFeedback(this, 'Battery used cannot exceed 100%');
+                } else {
+                    removeInvalidFeedback(this);
+                }
+            });
+        }
+        
+        // Validate distance
+        if (distanceKmField) {
+            distanceKmField.addEventListener('change', function() {
+                const value = parseFloat(this.value);
+                if (isNaN(value) || value < 0) {
+                    addInvalidFeedback(this, 'Distance must be a positive number');
+                } else {
+                    removeInvalidFeedback(this);
+                }
+            });
+        }
+        
+        // Validate cost
+        if (costField) {
+            costField.addEventListener('change', function() {
+                validateField(this);
+            });
+        }
+        
+        if (bicycleField) {
+            bicycleField.addEventListener('change', function() {
+                if (startTimeField && endTimeField && startTimeField.value && endTimeField.value) {
+                    calculateCost();
+                }
+                validateField(this);
+            });
+            
+            // When bicycle changes, update start station automatically if possible
+            bicycleField.addEventListener('change', async function() {
+                if (this.value && startStationField) {
+                    try {
+                        const response = await fetch(`/admin/bicycle-rental/api/bicycle/${this.value}`);
+                        const data = await response.json();
+                        
+                        if (data.station && data.station.id) {
+                            startStationField.value = data.station.id;
+                            // If using select2, need to trigger change event for select2
+                            $(startStationField).trigger('change');
+                            removeInvalidFeedback(startStationField);
+                        }
+                    } catch (error) {
+                        console.error('Error fetching bicycle station:', error);
+                    }
+                }
+            });
+        }
+        
+        if (userField) {
+            userField.addEventListener('change', function() {
+                validateField(this);
+            });
+        }
+        
+        if (startStationField) {
+            startStationField.addEventListener('change', function() {
+                validateField(this);
+            });
+        }
+        
+        // Form submission validation
+        form.addEventListener('submit', function(event) {
+            if (!validateForm()) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Scroll to the first error
+                const firstError = document.querySelector('.is-invalid');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstError.focus();
+                }
+            }
+        });
+        
+        // Validation helpers
+        function validateForm() {
+            let isValid = true;
+            
+            // Required fields validation
+            if (!validateField(userField)) isValid = false;
+            if (!validateField(bicycleField)) isValid = false;
+            if (!validateField(startStationField)) isValid = false;
+            if (!validateField(costField)) isValid = false;
+            
+            // Validate end time if start time is set
+            if (startTimeField && startTimeField.value && endTimeField && endTimeField.value) {
+                const start = new Date(startTimeField.value);
+                const end = new Date(endTimeField.value);
+                
+                if (end <= start) {
+                    addInvalidFeedback(endTimeField, 'End time must be after start time');
+                    isValid = false;
+                }
+            }
+            
+            // Validate battery used percentage
+            if (batteryUsedField && batteryUsedField.value) {
+                const value = parseFloat(batteryUsedField.value);
+                if (isNaN(value) || value < 0) {
+                    addInvalidFeedback(batteryUsedField, 'Battery used must be a positive number');
+                    isValid = false;
+                } else if (value > 100) {
+                    addInvalidFeedback(batteryUsedField, 'Battery used cannot exceed 100%');
+                    isValid = false;
+                }
+            }
+            
+            // Validate distance
+            if (distanceKmField && distanceKmField.value) {
+                const value = parseFloat(distanceKmField.value);
+                if (isNaN(value) || value < 0) {
+                    addInvalidFeedback(distanceKmField, 'Distance must be a positive number');
+                    isValid = false;
+                }
+            }
+            
+            return isValid;
+        }
+        
+        function validateField(field) {
+            if (!field) return true;
+            
+            if (field === costField) {
+                const value = parseFloat(field.value);
+                if (isNaN(value) || value <= 0) {
+                    addInvalidFeedback(field, 'Cost must be greater than 0');
+                    return false;
+                } else {
+                    removeInvalidFeedback(field);
+                    return true;
+                }
+            }
+            
+            if (!field.value) {
+                field.classList.add('is-invalid');
+                return false;
+            } else {
+                field.classList.remove('is-invalid');
+                return true;
+            }
+        }
+        
+        function addValidationFeedback(field, message) {
+            if (!field) return;
+            
+            // Create feedback div if it doesn't exist
+            let feedback = field.parentNode.querySelector('.invalid-feedback');
+            if (!feedback) {
+                feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback';
+                feedback.textContent = message;
+                
+                // Insert after the field
+                field.parentNode.appendChild(feedback);
+            }
+        }
+        
+        function addInvalidFeedback(field, message) {
+            if (!field) return;
+            
+            field.classList.add('is-invalid');
+            
+            // Update or create feedback message
+            let feedback = field.parentNode.querySelector('.invalid-feedback');
+            if (feedback) {
+                feedback.textContent = message;
+            } else {
+                addValidationFeedback(field, message);
+            }
+        }
+        
+        function removeInvalidFeedback(field) {
+            if (!field) return;
+            field.classList.remove('is-invalid');
+        }
+    });
+</script>
+{% endblock %}
