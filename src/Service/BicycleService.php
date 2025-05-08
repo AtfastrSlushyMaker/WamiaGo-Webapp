@@ -34,7 +34,6 @@ class BicycleService
         return $this->bicycleRepository->find($id);
     }
 
-
     public function createBicycle(
         BicycleStation $station,
         float $batteryLevel,
@@ -45,15 +44,7 @@ class BicycleService
         $bicycle->setBicycleStation($station);
         $bicycle->setBatteryLevel($batteryLevel);
         $bicycle->setRangeKm($rangeKm);
-        
-        // Ensure we're using a valid status
         $bicycle->setStatus($status);
-        
-        // If status is AVAILABLE but station is null, throw an exception
-        if ($status === BICYCLE_STATUS::AVAILABLE && $station === null) {
-            throw new \Exception('Cannot create an AVAILABLE bicycle without a station');
-        }
-        
         $bicycle->setLastUpdated(new \DateTime());
 
         $this->entityManager->persist($bicycle);
@@ -61,21 +52,8 @@ class BicycleService
 
         return $bicycle;
     }
-
-    /**
-     * Get all bicycles as a query for pagination
-     */
-    public function getAllBicyclesQuery()
-    {
-        return $this->bicycleRepository->createQueryBuilder('b')
-            ->orderBy('b.idBike', 'DESC')
-            ->getQuery();
-    }
-    
-    /**
-     * Get all bicycles
-     */
     public function getAllBicycles(): array
+
     {
         return $this->bicycleRepository->findAll();
     }
@@ -95,35 +73,8 @@ class BicycleService
 
     public function changeBicycleStatus(Bicycle $bicycle, BICYCLE_STATUS $status): void
     {
-        $previousStatus = $bicycle->getStatus();
-        
         $bicycle->setStatus($status);
         $bicycle->setLastUpdated(new \DateTime());
-        
-        if ($status === BICYCLE_STATUS::AVAILABLE && $bicycle->getBicycleStation() === null) {
-            throw new \Exception('Cannot set bicycle to AVAILABLE without a station');
-        }
-        
-        $this->entityManager->flush();
-    }
-
-    public function updateBicycleStatus(int $bicycleId, BICYCLE_STATUS $status): void
-    {
-        $bicycle = $this->getBicycle($bicycleId);
-
-        if (!$bicycle) {
-            throw new \Exception('Bicycle not found');
-        }
-
-        $previousStatus = $bicycle->getStatus();
-        
-        $bicycle->setStatus($status);
-        $bicycle->setLastUpdated(new \DateTime());
-        
-        if ($status === BICYCLE_STATUS::AVAILABLE && $bicycle->getBicycleStation() === null) {
-            throw new \Exception('Cannot set bicycle to AVAILABLE without a station');
-        }
-        
         $this->entityManager->flush();
     }
 
@@ -148,61 +99,5 @@ class BicycleService
     public function getStation(int $id): ?BicycleStation
     {
         return $this->entityManager->find(BicycleStation::class, $id);
-    }
-
-
-    public function reassignBicycleToStation(Bicycle $bicycle, ?BicycleStation $station, ?BICYCLE_STATUS $newStatus = null): Bicycle
-    {
-        $oldStation = $bicycle->getBicycleStation();
-        $currentStatus = $bicycle->getStatus();
-        
-        if ($newStatus === null) {
-            if ($station === null) {
-
-                $newStatus = BICYCLE_STATUS::MAINTENANCE;
-            } else if ($currentStatus === BICYCLE_STATUS::MAINTENANCE || $currentStatus === BICYCLE_STATUS::CHARGING) {
-
-                $newStatus = $currentStatus;
-            } else {
-                $newStatus = BICYCLE_STATUS::AVAILABLE;
-            }
-        }
-        
-
-        if ($station === null && $newStatus === BICYCLE_STATUS::AVAILABLE) {
-            throw new \Exception('Cannot set a bicycle to AVAILABLE without assigning it to a station');
-        }
-        
-
-        if ($oldStation !== null) {
-
-            if ($currentStatus === BICYCLE_STATUS::AVAILABLE) {
-                $oldStation->setAvailableBikes($oldStation->getAvailableBikes() - 1);
-                $oldStation->setAvailableDocks($oldStation->getAvailableDocks() + 1);
-            }
-        }
-        
-
-        if ($station !== null && $newStatus === BICYCLE_STATUS::AVAILABLE) {
-            $station->setAvailableBikes($station->getAvailableBikes() + 1);
-            $station->setAvailableDocks($station->getAvailableDocks() - 1);
-        }
-        
-
-        $bicycle->setBicycleStation($station);
-        
-        try {
-
-            $bicycle->setStatus($newStatus);
-        } catch (\LogicException $e) {
-
-            $bicycle->setStatus(BICYCLE_STATUS::MAINTENANCE);
-        }
-        
-        $bicycle->setLastUpdated(new \DateTime());
-        
-        $this->entityManager->flush();
-        
-        return $bicycle;
     }
 }

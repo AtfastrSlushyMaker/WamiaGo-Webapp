@@ -1,4 +1,0 @@
-api_speech:
-    resource: ../../src/Controller/Api/
-    type: annotation
-    prefix: /api

@@ -1,3 +1,4 @@
+
 {% extends 'front/base.html.twig' %}
 
 {% block title %}Bicycle Reserved - WamiaGo{% endblock %}
@@ -64,6 +65,15 @@
             margin-top: 15px;
         }
         
+        .qr-code {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .qr-code img {
+            max-width: 200px;
+        }
+        
         .action-buttons {
             display: flex;
             gap: 15px;
@@ -92,17 +102,23 @@
                     {{ reservationCode }}
                 </div>
                 
+                <div class="qr-code">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ reservationCode }}" alt="QR Code">
+                    <p class="text-muted text-center mt-2">Scan this code at the station to unlock your bicycle</p>
+                </div>
+                
                 <div class="info-section">
                     <h4>Reservation Details</h4>
                     <div class="row">
                         <div class="col-md-6">
                             <p><strong>Reservation ID:</strong> #{{ rental.idUserRental }}</p>
-                            <p><strong>Reserved On:</strong> {{ rental.startTime|date('Y-m-d H:i') }}</p>
+                            <p><strong>Reserved On:</strong> {{ rental.dateCreated|date('Y-m-d H:i') }}</p>
+                            <p><strong>Estimated Cost:</strong> {{ rental.estimatedCost|number_format(3) }} TND</p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Status:</strong> <span class="badge bg-success">Reserved</span></p>
                             <p><strong>Pickup Station:</strong> {{ rental.bicycle.bicycleStation.name }}</p>
-                            <p><strong>Reservation Valid Until:</strong> {{ rental.startTime|date_modify('+30 minutes')|date('Y-m-d H:i') }}</p>
+                            <p><strong>Reservation Valid Until:</strong> {{ rental.dateCreated|date_modify('+30 minutes')|date('Y-m-d H:i') }}</p>
                         </div>
                     </div>
                 </div>
@@ -140,34 +156,12 @@
                 </div>
                 
                 <div class="action-buttons">
-                    <a href="{{ path('app_front_my_reservations') }}" class="btn btn-success flex-grow-1">
-                        <i class="fas fa-bicycle me-2"></i> Go to My Reservations
+                    <a href="{{ path('app_front_show_rental_code', {'id': rental.idUserRental}) }}" class="btn btn-success flex-grow-1">
+                        <i class="fas fa-unlock-alt me-2"></i> Show Unlock Code
                     </a>
-                    <button type="button" class="btn btn-outline-danger flex-grow-1" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                    <a href="{{ path('app_front_cancel_rental', {'id': rental.idUserRental}) }}" class="btn btn-outline-danger flex-grow-1">
                         <i class="fas fa-times me-2"></i> Cancel Reservation
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Cancel Reservation Modal -->
-            <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="cancelModalLabel">Cancel Reservation</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>Are you sure you want to cancel your reservation? This action cannot be undone.</p>
-                        </div>
-                        <div class="modal-footer">
-                            <form method="post" action="{{ path('app_front_cancel_rental', {'id': rental.idUserRental}) }}">
-                                <input type="hidden" name="_token" value="{{ csrf_token('cancel_rental_' ~ rental.idUserRental) }}">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" class="btn btn-danger">Yes, Cancel Reservation</button>
-                            </form>
-                        </div>
-                    </div>
+                    </a>
                 </div>
             </div>
             

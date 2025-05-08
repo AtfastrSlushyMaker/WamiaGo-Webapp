@@ -44,7 +44,7 @@
 
 /* Base Elements */
 .bg-bicycle {
-    background-color: #28a745;
+    background: var(--bicycle-gradient) !important;
 }
 
 .bg-bicycle-light {
@@ -52,14 +52,14 @@
 }
 
 .text-bicycle {
-    color: #28a745;
+    color: var(--bicycle-primary) !important;
 }
 
 /* Buttons - Matching existing website button styles */
 .btn-bicycle {
-    background-color: #28a745;
-    border-color: #28a745;
-    color: #fff;
+    background-color: var(--bicycle-primary);
+    border-color: var(--bicycle-primary);
+    color: white;
     box-shadow: 0 2px 8px rgba(102, 187, 106, 0.2);
     transition: var(--transition);
     border-radius: var(--border-radius-sm);
@@ -69,17 +69,16 @@
 
 .btn-bicycle:hover,
 .btn-bicycle:focus {
-    background-color: #218838;
-    border-color: #1e7e34;
-    color: #fff;
+    background-color: var(--bicycle-hover);
+    border-color: var(--bicycle-hover);
+    color: white;
     box-shadow: 0 5px 15px rgba(102, 187, 106, 0.3);
     transform: translateY(-2px);
 }
 
 .btn-outline-bicycle {
-    color: #28a745;
-    border-color: #28a745;
-    background-color: transparent;
+    color: var(--bicycle-primary);
+    border-color: var(--bicycle-primary);
     border-radius: var(--border-radius-sm);
     font-weight: 500;
     transition: var(--transition);
@@ -87,17 +86,10 @@
 
 .btn-outline-bicycle:hover,
 .btn-outline-bicycle:focus {
-    color: #fff;
-    background-color: #28a745;
-    border-color: #28a745;
+    background-color: var(--bicycle-primary);
+    color: white;
     box-shadow: 0 5px 15px rgba(102, 187, 106, 0.3);
     transform: translateY(-2px);
-}
-
-.btn-outline-bicycle.active {
-    color: #fff;
-    background-color: #28a745;
-    border-color: #28a745;
 }
 
 /* Hero Section */
@@ -214,33 +206,26 @@
 }
 
 .station-list::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
+    background: var(--neutral-100);
 }
 
 .station-list::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 10px;
-}
-
-.station-list::-webkit-scrollbar-thumb:hover {
-    background: #28a745;
+    background-color: var(--bicycle-primary);
+    border-radius: 6px;
 }
 
 .station-item {
-    border-left: 3px solid transparent;
-    transition: all 0.2s ease;
-    background-color: #fff;
-    margin: 6px;
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid transparent;
+    transition: var(--transition);
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+    border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
 }
 
 .station-item:hover {
-    border-left-color: #28a745;
-    background-color: #f9fff9;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    background-color: var(--bicycle-light);
+    border-left-color: var(--bicycle-primary);
+    transform: translateX(3px);
 }
 
 /* Bicycle Cards */
@@ -366,20 +351,26 @@
 
 /* Station Map Markers */
 .station-marker-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px !important;
-    height: 36px !important;
+    filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.3));
+}
+
+.station-marker-icon div {
+    background-color: var(--bicycle-primary) !important;
+    /* Force the color */
+    color: white !important;
     border-radius: 50%;
-    background-color: #28a745;
-    color: #fff;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-    border: 2px solid #fff;
+    width: 36px;
+    height: 36px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3) !important;
+    border: 2px solid white;
 }
 
 .station-marker-icon i {
-    font-size: 18px;
+    color: white !important;
+    font-size: 1.2rem;
 }
 
 .station-marker-icon.active div {
@@ -464,50 +455,6 @@
 .accordion-button:focus {
     box-shadow: 0 0 0 0.25rem rgba(102, 187, 106, 0.25);
     border-color: var(--bicycle-primary);
-}
-
-/* Enhanced search styling */
-.search-highlight {
-    background-color: rgba(40, 167, 69, 0.2);
-    padding: 1px 2px;
-    border-radius: 2px;
-}
-
-#stationSearchInput:focus {
-    box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
-}
-
-.filter-buttons .btn {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.875rem;
-    border-radius: 50px;
-    transition: all 0.2s ease;
-}
-
-.filter-buttons .btn.active {
-    transform: scale(1.05);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.station-weather {
-    border-radius: 4px;
-    transition: all 0.2s ease;
-}
-
-.station-weather:hover {
-    background-color: #f8f9fa;
-}
-
-/* Weather icons */
-.weather-icon {
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: rgba(40, 167, 69, 0.1);
-    color: #28a745;
 }
 
 /* Dark Mode Adjustments */
@@ -748,6 +695,8 @@ body:not(.dark-mode) .pricing-table tr:nth-child(odd) {
         margin-bottom: 1rem;
     }
 }
+
+
 
 .station-marker-icon {
     background-color: #28a745;

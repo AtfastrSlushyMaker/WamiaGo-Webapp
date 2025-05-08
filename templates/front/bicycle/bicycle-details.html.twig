@@ -93,9 +93,9 @@
                      <span class="badge bg-bicycle px-3 py-2 fs-6">{% if bicycleType == 'Premium E-Bike' %}15.00{% else %}10.50{% endif %} TND/hour</span>
                 </div>
                 <div>
-                    <span class="badge {% if bicycle.status.value == 'available' %}bg-success{% else %}bg-danger{% endif %} px-3 py-2 fs-6">
-                        <i class="fas {% if bicycle.status.value == 'available' %}fa-check-circle{% else %}fa-times-circle{% endif %} me-1"></i>
-                        {{ bicycle.status.value == 'available' ? 'Available' : 'Unavailable' }}
+                    <span class="badge {% if bicycle.status.value == 'AVAILABLE' %}bg-success{% else %}bg-danger{% endif %} px-3 py-2 fs-6">
+                        <i class="fas {% if bicycle.status.value == 'AVAILABLE' %}fa-check-circle{% else %}fa-times-circle{% endif %} me-1"></i>
+                        {{ bicycle.status.value == 'AVAILABLE' ? 'Available' : 'Unavailable' }}
                     </span>
                 </div>
             </div>
@@ -125,7 +125,7 @@
                 {% endif %}
             </p>
             
-            {% if bicycle.status.value == 'available' %}
+            {% if bicycle.status.value == 'AVAILABLE' %}
                 <a href="{{ path('app_front_reserve_bicycle', {'id': bicycle.idBike}) }}" class="btn btn-bicycle btn-lg mb-4">
                     <i class="fas fa-check-circle me-2"></i> Reserve Now
                 </a>
@@ -300,59 +300,40 @@
         </div>
     </div>
     
+    <div class="text-center">
+        <h3 class="mb-4">Ready to Rent This Bicycle?</h3>
+        {% if bicycle.status.value == 'AVAILABLE' %}
+            <a href="{{ path('app_front_reserve_bicycle', {'id': bicycle.idBike}) }}" class="btn btn-bicycle btn-lg px-5">
+                <i class="fas fa-check-circle me-2"></i> Reserve Now
+            </a>
+        {% else %}
+            <div class="alert alert-warning d-inline-block">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                This bicycle is currently unavailable. Please check back later or choose another bicycle.
+            </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
 
 {% block page_javascripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Handle duration changes to update the estimated cost
-        const durationSelect = document.getElementById('duration');
-        const estimatedCostInput = document.getElementById('estimatedCost');
+        // Add any bicycle details page specific JavaScript here
         
-        if (durationSelect && estimatedCostInput) {
-            const hourlyRate = {% if bicycleType == 'Premium E-Bike' %}15.00{% else %}10.50{% endif %};
-            
-            // Calculate discounted rates based on duration
-            const calculateCost = (hours) => {
-                let cost = 0;
-                
-                if (hours <= 3) {
-                    // Regular rate for 1-3 hours
-                    cost = hours * hourlyRate;
-                } else if (hours <= 6) {
-                    // 10% discount for 4-6 hours
-                    cost = hours * hourlyRate * 0.9;
-                } else if (hours <= 12) {
-                    // 20% discount for 7-12 hours
-                    cost = hours * hourlyRate * 0.8;
-                } else {
-                    // 30% discount for 13+ hours
-                    cost = hours * hourlyRate * 0.7;
+        // Example: Smooth scroll to reserve button when "Reserve Now" is clicked at bottom
+        const bottomReserveBtn = document.querySelector('.text-center .btn-bicycle');
+        if (bottomReserveBtn) {
+            bottomReserveBtn.addEventListener('click', function(e) {
+                const topReserveBtn = document.querySelector('.col-lg-6 .btn-bicycle');
+                if (topReserveBtn) {
+                    e.preventDefault();
+                    topReserveBtn.scrollIntoView({ behavior: 'smooth' });
+                    // Add a small delay before triggering the click
+                    setTimeout(() => {
+                        topReserveBtn.click();
+                    }, 800);
                 }
-                
-                return cost.toFixed(2);
-            };
-            
-            // Update cost when duration changes
-            durationSelect.addEventListener('change', function() {
-                const hours = parseInt(this.value);
-                estimatedCostInput.value = calculateCost(hours);
-            });
-        }
-        
-        // Smooth scroll to reservation form when "Reserve Now" button is clicked
-        const reserveButtons = document.querySelectorAll('.btn-bicycle:not(form button)');
-        const quickReservationForm = document.getElementById('quickReservationForm');
-        
-        if (reserveButtons.length && quickReservationForm) {
-            reserveButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    if (button.getAttribute('href')?.includes('reserve-bicycle')) {
-                        e.preventDefault();
-                        quickReservationForm.scrollIntoView({ behavior: 'smooth' });
-                    }
-                });
             });
         }
     });

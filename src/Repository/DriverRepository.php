@@ -16,17 +16,6 @@ class DriverRepository extends ServiceEntityRepository
         parent::__construct($registry, Driver::class);
     }
 
-    public function findWithUser(int $id): ?Driver
-    {
-        return $this->createQueryBuilder('d')
-            ->join('d.user', 'u')
-            ->addSelect('u')
-            ->where('d.id = :id')
-            ->setParameter('id', $id)
-            ->getQuery()
-            ->getOneOrNullResult();
-    }
-
     //    /**
     //     * @return Driver[] Returns an array of Driver objects
     //     */
