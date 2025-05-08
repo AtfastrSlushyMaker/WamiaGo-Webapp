@@ -59,14 +59,14 @@ class UserService
         
         if (isset($filters['verified']) && $filters['verified'] !== '') {
             $isVerified = $filters['verified'] == '1' ? true : false;
-            $qb->andWhere('u.is_verified = :verified')
+            $qb->andWhere('u.isVerified = :verified')
                ->setParameter('verified', $isVerified);
         }
         
         $orderBy = $filters['orderBy'] ?? 'id_user';
         $orderDirection = $filters['orderDirection'] ?? 'DESC';
         
-        $validColumns = ['id_user', 'name', 'email', 'role', 'account_status', 'is_verified'];
+        $validColumns = ['id_user', 'name', 'email', 'role', 'account_status', 'isVerified'];
         if (!in_array($orderBy, $validColumns)) {
             $orderBy = 'id_user';
         }
@@ -145,8 +145,8 @@ class UserService
             $user->setProfilePicture($data['profilePicture']);
         }
         
-        if (isset($data['is_verified'])) {
-            $user->setIs_verified((bool) $data['is_verified']);
+        if (isset($data['isVerified'])) {
+            $user->setisVerified((bool) $data['isVerified']);
         }
         
         // Save user
@@ -273,8 +273,8 @@ class UserService
             $user->setProfilePicture($data['profile_picture']);
         }
 
-        if (isset($data['is_verified'])) {
-            $user->setIs_verified((bool)$data['is_verified']);
+        if (isset($data['isVerified'])) {
+            $user->setisVerified((bool)$data['isVerified']);
         }
 
         if (isset($data['status'])) {

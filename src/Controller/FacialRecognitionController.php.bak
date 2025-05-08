@@ -3,14 +3,28 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Service\FacialRecognitionService;
+use             if (!$faceImage) {
+                // Log the request data for debugging
+                error_log('Missing parameters in face verification. Got: ' . 
+                        'faceImage: ' . (empty($faceImage) ? 'empty' : substr($faceImage, 0, 30) . '...') . ', ' . 
+                        'email: ' . ($email ?: 'empty'));
+                
+                if ($request->isXmlHttpRequest()) {
+                    return $this->json([
+                        'success' => false,
+                        'message' => 'Missing face image'
+                    ], Response::HTTP_BAD_REQUEST);
+                } else {
+                    $this->addFlash('error', 'Missing face image');
+                    return $this->redirectToRoute('app_login_face');
+                }
+            }alRecognitionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
@@ -68,36 +82,32 @@ class FacialRecognitionController extends AbstractController
                 error_log('Missing parameters in face verification. Got: ' . 
                         'faceImage: ' . (empty($faceImage) ? 'empty' : substr($faceImage, 0, 30) . '...') . ', ' . 
                         'email: ' . ($email ?: 'empty'));
-                  if ($request->isXmlHttpRequest()) {
+                
+                if ($request->isXmlHttpRequest()) {
                     return $this->json([
                         'success' => false,
-                        'message' => 'Missing faceImage parameter'
+                        'message' => 'Missing required parameters'
                     ], Response::HTTP_BAD_REQUEST);
                 } else {
-                    $this->addFlash('error', 'Missing faceImage parameter');
+                    $this->addFlash('error', 'Missing required parameters');
                     return $this->redirectToRoute('app_login_face');
                 }
-            }            try {
-                $user = null;
+            }
+
+            try {
+                // Find the user with the given email
+                $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
                 
-                // If email is provided, find that specific user
-                if ($email) {
-                    $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
-                    
-                    if (!$user) {
-                        if ($request->isXmlHttpRequest()) {
-                            return $this->json([
-                                'success' => false,
-                                'message' => 'User not found'
-                            ], Response::HTTP_NOT_FOUND);
-                        } else {
-                            $this->addFlash('error', 'User not found');
-                            return $this->redirectToRoute('app_login_face');
-                        }
+                if (!$user) {
+                    if ($request->isXmlHttpRequest()) {
+                        return $this->json([
+                            'success' => false,
+                            'message' => 'User not found'
+                        ], Response::HTTP_NOT_FOUND);
+                    } else {
+                        $this->addFlash('error', 'User not found');
+                        return $this->redirectToRoute('app_login_face');
                     }
-                } else {                    // If no email is provided, let the facial recognition service handle this
-                    // The verifyFace method of the service will try to match without a user
-                    error_log('No email provided, using facial recognition to identify user');
                 }
                 
                 // Verify the face using the service
@@ -107,37 +117,6 @@ class FacialRecognitionController extends AbstractController
                 error_log('Face verification result: ' . json_encode($result));
                 
                 if ($result['verified']) {
-                    // Check if a user was found by the facial recognition service
-                    if (isset($result['userId']) && !$user) {
-                        // Try to find the user by the ID returned from the service
-                        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $result['userId']]);
-                        
-                        if (!$user) {
-                            if ($request->isXmlHttpRequest()) {
-                                return $this->json([
-                                    'success' => false,
-                                    'message' => 'Facial recognition successful, but user not found in database'
-                                ], Response::HTTP_NOT_FOUND);
-                            } else {
-                                $this->addFlash('error', 'Facial recognition successful, but user not found in database');
-                                return $this->redirectToRoute('app_login_face');
-                            }
-                        }
-                    }
-                    
-                    // At this point, we should have a valid user
-                    if (!$user) {
-                        if ($request->isXmlHttpRequest()) {
-                            return $this->json([
-                                'success' => false,
-                                'message' => 'User identification failed after facial recognition'
-                            ], Response::HTTP_BAD_REQUEST);
-                        } else {
-                            $this->addFlash('error', 'User identification failed after facial recognition');
-                            return $this->redirectToRoute('app_login_face');
-                        }
-                    }
-                    
                     if (!$user->isFaceRecognitionEnabled()) {
                         if ($request->isXmlHttpRequest()) {
                             return $this->json([
@@ -208,27 +187,13 @@ class FacialRecognitionController extends AbstractController
                 return $this->redirectToRoute('app_login_face');
             }
         }
-    }    // Add this helper method to manually authenticate the user
+    }
+
+    // Add this helper method to manually authenticate the user
     private function authenticateUser(User $user, Request $request): void
     {
-        // Create a token with the user, main firewall name, and user roles
-        $token = new UsernamePasswordToken(
-            $user, 
-            'main', 
-            $user->getRoles()
-        );
-        
-        // Get the token storage service from the container and set the token
-        $tokenStorage = $this->container->get('security.token_storage');
-        $tokenStorage->setToken($token);
-        
-        // Save the token in the session
-        $request->getSession()->set('_security_main', serialize($token));
-        
-        // Dispatch a login event
-        $request->getSession()->set('_security.last_username', $user->getEmail());
-        
-        error_log('User authenticated: ' . $user->getEmail());
+        // Store information in the session so the user is authenticated
+        $request->getSession()->set('_security_main', serialize($user));
     }
 
     #[Route('/login/face/complete/{token}', name: 'app_complete_face_login')]

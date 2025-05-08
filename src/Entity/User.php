@@ -91,7 +91,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     private ?string $profilePicture = null;
 
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
-    private bool $is_verified = false;
+    private bool $isVerified = false;
 
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $faceRecognitionEnabled = false;
@@ -533,12 +533,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
 
     public function isVerified(): ?bool
     {
-        return $this->is_verified;
+        return $this->isVerified;
     }
 
-    public function setIsVerified(bool $is_verified): static
+    public function setIsVerified(bool $isVerified): static
     {
-        $this->is_verified = $is_verified;
+        $this->isVerified = $isVerified;
         return $this;
     }
 

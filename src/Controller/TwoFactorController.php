@@ -66,7 +66,7 @@ class TwoFactorController extends AbstractController
         $hasValidSecret = $this->twoFactorSessionHandler->hasTotpSecret();
         if ($hasValidSecret) {
             $this->addFlash('info', 'Two-factor authentication is already enabled for your account.');
-            return $this->redirectToRoute('app_profile_index');
+            return $this->redirectToRoute('app_profile');
         }
         
         // ALWAYS generate a fresh TOTP secret for setup
@@ -224,7 +224,7 @@ class TwoFactorController extends AbstractController
                 // Flash success message
                 $this->addFlash('success', 'Two-factor authentication enabled successfully!');
                 
-                $response = $this->redirectToRoute('app_profile_index');
+                $response = $this->redirectToRoute('app_profile');
                 
                 // Add cookies to response
                 foreach ($cookies as $cookie) {

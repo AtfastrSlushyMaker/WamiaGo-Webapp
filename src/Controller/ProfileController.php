@@ -40,7 +40,7 @@ class ProfileController extends AbstractController
         }
 
         // Redirect to the new profile route to avoid conflicts
-        return $this->redirectToRoute('app_profile_index');
+        return $this->redirectToRoute('app_profile');
     }
     
     #[Route('/profile/edit', name: 'app_profile_edit')]
@@ -105,8 +105,7 @@ class ProfileController extends AbstractController
                 ], 500);
             }
         }
-        
-        // For non-AJAX requests, render the template
+
         return $this->render('profile/2fa_setup.html.twig', [
             'user' => $user,
             'secret' => $secret,
@@ -132,7 +131,7 @@ class ProfileController extends AbstractController
         $completion += $user->getEmail() ? 4 : 0;
         $completion += $user->getPhoneNumber() ? 4 : 0;
         $completion += $user->getDateOfBirth() ? 4 : 0;
-        $completion += $user->getLocation() ? 4 : 0;
+        $completion += ($user->getLocation() !== null) ? 4 : 0;
         
     
           return min($completion, 100);

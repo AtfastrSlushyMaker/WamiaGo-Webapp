@@ -93,7 +93,7 @@ class UserController extends AbstractController
                     'role' => $user->getRole(),
                     'account_status' => $user->getAccount_status(),
                     'gender' => $user->getGender(),
-                    'is_verified' => $user->is_verified(),
+                    'isVerified' => $user->isVerified(),
                     'profile_picture' => $user->getProfilePicture() ? $user->getProfilePicture() : '/images/default-avatar.png',
                     'date_of_birth' => $user->getDate_of_birth() ? $user->getDate_of_birth()->format('Y-m-d') : null,
                     'status' => $user->getStatus()
@@ -331,7 +331,7 @@ class UserController extends AbstractController
                 'account_status' => $request->request->get('account_status'),
                 'date_of_birth' => $request->request->get('date_of_birth'),
                 'profilePicture' => $request->request->get('profilePicture'),
-                'is_verified' => $request->request->getBoolean('is_verified')
+                'isVerified' => $request->request->getBoolean('isVerified')
             ];
             
             // Create the user
@@ -382,7 +382,7 @@ class UserController extends AbstractController
                 'account_status' => $request->request->get('account_status'),
                 'date_of_birth' => $request->request->get('date_of_birth'),
                 'profilePicture' => $request->request->get('profilePicture'),
-                'is_verified' => $request->request->getBoolean('is_verified')
+                'isVerified' => $request->request->getBoolean('isVerified')
             ];
             
             // Update the user
@@ -442,8 +442,8 @@ class UserController extends AbstractController
                 'account_status' => $accountStatusValue,
                 'accountStatus' => $accountStatusValue, // Adding alias for frontend compatibility
                 'gender' => $genderValue,
-                'is_verified' => $user->is_verified(),
-                'isVerified' => $user->is_verified(), // Adding alias for frontend compatibility
+                'isVerified' => $user->isVerified(),
+                'isVerified' => $user->isVerified(), // Adding alias for frontend compatibility
                 'profile_picture' => $user->getProfilePicture() ? $user->getProfilePicture() : '/images/default-avatar.png',
                 'profilePicture' => $user->getProfilePicture() ? $user->getProfilePicture() : '/images/default-avatar.png', // Adding alias
                 'date_of_birth' => $user->getDate_of_birth() ? $user->getDate_of_birth()->format('Y-m-d') : null,

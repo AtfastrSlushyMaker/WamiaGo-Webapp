@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Set verified status
         document.getElementById('view-user-verified').textContent = 
-            user.is_verified ? 'Yes' : 'No';
+            user.isVerified ? 'Yes' : 'No';
         
         // Set role
         const role = user.role || 'CLIENT';
@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set verification badge
         const verificationBadge = document.getElementById('view-user-verification-badge');
         if (verificationBadge) {
-            if (user.is_verified) {
+            if (user.isVerified) {
                 verificationBadge.textContent = 'Verified';
                 verificationBadge.className = 'badge bg-success';
             } else {
@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Verification button
         const verifyBtn = document.getElementById('view-user-verify-btn');
         if (verifyBtn) {
-            if (user.is_verified) {
+            if (user.isVerified) {
                 verifyBtn.innerHTML = '<i class="fas fa-user-times me-1"></i> Unverify';
                 verifyBtn.classList.remove('btn-info');
                 verifyBtn.classList.add('btn-secondary');
@@ -393,7 +393,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 'X-Requested-With': 'XMLHttpRequest'
             },
             body: JSON.stringify({
-                is_verified: setVerified
+                isVerified: setVerified
             })
         })
         .then(response => {

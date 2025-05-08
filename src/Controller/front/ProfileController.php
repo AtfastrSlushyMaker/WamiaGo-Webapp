@@ -269,7 +269,7 @@ class ProfileController extends AbstractController
             $this->addFlash('error', 'An error occurred while saving your profile information: ' . $e->getMessage());
         }
 
-        return $this->redirectToRoute('app_profile_index');
+        return $this->redirectToRoute('app_profile');
     }
 
     #[Route('/check-password-strength', name: 'check_password_strength', methods: ['POST'])]

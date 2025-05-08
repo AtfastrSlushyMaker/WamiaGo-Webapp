@@ -65,6 +65,6 @@ class TwoFactorAuthenticationHandler implements AuthenticationRequiredHandlerInt
         }
         
         // If we somehow get here without a TwoFactorToken, redirect to profile
-        return new RedirectResponse($this->urlGenerator->generate('app_profile_index'));
+        return new RedirectResponse($this->urlGenerator->generate('app_profile'));
     }
 }

@@ -1,10 +1,3 @@
-/**
- * Form ID Fix - Automatically renames duplicate form element IDs
- *
- * This script detects and fixes duplicate form element IDs in the DOM.
- * It's especially useful when multiple forms (like in modals) have elements with the same IDs,
- * which causes DOM validation errors and can lead to unpredictable form submission behavior.
- */
 
 document.addEventListener('DOMContentLoaded', function() {
     const DEBUG = true;

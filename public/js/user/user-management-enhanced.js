@@ -335,7 +335,7 @@ function renderUserTable(users) {
         }
         
         // Verification badge
-        const verifiedBadge = user.is_verified ? 
+        const verifiedBadge = user.isVerified ? 
             '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> Verified</span>' : 
             '<span class="badge bg-secondary"><i class="fas fa-times-circle me-1"></i> Unverified</span>';
         
@@ -441,7 +441,7 @@ function renderUserCards(users) {
                 <div class="card-body">
                     <h5 class="card-title">${user.name}</h5>
                     <p class="card-subtitle mb-2">
-                        ${user.is_verified ? 
+                        ${user.isVerified ? 
                             '<i class="fas fa-check-circle text-success"></i> Verified' : 
                             '<i class="fas fa-times-circle text-secondary"></i> Unverified'
                         }
@@ -687,7 +687,7 @@ function editUser(userId) {
     
     // Checkbox
     if (document.querySelector('#edit-verified')) {
-        document.querySelector('#edit-verified').checked = user.is_verified;
+        document.querySelector('#edit-verified').checked = user.isVerified;
     }
     
     // Show the modal

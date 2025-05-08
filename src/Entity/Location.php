@@ -98,12 +98,15 @@ class Location
     public function getLongitude(): string|float|null
     {
         return $this->longitude;
-    }
-
-    public function setLongitude(string|float $longitude): self
+    }    public function setLongitude(string|float $longitude): self
     {
         $this->longitude = $longitude;
         return $this;
+    }
+    
+    public function __toString(): string
+    {
+        return $this->address ?? 'Unknown location';
     }
 
     public function getAddress(): ?string

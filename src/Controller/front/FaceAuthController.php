@@ -41,8 +41,9 @@ class FaceAuthController extends AbstractController
         
         // Get the error from flash messages if any
         $error = null;
-        if ($request->getSession()->getFlashBag()->has('error')) {
-            $error = $request->getSession()->getFlashBag()->get('error')[0];
+        if ($request->getSession()->has('error')) {
+            $error = $request->getSession()->get('error')[0];
+            $request->getSession()->remove('error');
         }
 
         return $this->render('security/login_face_direct.html.twig', [

@@ -661,7 +661,7 @@ function renderUserTable(users) {
         const gender = user.gender || '-';
         const role = user.role || 'CLIENT';
         const accountStatus = user.account_status || user.accountStatus || 'ACTIVE';
-        const isVerified = user.is_verified !== undefined ? user.is_verified : (user.isVerified !== undefined ? user.isVerified : false);
+        const isVerified = user.isVerified !== undefined ? user.isVerified : (user.isVerified !== undefined ? user.isVerified : false);
         const profilePicture = user.profile_picture || user.profilePicture || '/images/default-avatar.png';
         
         // Make profile picture path absolute if it's not already
@@ -836,7 +836,7 @@ function renderUserCards(users) {
         const accountStatus = user.account_status?.toLowerCase() || 'active';
         
         // Get verification badge
-        const verificationBadge = user.is_verified 
+        const verificationBadge = user.isVerified 
             ? '<span class="badge bg-success text-white"><i class="fas fa-check-circle me-1"></i> Verified</span>'
             : '<span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i> Pending</span>';
         
@@ -885,8 +885,8 @@ function renderUserCards(users) {
                 <div class="user-card-body p-4 text-center position-relative">
                     <div class="avatar-wrapper mb-3">
                         <img src="${user.profile_picture || '/images/default-avatar.png'}" alt="${name}" class="rounded-circle user-avatar shadow-sm border border-light">
-                        <span class="verification-indicator ${user.is_verified ? 'verified' : 'not-verified'}">
-                            <i class="fas fa-${user.is_verified ? 'check' : 'clock'}"></i>
+                        <span class="verification-indicator ${user.isVerified ? 'verified' : 'not-verified'}">
+                            <i class="fas fa-${user.isVerified ? 'check' : 'clock'}"></i>
                         </span>
                     </div>
                     <h5 class="card-title mb-1">${name}</h5>
@@ -1230,9 +1230,9 @@ function editUser(userId) {
                 }
                 
                 // Checkboxes require special handling
-                const verifiedField = form.querySelector('input[name="is_verified"]');
+                const verifiedField = form.querySelector('input[name="isVerified"]');
                 if (verifiedField) {
-                    verifiedField.checked = user.is_verified === true || user.is_verified === 1 || user.is_verified === '1';
+                    verifiedField.checked = user.isVerified === true || user.isVerified === 1 || user.isVerified === '1';
                 }
                 
                 // Setup form submission handler with AJAX
@@ -1640,112 +1640,7 @@ function initializeElements() {
     }
 }
 
-/**
- * Create fallback demo users for display when API fails
- */
-function createFallbackDemoUsers() {
-    const demoUsers = [
-        {
-            id_user: 1,
-            name: "John Smith",
-            email: "john.smith@example.com",
-            phone_number: "555-123-4567",
-            role: "ADMIN",
-            account_status: "ACTIVE",
-            gender: "MALE",
-            is_verified: true,
-            profile_picture: "https://randomuser.me/api/portraits/men/1.jpg",
-            date_of_birth: "1985-06-12"
-        },
-        {
-            id_user: 2,
-            name: "Sarah Johnson",
-            email: "sarah.j@example.com",
-            phone_number: "555-987-6543",
-            role: "CLIENT",
-            account_status: "ACTIVE",
-            gender: "FEMALE",
-            is_verified: true,
-            profile_picture: "https://randomuser.me/api/portraits/women/2.jpg",
-            date_of_birth: "1990-03-24"
-        },
-        {
-            id_user: 3,
-            name: "Michael Chen",
-            email: "m.chen@example.com",
-            phone_number: "555-456-7890",
-            role: "DRIVER",
-            account_status: "ACTIVE",
-            gender: "MALE",
-            is_verified: true,
-            profile_picture: "https://randomuser.me/api/portraits/men/3.jpg",
-            date_of_birth: "1988-11-15"
-        },
-        {
-            id_user: 4,
-            name: "Emma Williams",
-            email: "emma.w@example.com",
-            phone_number: "555-222-3333",
-            role: "CLIENT",
-            account_status: "SUSPENDED",
-            gender: "FEMALE",
-            is_verified: false,
-            profile_picture: "https://randomuser.me/api/portraits/women/4.jpg",
-            date_of_birth: "1992-07-30"
-        },
-        {
-            id_user: 5,
-            name: "David Miller",
-            email: "david.m@example.com",
-            phone_number: "555-444-5555",
-            role: "CLIENT",
-            account_status: "BANNED",
-            gender: "MALE",
-            is_verified: true,
-            profile_picture: "https://randomuser.me/api/portraits/men/5.jpg",
-            date_of_birth: "1978-09-03"
-        },
-        {
-            id_user: 6,
-            name: "Olivia Brown",
-            email: "olivia.b@example.com",
-            phone_number: "555-777-8888",
-            role: "DRIVER",
-            account_status: "ACTIVE",
-            gender: "FEMALE",
-            is_verified: true,
-            profile_picture: "https://randomuser.me/api/portraits/women/6.jpg",
-            date_of_birth: "1995-01-18"
-        },
-        {
-            id_user: 7,
-            name: "James Taylor",
-            email: "james.t@example.com",
-            phone_number: "555-999-0000",
-            role: "CLIENT",
-            account_status: "ACTIVE",
-            gender: "MALE",
-            is_verified: false,
-            profile_picture: "https://randomuser.me/api/portraits/men/7.jpg",
-            date_of_birth: "1983-12-05"
-        },
-        {
-            id_user: 8,
-            name: "Sophia Martinez",
-            email: "sophia.m@example.com",
-            phone_number: "555-111-2222",
-            role: "CLIENT",
-            account_status: "ACTIVE",
-            gender: "FEMALE",
-            is_verified: true,
-            profile_picture: "https://randomuser.me/api/portraits/women/8.jpg",
-            date_of_birth: "1991-04-22"
-        }
-    ];
-    
-    console.log('Created fallback demo users:', demoUsers);
-    return demoUsers;
-}
 
-// Initialize the app when DOM is ready
+
+
 document.addEventListener('DOMContentLoaded', init);

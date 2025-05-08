@@ -145,7 +145,7 @@ class UserRepository extends ServiceEntityRepository
                 $paramName = 'param_' . $field;
                 
                 // Handle boolean values specially
-                if (is_bool($value) || in_array($field, ['is_verified'])) {
+                if (is_bool($value) || in_array($field, ['isVerified'])) {
                     $qb->andWhere('u.' . $field . ' = :' . $paramName)
                        ->setParameter($paramName, $value);
                 } else {

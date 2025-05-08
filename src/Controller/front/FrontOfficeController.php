@@ -10,12 +10,12 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\Request;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use App\Form\ProfileEditType;
-use App\Entity\User;
 use Symfony\Component\HttpKernel\Kernel;
+use App\Enum\ACCOUNT_STATUS;
+use App\Enum\ROLE;
+use App\Enum\STATUS;
 
 class FrontOfficeController extends AbstractController
 {
@@ -70,26 +70,6 @@ class FrontOfficeController extends AbstractController
         $userRepository = $entityManager->getRepository(User::class);
         $user = $userRepository->find(1);
         
-        // If user doesn't exist, we'll create one temporarily or use null
-        if (!$user) {
-            // For demonstration/development only - in production, you'd want to use a real user
-            // This is to prevent failures due to missing user association
-            $user = new User();
-            // Set minimum required fields for a valid user
-            $user->setEmail('demo@wamiango.com');
-            $user->setName('Demo User');
-            $user->setPassword('password123'); // Not secure, just for demo
-            $user->setPhoneNumber('1234567890');
-            $user->setRole('ROLE_USER');
-            $user->setGender('Unspecified');
-            $user->setStatus('ACTIVE');
-            $user->setAccountStatus('ACTIVE');
-            $user->setIsVerified(true);
-            
-            // Persist this temporary user
-            $entityManager->persist($user);
-            $entityManager->flush();
-        }
         
         // Set the user (which now should exist)
         $reclamation->setUser($user);
@@ -199,8 +179,7 @@ class FrontOfficeController extends AbstractController
                             $this->getParameter('profile_pictures_directory'),
                             $newFilename
                         );
-    
-                        // Update the user's profile picture
+
                         $user->setProfilePicture($newFilename);
                     } catch (FileException $e) {
                         $this->addFlash('error', 'There was an error uploading your profile picture. Please try again.');
