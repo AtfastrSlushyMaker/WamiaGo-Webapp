@@ -10,7 +10,7 @@ class AzureSpeechService
 
     public function __construct()
     {
-        // Get environment variables exactly like in JavaFX
+        // Get environment variables 
         $this->subscriptionKey = getenv('AZURE_SPEECH_KEY');
         $this->region = getenv('AZURE_SPEECH_REGION');
 

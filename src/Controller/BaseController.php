@@ -28,18 +28,7 @@ class BaseController extends AbstractController
         
         // Get actual authenticated user if available
         $user = $this->security->getUser();
-        
-        // Only use mock user if no actual user is authenticated
-        if (!$user) {
-            $user = (object)[
-                'name' => 'Test User',
-                'email' => 'test@example.com',
-                'profilePicture' => null,
-                'roles' => ['ROLE_USER']
-            ];
-        }
-        
-        // Add app data to parameters if it doesn't exist
+         // Add app data to parameters if it doesn't exist
         if (!isset($parameters['app'])) {
             $parameters['app'] = [
                 'user' => $user,

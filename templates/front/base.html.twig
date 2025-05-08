@@ -155,9 +155,8 @@
                                     {% if app.user is defined and app.user.roles is defined and 'ROLE_ADMIN' in app.user.roles %}
                                         <li><a class="dropdown-item" href="{{ path('admin_dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
                                     {% endif %}
-                                    {% if app.user is defined and user_repository is defined and user_repository.isUserDriver(app.user) %}
-                                        <li><a class="dropdown-item" href="{{ path('app_driver_space') }}"><i class="fas fa-car me-2"></i>Driver Space</a></li>
-                                    {% endif %}
+                                     <li><a class="dropdown-item" href="{{ path('app_driver_space') }}"><i class="fas fa-car me-2"></i>Driver Space</a></li>
+                                  
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="{{ path('app_logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
                                 </ul>

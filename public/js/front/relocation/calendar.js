@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // S'assurer que le modal est bien positionné au centre
             modalElement.style.display = 'block';
-            modalElement.style.paddingRight = '17px'; // Compenser la barre de défilement
+            modalElement.style.paddingRight = '17px';
             
             modal.show();
             
