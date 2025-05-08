@@ -6,12 +6,11 @@
     <link rel="icon" href="{{ asset('images/logo/logo.png') }}" type="image/x-icon">
     <link rel="shortcut icon" href="{{ asset('images/logo/logo.png') }}" type="image/x-icon">
     <title>{% block title %}WamiaGo | Welcome{% endblock %}</title>
-
+<meta name="csrf-token" content="{{ csrf_token('station_form') }}">
     <!-- External CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css"
           integrity="sha256-tXJfXfp6Ewt1ilPzLDtQnJV4hclT9XuaZUKyUvmyr+Q=" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/styles/overlayscrollbars.min.css"
-          integrity="sha256-dghWARbRe2eLlIJ56wNB+b760ywulqK3DzZYEpsg2fQ=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/styles/overlayscrollbars.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
           integrity="sha256-9kPW/n5nn53j4WMRYAxe9c1rCY96Oogo/MKSVdKzPmI=" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css"
@@ -630,7 +629,7 @@
             <!-- Left navbar links -->
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a href="{{ path('app_front_home') }}" class="nav-link logo-link">
+                    <a  class="nav-link logo-link">
                         <img src="{{ asset('images/logo/logo.png') }}" alt="WamiaGo" class="topbar-logo">
                         <span class="logo-text fw-bold">WamiaGo</span>
                     </a>
@@ -764,6 +763,8 @@
 
                 <li class="nav-item {{ app.request.attributes.get('_route') == 'admin_taxi_bookings' ? 'active' : '' }}">
                     <a href="{{ path('admin_taxi_bookings') }}" class="nav-link">
+                <li class="nav-item">
+                    <a href="{{ path('admin_taxi_management') }}" class="nav-link">
                         <i class="bi bi-taxi-front nav-icon"></i>
                         <span class="nav-text">Taxi Bookings</span>
                     </a>
@@ -776,11 +777,64 @@
                     </a>
                 </li>
 
-                <li class="nav-item {{ app.request.attributes.get('_route') == 'admin_relocations' ? 'active' : '' }}">
-                    <a href="{{ path('admin_relocations') }}" class="nav-link">
+                 <li class="nav-item dropdown">
+                    <a href="#" class="nav-link dropdown-toggle {% if app.request.get('_route') starts with 'admin_announcements_' 
+                                                            or app.request.get('_route') starts with 'admin_reservations_'
+                                                            or app.request.get('_route') starts with 'admin_relocations_'
+                                                            or app.request.get('_route') starts with 'admin_stats_' %}active{% endif %}" 
+                    id="relocationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-truck nav-icon"></i>
                         <span class="nav-text">Relocations</span>
                     </a>
+
+                    <ul class="dropdown-menu shadow-lg border-0 rounded-3" aria-labelledby="relocationsDropdown">
+                        <li><h6 class="dropdown-header text-uppercase fw-bold text-secondary fs-7 px-3 py-2">Dashboards</h6></li>
+                        <li><hr class="dropdown-divider mx-3 my-0"></li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center py-2 px-3 transition-all hover-bg-light" href="{{ path('admin_stats_index') }}">
+                                <div class="menu-icon bg-warning-subtle rounded p-2 me-3">
+                                    <i class="fas fa-chart-pie text-warning"></i>
+                                </div>
+                                <div>
+                                    <span class="fw-medium">Statistics Overview</span>
+                                    <p class="text-muted small mb-0">View all system statistics</p>
+                                </div>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center py-2 px-3 transition-all hover-bg-light" href="{{ path('admin_announcements_index') }}">
+                                <div class="menu-icon bg-primary-subtle rounded p-2 me-3">
+                                    <i class="fas fa-bullhorn text-primary"></i>
+                                </div>
+                                <div>
+                                    <span class="fw-medium">Announcements</span>
+                                    <p class="text-muted small mb-0">Manage your publication dashboard</p>
+                                </div>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center py-2 px-3 transition-all hover-bg-light" href="{{ path('admin_reservations_index') }}">
+                                <div class="menu-icon bg-success-subtle rounded p-2 me-3">
+                                    <i class="fas fa-calendar-check text-success"></i>
+                                </div>
+                                <div>
+                                    <span class="fw-medium">Reservations</span>
+                                    <p class="text-muted small mb-0">Monitor all booking requests</p>
+                                </div>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center py-2 px-3 transition-all hover-bg-light" href="{{ path('admin_relocations_index') }}">
+                                <div class="menu-icon bg-info-subtle rounded p-2 me-3">
+                                    <i class="fas fa-truck-moving text-info"></i>
+                                </div>
+                                <div>
+                                    <span class="fw-medium">Relocations</span>
+                                    <p class="text-muted small mb-0">Track active moving operations</p>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
 
                 <li class="nav-item {{ app.request.attributes.get('_route') == 'admin_settings' ? 'active' : '' }}">
@@ -789,10 +843,16 @@
                         <span class="nav-text">Settings</span>
                     </a>
                 </li>
+               <li class="nav-item {{ app.request.attributes.get('_route') == 'admin_settings' ? 'active' : '' }}">
+    <a href="{{ path('app_reclamation_index') }}" class="nav-link">
+    <i class="bi bi-chat-square-text nav-icon"></i>
+    <span class="nav-text">Reclamations</span>
+</a>
+</li>
             </ul>
 
             <div class="logout-container">
-                <a href="#" class="logout-btn">
+                <a href="{{ path('app_logout') }}" class="logout-btn">
                     <i class="bi bi-box-arrow-right"></i>
                     <span>Logout</span>
                 </a>
@@ -817,7 +877,7 @@
                     <p class="mb-0">Copyright &copy; {{ "now"|date("Y") }} WamiaGo. All rights reserved.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p class="mb-0">Powered by <a href="{{ path('app_front_home') }}" class="text-decoration-none">WamiaGo</a></p>
+                    <p class="mb-0">Powered by WamiaGo</a></p>
                 </div>
             </div>
         </div>
@@ -825,6 +885,9 @@
 </div>
 
 {% block javascripts %}
+    <!-- jQuery (required for Bootstrap) -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    
     <!-- Core JS -->
     <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/browser/overlayscrollbars.browser.es6.min.js"
             integrity="sha256-dghWARbRe2eLlIJ56wNB+b760ywulqK3DzZYEpsg2fQ="

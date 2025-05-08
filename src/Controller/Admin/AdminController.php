@@ -2,32 +2,43 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\User;
-use App\Form\AdminUserType;
-use App\Form\AdminUserDeleteType;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Entity\Location;
-use App\Enum\ACCOUNT_STATUS;
-use App\Enum\ROLE;
+use App\Service\BicycleRentalService;
+use App\Service\BicycleStationService;
+use App\Service\BicycleService;
+use App\Form\BicycleType;
+use App\Form\BicycleStationType;
+use Symfony\Component\Form\FormFactoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Knp\Component\Pager\PaginatorInterface;
 
 class AdminController extends AbstractController
 {
+    private $bicycleRentalService;
+    private $bicycleStationService;
+    private $bicycleService;
+    private $formFactory;
     private $entityManager;
-    private $passwordHasher;
+    private $paginator;
 
     public function __construct(
+        BicycleRentalService $bicycleRentalService,
+        BicycleStationService $bicycleStationService,
+        BicycleService $bicycleService,
+        FormFactoryInterface $formFactory,
         EntityManagerInterface $entityManager,
-        UserPasswordHasherInterface $passwordHasher
+        PaginatorInterface $paginator
     ) {
+        $this->bicycleRentalService = $bicycleRentalService;
+        $this->bicycleStationService = $bicycleStationService;
+        $this->bicycleService = $bicycleService;
+        $this->formFactory = $formFactory;
         $this->entityManager = $entityManager;
-        $this->passwordHasher = $passwordHasher;
+        $this->paginator = $paginator;
     }
 
     #[Route('/admin', name: 'admin_dashboard')]
@@ -49,165 +60,9 @@ class AdminController extends AbstractController
     public function users(UserService $userService): Response
     {
         $users = $userService->getAllUsers();
-        $locations = $this->entityManager->getRepository(Location::class)->findAll();
-        
-        // Create the forms needed by the included templates
-        $newUser = new User();
-        $form_new = $this->createForm(AdminUserType::class, $newUser, [
-            'is_edit' => false
+        return $this->render('back-office/users.html.twig', [
+            'users' => $users
         ]);
-        
-        $editUser = new User();
-        $form_edit = $this->createForm(AdminUserType::class, $editUser, [
-            'is_edit' => true
-        ]);
-        
-        $deleteUser = new User();
-        $form_delete = $this->createForm(AdminUserDeleteType::class, $deleteUser);
-        
-        return $this->render('admin/users/users.html.twig', [
-            'users' => $users,
-            'locations' => $locations,
-            'account_statuses' => ACCOUNT_STATUS::cases(),
-            'roles' => ROLE::cases(),
-            'form_new' => $form_new->createView(),
-            'form_edit' => $form_edit->createView(),
-            'form_delete' => $form_delete->createView()
-        ]);
-    }
-    
-    #[Route('/admin/users/new', name: 'admin_user_new', methods: ['POST'])]
-    public function newUser(Request $request): JsonResponse
-    {
-        $user = new User();
-        $form = $this->createForm(AdminUserType::class, $user, [
-            'is_edit' => false
-        ]);
-        
-        $form->handleRequest($request);
-        
-        if ($form->isSubmitted() && $form->isValid()) {
-            // Encode the password
-            $hashedPassword = $this->passwordHasher->hashPassword(
-                $user,
-                $form->get('password')->getData()
-            );
-            $user->setPassword($hashedPassword);
-            
-            // Save the user
-            $this->entityManager->persist($user);
-            $this->entityManager->flush();
-            
-            return new JsonResponse([
-                'success' => true,
-                'message' => 'User created successfully',
-                'user' => [
-                    'id' => $user->getId_user(),
-                    'name' => $user->getName(),
-                    'email' => $user->getEmail()
-                ]
-            ]);
-        }
-        
-        // Get validation errors
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
-        }
-        
-        return new JsonResponse([
-            'success' => false,
-            'message' => 'Form validation failed',
-            'errors' => $errors
-        ], Response::HTTP_BAD_REQUEST);
-    }
-    
-    #[Route('/admin/users/{id}/edit', name: 'admin_user_edit', methods: ['POST'])]
-    public function editUser(Request $request, int $id): JsonResponse
-    {
-        $user = $this->entityManager->getRepository(User::class)->find($id);
-        
-        if (!$user) {
-            return new JsonResponse([
-                'success' => false,
-                'message' => 'User not found'
-            ], Response::HTTP_NOT_FOUND);
-        }
-        
-        $form = $this->createForm(AdminUserType::class, $user, [
-            'is_edit' => true
-        ]);
-        
-        $form->handleRequest($request);
-        
-        if ($form->isSubmitted() && $form->isValid()) {
-            // Check if we need to update the password
-            $plainPassword = $form->get('plainPassword')->getData();
-            if (!empty($plainPassword)) {
-                $hashedPassword = $this->passwordHasher->hashPassword(
-                    $user,
-                    $plainPassword
-                );
-                $user->setPassword($hashedPassword);
-            }
-            
-            // Save the user
-            $this->entityManager->flush();
-            
-            return new JsonResponse([
-                'success' => true,
-                'message' => 'User updated successfully',
-                'user' => [
-                    'id' => $user->getId_user(),
-                    'name' => $user->getName(),
-                    'email' => $user->getEmail()
-                ]
-            ]);
-        }
-        
-        // Get validation errors
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
-        }
-        
-        return new JsonResponse([
-            'success' => false,
-            'message' => 'Form validation failed',
-            'errors' => $errors
-        ], Response::HTTP_BAD_REQUEST);
-    }
-    
-    #[Route('/admin/users/{id}/delete', name: 'admin_user_delete', methods: ['POST'])]
-    public function deleteUser(Request $request, int $id): JsonResponse
-    {
-        $user = $this->entityManager->getRepository(User::class)->find($id);
-        
-        if (!$user) {
-            return new JsonResponse([
-                'success' => false,
-                'message' => 'User not found'
-            ], Response::HTTP_NOT_FOUND);
-        }
-        
-        $form = $this->createForm(AdminUserDeleteType::class, $user);
-        $form->handleRequest($request);
-        
-        if ($form->isSubmitted() && $form->isValid()) {
-            // Delete the user
-            $this->entityManager->remove($user);
-            $this->entityManager->flush();
-            
-            return new JsonResponse([
-                'success' => true,
-                'message' => 'User deleted successfully'
-            ]);
-        }
-        
-        return new JsonResponse([
-            'success' => false,
-            'message' => 'Invalid form submission'
-        ], Response::HTTP_BAD_REQUEST);
     }
 
     #[Route('/admin/ride-sharing', name: 'admin_ride_sharing')]
@@ -223,16 +78,252 @@ class AdminController extends AbstractController
     }
 
     #[Route('/admin/bicycle-rentals', name: 'admin_bicycle_rentals')]
-    public function bicycleRentals(): Response
+    public function bicycleRentals(Request $request): Response
     {
-        return $this->render('back-office/bicycle-rentals.html.twig');
+        $tab = $request->query->get('tab', 'rentals');
+        $isAjax = $request->headers->get('X-Requested-With') === 'XMLHttpRequest';
+        
+        // Get bicycles query and paginate it
+        $bicyclesQuery = $this->bicycleService->getAllBicyclesQuery();
+        $bicycles = $this->paginator->paginate(
+            $bicyclesQuery,
+            $request->query->getInt('page', 1),
+            $request->query->getInt('perPage', 10)
+        );
+        
+        // Get stations query and paginate it
+        $stationsQuery = $this->bicycleStationService->getAllStationsQuery();
+        $stations = $this->paginator->paginate(
+            $stationsQuery,
+            $request->query->getInt('page', 1),
+            $request->query->getInt('perPage', 10)
+        );
+        
+        // Get rentals query and paginate it
+        $rentalsQuery = $this->bicycleRentalService->getAllRentalsQuery();
+        $rentals = $this->paginator->paginate(
+            $rentalsQuery,
+            $request->query->getInt('page', 1),
+            $request->query->getInt('perPage', 10)
+        );
+        
+        $users = $this->entityManager->getRepository(\App\Entity\User::class)->findAll();
+
+        // Create Add/Edit Bicycle Forms
+        $newBicycle = new \App\Entity\Bicycle();
+        $newBicycle->setLastUpdated(new \DateTime());
+        $newBicycle->setStatus(\App\Enum\BICYCLE_STATUS::AVAILABLE);
+        $addBicycleForm = $this->formFactory->create(\App\Form\BicycleType::class, $newBicycle);
+        $editBicycle = new \App\Entity\Bicycle();
+        $editBicycleForm = $this->formFactory->create(BicycleType::class, $editBicycle, ['bicycleId' => $newBicycle->getIdBike()]);
+
+        // Create Station Form using BicycleStationType
+        $newStation = new \App\Entity\BicycleStation();
+        $newStation->setStatus(\App\Enum\BICYCLE_STATION_STATUS::ACTIVE);
+        $newStation->setChargingBikes(0);
+        $newStation->setTotalDocks(10);
+        $newStation->setAvailableBikes(0);
+        $newStation->setAvailableDocks(10);
+        $stationForm = $this->formFactory->create(\App\Form\BicycleStationType::class, $newStation);
+
+        $createStationForm = $this->formFactory->create(\App\Form\BicycleStationType::class, $newStation);
+
+        $stationAssignForm = $this->formFactory->createBuilder()
+            ->add('bicycles', \Symfony\Bridge\Doctrine\Form\Type\EntityType::class, [
+                'class' => \App\Entity\Bicycle::class,
+                'choice_label' => function($bicycle) { return 'BIKE-' . sprintf('%04d', $bicycle->getIdBike()); },
+                'multiple' => true,
+                'required' => true
+            ])
+            ->add('station', \Symfony\Bridge\Doctrine\Form\Type\EntityType::class, [
+                'class' => \App\Entity\BicycleStation::class,
+                'choice_label' => 'name',
+                'required' => true
+            ])
+            ->getForm();
+        $maintenanceForm = $this->formFactory->createBuilder()
+            ->add('bicycles', \Symfony\Bridge\Doctrine\Form\Type\EntityType::class, [
+                'class' => \App\Entity\Bicycle::class,
+                'choice_label' => function($bicycle) { return 'BIKE-' . sprintf('%04d', $bicycle->getIdBike()); },
+                'multiple' => true,
+                'required' => true
+            ])
+            ->add('maintenanceType', \Symfony\Component\Form\Extension\Core\Type\ChoiceType::class, [
+                'choices' => [
+                    'Routine Check' => 'routine',
+                    'Repair' => 'repair',
+                    'Battery Service' => 'battery',
+                    'Software Update' => 'software'
+                ],
+                'required' => true
+            ])
+            ->add('scheduledDate', \Symfony\Component\Form\Extension\Core\Type\DateTimeType::class, [
+                'widget' => 'single_text',
+                'required' => true,
+            ])
+            ->add('priority', \Symfony\Component\Form\Extension\Core\Type\ChoiceType::class, [
+                'choices' => [
+                    'Low' => 'low',
+                    'Medium' => 'medium',
+                    'High' => 'high',
+                    'Urgent' => 'urgent'
+                ],
+                'required' => true
+            ])
+            ->add('description', \Symfony\Component\Form\Extension\Core\Type\TextareaType::class, [
+                'required' => false
+            ])
+            ->getForm();
+
+        // Create the query builder for rentals with filters and pagination
+        $status = $request->query->get('status');
+        $stationId = $request->query->get('station');
+        $dateFrom = $request->query->get('dateFrom');
+        $dateTo = $request->query->get('dateTo');
+        $page = $request->query->getInt('page', 1);
+        $perPage = $request->query->getInt('perPage', 10);
+        $queryBuilder = $this->entityManager->createQueryBuilder()
+            ->select('r')
+            ->from(\App\Entity\BicycleRental::class, 'r')
+            ->leftJoin('r.bicycle', 'b')
+            ->leftJoin('r.user', 'u')
+            ->leftJoin('r.start_station', 'ss')
+            ->leftJoin('r.end_station', 'es')
+            ->orderBy('r.id_user_rental', 'DESC');
+        
+        // Apply filters if provided
+        if ($status) {
+            switch($status) {
+                case 'active':
+                    $queryBuilder->andWhere('r.start_time IS NOT NULL')
+                                ->andWhere('r.end_time IS NULL');
+                    break;
+                case 'completed':
+                    $queryBuilder->andWhere('r.end_time IS NOT NULL');
+                    break;
+                case 'reserved':
+                    $queryBuilder->andWhere('r.start_time IS NULL')
+                                ->andWhere('r.end_time IS NULL');
+                    break;
+            }
+        }
+        
+        if ($stationId) {
+            $queryBuilder->andWhere('ss.id_station = :stationId')
+                        ->setParameter('stationId', $stationId);
+        }
+        
+        if ($dateFrom) {
+            $fromDate = new \DateTime($dateFrom);
+            $queryBuilder->andWhere('r.start_time >= :fromDate')
+                        ->setParameter('fromDate', $fromDate->format('Y-m-d 00:00:00'));
+        }
+        
+        if ($dateTo) {
+            $toDate = new \DateTime($dateTo);
+            $queryBuilder->andWhere('r.start_time <= :toDate')
+                        ->setParameter('toDate', $toDate->format('Y-m-d 23:59:59'));
+        }
+        
+        // Paginate the rentals
+        $rentals = $this->paginator->paginate(
+            $queryBuilder->getQuery(),
+            $request->query->getInt('page', 1),
+            $request->query->getInt('perPage', 10)
+        );
+
+        // Stats
+        $completedCount = 0;
+        $activeCount = 0;
+        $reservedCount = 0;
+        foreach ($rentals as $rental) {
+            if ($rental->getEndTime()) {
+                $completedCount++;
+            } elseif ($rental->getStartTime()) {
+                $activeCount++;
+            } else {
+                $reservedCount++;
+            }
+        }
+        
+        // Get bicycle count by status
+        $allBicycles = $this->bicycleService->getAllBicycles(); // Get all for stats calculation
+        $availableCount = 0;
+        $inUseCount = 0;
+        $maintenanceCount = 0;
+        $chargingCount = 0;
+        foreach ($allBicycles as $bicycle) {
+            $status = $bicycle->getStatus()->value;
+            if ($status === 'available') {
+                $availableCount++;
+            } elseif ($status === 'in_use') {
+                $inUseCount++;
+            } elseif ($status === 'maintenance') {
+                $maintenanceCount++;
+            } elseif ($status === 'charging') {
+                $chargingCount++;
+            }
+        }
+
+        // Station stats
+        $stationCounts = $this->bicycleStationService->getStationCountsByStatus();
+        $totalCapacity = $this->bicycleStationService->getTotalBicycleCapacity();
+        $totalChargingDocks = $this->bicycleStationService->getTotalChargingDocks();
+        $stationActivity = $this->bicycleStationService->getStationsWithRentalActivity(5);
+
+        // Prepare view parameters
+        $params = [
+            'bicycles' => $bicycles,
+            'stations' => $stations,
+            'users' => $users,
+            'rentals' => $rentals,
+            'addBicycleForm' => $addBicycleForm->createView(),
+            'editBicycleForm' => $editBicycleForm->createView(),
+            'stationForm' => $stationForm->createView(),
+            'createStationForm' => $createStationForm->createView(),
+            'stationAssignForm' => $stationAssignForm->createView(),
+            'maintenanceForm' => $maintenanceForm->createView(),
+            'stats' => [
+                'totalRentals' => $rentals->getTotalItemCount(),
+                'completedCount' => $completedCount,
+                'activeCount' => $activeCount,
+                'reservedCount' => $reservedCount,
+                'completionRate' => $rentals->getTotalItemCount() > 0 ? ($completedCount > 0 ? round(($completedCount / $rentals->getTotalItemCount()) * 100) : 0) : 0,
+                'totalRevenue' => array_sum(array_map(function($r) { return $r->getCost() ?: 0; }, $rentals->getItems()))
+            ],
+            'availableCount' => $availableCount,
+            'inUseCount' => $inUseCount,
+            'maintenanceCount' => $maintenanceCount,
+            'chargingCount' => $chargingCount,
+            'stationCounts' => $stationCounts,
+            'totalCapacity' => $totalCapacity,
+            'totalChargingDocks' => $totalChargingDocks,
+            'stationActivity' => $stationActivity,
+            'filters' => [
+                'status' => $status,
+                'stationId' => $stationId,
+                'dateFrom' => $dateFrom,
+                'dateTo' => $dateTo
+            ],
+            'active_tab' => $tab,
+            'bicycleService' => $this->bicycleService,
+            'stationService' => $this->bicycleStationService,
+            'rentalService' => $this->bicycleRentalService,
+        ];
+
+        // For AJAX requests, just return the specific tab content
+        if ($isAjax) {
+            return $this->render('back-office/bicycle-rentals.html.twig', $params);
+        }
+
+        return $this->render('back-office/bicycle-rentals.html.twig', $params);
     }
 
-    #[Route('/admin/relocations', name: 'admin_relocations')]
+   /* #[Route('/admin/relocations', name: 'admin_relocations')]
     public function relocations(): Response
     {
         return $this->render('back-office/relocations.html.twig');
-    }
+    }*/
 
     #[Route('/admin/settings', name: 'admin_settings')]
     public function settings(): Response
@@ -245,205 +336,19 @@ class AdminController extends AbstractController
     {
         return $this->render('back-office/profile.html.twig');
     }
-
-    #[Route('/admin/test', name: 'admin_test')]
-    public function test(): Response
+    #[Route('/admin/contact', name: 'admin_contact')]
+    public function contact(): Response
     {
-        return $this->render('admin/test.html.twig');
+        return $this->render('back-office/contact.html.twig');
+    }
+#[Route('/admin/response', name: 'admin_response')]
+    public function response(): Response
+    {
+        return $this->render('back-office/response.html.twig');
     }
 
-    #[Route('/admin/api/users', name: 'admin_api_users', methods: ['GET'])]
-    public function apiUsers(UserService $userService, Request $request, EntityManagerInterface $entityManager): Response
-    {
-        // Stop any output buffering
-        while (ob_get_level()) {
-            ob_end_clean();
-        }
-        
-        // Simple implementation with error handling
-        try {
-            // Get pagination parameters
-            $page = $request->query->getInt('page', 1);
-            $itemsPerPage = $request->query->getInt('items', 10);
-            $itemsPerPage = min(max($itemsPerPage, 5), 100); // Constrain between 5-100
-            
-            // Get filter parameters
-            $filters = [
-                'search' => $request->query->get('search'),
-                'role' => $request->query->get('role'),
-                'status' => $request->query->get('status'),
-                'verified' => $request->query->get('verified'),
-                'orderBy' => $request->query->get('orderBy', 'id_user'),
-                'orderDirection' => $request->query->get('orderDirection', 'DESC')
-            ];
-            
-            // Remove empty filters
-            $filters = array_filter($filters, function($value) {
-                return $value !== null && $value !== '';
-            });
 
-            // Special handling for status filter
-            if (isset($filters['status'])) {
-                // Convert to string directly instead of using enum - we'll do string comparison in SQL
-                $filters['status'] = (string)$filters['status'];
-            }
-            
-            // Get paginated query
-            $query = $userService->getUserQuery($filters);
-            
-            // Calculate offset
-            $offset = ($page - 1) * $itemsPerPage;
-            
-            // Execute query with pagination
-            $query->setFirstResult($offset)
-                  ->setMaxResults($itemsPerPage);
-            
-            // Get users for current page
-            $usersForPage = $query->getQuery()->getResult();
-            
-            // Get total count for pagination
-            $countQuery = clone $query;
-            $countQuery->select('COUNT(u.id_user)')
-                       ->setFirstResult(null)
-                       ->setMaxResults(null);
-            $totalUsers = $countQuery->getQuery()->getSingleScalarResult();
-            
-            $formattedUsers = [];
-            foreach ($usersForPage as $user) {
-                // Handle potential null dates
-                $dateOfBirth = null;
-                if ($user->getDate_of_birth()) {
-                    try {
-                        $dateOfBirth = $user->getDate_of_birth()->format('Y-m-d');
-                    } catch (\Exception $e) {
-                        // If date formatting fails, leave as null
-                    }
-                }
-                
-                // Get role as string, handling both enum and string cases
-                $role = $user->getRole();
-                if (is_object($role) && method_exists($role, 'value')) {
-                    $role = $role->value;
-                }
-                
-                // Get account status as string, handling both enum and string cases
-                $accountStatus = $user->getAccount_status();
-                if (is_object($accountStatus) && method_exists($accountStatus, 'value')) {
-                    $accountStatus = $accountStatus->value;
-                }
-                
-                // Get gender as string, handling both enum and string cases
-                $gender = $user->getGender();
-                if (is_object($gender) && method_exists($gender, 'value')) {
-                    $gender = $gender->value;
-                }
-                
-                $formattedUsers[] = [
-                    'id_user' => $user->getId_user(),
-                    'name' => $user->getName(),
-                    'email' => $user->getEmail(),
-                    'phone_number' => $user->getPhone_number(),
-                    'role' => $role ?: 'CLIENT',
-                    'account_status' => $accountStatus ?: 'ACTIVE',
-                    'gender' => $gender,
-                    'isVerified' => $user->isVerified(),
-                    'profile_picture' => $user->getProfilePicture() ? $user->getProfilePicture() : '/images/default-avatar.png',
-                    'date_of_birth' => $dateOfBirth
-                ];
-            }
-            
-            // Calculate user stats - use string values directly instead of enum constants
-            $statsQuery = $entityManager->createQueryBuilder()
-                ->select('CASE 
-                    WHEN u.account_status = \'ACTIVE\' THEN \'ACTIVE\' 
-                    WHEN u.account_status = \'SUSPENDED\' THEN \'SUSPENDED\' 
-                    WHEN u.account_status = \'BANNED\' THEN \'BANNED\' 
-                    ELSE \'OTHER\' 
-                  END as status_string', 'COUNT(u.id_user) as count')
-                ->from(User::class, 'u')
-                ->groupBy('status_string')
-                ->getQuery();
-            
-            $statsResults = $statsQuery->getResult();
-            
-            $stats = [
-                'total' => $totalUsers,
-                'active' => 0,
-                'suspended' => 0,
-                'banned' => 0
-            ];
-            
-            // Process stats - now status_string is guaranteed to be a string
-            foreach ($statsResults as $stat) {
-                $status = $stat['status_string'];
-                
-                if ($status === 'ACTIVE') {
-                    $stats['active'] = $stat['count'];
-                } else if ($status === 'SUSPENDED') {
-                    $stats['suspended'] = $stat['count'];
-                } else if ($status === 'BANNED') {
-                    $stats['banned'] = $stat['count'];
-                }
-            }
-            
-            // Create a direct response bypassing Symfony's response handling
-            $jsonData = json_encode([
-                'users' => $formattedUsers,
-                'total' => $totalUsers,
-                'page' => $page,
-                'pages' => ceil($totalUsers / $itemsPerPage),
-                'itemsPerPage' => $itemsPerPage,
-                'stats' => $stats
-            ]);
-            
-            // Create a raw response
-            $response = new Response(
-                $jsonData,
-                200,
-                [
-                    'Content-Type' => 'application/json',
-                    'X-Debug-Info' => 'Direct Response'
-                ]
-            );
-            $response->send();
-            exit; // Terminate execution to prevent any further output
-        } catch (\Exception $e) {
-            // Create a direct error response
-            $jsonError = json_encode([
-                'error' => 'Failed to fetch users: ' . $e->getMessage()
-            ]);
-            
-            $response = new Response(
-                $jsonError,
-                500,
-                ['Content-Type' => 'application/json']
-            );
-            $response->send();
-            exit; // Terminate execution
-        }
-    }
 
-    #[Route('/admin/api/test-json', name: 'admin_api_test_json', methods: ['GET'])]
-    public function testJson(): Response
-    {
-        // Clear all output buffers
-        while (ob_get_level()) {
-            ob_end_clean();
-        }
-        
-        // Direct JSON output
-        $jsonData = json_encode([
-            'test' => 'success',
-            'timestamp' => time()
-        ]);
-        
-        // Create and immediately send response
-        $response = new Response(
-            $jsonData,
-            200,
-            ['Content-Type' => 'application/json']
-        );
-        $response->send();
-        exit; // Terminate execution
-    }
+
+    
 }
