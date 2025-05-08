@@ -26,6 +26,12 @@ class BicycleStationService
         $this->entityManager->flush();
         return $bicycleStation;
     }
+    public function saveStation(BicycleStation $bicycleStation): BicycleStation
+    {
+        $this->entityManager->persist($bicycleStation);
+        $this->entityManager->flush();
+        return $bicycleStation;
+    }
     public function updateStation(BicycleStation $bicycleStation): BicycleStation
     {
         $this->entityManager->flush();
@@ -62,21 +68,100 @@ class BicycleStationService
         return $this->stationRepository->getStationsWithAvailableBikes();
     }
     public function getAvailableBikes(): array
-{
-    // Return stations that have at least one bike available
-    return $this->stationRepository->createQueryBuilder('s')
-        ->where('s.available_bikes > 0')
-        ->andWhere('s.status = :active')
-        ->setParameter('active', BICYCLE_STATION_STATUS::ACTIVE)
-        ->getQuery()
-        ->getResult();
-}
+    {
+        return $this->stationRepository->createQueryBuilder('s')
+            ->where('s.available_bikes > 0')
+            ->andWhere('s.status = :active')
+            ->setParameter('active', BICYCLE_STATION_STATUS::ACTIVE)
+            ->getQuery()
+            ->getResult();
+    }
 
-/**
- * Refresh the available bikes count for all stations
- */
-public function refreshAvailableBikesCounts(): void
-{
-    $this->stationRepository->updateAvailableBikesCounts();
-}
+    public function refreshAvailableBikesCounts(): void
+    {
+        $this->stationRepository->updateAvailableBikesCounts();
+    }
+
+
+
+
+
+    public function getStationCountsByStatus(): array
+    {
+        $stations = $this->getAllStations();
+        $counts = [
+            'active' => 0,
+            'maintenance' => 0,
+            'inactive' => 0,
+            'disabled' => 0
+        ];
+
+        foreach ($stations as $station) {
+            $status = $station->getStatus()->value;
+            if (isset($counts[$status])) {
+                $counts[$status]++;
+            }
+        }
+
+        return $counts;
+    }
+    public function getTotalBicycleCapacity(): int
+    {
+        $stations = $this->getAllStations();
+        $capacity = 0;
+
+        foreach ($stations as $station) {
+            $capacity += $station->getTotalDocks();
+        }
+
+        return $capacity;
+    }
+
+    public function getTotalChargingDocks(): int
+    {
+        $stations = $this->getAllStations();
+        $chargingDocks = 0;
+
+        foreach ($stations as $station) {
+            $chargingDocks += $station->getChargingBikes();
+        }
+
+        return $chargingDocks;
+    }
+
+    public function getStationsWithRentalActivity(int $limit = 5): array
+    {
+        $conn = $this->entityManager->getConnection();
+
+        $sql = '
+    SELECT 
+        s.id_station, 
+        s.name, 
+        COUNT(r.id_user_rental) as rental_count
+    FROM 
+        bicycle_station s
+    LEFT JOIN 
+        bicycle_rental r 
+    ON 
+        s.id_station = r.id_start_station
+    GROUP BY 
+        s.id_station, s.name
+    ORDER BY 
+        rental_count DESC
+    LIMIT :limit
+';
+
+        $stmt = $conn->prepare($sql);
+        $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
+        $result = $stmt->executeQuery()->fetchAllAssociative();
+
+        return $result;
+    }
+
+    public function getAllStationsQuery()
+    {
+        return $this->stationRepository->createQueryBuilder('s')
+            ->orderBy('s.name', 'ASC')
+            ->getQuery();
+    }
 }

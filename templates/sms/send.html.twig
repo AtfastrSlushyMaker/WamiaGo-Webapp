@@ -1,0 +1,82 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Send SMS - WamiaGo{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">Send SMS Message</h2>
+                </div>
+                <div class="card-body">
+                
+                    {% for label, messages in app.flashes %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ label == 'error' ? 'danger' : label }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+                    
+                    {% if sent %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i> Your message has been sent successfully!
+                        </div>
+                    {% endif %}
+                    
+                    <form method="post" action="{{ path('app_send_sms') }}">
+                        <div class="mb-3">
+                            <label for="phone_number" class="form-label">Phone Number</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                <input type="text" id="phone_number" name="phone_number" class="form-control" 
+                                       placeholder="E.164 format (e.g., +16175551212)" required>
+                            </div>
+                            <small class="text-muted">Enter phone number in E.164 format (with country code)</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Message</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-comment"></i></span>
+                                <textarea id="message" name="message" class="form-control" 
+                                          rows="5" placeholder="Enter your message here" required></textarea>
+                            </div>
+                            <small class="text-muted">Maximum 160 characters for standard SMS</small>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i> Send SMS
+                            </button>
+                            <a href="{{ path('app_front_home') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i> Back to Home
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4 shadow-sm">
+                <div class="card-header bg-light">
+                    <h3 class="h5 mb-0">About Twilio SMS Integration</h3>
+                </div>
+                <div class="card-body">
+                    <p>This feature allows you to send SMS messages using the Twilio API. To use this feature:</p>
+                    <ol>
+                        <li>Enter a valid phone number in E.164 format (with country code, e.g., +16175551212)</li>
+                        <li>Type your message (keep in mind SMS character limits)</li>
+                        <li>Click "Send SMS" to deliver your message</li>
+                    </ol>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> 
+                        <strong>Note:</strong> Before using in production, make sure to update your Twilio credentials in the <code>.env</code> file.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

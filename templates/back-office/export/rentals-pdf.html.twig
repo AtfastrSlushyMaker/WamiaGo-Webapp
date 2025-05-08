@@ -1,0 +1,86 @@
+{% extends 'back-office/export/base-pdf.html.twig' %}
+
+{% block title %}WamiaGo Bicycle Rentals Export{% endblock %}
+{% block report_title %}{{ title }}{% endblock %}
+{% block subtitle %}Bicycle Rental Records{% endblock %}
+{% block body_class %}rentals{% endblock %}
+
+{% block content %}
+    <div class="stats-section">
+        <h3>Rental Statistics Summary</h3>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value">{{ stats.totalRentals }}</div>
+                <div class="stat-label">Total Rentals</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ stats.completedCount }}</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ stats.activeCount }}</div>
+                <div class="stat-label">Active</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ stats.reservedCount }}</div>
+                <div class="stat-label">Reserved</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ stats.totalRevenue|number_format(3) }} TND</div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Customer</th>
+                <th>Bicycle</th>
+                <th>Pick-up Station</th>
+                <th>Return Station</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Duration</th>
+                <th>Distance</th>
+                <th>Cost (TND)</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rental in rentals %}
+                <tr>
+                    <td>B{{ rental.getIdUserRental()|format('%05d') }}</td>
+                    <td>{{ rental.getUser() ? rental.getUser().getName() : 'Unknown' }}</td>
+                    <td>{% if rental.getBicycle() %}Bike #{{ rental.getBicycle().getIdBike() }}{% else %}Unknown{% endif %}</td>
+                    <td>{{ rental.getStartStation() ? rental.getStartStation().getName() : 'Unknown' }}</td>
+                    <td>{{ rental.getEndStation() ? rental.getEndStation().getName() : '-' }}</td>
+                    <td>{{ rental.getStartTime() ? rental.getStartTime()|date('Y-m-d H:i') : '-' }}</td>
+                    <td>{{ rental.getEndTime() ? rental.getEndTime()|date('Y-m-d H:i') : '-' }}</td>
+                    <td>
+                        {% if rental.getStartTime() and rental.getEndTime() %}
+                            {% set duration = rental.getEndTime().getTimestamp() - rental.getStartTime().getTimestamp() %}
+                            {% set hours = (duration / 3600)|round(0, 'floor') %}
+                            {% set minutes = ((duration % 3600) / 60)|round(0, 'floor') %}
+                            {{ hours }}h {{ minutes }}m
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ rental.getDistanceKm() ? rental.getDistanceKm() ~ ' km' : '-' }}</td>
+                    <td>{{ rental.getCost() ? rental.getCost()|number_format(3) : '-' }}</td>
+                    <td>
+                        {% if rental.getEndTime() %}
+                            Completed
+                        {% elseif rental.getStartTime() %}
+                            Active
+                        {% else %}
+                            Reserved
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

@@ -1,361 +1,36 @@
 {% extends 'front/base.html.twig' %}
 
-{% block title %}My Bicycle Reservations - WamiaGo{% endblock %}
+{% block title %}My Bicycle Rentals - WamiaGo{% endblock %}
 
 {% block page_stylesheets %}
     <link href="{{ asset('css/front/Bicycle/bicycle-rental.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
     <style>
-        /* Modern color scheme */
         :root {
             --primary: #28a745;
             --primary-dark: #218838;
             --primary-light: #e9f7ef;
             --accent: #5c7cfa;
+            --accent-dark: #4263eb;
+            --accent-light: #edf2ff;
+            --danger: #dc3545;
+            --danger-light: #f8d7da;
             --gray-light: #f8f9fa;
             --gray-medium: #e9ecef;
             --gray-dark: #495057;
+            --border-radius: 12px;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+            --shadow-md: 0 5px 15px rgba(0,0,0,0.05);
+            --shadow-lg: 0 8px 20px rgba(0,0,0,0.1);
+            --transition-speed: 0.3s;
         }
         
-        /* Page container */
+        /* Container & Layout */
         .reservations-container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem 1rem;
         }
         
-        .page-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid var(--gray-medium);
-            padding-bottom: 1rem;
-        }
-        
-        .page-header h1 {
-            font-weight: 700;
-            font-size: 2rem;
-            margin-bottom: 0;
-            margin-right: auto;
-            color: var(--gray-dark);
-        }
-        
-        .page-header-btn {
-            padding: 0.5rem 1.25rem;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        /* Improved tabs */
-        .reservation-tabs {
-            display: flex;
-            margin-bottom: 2rem;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid var(--gray-medium);
-            background: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        }
-        
-        .reservation-tab {
-            flex: 1;
-            text-align: center;
-            padding: 1rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-            background: transparent;
-            border: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: var(--gray-dark);
-        }
-        
-        .reservation-tab.active {
-            color: var(--primary);
-            background-color: var(--primary-light);
-        }
-        
-        .reservation-tab:not(.active):hover {
-            background-color: rgba(0,0,0,0.02);
-        }
-        
-        .reservation-tab::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: var(--primary);
-            transform: scaleX(0);
-            transition: transform 0.2s ease;
-        }
-        
-        .reservation-tab.active::after {
-            transform: scaleX(1);
-        }
-        
-        .tab-badge {
-            font-size: 0.75rem;
-            padding: 0.2rem 0.5rem;
-            border-radius: 10px;
-            margin-left: 0.5rem;
-            background: var(--gray-medium);
-            color: var(--gray-dark);
-        }
-        
-        .tab-badge.has-items {
-            background: var(--primary);
-            color: white;
-        }
-        
-        /* Improved cards */
-        .reservation-card {
-            border: none;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            height: 100%;
-        }
-        
-        .reservation-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-        }
-        
-        .card-header-premium {
-            background: linear-gradient(45deg, #28a745, #20c997);
-        }
-        
-        .card-header-standard {
-            background: linear-gradient(45deg, #5c7cfa, #4dabf7);
-        }
-        
-        .card-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-size: 0.8rem;
-            padding: 0.3rem 0.8rem;
-            border-radius: 50px;
-            font-weight: 600;
-            letter-spacing: 0.01em;
-        }
-        
-        .card-status-reserved {
-            background: rgba(255,255,255,0.2);
-            color: white;
-        }
-        
-        .info-grid {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 0.75rem 1.25rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .info-grid .label {
-            color: var(--gray-dark);
-            font-weight: 500;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .info-grid .value {
-            font-weight: 600;
-            text-align: right;
-        }
-        
-        /* Timer badge */
-        .timer-badge {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            padding: 0.4rem 0.8rem;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-weight: 600;
-        }
-        
-        /* Button styles */
-        .btn-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.75rem;
-            margin-top: 1rem;
-        }
-        
-        .btn-bicycle {
-            border-radius: 8px;
-            font-weight: 600;
-            padding: 0.5rem 1.25rem;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        
-        .btn-bicycle-primary {
-            background-color: var(--primary);
-            border-color: var(--primary);
-            color: white;
-        }
-        
-        .btn-bicycle-primary:hover {
-            background-color: var(--primary-dark);
-            border-color: var(--primary-dark);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
-        }
-        
-        .btn-bicycle-outline {
-            background-color: white;
-            border: 1px solid #dee2e6;
-            color: var(--gray-dark);
-        }
-        
-        .btn-bicycle-outline:hover {
-            background-color: #f8f9fa;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        }
-        
-        /* Empty state styling */
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-            background: var(--gray-light);
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .empty-icon {
-            width: 80px;
-            height: 80px;
-            background-color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-            color: #adb5bd;
-            font-size: 2rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-        
-        .empty-state h4 {
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: var(--gray-dark);
-        }
-        
-        .empty-state p {
-            max-width: 400px;
-            margin: 0 auto 1.5rem auto;
-            color: #6c757d;
-        }
-        
-        /* Station select */
-        .station-select {
-            padding: 0.75rem 1rem;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            width: 100%;
-            font-size: 0.95rem;
-            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 1rem center;
-            background-size: 16px 12px;
-        }
-        
-        .station-select:focus {
-            border-color: #86b7fe;
-            outline: 0;
-            box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
-        }
-        
-        /* History table */
-        .history-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-        
-        .history-table thead th {
-            background-color: #f8f9fa;
-            padding: 1rem;
-            font-weight: 600;
-            color: var(--gray-dark);
-            border-bottom: 1px solid #dee2e6;
-        }
-        
-        .history-table tbody td {
-            padding: 1rem;
-            border-bottom: 1px solid #f1f3f5;
-            vertical-align: middle;
-        }
-        
-        .history-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-        
-        .history-table tbody tr:hover {
-            background-color: #f8f9fa;
-        }
-        
-        /* For mobile */
-        @media (max-width: 767px) {
-            .reservation-tabs {
-                flex-direction: column;
-            }
-            
-            .btn-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .info-grid {
-                grid-template-columns: 1fr;
-                text-align: left;
-            }
-            
-            .info-grid .value {
-                text-align: left;
-            }
-            
-            .history-table {
-                display: block;
-                width: 100%;
-                overflow-x: auto;
-            }
-            
-            .page-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
-            
-            .page-header h1 {
-                margin-right: 0;
-            }
-        }
         .modern-header {
             display: flex;
             align-items: center;
@@ -383,303 +58,776 @@
             border-radius: 2px;
         }
         
-        .btn-find-bicycle {
-            background-color: var(--primary-light);
-            color: var(--primary-dark);
-            border: none;
-            border-radius: 50px;
-            padding: 0.5rem 1.25rem;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
+        /* Enhanced Tabs */
+        .reservation-tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            border: 1px solid var(--gray-medium);
+            background: white;
+            box-shadow: var(--shadow-sm);
         }
         
-        .btn-find-bicycle:hover {
+        .reservation-tab {
+            flex: 1;
+            text-align: center;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            position: relative;
+            background: transparent;
+            border: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--gray-dark);
+        }
+        
+        .reservation-tab.active {
+            color: var(--primary);
+            background-color: var(--primary-light);
+        }
+        
+        .reservation-tab:not(.active):hover {
+            background-color: rgba(0,0,0,0.02);
+        }
+        
+        .reservation-tab::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary);
+            transform: scaleX(0);
+            transition: transform var(--transition-speed) ease;
+        }
+        
+        .reservation-tab.active::after {
+            transform: scaleX(1);
+        }
+        
+        .tab-badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            margin-left: 0.5rem;
+            background: var(--gray-medium);
+            color: var(--gray-dark);
+        }
+        
+        .tab-badge.has-items {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* Cards */
+        .rental-card {
+            border: none;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+            height: 100%;
+            background: white;
+        }
+        
+        .rental-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .card-header-premium {
+            background: linear-gradient(45deg, #28a745, #20c997);
+        }
+        
+        .card-header-standard {
+            background: linear-gradient(45deg, #5c7cfa, #4dabf7);
+        }
+        
+        .card-header-active {
+            background: linear-gradient(45deg, #ff922b, #fd7e14);
+        }
+        
+        .card-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+        }
+        
+        .card-status-reserved {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        
+        .card-status-active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        
+        /* Card Content */
+        .info-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.75rem 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .info-grid .label {
+            color: var(--gray-dark);
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .info-grid .value {
+            font-weight: 600;
+            text-align: right;
+        }
+        
+        /* Timer Badge */
+        .timer-badge {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-weight: 600;
+        }
+        
+        /* Empty States */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            background: var(--gray-light);
+            border-radius: var(--border-radius);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: #adb5bd;
+            font-size: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .empty-state h4 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--gray-dark);
+        }
+        
+        .empty-state p {
+            max-width: 400px;
+            margin: 0 auto 1.5rem auto;
+            color: #6c757d;
+        }
+        
+        /* Buttons */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        
+        .btn-bicycle {
+            font-weight: 600;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            transition: all var(--transition-speed) ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .btn-bicycle::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: all var(--transition-speed) ease;
+            z-index: -1;
+        }
+        
+        .btn-bicycle:hover::after {
+            height: 100%;
+        }
+        
+        .btn-bicycle:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-bicycle-primary {
             background-color: var(--primary);
             color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.15);
+            border: none;
+        }
+        
+        .btn-bicycle-primary:hover {
+            background-color: var(--primary-dark);
+            color: white;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.25);
+        }
+        
+        .btn-bicycle-accent {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+        }
+        
+        .btn-bicycle-accent:hover {
+            background-color: var(--accent-dark);
+            color: white;
+            box-shadow: 0 4px 12px rgba(76, 99, 235, 0.25);
+        }
+        
+        .btn-bicycle-outline {
+            background-color: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        
+        .btn-bicycle-outline:hover {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--primary-dark);
+        }
+        
+        .btn-bicycle-danger {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+        }
+        
+        .btn-bicycle-danger:hover {
+            background-color: #c82333;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.25);
+        }
+        
+        /* Station Select */
+        .station-select {
+            padding: 0.75rem 1rem;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            width: 100%;
+            font-size: 0.95rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 16px 12px;
+        }
+        
+        .station-select:focus {
+            border-color: rgba(40, 167, 69, 0.4);
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
+        }
+        
+        /* History Table */
+        .history-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .history-table thead th {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            font-weight: 600;
+            color: var(--gray-dark);
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .history-table tbody td {
+            padding: 1rem;
+            border-bottom: 1px solid #f1f3f5;
+            vertical-align: middle;
+        }
+        
+        .history-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .history-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 767px) {
+            .reservation-tabs {
+                flex-direction: column;
+            }
+            
+            .btn-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-grid .value {
+                text-align: left;
+            }
+            
+            .history-table {
+                display: block;
+                width: 100%;
+                overflow-x: auto;
+            }
+        }
+        
+        /* Battery Level Indicator */
+        .battery-indicator {
+            width: 100%;
+            height: 12px;
+            background-color: #e9ecef;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        
+        .battery-level {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+        }
+        
+        /* Notifications */
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        /* Live Timer Animation */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .live-timer {
+            animation: pulse 2s infinite;
         }
     </style>
 {% endblock %}
 
 {% block content %}
 <div class="reservations-container">
-    <!-- Modern header with improved styling -->
+    <!-- Modern header -->
     <div class="modern-header mb-4">
         <h1 class="modern-title">My Bicycle Rentals</h1>
+        <a href="{{ path('app_front_services_bicycle') }}" class="btn btn-bicycle btn-bicycle-primary">
+            <i class="fas fa-bicycle me-2"></i> Find a Bicycle
+        </a>
     </div>
 
-    <div class="mb-4">
-        <div class="reservation-tabs" role="tablist">
-            <button class="reservation-tab active" id="reservations-tab" data-bs-toggle="tab" data-bs-target="#reservations" type="button" role="tab" aria-controls="reservations" aria-selected="true">
-                Reservations
-                <span class="tab-badge {% if activeRentals|length > 0 %}has-items{% endif %}">{{ activeRentals|length }}</span>
-            </button>
-            <button class="reservation-tab" id="my-bikes-tab" data-bs-toggle="tab" data-bs-target="#my-bikes" type="button" role="tab" aria-controls="my-bikes" aria-selected="false">
-                Active Rides
-                <span class="tab-badge {% if activeRides|length > 0 %}has-items{% endif %}">{{ activeRides|length }}</span>
-            </button>
-            <button class="reservation-tab" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">
-                History
-                <span class="tab-badge {% if pastRentals|length > 0 %}has-items{% endif %}">{{ pastRentals|length }}</span>
-            </button>
-        </div>
-    </div>
-    
+    <!-- Flash messages -->
     {% for message in app.flashes('success') %}
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ message }}
+            <i class="fas fa-check-circle me-2"></i> {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     {% endfor %}
     
     {% for message in app.flashes('error') %}
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            {{ message }}
+            <i class="fas fa-exclamation-circle me-2"></i> {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     {% endfor %}
+
+    <!-- Improved navigation tabs -->
+    <div class="mb-4">
+        <div class="reservation-tabs" role="tablist">
+            <!-- Use the reservations array from controller -->
+            <button class="reservation-tab active" id="reservations-tab" data-bs-toggle="tab" data-bs-target="#reservations" type="button" role="tab" aria-controls="reservations" aria-selected="true">
+                <i class="fas fa-clock me-2"></i> Reservations
+                <span class="tab-badge {% if reservations|length > 0 %}has-items{% endif %}">
+                    {{ reservations|length }}
+                </span>
+            </button>
+            
+            <!-- Use the activeRides array from controller -->
+            <button class="reservation-tab" id="active-rides-tab" data-bs-toggle="tab" data-bs-target="#active-rides" type="button" role="tab" aria-controls="active-rides" aria-selected="false">
+                <i class="fas fa-biking me-2"></i> Active Rides
+                <span class="tab-badge {% if activeRides|length > 0 %}has-items{% endif %}">
+                    {{ activeRides|length }}
+                </span>
+            </button>
+            
+            <!-- History Tab Button -->
+            <button class="reservation-tab" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">
+                <i class="fas fa-history me-2"></i> History
+                <span class="tab-badge {% if pastRentals|length > 0 %}has-items{% endif %}">
+                    {{ pastRentals|length }}
+                </span>
+            </button>
+        </div>
+    </div>
     
-    <div class="tab-content p-0" id="rentalTabsContent">
-            <!-- Reservations Tab -->
-            <div class="tab-pane fade show active" id="reservations" role="tabpanel" aria-labelledby="reservations-tab">
-                {% if activeRentals is empty %}
-                    <div class="empty-state">
-                        <div class="empty-icon">
-                            <i class="fas fa-bicycle"></i>
-                        </div>
-                        <h4>No Active Reservations</h4>
-                        <p>You don't have any active bicycle reservations at the moment.</p>
-                        <a href="{{ path('app_front_services_bicycle') }}" class="btn btn-bicycle btn-bicycle-primary">
-                            <i class="fas fa-bicycle"></i> Find a Bicycle
-                        </a>
+    <!-- Tab Content -->
+    <div class="tab-content" id="rentalTabsContent">
+        <!-- 1. RESERVATIONS TAB -->
+        <div class="tab-pane fade show active" id="reservations" role="tabpanel" aria-labelledby="reservations-tab">
+            {% if reservations|length == 0 %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-calendar-alt"></i>
                     </div>
-                {% else %}
-                    <div class="row g-4">
-                        {% for rental in activeRentals %}
-                            {% if rental.startTime is null %}
-                                {% set isPremium = rental.bicycle.batteryLevel > 90 %}
-                                <div class="col-md-6 col-lg-4">
-                                    <div class="reservation-card">
-                                        <div class="card-header {{ isPremium ? 'card-header-premium' : 'card-header-standard' }} text-white p-3">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <h5 class="mb-0 fw-bold">#{{ rental.idUserRental }}</h5>
-                                                <span class="card-status card-status-reserved">
-                                                    <i class="fas fa-clock"></i> Reserved
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="card-body p-4">
-                                            <div class="info-grid">
-                                                <div class="label">
-                                                    <i class="fas fa-bicycle text-primary"></i> Bicycle
-                                                </div>
-                                                <div class="value">
-                                                    {{ isPremium ? 'Premium' : 'Standard' }} E-Bike #{{ rental.bicycle.idBike }}
-                                                </div>
-                                                
-                                                <div class="label">
-                                                    <i class="fas fa-map-marker-alt text-danger"></i> Station
-                                                </div>
-                                                <div class="value">
-                                                    {{ rental.bicycle.bicycleStation.name }}
-                                                </div>
-                                                
-                                                <div class="label">
-                                                    <i class="fas fa-calendar text-info"></i> Reserved
-                                                </div>
-                                                <div class="value">
-                                                    {{ rental.dateCreated|date('M d, Y, h:i a') }}
-                                                </div>
-                                                
-                                                <div class="label">
-                                                    <i class="fas fa-tag text-success"></i> Est. Cost
-                                                </div>
-                                                <div class="value">
-                                                    {{ rental.estimatedCost|number_format(3) }} TND
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="btn-grid">
-                                                <a href="{{ path('app_bicycle_verify_code', {'code': 'B' ~ rental.idUserRental}) }}" class="btn btn-bicycle btn-bicycle-primary">
-                                                    <i class="fas fa-unlock"></i> Unlock
-                                                </a>
-                                                <form method="post" action="{{ path('app_rental_cancel', {'id': rental.idUserRental}) }}">
-                                                    <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ rental.idUserRental) }}">
-                                                    <button type="submit" class="btn btn-bicycle btn-bicycle-outline w-100" onclick="return confirm('Are you sure you want to cancel this reservation?');">
-                                                        <i class="fas fa-times"></i> Cancel
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </div>
+                    <h4>No Active Reservations</h4>
+                    <p>You don't have any active bicycle reservations at the moment.</p>
+                    <a href="{{ path('app_front_services_bicycle') }}" class="btn btn-bicycle btn-bicycle-primary">
+                        <i class="fas fa-bicycle me-2"></i> Browse Available Bicycles
+                    </a>
+                </div>
+            {% else %}
+                <div class="row g-4">
+                    {% for rental in reservations %}
+                        {% set isPremium = rental.bicycle.batteryLevel > 90 %}
+                        <div class="col-md-6 col-lg-4 rental-card-wrapper" data-rental-id="{{ rental.idUserRental }}">
+                            <div class="rental-card mb-0">
+                                <div class="card-header {{ isPremium ? 'card-header-premium' : 'card-header-standard' }} text-white p-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0 fw-bold">Reservation #{{ rental.idUserRental }}</h5>
+                                        <span class="card-status card-status-reserved">
+                                            <i class="fas fa-clock"></i> Reserved
+                                        </span>
                                     </div>
                                 </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-            
-            <!-- My Bikes Tab (Current Rides) -->
-            <div class="tab-pane fade" id="my-bikes" role="tabpanel" aria-labelledby="my-bikes-tab">
-                {% if activeRides is empty %}
-                    <div class="empty-state">
-                        <div class="empty-icon">
-                            <i class="fas fa-biking"></i>
-                        </div>
-                        <h4>No Current Rides</h4>
-                        <p>You don't have any bicycles checked out right now.</p>
-                        <a href="{{ path('app_front_services_bicycle') }}" class="btn btn-bicycle btn-bicycle-primary">
-                            <i class="fas fa-bicycle"></i> Rent a Bicycle
-                        </a>
-                    </div>
-                {% else %}
-                    <div class="row g-4">
-                        {% for rental in activeRides %}
-                            {% set isPremium = rental.bicycle.batteryLevel > 90 %}
-                            {% set startTime = rental.startTime %}
-                            {% set duration = date().diff(date(startTime)) %}
-                            {% set hours = duration.h + (duration.d * 24) %}
-                            {% set minutes = duration.i %}
-                            {% set hourlyRate = isPremium ? 5.000 : 3.500 %}
-                            {% set currentCost = ((hours + (minutes / 60)) * hourlyRate)|round(3) %}
-                            
-                            <div class="col-md-6">
-                                <div class="reservation-card">
-                                    <div class="card-header {{ isPremium ? 'card-header-premium' : 'card-header-standard' }} text-white p-3">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <h5 class="mb-0 fw-bold">Active Ride #{{ rental.idUserRental }}</h5>
-                                            <div class="timer-badge">
-                                                <i class="fas fa-stopwatch"></i>
-                                                <span>{{ hours }}h {{ minutes }}m</span>
-                                            </div>
+                                
+                                <div class="card-body p-4">
+                                    <div class="info-grid">
+                                        <div class="label">
+                                            <i class="fas fa-bicycle text-primary"></i> Bicycle
                                         </div>
-                                    </div>
-                                    <div class="card-body p-4">
-                                        <div class="info-grid">
-                                            <div class="label">
-                                                <i class="fas fa-bicycle text-primary"></i> Bicycle
-                                            </div>
-                                            <div class="value">
-                                                {{ isPremium ? 'Premium' : 'Standard' }} E-Bike #{{ rental.bicycle.idBike }}
-                                            </div>
-                                            
-                                            <div class="label">
-                                                <i class="fas fa-calendar text-info"></i> Started
-                                            </div>
-                                            <div class="value">
-                                                {{ rental.startTime|date('M d, Y, h:i a') }}
-                                            </div>
-                                            
-                                            <div class="label">
-                                                <i class="fas fa-tag text-success"></i> Current Cost
-                                            </div>
-                                            <div class="value">
-                                                {{ currentCost|number_format(3) }} TND
-                                            </div>
-                                            
-                                            <div class="label">
-                                                <i class="fas fa-dollar-sign text-warning"></i> Rate
-                                            </div>
-                                            <div class="value">
-                                                {{ hourlyRate|number_format(3) }} TND/hour
-                                            </div>
+                                        <div class="value">
+                                            {{ isPremium ? 'Premium' : 'Standard' }} E-Bike #{{ rental.bicycle.idBike }}
                                         </div>
                                         
-                                        <form method="post" action="{{ path('app_rental_return_bike', {'id': rental.idUserRental}) }}">
-                                            <div class="form-group mb-3">
-                                                <label for="station_id" class="form-label fw-semibold mb-2">Return to Station:</label>
-                                                <select name="station_id" id="station_id" class="station-select" required>
-                                                    <option value="">-- Select a station --</option>
-                                                    {% for station in stations %}
-                                                        <option value="{{ station.idStation }}">{{ station.name }}</option>
-                                                    {% endfor %}
-                                                </select>
+                                        <div class="label">
+                                            <i class="fas fa-map-marker-alt text-danger"></i> Station
+                                        </div>
+                                        <div class="value">
+                                            {{ rental.bicycle.bicycleStation.name }}
+                                        </div>
+                                        
+                                        <div class="label">
+                                            <i class="fas fa-battery-three-quarters text-success"></i> Battery
+                                        </div>
+                                        <div class="value">
+                                            <div class="battery-indicator">
+                                                <div class="battery-level" style="width: {{ rental.bicycle.batteryLevel }}%;"></div>
                                             </div>
-                                            
-                                            <button type="submit" class="btn btn-bicycle btn-bicycle-primary w-100" onclick="return confirm('Are you sure you want to return this bicycle?');">
-                                                <i class="fas fa-check-circle"></i> Return Bicycle
+                                            {{ rental.bicycle.batteryLevel }}%
+                                        </div>
+                                        
+                                        <div class="label">
+                                            <i class="fas fa-calendar text-info"></i> Reserved
+                                        </div>
+                                        <div class="value">
+                                            {{ rental.startTime|date('M d, Y, h:i a') }}
+                                        </div>
+                                        
+                                        <div class="label">
+                                            <i class="fas fa-tag text-success"></i> Rate
+                                        </div>
+                                        <div class="value">
+                                            {{ (isPremium ? 5.000 : 3.500)|number_format(3) }} TND/hour
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="btn-grid">
+                                        <a href="{{ path('app_rental_activate', {'id': rental.idUserRental}) }}" 
+                                           class="btn btn-bicycle btn-bicycle-primary start-ride-btn">
+                                            <i class="fas fa-unlock me-2"></i> Start Ride
+                                        </a>
+                                        <form method="post" action="{{ path('app_rental_cancel', {'id': rental.idUserRental}) }}" class="w-100">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ rental.idUserRental) }}">
+                                            <button type="submit" class="btn btn-bicycle btn-bicycle-outline w-100" 
+                                                    onclick="return confirm('Are you sure you want to cancel this reservation?');">
+                                                <i class="fas fa-times me-2"></i> Cancel
                                             </button>
                                         </form>
                                     </div>
                                 </div>
                             </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-            
-            <!-- Rental History Tab -->
-            <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
-                {% if pastRentals is empty %}
-                    <div class="empty-state">
-                        <div class="empty-icon">
-                            <i class="fas fa-history"></i>
                         </div>
-                        <h4>No Rental History</h4>
-                        <p>You haven't completed any bicycle rentals yet.</p>
-                        <a href="{{ path('app_front_services_bicycle') }}" class="btn btn-bicycle btn-bicycle-primary">
-                            <i class="fas fa-bicycle"></i> Rent Your First Bicycle
-                        </a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- 2. ACTIVE RIDES TAB -->
+        <div class="tab-pane fade" id="active-rides" role="tabpanel" aria-labelledby="active-rides-tab">
+            {% if activeRides|length == 0 %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-biking"></i>
                     </div>
-                {% else %}
-                    <div class="table-responsive">
-                        <table class="history-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Bicycle</th>
-                                    <th>Rental Period</th>
-                                    <th>Duration</th>
-                                    <th>Stations</th>
-                                    <th>Cost</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for rental in pastRentals %}
-                                    {% set isPremium = rental.bicycle.batteryLevel > 90 %}
-                                    <tr>
-                                        <td class="fw-semibold">#{{ rental.idUserRental }}</td>
-                                        <td>
-                                            <strong>{{ isPremium ? 'Premium' : 'Standard' }} E-Bike</strong><br>
-                                            <small class="text-muted">ID: #{{ rental.bicycle.idBike }}</small>
-                                        </td>
-                                        <td>
-                                            {{ rental.startTime|date('M d, Y') }}<br>
-                                            <small class="text-muted">{{ rental.startTime|date('h:i a') }} - {{ rental.endTime|date('h:i a') }}</small>
-                                        </td>
-                                        <td>
-                                            {% if rental.startTime and rental.endTime %}
-                                                {% set duration = date(rental.endTime).diff(date(rental.startTime)) %}
-                                                {% set hours = duration.h + (duration.d * 24) %}
-                                                {% set minutes = duration.i %}
-                                                <span class="fw-semibold">{{ hours }}h {{ minutes }}m</span>
-                                            {% else %}
-                                                <span class="text-muted">N/A</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
+                    <h4>No Active Rides</h4>
+                    <p>You don't have any bicycles checked out at the moment.</p>
+                    <a href="{{ path('app_front_services_bicycle') }}" class="btn btn-bicycle btn-bicycle-primary">
+                        <i class="fas fa-bicycle me-2"></i> Rent a Bicycle
+                    </a>
+                </div>
+            {% else %}
+                <div class="row g-4">
+                    {% for rental in activeRides %}
+                        {% set bicycle = rental.bicycle %}
+                        {% set batteryLevel = bicycle.batteryLevel %}
+                        {% set isPremium = bicycle.batteryLevel > 90 %}
+                        {% set startTime = rental.startTime %}
+                        {% set duration = date().diff(date(startTime)) %}
+                        {% set hours = duration.h + (duration.d * 24) %}
+                        {% set minutes = duration.i %}
+                        {% set hourlyRate = isPremium ? 5.000 : 3.500 %}
+                        {% set currentCost = ((hours + (minutes / 60)) * hourlyRate)|round(3) %}
+                        
+                        <div class="col-md-6 active-ride-card" data-rental-id="{{ rental.idUserRental }}">
+                            <div class="rental-card">
+                                <div class="card-header card-header-active text-white p-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0 fw-bold">Active Ride #{{ rental.idUserRental }}</h5>
+                                        <div class="timer-badge live-timer" id="timer-{{ rental.idUserRental }}">
+                                            <i class="fas fa-stopwatch"></i>
+                                            <span>{{ hours }}h {{ minutes }}m</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-body p-4">
+                                    <div class="info-grid">
+                                        <div class="label">
+                                            <i class="fas fa-bicycle text-primary"></i> Bicycle
+                                        </div>
+                                        <div class="value">
+                                            {{ isPremium ? 'Premium' : 'Standard' }} E-Bike #{{ bicycle.idBike }}
+                                        </div>
+                                        
+                                        <div class="label">
+                                            <i class="fas fa-battery-three-quarters text-success"></i> Battery
+                                        </div>
+                                        <div class="value">
+                                            <div class="battery-indicator">
+                                                <div class="battery-level" style="width: {{ batteryLevel }}%;"></div>
+                                            </div>
+                                            {{ batteryLevel }}%
+                                        </div>
+                                        
+                                        <div class="label">
+                                            <i class="fas fa-play-circle text-info"></i> Started
+                                        </div>
+                                        <div class="value">
+                                            {{ startTime|date('M d, Y, h:i a') }}
+                                        </div>
+                                        
+                                        <div class="label">
+                                            <i class="fas fa-money-bill-wave text-success"></i> Current Cost
+                                        </div>
+                                        <div class="value current-cost" data-hourly-rate="{{ hourlyRate }}" data-start-time="{{ startTime|date('c') }}">
+                                            {{ currentCost|number_format(3) }} TND
+                                        </div>
+                                        
+                                        <div class="label">
+                                            <i class="fas fa-tag text-warning"></i> Rate
+                                        </div>
+                                        <div class="value">
+                                            {{ hourlyRate|number_format(3) }} TND/hour
+                                        </div>
+                                    </div>
+                                    
+                                    <form method="post" action="{{ path('app_rental_return_bike', {'id': rental.idUserRental}) }}" class="mt-3">
+                                        <div class="form-group mb-3">
+                                            <label for="station-{{ rental.idUserRental }}" class="form-label fw-semibold mb-2">
+                                                <i class="fas fa-map-marker-alt text-danger me-2"></i> Return to Station:
+                                            </label>
+                                            <select name="station_id" id="station-{{ rental.idUserRental }}" class="station-select" required>
+                                                <option value="">-- Select a station --</option>
+                                                {% for station in stations %}
+                                                    <option value="{{ station.idStation }}">{{ station.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-bicycle btn-bicycle-primary w-100" 
+                                                onclick="return confirm('Are you sure you want to end your ride and return this bicycle?');">
+                                            <i class="fas fa-check-circle me-2"></i> Return Bicycle
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- 3. HISTORY TAB -->
+        <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+            {% if pastRentals is empty %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h4>No Rental History</h4>
+                    <p>You haven't completed any bicycle rentals yet.</p>
+                    <a href="{{ path('app_front_services_bicycle') }}" class="btn btn-bicycle btn-bicycle-primary">
+                        <i class="fas fa-bicycle me-2"></i> Rent Your First Bicycle
+                    </a>
+                </div>
+            {% else %}
+                <div class="mb-3 d-flex justify-content-between align-items-center">
+                    <h4 class="m-0">Rental History</h4>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-outline-secondary filter-history" data-filter="all">All</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary filter-history" data-filter="week">This Week</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary filter-history" data-filter="month">This Month</button>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Bicycle</th>
+                                <th>Rental Period</th>
+                                <th>Duration</th>
+                                <th>Stations</th>
+                                <th>Cost</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rental in pastRentals %}
+                                {% set isPremium = rental.bicycle.batteryLevel > 90 %}
+                                <tr class="history-row" data-date="{{ rental.endTime|date('Y-m-d') }}">
+                                    <td class="fw-semibold">#{{ rental.idUserRental }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge {{ isPremium ? 'bg-success' : 'bg-primary' }} me-2">
+                                                <i class="fas fa-bicycle"></i>
+                                            </span>
+                                            <div>
+                                                <div class="fw-bold">{{ isPremium ? 'Premium' : 'Standard' }} E-Bike</div>
+                                                <small class="text-muted">#{{ rental.bicycle.idBike }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>{{ rental.startTime|date('M d, Y') }}</div>
+                                        <small class="text-muted">{{ rental.startTime|date('h:i a') }} - {{ rental.endTime|date('h:i a') }}</small>
+                                    </td>
+                                    <td>
+                                        {% if rental.startTime and rental.endTime %}
+                                            {% set duration = date(rental.endTime).diff(date(rental.startTime)) %}
+                                            {% set hours = duration.h + (duration.d * 24) %}
+                                            {% set minutes = duration.i %}
+                                            <span class="badge bg-light text-dark">{{ hours }}h {{ minutes }}m</span>
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge bg-light text-dark me-2">
+                                                <i class="fas fa-map-marker-alt text-danger"></i>
+                                            </span>
                                             {% if rental.endStation %}
-                                                {{ rental.bicycle.bicycleStation.name }} 
-                                                <i class="fas fa-arrow-right mx-1 text-muted small"></i> 
+                                                {{ rental.startStation.name }}
+                                                <i class="fas fa-arrow-right mx-1 text-muted small"></i>
                                                 {{ rental.endStation.name }}
                                             {% else %}
-                                                {{ rental.bicycle.bicycleStation.name }}
+                                                {{ rental.startStation.name }}
                                             {% endif %}
-                                        </td>
-                                        <td>
-                                            <strong class="text-success">{{ rental.cost|number_format(3) }} TND</strong>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success-subtle text-success px-3 py-2">
+                                            {{ rental.cost|number_format(3) }} TND
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary view-receipt" data-rental-id="{{ rental.idUserRental }}">
+                                            <i class="fas fa-receipt"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if pastRentals|length > 10 %}
+                    <div class="text-center mt-3">
+                        <button id="loadMoreHistory" class="btn btn-bicycle btn-bicycle-outline">
+                            <i class="fas fa-chevron-down me-2"></i> Load More
+                        </button>
                     </div>
                 {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Receipt Modal -->
+<div class="modal fade" id="receiptModal" tabindex="-1" aria-labelledby="receiptModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="receiptModalLabel">Rental Receipt</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="receiptContent">
+                    <!-- Receipt content will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-sm btn-primary" id="printReceipt">
+                    <i class="fas fa-print me-2"></i> Print
+                </button>
             </div>
         </div>
     </div>
@@ -698,19 +846,208 @@
                 tabTrigger.show();
             });
         });
-        
-        // Animate the cards when they appear
-        const cards = document.querySelectorAll('.reservation-card');
+
+        // Check if we should activate a specific tab based on URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeTab = urlParams.get('tab');
+        if (activeTab) {
+            const tab = document.querySelector(`#${activeTab}-tab`);
+            if (tab) {
+                bootstrap.Tab.getInstance(tab).show();
+            }
+        }
+
+        // Animate cards when they appear
+        const cards = document.querySelectorAll('.rental-card');
         cards.forEach((card, index) => {
             card.style.opacity = '0';
             card.style.transform = 'translateY(20px)';
-            
             setTimeout(() => {
                 card.style.transition = 'all 0.4s ease';
                 card.style.opacity = '1';
                 card.style.transform = 'translateY(0)';
             }, 100 * index);
         });
+        
+        // Live timer updates for active rides
+        const activeRideCards = document.querySelectorAll('.active-ride-card');
+        if (activeRideCards.length > 0) {
+            updateActiveLiveTimers();
+            // Update timers every minute
+            setInterval(updateActiveLiveTimers, 60000);
+        }
+        
+        // History filters
+        const filterButtons = document.querySelectorAll('.filter-history');
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const filterType = this.dataset.filter;
+                
+                // Style the active button
+                filterButtons.forEach(btn => btn.classList.remove('active', 'btn-primary', 'text-white'));
+                this.classList.add('active', 'btn-primary', 'text-white');
+                
+                // Filter the history rows
+                const historyRows = document.querySelectorAll('.history-row');
+                const now = new Date();
+                const oneWeekAgo = new Date(now);
+                oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                const oneMonthAgo = new Date(now);
+                oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+                
+                historyRows.forEach(row => {
+                    const rowDate = new Date(row.dataset.date);
+                    
+                    if (filterType === 'all') {
+                        row.style.display = '';
+                    } else if (filterType === 'week' && rowDate >= oneWeekAgo) {
+                        row.style.display = '';
+                    } else if (filterType === 'month' && rowDate >= oneMonthAgo) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        });
+        
+        // Initially show only first 10 history rows
+        const historyRows = document.querySelectorAll('.history-row');
+        if (historyRows.length > 10) {
+            for (let i = 10; i < historyRows.length; i++) {
+                historyRows[i].style.display = 'none';
+            }
+            
+            // Load more button
+            const loadMoreBtn = document.getElementById('loadMoreHistory');
+            if (loadMoreBtn) {
+                loadMoreBtn.addEventListener('click', function() {
+                    const hiddenRows = document.querySelectorAll('.history-row[style="display: none;"]');
+                    const nextBatch = Math.min(hiddenRows.length, 10);
+                    
+                    for (let i = 0; i < nextBatch; i++) {
+                        hiddenRows[i].style.display = '';
+                    }
+                    
+                    if (hiddenRows.length <= 10) {
+                        loadMoreBtn.style.display = 'none';
+                    }
+                });
+            }
+        }
+        
+        // View receipt functionality
+        const receiptButtons = document.querySelectorAll('.view-receipt');
+        const receiptModal = new bootstrap.Modal(document.getElementById('receiptModal'));
+        const receiptContent = document.getElementById('receiptContent');
+        
+        receiptButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const rentalId = this.dataset.rentalId;
+                
+                // In a real app, you would load receipt data from the server
+                // For this example, we'll just use placeholder content
+                receiptContent.innerHTML = `
+                    <div class="text-center mb-4">
+                        <h4 class="mb-1">WamiaGo Bicycle Rental</h4>
+                        <p class="text-muted">Receipt #${rentalId}</p>
+                    </div>
+                    
+                    <div class="receipt-details">
+                        <div class="row mb-3">
+                            <div class="col-6 text-muted">Date:</div>
+                            <div class="col-6 text-end">April 12, 2025</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6 text-muted">Bicycle:</div>
+                            <div class="col-6 text-end">Standard E-Bike #42</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6 text-muted">Duration:</div>
+                            <div class="col-6 text-end">1h 45m</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6 text-muted">Rate:</div>
+                            <div class="col-6 text-end">3.500 TND/hour</div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="row mb-3">
+                            <div class="col-6 fw-bold">Total:</div>
+                            <div class="col-6 text-end fw-bold">6.125 TND</div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <p class="small text-muted">Thank you for choosing WamiaGo!</p>
+                    </div>
+                `;
+                
+                receiptModal.show();
+            });
+        });
+        
+        // Print receipt
+        document.getElementById('printReceipt').addEventListener('click', function() {
+            const printWindow = window.open('', 'PRINT', 'height=600,width=800');
+            const content = document.getElementById('receiptContent').innerHTML;
+            
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>WamiaGo Receipt</title>
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        .receipt-container { max-width: 500px; margin: 0 auto; }
+                    </style>
+                </head>
+                <body>
+                    <div class="receipt-container">
+                        ${content}
+                    </div>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            printWindow.focus();
+            
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 1000);
+        });
+        
+        // Function to update all active timers
+        function updateActiveLiveTimers() {
+            const activeRideCards = document.querySelectorAll('.active-ride-card');
+            
+            activeRideCards.forEach(card => {
+                const rentalId = card.dataset.rentalId;
+                const costElement = card.querySelector('.current-cost');
+                const timerElement = card.querySelector(`#timer-${rentalId}`);
+                
+                if (costElement && timerElement) {
+                    const startTime = new Date(costElement.dataset.startTime);
+                    const hourlyRate = parseFloat(costElement.dataset.hourlyRate);
+                    const now = new Date();
+                    
+                    const differenceMs = now - startTime;
+                    const hours = Math.floor(differenceMs / (1000 * 60 * 60));
+                    const minutes = Math.floor((differenceMs % (1000 * 60 * 60)) / (1000 * 60));
+                    
+                    // Update timer display
+                    timerElement.innerHTML = `<i class="fas fa-stopwatch"></i> <span>${hours}h ${minutes}m</span>`;
+                    
+                    // Update cost display
+                    const totalHours = hours + (minutes / 60);
+                    const currentCost = (totalHours * hourlyRate).toFixed(3);
+                    costElement.textContent = `${currentCost} TND`;
+                }
+            });
+        }
     });
 </script>
 {% endblock %}
