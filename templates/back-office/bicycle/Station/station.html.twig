@@ -1460,6 +1460,44 @@ window.resetStationOverlays = function() {
 setInterval(window.resetStationOverlays, 10000);
 </script>
 
+<!-- Script to handle delete confirmation modal -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle delete confirmation modal
+    const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+    const deleteStationForm = document.getElementById('deleteStationForm');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    let stationIdToDelete = null;
+
+    // When delete button is clicked in the dropdown menu
+    document.querySelectorAll('[data-bs-target="#confirmDeleteModal"]').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            stationIdToDelete = this.getAttribute('data-station-id');
+            const deleteUrl = "{{ path('admin_bicycle_station_delete', {'id': 'STATION_ID'}) }}".replace('STATION_ID', stationIdToDelete);
+            deleteStationForm.setAttribute('action', deleteUrl);
+        });
+    });
+
+    // When confirm delete button is clicked in the modal
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', function() {
+            if (deleteStationForm && stationIdToDelete) {
+                // Submit the delete form
+                deleteStationForm.submit();
+            }
+        });
+    }
+
+    // Reset stationIdToDelete when modal is closed
+    if (confirmDeleteModal) {
+        confirmDeleteModal.addEventListener('hidden.bs.modal', function() {
+            stationIdToDelete = null;
+        });
+    }
+});
+</script>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
     // Pass failsafe station data to scripts as a fallback

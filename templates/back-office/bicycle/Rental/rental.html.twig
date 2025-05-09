@@ -705,8 +705,7 @@
                                                 <i class="fas fa-times"></i>
                                             </button>
                                         {% endif %}
-                                        
-                                        <button type="button" 
+                                          <button type="button" 
                                                 class="btn btn-outline-danger btn-action delete-rental-btn" 
                                                 data-rental-id="{{ rental.idUserRental }}"
                                                 data-bs-toggle="tooltip" title="Delete">
@@ -754,7 +753,9 @@
 <!-- Hidden Forms for POST actions -->
 <form id="activateRentalForm" method="POST" style="display: none;"></form>
 <form id="cancelRentalForm" method="POST" style="display: none;"></form>
-<form id="deleteRentalForm" method="POST" style="display: none;"></form>
+<form id="deleteRentalForm" method="POST" style="display: none;">
+    <input type="hidden" name="_method" value="DELETE">
+</form>
 
 <!-- Activation Confirmation Modal -->
 <div class="modal fade modal-success" id="activateRentalModal" tabindex="-1" aria-hidden="true">
@@ -862,13 +863,14 @@ document.addEventListener('DOMContentLoaded', function() {
             cancelModal.show();
         });
     });
-    
-    // Set up delete buttons
+      // Set up delete buttons
     document.querySelectorAll('.delete-rental-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const rentalId = this.getAttribute('data-rental-id');
-            deleteForm.setAttribute('action', `{{ path('admin_bicycle_rental_delete', {'id': '0'}) }}`.replace('/0', `/${rentalId}`));
+            const deleteUrl = `{{ path('admin_bicycle_rental_delete', {'id': '0'}) }}`.replace('/0', `/${rentalId}`);
+            deleteForm.setAttribute('action', deleteUrl);
             deleteModal.show();
+            console.log('Delete form action set to:', deleteUrl); // Debug info
         });
     });
     
@@ -879,10 +881,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     document.querySelector('.cancel-confirm-btn').addEventListener('click', function() {
         cancelForm.submit();
-    });
-    
-    document.querySelector('.delete-confirm-btn').addEventListener('click', function() {
+    });    document.querySelector('.delete-confirm-btn').addEventListener('click', function() {
+        console.log('Delete form submitted with action:', deleteForm.getAttribute('action')); // Debug info
+        
+       
+        
         deleteForm.submit();
+        deleteModal.hide();
     });
     
     // Row hover effects
@@ -1198,9 +1203,13 @@ document.addEventListener('DOMContentLoaded', function() {
         updateActiveTimers();
         setInterval(updateActiveTimers, 60000);
     }
-    
-    // Helper function for AJAX loading
+      // Helper function for AJAX loading
     function loadFilteredData(url) {
+        // Don't show loading overlay for delete operations
+        if (url.includes('delete')) {
+            return;
+        }
+        
         // Show loading state
         const tableSection = document.querySelector('.data-card');
         if (tableSection) {
@@ -1216,7 +1225,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
                 document.body.appendChild(loadingOverlay);
             }
-            loadingOverlay.style.display = 'flex';
+            loadingOverlay.style.display = 'hidden  ';
         }
         
         // Make AJAX request
@@ -1270,19 +1279,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
-    /* Loading overlay for AJAX requests */
-    .loading-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(255, 255, 255, 0.7);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-    }
     
     /* Style for search box */
     .search-box {
