@@ -345,9 +345,8 @@
     <div class="row">
         <div class="col-12">
             <ul class="nav nav-tabs-custom" id="bicycleManagementTabs">
-                <div class="tab-indicator-bg"></div>
-                <li class="nav-item">
-                    <a class="nav-link tab-ajax-link {{ active_tab == 'rentals' ? 'active' : '' }}" 
+                <div class="tab-indicator-bg"></div>                <li class="nav-item">
+                    <a class="nav-link {{ active_tab == 'rentals' ? 'active' : '' }}" 
                        href="{{ path('admin_bicycle_rentals', {'tab': 'rentals'}) }}" 
                        data-tab="rentals">
                         <div class="icon-container">
@@ -357,7 +356,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link tab-ajax-link {{ active_tab == 'bicycles' ? 'active' : '' }}" 
+                    <a class="nav-link {{ active_tab == 'bicycles' ? 'active' : '' }}" 
                        href="{{ path('admin_bicycle_rentals', {'tab': 'bicycles'}) }}" 
                        data-tab="bicycles">
                         <div class="icon-container">
@@ -367,7 +366,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link tab-ajax-link {{ active_tab == 'stations' ? 'active' : '' }}" 
+                    <a class="nav-link {{ active_tab == 'stations' ? 'active' : '' }}" 
                        href="{{ path('admin_bicycle_rentals', {'tab': 'stations'}) }}" 
                        data-tab="stations">
                         <div class="icon-container">
@@ -436,8 +435,28 @@
 <script src="{{ asset('js/back/bicycle/station-pagination.js?v=' ~ date().format('YmdHi')) }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Ajax tabs
     initAjaxTabs();
     initAjaxPagination();
+    
+    // Check if we need to force a specific tab based on URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam) {
+        // Make sure the correct tab link is active
+        const tabLinks = document.querySelectorAll('.tab-ajax-link');
+        tabLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('data-tab') === tabParam);
+        });
+        
+        // Make sure the correct tab content is active
+        const tabPanes = document.querySelectorAll('.tab-pane');
+        tabPanes.forEach(pane => {
+            const isActive = pane.id === tabParam + 'Tab';
+            pane.classList.toggle('active', isActive);
+            pane.classList.toggle('show', isActive);
+        });
+    }
     
     // Clean up any stuck loading overlays on page load
     document.querySelectorAll('[id$="LoadingOverlay"]').forEach(overlay => {
@@ -474,90 +493,53 @@ function initAjaxTabs() {
         return;
     }
     
-    // Track the currently active tab
-    let activeTab = document.querySelector('.tab-ajax-link.active').getAttribute('data-tab');
+    // Get active tab from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    let activeTab = urlParams.get('tab');
     
-    tabLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
+    // If no tab parameter in URL, get from the active tab element or default to 'rentals'
+    if (!activeTab) {
+        const activeTabLink = document.querySelector('.tab-ajax-link.active');
+        activeTab = activeTabLink ? activeTabLink.getAttribute('data-tab') : 'rentals';
+    }
+    
+    // Update URL with tab parameter if it's missing
+    if (!urlParams.has('tab')) {
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.set('tab', activeTab);
+        window.history.replaceState({}, '', newUrl);
+    }
+    
+    // Make sure the correct tab is active based on URL parameter
+    if (activeTab) {
+        // Remove active class from all tabs
+        tabLinks.forEach(tab => tab.classList.remove('active'));
+        
+        // Make the correct tab link active
+        const tabToActivate = document.querySelector(`.tab-ajax-link[data-tab="${activeTab}"]`);
+        if (tabToActivate) {
+            tabToActivate.classList.add('active');
             
-            const tabName = this.getAttribute('data-tab');
-            const url = this.getAttribute('href');
-            
-            // Don't reload if it's the same tab
-            if (tabName === activeTab) {
-                return;
-            }
-            
-            // Update URL without reloading
-            window.history.pushState({tab: tabName}, '', url);
-            
-            // Update active tab state
-            activeTab = tabName;
-            
-            // Update active class on tabs
-            tabLinks.forEach(tab => tab.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Show loading spinner
-            loadingSpinner.style.display = 'block';
-            
-            // Hide all tab content
+            // Make the correct tab content active
             const tabPanes = document.querySelectorAll('.tab-pane');
-            tabPanes.forEach(pane => pane.classList.remove('active'));
+            tabPanes.forEach(pane => pane.classList.remove('active', 'show'));
+            const activeTabContent = document.getElementById(`${activeTab}Tab`);
+            if (activeTabContent) {
+                activeTabContent.classList.add('active', 'show');
+            }
+        }
+    }
+      // We've removed the click event listeners that were preventing normal navigation
+    // This allows the links to perform standard page navigation when clicked
+    
+    // Keep track of active tab for other functionality
+    const currentTab = window.location.href.includes('tab=') ? 
+        window.location.href.split('tab=')[1].split('&')[0] : 
+        'rentals';
             
             // Fetch tab content via AJAX
-            fetch(url, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.text();
-            })
-            .then(html => {
-                // Parse the HTML to extract the tab content
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                // Find the specific tab content in the response
-                const targetTabId = tabName + 'Tab';
-                const targetTabContent = doc.getElementById(targetTabId);
-                
-                if (targetTabContent) {
-                    // Update the tab content
-                    const currentTab = document.getElementById(targetTabId);
-                    currentTab.innerHTML = targetTabContent.innerHTML;
-                    currentTab.classList.add('active');
-                    
-                    // Initialize any scripts that might be needed for the tab
-                    initTabSpecificFunctionality(tabName);
-                    // Initialize pagination after tab content is loaded
-                    initAjaxPagination();
-                } else {
-                    console.error('Tab content not found in response');
-                }
-                
-                // Hide loading spinner
-                loadingSpinner.style.display = 'none';
-            })
-            .catch(error => {
-                console.error('Error loading tab content:', error);
-                
-                // Show error message in tab content
-                const targetTab = document.getElementById(tabName + 'Tab');
-                if (targetTab) {
-                    targetTab.innerHTML = `
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            Error loading content. Please try again or refresh the page.
-                        </div>
-                    `;
-                    targetTab.classList.add('active');
-                }
+            // AJAX tab loading has been removed to fix form submission issues
+// The page will now use standard navigation when switching between tabs
                 
                 // Hide loading spinner
                 loadingSpinner.style.display = 'none';

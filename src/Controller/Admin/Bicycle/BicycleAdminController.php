@@ -64,39 +64,192 @@ class BicycleAdminController extends AbstractController
         $this->logger = $logger;
         $this->paginator = $paginator;
         $this->exportService = $exportService;
-    }
-
-    #[Route('/add', name: 'admin_bicycle_add', methods: ['GET', 'POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        $bicycle = new Bicycle();
+    }    #[Route('/add', name: 'admin_bicycle_add', methods: ['GET', 'POST'])]    public function create(Request $request, EntityManagerInterface $entityManager): Response
+    {        // Log the request information for debugging
+        $this->logger->info('Bicycle creation request received', [
+            'method' => $request->getMethod(),
+            'request_data' => $request->request->all(),
+            'query_data' => $request->query->all(),
+            'has_content' => !empty($request->getContent()),
+            'content_type' => $request->headers->get('Content-Type'),
+            'request_uri' => $request->getRequestUri(),
+            'base_url' => $request->getSchemeAndHttpHost(),
+            'server' => $request->server->all()
+        ]);
+        
+        // Special debug message to track request lifecycle
+        $this->logger->debug('BICYCLE CREATION STARTED', [
+            'timestamp' => (new \DateTime())->format('Y-m-d H:i:s.u'),
+            'client_ip' => $request->getClientIp()
+        ]);        $bicycle = new Bicycle();
+        // Set default values
+        $bicycle->setLastUpdated(new \DateTime());
+        $bicycle->setStatus(BICYCLE_STATUS::AVAILABLE);
+        $bicycle->setBatteryLevel(0); // Set default battery level to 0%
+        $bicycle->setRangeKm(50); // Set default range to 50km
+        
         $form = $this->createForm(BicycleType::class, $bicycle);
         $form->handleRequest($request);
-    
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($bicycle);
-            $entityManager->flush();
-    
-            $this->addFlash('success', 'Bicycle created successfully.');
-    
-            // Redirect back to the page that shows rentals (modal is in that page)
-            return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => "bicycles"]);
+        
+        // Log form state
+        $this->logger->info('Form state after handleRequest', [
+            'is_submitted' => $form->isSubmitted(),
+            'method' => $request->getMethod(),
+            'form_errors' => $this->getFormErrors($form)
+        ]);
+        
+        // For AJAX requests, return the form HTML for GET or JSON response for POST
+        if ($request->isXmlHttpRequest()) {
+            if ($request->isMethod('GET')) {
+                return $this->render('back-office/bicycle/Bicycle/_bicycle_form.html.twig', [
+                    'form' => $form->createView(),
+                    'isNew' => true
+                ]);
+            }
+            
+            // Check if form was submitted and is valid
+            if ($form->isSubmitted()) {
+                if ($form->isValid()) {
+                    try {
+                        // Ensure the bicycle has a last updated date
+                        if (!$bicycle->getLastUpdated()) {
+                            $bicycle->setLastUpdated(new \DateTime());
+                        }
+                        
+                        // Persist to database
+                        $entityManager->persist($bicycle);
+                        $this->logger->info('Persisting bicycle to database');
+                        $entityManager->flush();
+                        
+                        // Return success JSON
+                        return new JsonResponse([
+                            'success' => true,
+                            'message' => 'Bicycle created successfully.',
+                            'bicycleId' => $bicycle->getIdBike()
+                        ]);
+                    } catch (\Exception $e) {
+                        $this->logger->error('Error creating bicycle: ' . $e->getMessage(), [
+                            'exception' => $e->getTraceAsString()
+                        ]);
+                        
+                        // Return error JSON
+                        return new JsonResponse([
+                            'success' => false,
+                            'message' => 'Error creating bicycle: ' . $e->getMessage(),
+                            'errors' => $this->getFormErrors($form)
+                        ], 400);
+                    }
+                } else {
+                    // Form not valid, return errors
+                    return new JsonResponse([
+                        'success' => false,
+                        'message' => 'Bicycle could not be created. Please check the form for errors.',
+                        'errors' => $this->getFormErrors($form)
+                    ], 400);
+                }
+            }
         }
-    
-        return $this->redirectToRoute('admin_bicycle_rentals');
+        
+        // Non-AJAX form submission handling
+        if ($form->isSubmitted()) {
+            if ($form->isValid()) {
+                try {
+                    // Ensure the bicycle has a last updated date
+                    if (!$bicycle->getLastUpdated()) {
+                        $bicycle->setLastUpdated(new \DateTime());
+                    }
+                    
+                    // Persist to database
+                    $entityManager->persist($bicycle);
+                    $this->logger->info('Persisting bicycle to database');
+                    $entityManager->flush();
+                    
+                    $this->addFlash('success', 'Bicycle created successfully.');
+                    $this->logger->info('Bicycle created successfully', [
+                        'bicycle_id' => $bicycle->getIdBike(),
+                        'battery_level' => $bicycle->getBatteryLevel(),
+                        'range_km' => $bicycle->getRangeKm(),
+                        'status' => $bicycle->getStatus()->value
+                    ]);
+                } catch (\Exception $e) {
+                    $this->logger->error('Error creating bicycle: ' . $e->getMessage(), [
+                        'exception' => $e->getTraceAsString()
+                    ]);
+                    $this->addFlash('error', 'Error creating bicycle: ' . $e->getMessage());
+                }
+            } else {
+                // Form was submitted but not valid
+                $this->addFlash('error', 'Bicycle could not be created. Please check the form for errors.');
+                $this->logger->error('Form validation failed when creating bicycle', [
+                    'form_errors' => $this->getFormErrors($form)
+                ]);
+            }
+            
+            // Check if tab parameter was passed in request
+            $tab = $request->request->get('tab', 'bicycles');
+            
+            // Special debug message to track request completion
+            $this->logger->debug('BICYCLE CREATION COMPLETED', [
+                'timestamp' => (new \DateTime())->format('Y-m-d H:i:s.u'),
+                'tab' => $tab,
+                'is_form_valid' => $form->isSubmitted() && $form->isValid(),
+                'redirect_to' => 'admin_bicycle_rentals'
+            ]);
+            
+            // Redirect back to the bicycles tab and make sure we stay on it
+            return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => $tab]);
+        }
+        
+        // For direct access to the add route (not AJAX), redirect to the bicycle page
+        return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => 'bicycles']);
     }
-    #[Route('/{id}/edit', name: 'admin_bicycle_edit', methods: ['GET', 'POST'])]
-    public function editBicycle(
+    
+    #[Route('/{id}/edit-form', name: 'admin_bicycle_edit_form', methods: ['GET'])]    public function editBicycleForm(int $id, Request $request, EntityManagerInterface $em): Response {
+        // Log the edit form request
+        $this->logger->info('Bicycle edit form request received', [
+            'id' => $id,
+            'method' => $request->getMethod()
+        ]);
+
+        // Find the bicycle by ID
+        $bicycle = $em->getRepository(Bicycle::class)->find($id);
+        if (!$bicycle) {
+            // Return a 404 response if the bicycle was not found
+            return new Response('Bicycle not found', 404);
+        }
+        
+        // Create the form with the Bicycle entity
+        $form = $this->createForm(BicycleType::class, $bicycle, [
+            'bicycleId' => $bicycle->getIdBike()
+        ]);
+
+        // Render just the form template for AJAX
+        return $this->render('back-office/bicycle/Bicycle/_bicycle_form.html.twig', [
+            'form' => $form->createView(),
+            'bicycle' => $bicycle,
+            'isNew' => false
+        ]);
+    }
+
+    #[Route('/{id}/edit', name: 'admin_bicycle_edit', methods: ['GET', 'POST'])]    public function editBicycle(
         int $id, 
         Request $request, 
         EntityManagerInterface $em,
         ValidatorInterface $validator
     ): Response {
+        // Log the edit request
+        $this->logger->info('Bicycle edit request received', [
+            'id' => $id,
+            'method' => $request->getMethod(),
+            'request_data' => $request->request->all(),
+            'query_data' => $request->query->all()
+        ]);
+
         // Find the bicycle by ID
-        $bicycle = $em->getRepository(Bicycle::class)->find($id); // Fetch the bicycle by the ID parameter
+        $bicycle = $em->getRepository(Bicycle::class)->find($id);
         if (!$bicycle) {
             $this->addFlash('error', 'Bicycle not found.');
-            return $this->redirectToRoute('admin_bicycle_rentals', ['tab' =>"bicycles"]);
+            return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => 'bicycles']);
         }
     
         // Ensure the status is set
@@ -105,51 +258,112 @@ class BicycleAdminController extends AbstractController
         }
     
         // Create the form with the Bicycle entity
-        $form = $this->createForm(BicycleType::class, $bicycle);
+        $form = $this->createForm(BicycleType::class, $bicycle, [
+            'bicycleId' => $bicycle->getIdBike()
+        ]);
     
         // Handle the form submission
         $form->handleRequest($request);
+        
+        // Log form state
+        $this->logger->info('Edit form state after handleRequest', [
+            'is_submitted' => $form->isSubmitted(),
+            'is_valid' => $form->isValid(),
+            'form_errors' => $this->getFormErrors($form)
+        ]);
+        
+        // For AJAX requests
+        if ($request->isXmlHttpRequest()) {
+            if ($request->isMethod('GET')) {
+                return $this->render('back-office/bicycle/Bicycle/_bicycle_form.html.twig', [
+                    'form' => $form->createView(),
+                    'bicycle' => $bicycle,
+                    'isNew' => false
+                ]);
+            }
+            
+            if ($form->isSubmitted()) {
+                if ($form->isValid()) {
+                    try {
+                        // Always update last updated timestamp
+                        $bicycle->setLastUpdated(new \DateTime());
+                        
+                        // Save to database
+                        $em->flush();
+                        
+                        // Return success JSON
+                        return new JsonResponse([
+                            'success' => true,
+                            'message' => 'Bicycle updated successfully.',
+                            'bicycleId' => $bicycle->getIdBike()
+                        ]);
+                    } catch (\Exception $e) {
+                        // Log the error
+                        $this->logger->error('Error updating bicycle: ' . $e->getMessage());
+                        
+                        // Return error JSON
+                        return new JsonResponse([
+                            'success' => false,
+                            'message' => 'Error updating bicycle: ' . $e->getMessage(),
+                            'errors' => $this->getFormErrors($form)
+                        ], 400);
+                    }
+                } else {
+                    // Form validation failed
+                    return new JsonResponse([
+                        'success' => false,
+                        'message' => 'Bicycle could not be updated. Please check the form for errors.',
+                        'errors' => $this->getFormErrors($form)
+                    ], 400);
+                }
+            }
+        }
     
+        // For regular form submissions
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                // Manually validate the entity
-                $validationErrors = $validator->validate($bicycle);
-                if (count($validationErrors) > 0) {
-                    // Collect validation errors
-                    $errorMessages = [];
-                    foreach ($validationErrors as $error) {
-                        $errorMessages[] = $error->getPropertyPath() . ': ' . $error->getMessage();
-                    }
-                    // Log the validation errors
-                    $this->logger->error('Entity validation errors: ', $errorMessages);
-                    $this->addFlash('error', 'Validation errors: ' . implode(', ', $errorMessages));
-    
-                    // Return to the list page with errors
-                    return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => "bicycles"]);
-                }
-    
+                // Always update last updated timestamp
+                $bicycle->setLastUpdated(new \DateTime());
+                
                 // Save the updated bicycle to the database
                 $em->flush();
     
                 // Success message
                 $this->addFlash('success', 'Bicycle updated successfully!');
+                $this->logger->info('Bicycle updated successfully', [
+                    'bicycle_id' => $bicycle->getIdBike()
+                ]);
     
-                // Redirect to bicycle rentals page
-                return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => 'bicycles']);
+                // Check if tab parameter was passed in request
+                $tab = $request->request->get('tab', 'bicycles');
+                $this->logger->info('Redirecting after edit form processing', [
+                    'tab' => $tab
+                ]);
+                
+                // Redirect to bicycle rentals page and stay on bicycles tab
+                return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => $tab]);
             } catch (\Exception $e) {
                 // Log the error and display a flash message
-                $this->logger->error('Error saving bicycle: ' . $e->getMessage());
+                $this->logger->error('Error saving bicycle: ' . $e->getMessage(), [
+                    'exception' => $e->getTraceAsString()
+                ]);
                 $this->addFlash('error', 'Error saving bicycle: ' . $e->getMessage());
             }
+        } else if ($form->isSubmitted()) {
+            // Form was submitted but not valid
+            $this->addFlash('error', 'Bicycle could not be updated. Please check the form for errors.');
+            $this->logger->error('Edit form validation failed', [
+                'form_errors' => $this->getFormErrors($form)
+            ]);
+              // Get tab from request
+            $tab = $request->request->get('tab', 'bicycles');
+            
+            // Redirect back to the bicycles tab with the error message
+            return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => $tab]);
         }
-    
-        return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => "bicycles"]);
-    }
-    
-
-    
-    
-    #[Route('/bicycle/{id}/data', name: 'admin_bicycle_data', methods: ['GET'])]
+          // If it's a GET request or the form wasn't submitted yet
+        return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => 'bicycles']);
+    }      #[Route('/{id}/data', name: 'admin_bicycle_data', methods: ['GET'])]
     public function bicycleData(int $id): JsonResponse
     {
         try {
@@ -160,15 +374,24 @@ class BicycleAdminController extends AbstractController
             }
             
             // Return a complete set of data in a predictable format
-            return new JsonResponse([
+            $response = [
                 'idBike' => $bicycle->getIdBike(),
-                'status' => $bicycle->getStatus()->value,
+                'status' => $bicycle->getStatus(),
                 'batteryLevel' => $bicycle->getBatteryLevel(),
                 'rangeKm' => $bicycle->getRangeKm(),
                 'stationId' => $bicycle->getBicycleStation() ? $bicycle->getBicycleStation()->getIdStation() : null,
                 'lastUpdated' => $bicycle->getLastUpdated()->format('Y-m-d H:i:s'),
                 'success' => true
-            ]);
+            ];
+            
+            if ($bicycle->getBicycleStation()) {
+                $response['bicycleStation'] = [
+                    'idStation' => $bicycle->getBicycleStation()->getIdStation(),
+                    'name' => $bicycle->getBicycleStation()->getName()
+                ];
+            }
+            
+            return new JsonResponse($response);
         } catch (\Exception $e) {
             $this->logger->error('Error getting bicycle data: ' . $e->getMessage());
             return new JsonResponse([
@@ -178,8 +401,7 @@ class BicycleAdminController extends AbstractController
             ], 500);
         }
     }
-    
-    #[Route('/bicycle/get-details', name: 'admin_bicycle_get_details', methods: ['GET'])]
+      #[Route('/get-details', name: 'admin_bicycle_get_details', methods: ['GET'])]
     public function getBicycleDetails(Request $request): JsonResponse
     {
         $id = $request->query->get('id');
@@ -199,8 +421,7 @@ class BicycleAdminController extends AbstractController
             'lastUpdated' => $bicycle->getLastUpdated()->format('Y-m-d H:i:s')
         ]);
     }
-    
-    #[Route('/bicycle/{id}/json', name: 'admin_bicycle_json', methods: ['GET'])]
+      #[Route('/{id}/json', name: 'admin_bicycle_json', methods: ['GET'])]
     public function bicycleJson(int $id): JsonResponse
     {
         $bicycle = $this->bicycleService->getBicycle($id);
@@ -223,28 +444,30 @@ class BicycleAdminController extends AbstractController
             ] : null,
             'lastUpdated' => $bicycle->getLastUpdated()->format('Y-m-d H:i:s')
         ]);
-    }
-    
-    #[Route('/bicycle/delete', name: 'admin_bicycle_delete', methods: ['POST'])]
+    }    #[Route('/delete', name: 'admin_bicycle_delete', methods: ['POST'])]
     public function deleteBicycle(Request $request): Response
     {
         $bicycleId = $request->request->get('bicycleId');
-        $bicycle = $this->bicycleService->getBicycle((int)$bicycleId);
+        $bicycle = $this->entityManager->getRepository(Bicycle::class)->find((int)$bicycleId);
+          // Get tab parameter either from the request or referring URL
+        $tab = $request->request->get('tab');
         
-        // Get the referring URL or tab to redirect back correctly
-        $referer = $request->headers->get('referer');
-        $activeTab = 'bicycles'; // Default tab
-        
-        // Check if the referer contains a tab parameter
-        if ($referer && preg_match('/tab=([^&]+)/', $referer, $matches)) {
-            $activeTab = $matches[1];
+        if (!$tab) {
+            // Check if the referer contains a tab parameter
+            $referer = $request->headers->get('referer');
+            if ($referer && preg_match('/tab=([^&]+)/', $referer, $matches)) {
+                $tab = $matches[1];
+            } else {
+                $tab = 'bicycles'; // Default tab
+            }
         }
         
         if (!$bicycle) {
             $this->addFlash('error', 'Bicycle not found');
         } else {
             try {
-                $this->bicycleService->deleteBicycle($bicycle);
+                $this->entityManager->remove($bicycle);
+                $this->entityManager->flush();
                 $this->addFlash('success', 'Bicycle deleted successfully');
             } catch (\Exception $e) {
                 $this->logger->error('Error deleting bicycle: ' . $e->getMessage());
@@ -253,14 +476,13 @@ class BicycleAdminController extends AbstractController
         }
         
         // Redirect back to the appropriate tab
-        return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => "bicycles"]);
-    }
-    
-    #[Route('/bicycle/change-status', name: 'admin_bicycle_change_status', methods: ['POST'])]
+        return $this->redirectToRoute('admin_bicycle_rentals', ['tab' => $tab]);
+    }    #[Route('/change-status', name: 'admin_bicycle_change_status', methods: ['GET', 'POST'])]
     public function changeBicycleStatus(Request $request): Response
     {
-        $bicycleId = $request->request->get('bicycleId');
-        $statusValue = $request->request->get('status');
+        // Support both GET and POST parameters
+        $bicycleId = $request->request->get('bicycleId') ?? $request->query->get('id');
+        $statusValue = $request->request->get('status') ?? $request->query->get('status');
         
         try {
             $bicycle = $this->bicycleService->getBicycle((int)$bicycleId);
@@ -279,8 +501,7 @@ class BicycleAdminController extends AbstractController
         
         return $this->redirectToRoute('admin_bicycle_dashboard', ['tab' => 'bicycles']);
     }
-    
-    #[Route('/bicycle/schedule-maintenance', name: 'admin_bicycle_schedule_maintenance', methods: ['POST'])]
+      #[Route('/schedule-maintenance', name: 'admin_bicycle_schedule_maintenance', methods: ['POST'])]
     public function scheduleMaintenance(Request $request): Response
     {
         $bicycleIds = $request->request->get('bicycleIds', []);
@@ -344,8 +565,7 @@ class BicycleAdminController extends AbstractController
             $this->logger->error('Error getting locations: ' . $e->getMessage());
             return new JsonResponse(['error' => 'Failed to retrieve locations'], 500);
         }
-    }
-    #[Route('/bicycle/bulk-assign-station', name: 'admin_bicycle_bulk_assign_station', methods: ['POST'])]
+    }    #[Route('/bulk-assign-station', name: 'admin_bicycle_bulk_assign_station', methods: ['POST'])]
     public function bulkAssignBicyclesToStation(Request $request, ValidatorInterface $validator): JsonResponse
     {
         $response = null;
@@ -656,5 +876,28 @@ class BicycleAdminController extends AbstractController
                     'bicycles-export'
                 );
         }
+    }
+    
+    /**
+     * Recursively extracts form errors
+     */
+    private function getFormErrors($form): array
+    {
+        $errors = [];
+
+        foreach ($form->getErrors() as $error) {
+            $errors[] = $error->getMessage();
+        }
+
+        foreach ($form->all() as $childForm) {
+            if ($childForm instanceof \Symfony\Component\Form\FormInterface) {
+                $childErrors = $this->getFormErrors($childForm);
+                if ($childErrors) {
+                    $errors[$childForm->getName()] = $childErrors;
+                }
+            }
+        }
+
+        return $errors;
     }
 }

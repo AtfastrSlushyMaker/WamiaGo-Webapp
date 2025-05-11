@@ -4,6 +4,50 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 <link href="{{ asset('css/back/bicycle/bicycle.css') }}" rel="stylesheet">
 <style>
+    /* Modal Fixes - Added to fix positioning issues */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1060 !important;
+        width: 100%;
+        height: 100%;
+        outline: 0;
+        padding-right: 0 !important;
+    }
+    
+    .modal-dialog {
+        position: relative;
+        width: auto;
+        margin: 1.75rem auto;
+        display: flex;
+        align-items: center;
+        min-height: calc(100% - 3.5rem);
+    }
+    
+    .modal-dialog-centered {
+        display: flex;
+        align-items: center;
+        min-height: calc(100% - 3.5rem);
+        justify-content: center;
+    }
+    
+    .modal-content {
+        position: relative;
+        width: 100%;
+        background-color: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .modal-open {
+        overflow: hidden !important;
+    }
+    
+    .modal-backdrop {
+        display: none !important;
+    }
+    
     /* Green Theme for Bicycle Fleet Management */
     
     /* Hero Section Styling */
@@ -661,8 +705,8 @@
 </div>
 
 <!-- Add Bicycle Modal -->
-<div class="modal fade" id="addBicycleModal" data-bs-backdrop="false" tabindex="-1" aria-labelledby="addBicycleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="addBicycleModal" data-bs-backdrop="false" data-bs-keyboard="true" tabindex="-1" aria-labelledby="addBicycleModalLabel" aria-hidden="true" style="z-index: 1060; padding-right: 0px !important; position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: none;">
+    <div class="modal-dialog modal-lg modal-dialog-centered" style="display: flex; align-items: center; justify-content: center; margin: 0 auto; min-height: 100vh; max-height: 100vh; width: 95%; max-width: 800px;">
         <div class="modal-content">
             <div class="modal-header bg-gradient-primary-to-secondary text-white">
                 <h5 class="modal-title" id="addBicycleModalLabel">
@@ -670,43 +714,49 @@
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                {% if addBicycleForm %}
-               {{ form_start(addBicycleForm, {
-    'attr': {'novalidate': 'novalidate'},
-    'action': path('admin_bicycle_add'), 
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                {% if addBicycleForm %}               {{ form_start(addBicycleForm, {
+    'attr': {
+        'novalidate': 'novalidate', 
+        'id': 'addBicycleForm', 
+        'data-tab': app.request.query.get('tab', 'bicycles'),
+        'class': 'needs-validation',
+        'autocomplete': 'off'
+    },
+    'action': path('admin_bicycle_add'),
     'method': 'POST'
 }) }}
+{# Always set the tab parameter to ensure form returns to bicycles tab #}
+<input type="hidden" name="tab" value="{{ app.request.query.get('tab', 'bicycles') }}">
 
 
                     <div class="row g-3">
                         <div class="col-md-6">
                             <div class="form-group">
-                                {{ form_label(addBicycleForm.battery_level, 'Battery Level (%)', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_label(addBicycleForm.batteryLevel, 'Battery Level (%)', {'label_attr': {'class': 'form-label'}}) }}
                                 <div class="input-group">
-                                    {{ form_widget(addBicycleForm.battery_level, {
+                                    {{ form_widget(addBicycleForm.batteryLevel, {
                                         'attr': {
-                                            'class': 'form-control' ~ (addBicycleForm.battery_level.vars.valid ? '' : ' is-invalid'),
+                                            'class': 'form-control' ~ (addBicycleForm.batteryLevel.vars.valid ? '' : ' is-invalid'),
                                             'min': '0',
                                             'max': '100'
                                         }
                                     }) }}
                                     <span class="input-group-text"><i class="fas fa-battery-half"></i></span>
-                                    {{ form_errors(addBicycleForm.battery_level, {'attr': {'class': 'invalid-feedback'}}) }}
+                                    {{ form_errors(addBicycleForm.batteryLevel, {'attr': {'class': 'invalid-feedback'}}) }}
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                {{ form_label(addBicycleForm.range_km, 'Range (km)', {'label_attr': {'class': 'form-label'}}) }}
-                                <div class="input-group">
-                                    {{ form_widget(addBicycleForm.range_km, {
+                                {{ form_label(addBicycleForm.rangeKm, 'Range (km)', {'label_attr': {'class': 'form-label'}}) }}
+                                <div class="input-group">                                    {{ form_widget(addBicycleForm.rangeKm, {
                                         'attr': {
-                                            'class': 'form-control' ~ (addBicycleForm.range_km.vars.valid ? '' : ' is-invalid')
+                                            'class': 'form-control' ~ (addBicycleForm.rangeKm.vars.valid ? '' : ' is-invalid')
                                         }
                                     }) }}
                                     <span class="input-group-text"><i class="fas fa-route"></i></span>
-                                    {{ form_errors(addBicycleForm.range_km, {'attr': {'class': 'invalid-feedback'}}) }}
+                                    {{ form_errors(addBicycleForm.rangeKm, {'attr': {'class': 'invalid-feedback'}}) }}
                                 </div>
                             </div>
                         </div>
@@ -731,16 +781,15 @@
                                 }) }}
                                 {{ form_errors(addBicycleForm.bicycleStation, {'attr': {'class': 'invalid-feedback'}}) }}
                             </div>
-                        </div>
-                        <div class="col-md-6">
+                        </div>                        <div class="col-md-6">
                             <div class="form-group">
-                                {{ form_label(addBicycleForm.last_updated, 'Last Updated', {'label_attr': {'class': 'form-label'}}) }}
-                                {{ form_widget(addBicycleForm.last_updated, {
+                                {{ form_label(addBicycleForm.lastUpdated, 'Last Updated', {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(addBicycleForm.lastUpdated, {
                                     'attr': {
-                                        'class': 'form-control' ~ (addBicycleForm.last_updated.vars.valid ? '' : ' is-invalid')
+                                        'class': 'form-control' ~ (addBicycleForm.lastUpdated.vars.valid ? '' : ' is-invalid')
                                     }
                                 }) }}
-                                {{ form_errors(addBicycleForm.last_updated, {'attr': {'class': 'invalid-feedback'}}) }}
+                                {{ form_errors(addBicycleForm.lastUpdated, {'attr': {'class': 'invalid-feedback'}}) }}
                             </div>
                         </div>
                     </div>
@@ -765,36 +814,35 @@
 
 <!-- Hidden template for edit form -->
 <template id="editBicycleFormTemplate">
-    {{ form_start(editBicycleForm, { 'attr': { 'novalidate': 'novalidate', 'id': 'editBicycleForm', 'data-action-url': path('admin_bicycle_edit', {'id': '__bicycleId__'}) } }) }}
+    {{ form_start(editBicycleForm, { 'attr': { 'novalidate': 'novalidate', 'id': 'editBicycleForm' } }) }}
         <input type="hidden" name="bicycleId" class="bicycle-id-field">
+        <input type="hidden" name="tab" value="{{ app.request.query.get('tab', 'bicycles') }}">
         <div class="row g-3">
             <div class="col-md-6">
-                <div class="form-group">
-                    {{ form_label(editBicycleForm.battery_level, 'Battery Level (%)', {'label_attr': {'class': 'form-label'}}) }}
+                <div class="form-group">                    {{ form_label(editBicycleForm.batteryLevel, 'Battery Level (%)', {'label_attr': {'class': 'form-label'}}) }}
                     <div class="input-group">
-                        {{ form_widget(editBicycleForm.battery_level, {
+                        {{ form_widget(editBicycleForm.batteryLevel, {
                             'attr': {
-                                'class': 'form-control' ~ (editBicycleForm.battery_level.vars.valid ? '' : ' is-invalid'),
+                                'class': 'form-control' ~ (editBicycleForm.batteryLevel.vars.valid ? '' : ' is-invalid'),
                                 'min': '0',
                                 'max': '100'
                             }
                         }) }}
                         <span class="input-group-text"><i class="fas fa-battery-half"></i></span>
-                        {{ form_errors(editBicycleForm.battery_level, {'attr': {'class': 'invalid-feedback'}}) }}
+                        {{ form_errors(editBicycleForm.batteryLevel, {'attr': {'class': 'invalid-feedback'}}) }}
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="form-group">
-                    {{ form_label(editBicycleForm.range_km, 'Range (km)', {'label_attr': {'class': 'form-label'}}) }}
+                <div class="form-group">                    {{ form_label(editBicycleForm.rangeKm, 'Range (km)', {'label_attr': {'class': 'form-label'}}) }}
                     <div class="input-group">
-                        {{ form_widget(editBicycleForm.range_km, {
+                        {{ form_widget(editBicycleForm.rangeKm, {
                             'attr': {
-                                'class': 'form-control' ~ (editBicycleForm.range_km.vars.valid ? '' : ' is-invalid')
+                                'class': 'form-control' ~ (editBicycleForm.rangeKm.vars.valid ? '' : ' is-invalid')
                             }
                         }) }}
                         <span class="input-group-text"><i class="fas fa-route"></i></span>
-                        {{ form_errors(editBicycleForm.range_km, {'attr': {'class': 'invalid-feedback'}}) }}
+                        {{ form_errors(editBicycleForm.rangeKm, {'attr': {'class': 'invalid-feedback'}}) }}
                     </div>
                 </div>
             </div>
@@ -821,14 +869,13 @@
                 </div>
             </div>
             <div class="col-12">
-                <div class="form-group">
-                    {{ form_label(editBicycleForm.last_updated, 'Last Updated', {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(editBicycleForm.last_updated, {
+                <div class="form-group">                    {{ form_label(editBicycleForm.lastUpdated, 'Last Updated', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(editBicycleForm.lastUpdated, {
                         'attr': {
-                            'class': 'form-control' ~ (editBicycleForm.last_updated.vars.valid ? '' : ' is-invalid')
+                            'class': 'form-control' ~ (editBicycleForm.lastUpdated.vars.valid ? '' : ' is-invalid')
                         }
                     }) }}
-                    {{ form_errors(editBicycleForm.last_updated, {'attr': {'class': 'invalid-feedback'}}) }}
+                    {{ form_errors(editBicycleForm.lastUpdated, {'attr': {'class': 'invalid-feedback'}}) }}
                 </div>
             </div>
         </div>
@@ -843,8 +890,30 @@
     {{ form_end(editBicycleForm) }}
 </template>
 
+<!-- Edit Bicycle Modal -->
+<div class="modal fade" id="editBicycleModal" data-bs-backdrop="false" data-bs-keyboard="true" tabindex="-1" aria-labelledby="editBicycleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="editBicycleModalLabel">
+                    <i class="fas fa-edit me-2"></i>Edit Bicycle
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be loaded here from the template -->
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading form...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Delete Bicycle Modal -->
-<div class="modal fade" id="deleteBicycleModal" data-bs-backdrop="false" data-bs-keyboard="false" tabindex="-1" aria-labelledby="deleteBicycleModalLabel" aria-hidden="true">
+<div class="modal fade" id="deleteBicycleModal" data-bs-backdrop="false" data-bs-keyboard="true" tabindex="-1" aria-labelledby="deleteBicycleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
@@ -898,10 +967,9 @@
                     </label>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form action="{{ path('admin_bicycle_delete') }}" method="POST">
+            <div class="modal-footer">                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>                  <form action="{{ path('admin_bicycle_delete') }}" method="POST" id="deleteBicycleForm">
                     <input type="hidden" name="bicycleId" id="deleteBicycleIdInput">
+                    <input type="hidden" name="tab" value="{{ app.request.query.get('tab', 'bicycles') }}">
                     <button type="submit" id="deleteBicycleBtn" class="btn btn-danger" disabled>
                         <i class="fas fa-trash me-1"></i> Delete Bicycle
                     </button>
@@ -922,8 +990,8 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                {% if stationAssignForm %}
-                {{ form_start(stationAssignForm, {'attr': {'novalidate': 'novalidate', 'id': 'stationAssignForm'}}) }}
+                {% if stationAssignForm %}                {{ form_start(stationAssignForm, {'attr': {'novalidate': 'novalidate', 'id': 'stationAssignForm'}}) }}
+                    <input type="hidden" name="tab" value="{{ app.request.query.get('tab', 'bicycles') }}">
                     <div class="row g-3">
                         <div class="col-md-6">
                             <div class="form-group">
@@ -1001,8 +1069,8 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                {% if maintenanceForm %}
-                {{ form_start(maintenanceForm, {'attr': {'novalidate': 'novalidate', 'id': 'maintenanceForm'}}) }}
+                {% if maintenanceForm %}                {{ form_start(maintenanceForm, {'attr': {'novalidate': 'novalidate', 'id': 'maintenanceForm'}}) }}
+                    <input type="hidden" name="tab" value="{{ app.request.query.get('tab', 'bicycles') }}">
                     <div class="row g-3">
                         <div class="col-md-6">
                             <div class="form-group">
@@ -1090,242 +1158,189 @@
 <form id="bicycleStatusForm" method="POST" action="{{ path('admin_bicycle_change_status') }}">
     <input type="hidden" id="statusChangeBicycleId" name="bicycleId">
     <input type="hidden" id="statusChangeValue" name="status">
+    <input type="hidden" name="tab" value="{{ app.request.query.get('tab', 'bicycles') }}">
 </form>
 
-<!-- JavaScript for bicycle form validation -->
+<!-- Include unified JavaScript file for bicycle management -->
+<script src="{{ asset('js/back/bicycle/bicycle.js') }}"></script>
+
+<!-- Modal and form initialization script -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Client-side validation functions
-    function validateBicycleForm(form) {
-        let isValid = true;
-        const errorMessages = [];
-        
-        // Battery Level validation
-        const batteryInput = form.querySelector('[name$="[battery_level]"]');
-        if (batteryInput) {
-            const batteryValue = parseFloat(batteryInput.value);
-            if (isNaN(batteryValue) || batteryValue < 0 || batteryValue > 100) {
-                isValid = false;
-                addError(batteryInput, 'Battery level must be between 0 and 100%');
-                errorMessages.push('Battery level must be between 0 and 100%');
-            } else {
-                removeError(batteryInput);
-            }
-        }
-        
-        // Range validation
-        const rangeInput = form.querySelector('[name$="[range_km]"]');
-        if (rangeInput) {
-            const rangeValue = parseFloat(rangeInput.value);
-            if (isNaN(rangeValue) || rangeValue < 0) {
-                isValid = false;
-                addError(rangeInput, 'Range must be a positive number');
-                errorMessages.push('Range must be a positive number');
-            } else {
-                removeError(rangeInput);
-            }
-        }
-        
-        // Status validation
-        const statusInput = form.querySelector('[name$="[status]"]');
-        if (statusInput && statusInput.value === '') {
-            isValid = false;
-            addError(statusInput, 'Status is required');
-            errorMessages.push('Status is required');
-        } else {
-            removeError(statusInput);
-        }
-        
-        // Last updated validation
-        const lastUpdatedInput = form.querySelector('[name$="[last_updated]"]');
-        if (lastUpdatedInput && lastUpdatedInput.value === '') {
-            isValid = false;
-            addError(lastUpdatedInput, 'Last updated date is required');
-            errorMessages.push('Last updated date is required');
-        } else {
-            removeError(lastUpdatedInput);
-        }
-        
-        // Station validation - Only if bicycle status is "Available"
-        const stationInput = form.querySelector('[name$="[bicycleStation]"]');
-        if (statusInput && statusInput.value === 'available' && stationInput && stationInput.value === '') {
-            isValid = false;
-            addError(stationInput, 'Station is required for available bicycles');
-            errorMessages.push('Station is required for available bicycles');
-        } else {
-            removeError(stationInput);
-        }
-        
-        return { isValid, errorMessages };
-    }
+    console.log('Bicycle page initialized');
     
-    function addError(input, message) {
-        input.classList.add('is-invalid');
-        
-        // Create or update error message
-        let errorDiv = input.parentNode.querySelector('.invalid-feedback');
-        if (!errorDiv) {
-            errorDiv = document.createElement('div');
-            errorDiv.className = 'invalid-feedback';
-            input.parentNode.appendChild(errorDiv);
-        }
-        errorDiv.textContent = message;
-    }
-    
-    function removeError(input) {
-        input.classList.remove('is-invalid');
-        const errorDiv = input.parentNode.querySelector('.invalid-feedback');
-        if (errorDiv) {
-            errorDiv.textContent = '';
-        }
-    }
-    
-    // Add Bicycle Form Validation
-    const addBicycleForm = document.querySelector('#addBicycleModal form');
-    if (addBicycleForm) {
-        addBicycleForm.addEventListener('submit', function(e) {
-            const { isValid, errorMessages } = validateBicycleForm(this);
-            
-            if (!isValid) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // Show error alert
-                const errorAlert = document.createElement('div');
-                errorAlert.className = 'alert alert-danger mt-3';
-                errorAlert.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i><strong>Error:</strong> Please correct the following issues:<ul>' +
-                    errorMessages.map(msg => `<li>${msg}</li>`).join('') + '</ul>';
-                
-                // Remove any existing error alerts
-                const existingAlerts = this.querySelectorAll('.alert');
-                existingAlerts.forEach(alert => alert.remove());
-                
-                // Add new error alert at the top of the form
-                this.insertAdjacentElement('afterbegin', errorAlert);
-                
-                // Scroll to the first error
-                const firstError = this.querySelector('.is-invalid');
-                if (firstError) {
-                    firstError.focus();
-                }
-            }
+    // Wait for the page to fully load before manipulating modals
+    setTimeout(() => {
+        // Remove any existing backdrops once and for all
+        document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+            backdrop.remove();
         });
-    }
-    
-    // Edit Bicycle Form Validation
-    const editBicycleForm = document.querySelector('#editBicycleForm');
-    if (editBicycleForm) {
-        editBicycleForm.addEventListener('submit', function(e) {
-            const { isValid, errorMessages } = validateBicycleForm(this);
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+        
+        // Simple but effective function to initialize modals properly
+        function initializeModal(modalId) {
+            const modalElement = document.getElementById(modalId);
+            if (!modalElement) return;
             
-            if (!isValid) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // Show error alert
-                const errorAlert = document.createElement('div');
-                errorAlert.className = 'alert alert-danger mt-3';
-                errorAlert.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i><strong>Error:</strong> Please correct the following issues:<ul>' +
-                    errorMessages.map(msg => `<li>${msg}</li>`).join('') + '</ul>';
-                
-                // Remove any existing error alerts
-                const existingAlerts = this.querySelectorAll('.alert');
-                existingAlerts.forEach(alert => alert.remove());
-                
-                // Add new error alert at the top of the form
-                this.insertAdjacentElement('afterbegin', errorAlert);
-                
-                // Scroll to the first error
-                const firstError = this.querySelector('.is-invalid');
-                if (firstError) {
-                    firstError.focus();
+            console.log(`Initializing modal: ${modalId}`);
+            
+            // Clean up any existing instance first
+            try {
+                const existingModal = bootstrap.Modal.getInstance(modalElement);
+                if (existingModal) {
+                    existingModal.dispose();
+                    console.log(`Disposed existing instance of ${modalId}`);
                 }
-            } else {
-                // If valid, update the form action with the correct ID before submitting
-                const bicycleId = this.querySelector('.bicycle-id-field').value;
-                const actionUrl = this.getAttribute('data-action-url').replace('__bicycleId__', bicycleId);
-                this.action = actionUrl;
+            } catch (e) {
+                // No existing instance, continue
             }
-        });
-    }
-    
-    // Real-time validation on input
-    document.querySelectorAll('#addBicycleModal input, #addBicycleModal select, #editBicycleModal input, #editBicycleModal select').forEach(input => {
-        input.addEventListener('change', function() {
-            const parent = this.closest('form');
-            if (parent) {
-                // Only validate the changed field
-                if (this.name.includes('battery_level')) {
-                    const value = parseFloat(this.value);
-                    if (isNaN(value) || value < 0 || value > 100) {
-                        addError(this, 'Battery level must be between 0 and 100%');
-                    } else {
-                        removeError(this);
-                    }
-                } else if (this.name.includes('range_km')) {
-                    const value = parseFloat(this.value);
-                    if (isNaN(value) || value < 0) {
-                        addError(this, 'Range must be a positive number');
-                    } else {
-                        removeError(this);
-                    }
-                } else if (this.name.includes('status')) {
-                    if (this.value === '') {
-                        addError(this, 'Status is required');
-                    } else {
-                        removeError(this);
+            
+            // Set modal attributes to disable backdrop
+            modalElement.setAttribute('data-bs-backdrop', 'false');
+            modalElement.setAttribute('data-bs-keyboard', 'true');
+            
+            // Ensure modal dialog is centered
+            const modalDialog = modalElement.querySelector('.modal-dialog');
+            if (modalDialog) {
+                modalDialog.classList.add('modal-dialog-centered');
+            }
+            
+            // Create new modal instance with no backdrop
+            const modal = new bootstrap.Modal(modalElement, {
+                backdrop: false,
+                keyboard: true
+            });
+            
+            // Add shown event listener to ensure no backdrop is created
+            modalElement.addEventListener('shown.bs.modal', function() {
+                document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+                    backdrop.remove();
+                });
+            });
+            
+            console.log(`Modal ${modalId} initialized successfully`);
+        }
+        
+        // Initialize all modals
+        ['addBicycleModal', 'editBicycleModal', 'deleteBicycleModal', 
+         'stationAssignModal', 'scheduleMaintenance'].forEach(initializeModal);
+        
+        console.log('Checking for modal elements:',
+            document.getElementById('addBicycleModal') ? 'Add modal found' : 'Add modal NOT found',
+            document.getElementById('editBicycleModal') ? 'Edit modal found' : 'Edit modal NOT found'
+        );
+        console.log('Checking for forms:',
+            document.getElementById('addBicycleForm') ? 'Add form found' : 'Add form NOT found'
+        );
+    }, 100); // Small delay to ensure all DOM elements are ready
+      // Function to ensure modal is centered and has proper backdrop
+    function setupModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            // First, destroy any existing bootstrap modal instance to avoid conflicts
+            try {
+                const existingModal = bootstrap.Modal.getInstance(modal);
+                if (existingModal) {
+                    existingModal.dispose();
+                    console.log(`Disposed existing ${modalId} modal instance`);
+                }
+            } catch (e) {
+                console.log(`No existing ${modalId} modal instance to dispose`);
+            }
+            
+            // Ensure the modal has NO backdrop
+            modal.setAttribute('data-bs-backdrop', 'false');
+            modal.setAttribute('data-bs-keyboard', 'true');
+            
+            // Ensure the modal dialog is centered
+            const dialog = modal.querySelector('.modal-dialog');
+            if (dialog && !dialog.classList.contains('modal-dialog-centered')) {
+                dialog.classList.add('modal-dialog-centered');
+            }
+            
+            // Set proper z-index to ensure modal appears above other content
+            modal.style.zIndex = '1060';
+            
+            // Add event listener to ensure proper positioning on show
+            modal.addEventListener('show.bs.modal', function() {
+                // Remove any existing backdrop elements that might have been created
+                const existingBackdrops = document.querySelectorAll('.modal-backdrop');
+                existingBackdrops.forEach(function(backdrop) {
+                    backdrop.parentNode.removeChild(backdrop);
+                });
+                
+                setTimeout(() => {
+                    if (dialog) {
+                        // Reset any manually applied styles
+                        dialog.style.display = '';
+                        dialog.style.marginTop = '';
                         
-                        // Check if status is "Available", then station is required
-                        const stationInput = parent.querySelector('[name$="[bicycleStation]"]');
-                        if (this.value === 'available' && stationInput && stationInput.value === '') {
-                            addError(stationInput, 'Station is required for available bicycles');
-                        } else if (stationInput) {
-                            removeError(stationInput);
-                        }
+                        // Add styling to ensure proper centering
+                        dialog.style.display = 'flex';
+                        dialog.style.alignItems = 'center';
+                        dialog.style.justifyContent = 'center';
                     }
-                } else if (this.name.includes('bicycleStation')) {
-                    const statusInput = parent.querySelector('[name$="[status]"]');
-                    if (statusInput && statusInput.value === 'available' && this.value === '') {
-                        addError(this, 'Station is required for available bicycles');
-                    } else {
-                        removeError(this);
-                    }
-                } else if (this.name.includes('last_updated')) {
-                    if (this.value === '') {
-                        addError(this, 'Last updated date is required');
-                    } else {
-                        removeError(this);
-                    }
+                }, 50);
+            });
+            
+            // Ensure modal content stays visible after shown
+            modal.addEventListener('shown.bs.modal', function() {
+                // Check if modal content is visible
+                const content = modal.querySelector('.modal-content');
+                if (content) {
+                    content.style.display = 'block';
                 }
-            }
+                console.log(`Modal ${modalId} shown and visible`);
+            });
+            
+            console.log(`Modal ${modalId} setup complete`);
+        }
+    }
+      // Set up all modals with a small delay to ensure DOM is ready
+    setTimeout(() => {
+        setupModal('addBicycleModal');
+        setupModal('editBicycleModal');
+        setupModal('deleteBicycleModal');
+        setupModal('stationAssignModal');
+        setupModal('scheduleMaintenance');
+        
+        console.log('All modals have been properly initialized');
+    }, 100);
+            // Attach click handler to the 'Add New Bicycle' button to ensure modal shows correctly
+    document.querySelectorAll('[data-bs-toggle="modal"][data-bs-target="#addBicycleModal"]').forEach(function(button) {
+        console.log('Found add bicycle button, attaching click handler');
+        button.addEventListener('click', function(e) {
+            console.log('Add bicycle button clicked');
+            // Ensure body has the right classes
+            document.body.classList.add('modal-open');
+            
+            // Make sure we don't have duplicate backdrops
+            const existingBackdrops = document.querySelectorAll('.modal-backdrop');
+            existingBackdrops.forEach(function(backdrop) {
+                backdrop.parentNode.removeChild(backdrop);
+            });
         });
     });
     
-    // Handle loading bicycle data for edit with improved error handling
-    document.querySelectorAll('.edit-bicycle').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const bicycleId = this.getAttribute('data-bicycle-id');
-            
-            if (bicycleId) {
-                // Show loading state
-                const modal = new bootstrap.Modal(document.getElementById('editBicycleModal'));
-                const modalBody = document.getElementById('editBicycleModal').querySelector('.modal-body');
-                
-                // Add loading indicator
-                modalBody.innerHTML = `
-                    <div class="text-center py-4">
-                        <div class="spinner-border text-primary mb-3" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p>Loading bicycle data...</p>
-                    </div>
-                `;
-                
-                modal.show();
-                
-                // Fetch bicycle data with improved error handling
-                fetch(`/admin/bicycle/bicycle/${bicycleId}/data`)
+    // Ensure all modals have proper positioning
+    document.querySelectorAll('.modal').forEach(function(modal) {
+        modal.addEventListener('show.bs.modal', function(e) {
+            console.log(`Modal ${modal.id} show event`);
+            const dialog = modal.querySelector('.modal-dialog');
+            if (dialog && !dialog.classList.contains('modal-dialog-centered')) {
+                dialog.classList.add('modal-dialog-centered');
+            }
+        });
+    });    const editBicycleModal = document.getElementById('editBicycleModal');
+    if (editBicycleModal) {
+        console.log('Edit bicycle modal found - edit functionality handled by edit-bicycle-handler.js');
+        // All edit bicycle functionality is now handled in edit-bicycle-handler.js
+    }
+      // Note: Real-time validation is now handled in the dedicated handler files
+    // create-bicycle-handler.js and edit-bicycle-handler.js      // Note: Bicycle edit functionality is now handled in edit-bicycle-handler.js
+    // Additional functionality is also handled in create-bicycle-handler.js
                     .then(response => {
                         if (!response.ok) {
                             throw new Error(`Server returned ${response.status}: ${response.statusText}`);
@@ -1333,33 +1348,48 @@ document.addEventListener('DOMContentLoaded', function() {
                         return response.json();
                     })
                     .then(data => {
-                        // Restore the form content
-                        modalBody.innerHTML = document.getElementById('editBicycleFormTemplate').innerHTML;
+                        console.log('Bicycle data received:', data);
+                        
+                        // Get the form template and clone it properly
+                        const templateContent = document.getElementById('editBicycleFormTemplate');
+                        if (!templateContent) {
+                            throw new Error('Edit bicycle form template not found in the DOM');
+                        }
+                        
+                        const formClone = document.importNode(templateContent.content, true);
+                        
+                        // Clear the modal body and append the cloned form
+                        modalBody.innerHTML = '';
+                        modalBody.appendChild(formClone);
+                          // Get the form that was just added to the DOM
+                        const editForm = modalBody.querySelector('#editBicycleForm');
                         
                         // Set form hidden id field
-                        const idField = document.querySelector('.bicycle-id-field');
-                        if (idField) idField.value = bicycleId;
-
+                        const idField = editForm.querySelector('input[name="bicycleId"]');
+                        if (idField) idField.value = bicycleId;                          // Set form action URL - make sure it points to the correct controller action
+                        const formAction = `/admin/bicycle/${bicycleId}/edit`;
+                        editForm.setAttribute('action', formAction);
+                        editForm.setAttribute('data-action-url', formAction);
+                        console.log('Setting edit form action to:', formAction);
+                        
                         // Set battery level
-                        const batteryField = document.querySelector('#editBicycleForm [name$="[battery_level]"]');
+                        const batteryField = editForm.querySelector('[name$="[batteryLevel]"]');
                         if (batteryField) batteryField.value = data.batteryLevel;
 
                         // Set range
-                        const rangeField = document.querySelector('#editBicycleForm [name$="[range_km]"]');
-                        if (rangeField) rangeField.value = data.rangeKm;
-
-                        // Set status select
-                        const statusSelect = document.querySelector('#editBicycleForm [name$="[status]"]');
+                        const rangeField = editForm.querySelector('[name$="[rangeKm]"]');
+                        if (rangeField) rangeField.value = data.rangeKm;                        // Set status select
+                        const statusSelect = editForm.querySelector('[name$="[status]"]');
                         if (statusSelect) {
                             Array.from(statusSelect.options).forEach(option => {
-                                if (option.value === data.status.value) {
+                                if (option.value === data.status) {
                                     option.selected = true;
                                 }
                             });
                         }
                         
                         // Set station select if available
-                        const stationSelect = document.querySelector('#editBicycleForm [name$="[bicycleStation]"]');
+                        const stationSelect = editForm.querySelector('[name$="[bicycleStation]"]');
                         if (stationSelect && data.bicycleStation) {
                             Array.from(stationSelect.options).forEach(option => {
                                 if (option.value === data.bicycleStation.idStation.toString()) {
@@ -1369,10 +1399,72 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                         
                         // Set last updated
-                        const lastUpdatedField = document.querySelector('#editBicycleForm [name$="[last_updated]"]');
+                        const lastUpdatedField = editForm.querySelector('[name$="[lastUpdated]"]');
                         if (lastUpdatedField) lastUpdatedField.value = data.lastUpdated;
+                          // Add a hidden field to preserve the tab parameter
+                        const urlParams = new URLSearchParams(window.location.search);
+                        if (urlParams.has('tab')) {
+                            let tabInput = document.createElement('input');
+                            tabInput.type = 'hidden';
+                            tabInput.name = 'tab';
+                            tabInput.value = urlParams.get('tab');
+                            editForm.appendChild(tabInput);
+                        }
+                        
+                        // Add form submission handler
+                        editForm.addEventListener('submit', function(e) {
+                            e.preventDefault();
+                            
+                            const form = e.target;
+                            const { isValid, errorMessages } = validateBicycleForm(form);
+                            
+                            if (!isValid) {
+                                // Show validation errors
+                                const errorAlert = document.createElement('div');
+                                errorAlert.className = 'alert alert-danger mt-3';
+                                errorAlert.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i><strong>Error:</strong> Please correct the following issues:<ul>' +
+                                    errorMessages.map(msg => `<li>${msg}</li>`).join('') + '</ul>';
+                                
+                                // Remove existing alerts
+                                const existingAlerts = form.querySelectorAll('.alert');
+                                existingAlerts.forEach(alert => alert.remove());
+                                
+                                // Add new alert
+                                form.insertAdjacentElement('afterbegin', errorAlert);
+                                
+                                // Focus first error
+                                const firstError = form.querySelector('.is-invalid');
+                                if (firstError) firstError.focus();
+                            } else {
+                                // Ensure tab parameter is preserved
+                                const urlParams = new URLSearchParams(window.location.search);
+                                if (urlParams.has('tab')) {
+                                    let tabInput = form.querySelector('input[name="tab"]');
+                                    if (!tabInput) {
+                                        tabInput = document.createElement('input');
+                                        tabInput.type = 'hidden';
+                                        tabInput.name = 'tab';
+                                        form.appendChild(tabInput);
+                                    }
+                                    tabInput.value = urlParams.get('tab');
+                                }
+                                  // Get bicycle ID and set form action
+                                const bicycleId = form.querySelector('.bicycle-id-field').value;
+                                if (!bicycleId) {
+                                    console.error('No bicycle ID found in the form');
+                                    return;
+                                }
+                                
+                                // Set form action and submit
+                                const formAction = `/admin/bicycle/${bicycleId}/edit`;
+                                form.action = formAction;
+                                console.log(`Submitting form to ${formAction} with bicycle ID ${bicycleId}`);
+                                
+                                // Submit the form
+                                form.submit();
+                            }                        });
                     })
-                    .catch(error => {
+                .catch(error => {
                         console.error('Error loading bicycle data:', error);
                         modalBody.innerHTML = `
                             <div class="alert alert-danger">
@@ -1493,6 +1585,97 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             document.querySelector('#bicyclesTable').classList.remove('opacity-50');
         }, 200);
+    }
+});
+</script>
+
+<!-- Edit Bicycle Form Handler - Handler moved to main bicycle validation script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {    // Initialize delete bicycle functionality
+    const deleteBicycleModal = document.getElementById('deleteBicycleModal');
+    const deleteBicycleBtn = document.getElementById('deleteBicycleBtn');
+    const confirmDeleteCheckbox = document.getElementById('confirmBicycleDelete');
+    const deleteBicycleIdInput = document.getElementById('deleteBicycleIdInput');
+    
+    // Add click handler for delete bicycle buttons
+    document.querySelectorAll('.delete-bicycle').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const bicycleId = this.getAttribute('data-bicycle-id');
+            
+            if (bicycleId) {
+                // Set bicycle ID in hidden field
+                deleteBicycleIdInput.value = bicycleId;
+                document.getElementById('deleteBicycleId').textContent = bicycleId;
+                
+                // Reset checkbox
+                confirmDeleteCheckbox.checked = false;
+                deleteBicycleBtn.disabled = true;
+                
+                // Fetch bicycle data to display in modal
+                fetch(`/admin/bicycle/${bicycleId}/data`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Populate the modal with bicycle data
+                        document.getElementById('deleteBicycleType').textContent = 'Electric';
+                        document.getElementById('deleteBicycleBattery').textContent = `${data.batteryLevel}%`;
+                        document.getElementById('deleteBicycleRange').textContent = `${data.rangeKm} km`;
+                        document.getElementById('deleteBicycleStatus').textContent = data.status;
+                        document.getElementById('deleteBicycleStation').textContent = data.bicycleStation ? data.bicycleStation.name : 'None';
+                        
+                        // Show modal
+                        const modal = new bootstrap.Modal(deleteBicycleModal);
+                        modal.show();
+                    })
+                    .catch(error => {
+                        console.error('Error loading bicycle data:', error);
+                        // Still show the modal with limited information
+                        document.getElementById('deleteBicycleType').textContent = '--';
+                        document.getElementById('deleteBicycleBattery').textContent = '--';
+                        document.getElementById('deleteBicycleRange').textContent = '--';
+                        document.getElementById('deleteBicycleStatus').textContent = '--';
+                        document.getElementById('deleteBicycleStation').textContent = '--';
+                        
+                        const modal = new bootstrap.Modal(deleteBicycleModal);
+                        modal.show();
+                    });
+            }
+        });
+    });
+    
+    // Handle checkbox toggle for delete confirmation
+    if (confirmDeleteCheckbox) {
+        confirmDeleteCheckbox.addEventListener('change', function() {
+            deleteBicycleBtn.disabled = !this.checked;
+        });
+    }
+    
+    // Reset delete modal when hidden
+    if (deleteBicycleModal) {
+        deleteBicycleModal.addEventListener('hidden.bs.modal', function() {
+            // Reset form values
+            if (confirmDeleteCheckbox) confirmDeleteCheckbox.checked = false;
+            if (deleteBicycleBtn) deleteBicycleBtn.disabled = true;
+            
+            // Reset bicycle info fields
+            document.getElementById('deleteBicycleId').textContent = '';
+            document.getElementById('deleteBicycleType').textContent = '--';
+            document.getElementById('deleteBicycleBattery').textContent = '--';
+            document.getElementById('deleteBicycleRange').textContent = '--';
+            document.getElementById('deleteBicycleStatus').textContent = '--';
+            document.getElementById('deleteBicycleStation').textContent = '--';
+            
+            // Remove any error messages if present
+            const errorAlerts = deleteBicycleModal.querySelectorAll('.alert');
+            errorAlerts.forEach(alert => alert.remove());
+            
+            console.log('Delete bicycle modal reset after closing');
+        });
     }
 });
 </script>

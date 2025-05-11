@@ -1071,10 +1071,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Show the edit modal using Bootstrap's modal API
-        const modal = new bootstrap.Modal(editModal);
-        
-        // Fetch bicycle data and populate the form
-        fetch(`/admin/bicycle/bicycle/${bicycleId}/data`)
+        const modal = new bootstrap.Modal(editModal);        // Fetch bicycle data and populate the form
+        fetch(`/admin/bicycle/${bicycleId}/data`)
             .then(response => response.json())
             .then(data => {
                 // Set form hidden id field

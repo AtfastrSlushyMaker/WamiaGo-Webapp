@@ -6,16 +6,41 @@
 class BicycleDashboard {
     constructor() {
         this.init();
-    }
-
-    init() {
+    } init() {
         this.initTabs();
         this.initFilters();
         this.initAnimations();
         this.initDataTables();
         this.initCharts();
         this.setupEventHandlers();
+
+        // Check for URL parameters that might indicate we need to activate a specific tab
+        this.checkUrlParameters();
+
         console.log('Bicycle Dashboard initialized');
+    }    // Method to check URL parameters and activate the correct tab
+    checkUrlParameters() {
+        const url = new URL(window.location);
+        const tabParam = url.searchParams.get('tab');
+
+        if (tabParam) {
+            console.log(`Tab parameter found in URL: ${tabParam}, activating corresponding tab`);
+            this.activateTab(tabParam);
+
+            // Also make sure tab links are properly updated
+            document.querySelectorAll('.tab-ajax-link, .tab-link').forEach(link => {
+                const linkTab = link.getAttribute('data-tab');
+                link.classList.toggle('active', linkTab === tabParam);
+            });
+
+            // For tab content - find and show the correct tab
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                const paneId = pane.id;
+                const isTargetTab = paneId === `${tabParam}Tab` || paneId === tabParam;
+                pane.classList.toggle('active', isTargetTab);
+                pane.classList.toggle('show', isTargetTab);
+            });
+        }
     }
 
     initTabs() {
@@ -49,9 +74,9 @@ class BicycleDashboard {
         const url = new URL(window.location);
         const currentTab = url.searchParams.get('tab') || 'rentals';
         this.activateTab(currentTab);
-    }
+    } activateTab(tabName) {
+        console.log('Activating tab:', tabName);
 
-    activateTab(tabName) {
         // Remove active class from all tabs and content
         const allTabs = document.querySelectorAll('.bicycle-tabs .tab-link');
         const allContents = document.querySelectorAll('.bicycle-tab-content .tab-pane');
@@ -63,8 +88,14 @@ class BicycleDashboard {
         });
 
         // Add active class to the selected tab and content
+        // Handle both formats of tab selectors: either data-tab="bicycles" or just by tab name
         const activeTab = document.querySelector(`.bicycle-tabs .tab-link[data-tab="${tabName}"]`);
-        const activeContent = document.querySelector(`#${tabName}Tab`);
+
+        // Look for the tab content with either the direct ID or with 'Tab' suffix
+        let activeContent = document.querySelector(`#${tabName}`);
+        if (!activeContent) {
+            activeContent = document.querySelector(`#${tabName}Tab`);
+        }
 
         if (activeTab && activeContent) {
             activeTab.classList.add('active');
@@ -313,10 +344,8 @@ class BicycleDashboard {
                     this.changeBicycleStatus(bicycleId, status);
                 }
             });
-        });
-
-        // Handle edit bicycle buttons
-        document.querySelectorAll('.edit-bicycle-btn').forEach(btn => {
+        });        // Handle edit bicycle buttons
+        document.querySelectorAll('.edit-bicycle').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const bicycleId = btn.getAttribute('data-bicycle-id');
                 if (bicycleId) {
@@ -369,11 +398,9 @@ class BicycleDashboard {
         form.appendChild(statusInput);
         document.body.appendChild(form);
         form.submit();
-    }
-
-    loadBicycleData(bicycleId) {
+    } loadBicycleData(bicycleId) {
         // Fetch bicycle data and populate edit form
-        fetch(`/admin/bicycle/bicycle/${bicycleId}/data`)
+        fetch(`/admin/bicycle/${bicycleId}/data`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -399,6 +426,22 @@ class BicycleDashboard {
                         const stationSelect = editForm.querySelector('select[name="bicycleStation"]');
                         if (stationSelect && data.stationId) stationSelect.value = data.stationId;
 
+                        // Update form action to point to the correct endpoint
+                        editForm.setAttribute('action', `/admin/bicycle/${data.idBike}/edit`);
+
+                        // Preserve tab parameter in the form
+                        const urlParams = new URLSearchParams(window.location.search);
+                        if (urlParams.has('tab')) {
+                            let tabInput = editForm.querySelector('input[name="tab"]');
+                            if (!tabInput) {
+                                tabInput = document.createElement('input');
+                                tabInput.type = 'hidden';
+                                tabInput.name = 'tab';
+                                editForm.appendChild(tabInput);
+                            }
+                            tabInput.value = urlParams.get('tab');
+                        }
+
                         // Show the edit form modal
                         const editModal = new bootstrap.Modal(document.getElementById('editBicycleModal'));
                         editModal.show();
@@ -417,5 +460,13 @@ class BicycleDashboard {
 
 // Initialize the dashboard when DOM is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new BicycleDashboard();
+    // Initialize the dashboard
+    const dashboard = new BicycleDashboard();
+
+    // Check if we need to force a specific tab based on URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam) {
+        dashboard.activateTab(tabParam);
+    }
 });

@@ -1,0 +1,78 @@
+{% block body %}
+{# Bicycle form template for modals - works for both add and edit #}
+{% if form is defined %}
+{% if isNew is defined and isNew %}
+<form action="{{ path('admin_bicycle_add') }}" method="POST" id="addBicycleForm">
+{% else %}
+<form action="{{ path('admin_bicycle_edit', {'id': bicycle.idBike}) }}" method="POST" id="editBicycleForm">
+{% endif %}
+    <div class="form-errors"></div>
+    
+    <div class="row">        <div class="col-md-6 mb-3 form-group">
+            <label for="{{ form.batteryLevel.vars.id }}" class="form-label">Battery Level (%)</label>
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="fas fa-battery-quarter text-danger"></i>
+                </span>
+                {{ form_widget(form.batteryLevel, {'attr': {'class': 'form-control', 'placeholder': 'Enter battery level (0-100)'}}) }}
+                <span class="input-group-text">%</span>
+            </div>
+            <div class="invalid-feedback"></div>
+            <div class="form-text mt-1">Default is 0%. Battery level affects bicycle range.</div>
+        </div>
+        
+        <div class="col-md-6 mb-3 form-group">
+            <label for="{{ form.rangeKm.vars.id }}" class="form-label">Range (km)</label>
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="fas fa-route text-primary"></i>
+                </span>
+                {{ form_widget(form.rangeKm, {'attr': {'class': 'form-control', 'placeholder': 'Enter range in kilometers'}}) }}
+                <span class="input-group-text">km</span>
+            </div>
+            <div class="invalid-feedback"></div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="{{ form.status.vars.id }}" class="form-label">Status</label>
+            {{ form_widget(form.status, {'attr': {'class': 'form-select'}}) }}
+            <div class="invalid-feedback"></div>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <label for="{{ form.bicycleStation.vars.id }}" class="form-label">Station</label>
+            {{ form_widget(form.bicycleStation, {'attr': {'class': 'form-select'}}) }}
+            <small class="text-muted">Leave empty if the bicycle is not at a station</small>
+            <div class="invalid-feedback"></div>
+        </div>
+    </div>
+    
+    {% if form.lastUpdated is defined %}
+    <div class="row">
+        <div class="col-md-12 mb-3">
+            <label for="{{ form.lastUpdated.vars.id }}" class="form-label">Last Updated</label>
+            {{ form_widget(form.lastUpdated, {'attr': {'class': 'form-control'}}) }}
+            <div class="invalid-feedback"></div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {# Include any hidden fields and CSRF token #}
+    {{ form_rest(form) }}
+    
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-1"></i> Save Changes
+        </button>
+    </div>
+</form>
+{% else %}
+<div class="alert alert-danger">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    Error: Form is not available.
+</div>
+{% endif %}
+{% endblock %}

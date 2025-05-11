@@ -12,43 +12,20 @@ class BicycleTabs {
         this.initTabsSwitching();
         this.initTabAnimations();
         console.log('Bicycle Tabs initialized');
-    }
-
-    /**
+    }    /**
      * Initialize tab switching functionality
+     * Modified to allow normal link navigation instead of AJAX tab switching
      */
     initTabsSwitching() {
-        const tabLinks = document.querySelectorAll('#bicycleManagementTabs .nav-link');
+        // No longer adding click event listeners to prevent default behavior
+        // This allows the links to work normally and the page to reload
 
-        tabLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                // Prevent default action
-                e.preventDefault();
-
-                // Get the tab name
-                const tabName = link.getAttribute('data-tab');
-
-                // Update URL without reloading the page
-                const url = new URL(window.location);
-                url.searchParams.set('tab', tabName);
-                window.history.pushState({}, '', url);
-
-                // Activate the tab
-                this.activateTab(tabName);
-            });
-        });
-
-        // Handle browser back/forward navigation
-        window.addEventListener('popstate', () => {
-            const url = new URL(window.location);
-            const tabName = url.searchParams.get('tab') || 'rentals';
-            this.activateTab(tabName);
-        });
-
-        // Initialize with current tab
+        // Only handle initial tab setup based on the current URL
         const url = new URL(window.location);
         const currentTab = url.searchParams.get('tab') || 'rentals';
         this.activateTab(currentTab);
+
+        console.log('Tab switching modified to use standard page navigation');
     }
 
     /**

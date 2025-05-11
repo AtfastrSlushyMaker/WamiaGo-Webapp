@@ -23,28 +23,28 @@ class BicycleType extends AbstractType
         $statusChoices = [];
         foreach (BICYCLE_STATUS::cases() as $status) {
             $statusChoices[ucfirst(strtolower(str_replace('_', ' ', $status->name)))] = $status->value;
-        }
-
-        $builder
+        }        $builder
             // Add the hidden field for bicycle ID
             ->add('idBike', HiddenType::class, [
                 'mapped' => false,
                 'data' => $options['bicycleId']  // Set the bicycleId data here
             ])
-            ->add('battery_level', NumberType::class, [
+            ->add('batteryLevel', NumberType::class, [
                 'attr' => [
                     'min' => 0,
                     'max' => 100,
                     'step' => 0.1
                 ],
                 'label' => 'Battery Level (%)',
+                'property_path' => 'batteryLevel',
             ])
-            ->add('range_km', NumberType::class, [
+            ->add('rangeKm', NumberType::class, [
                 'attr' => [
                     'min' => 0,
                     'step' => 0.1
                 ],
                 'label' => 'Range (km)',
+                'property_path' => 'rangeKm',
             ])
             ->add('status', ChoiceType::class, [
                 'choices' => BICYCLE_STATUS::cases(),
@@ -63,20 +63,18 @@ class BicycleType extends AbstractType
                 'required' => false,
                 'placeholder' => 'No Station',
                 'label' => 'Station',
-            ])
-            ->add('last_updated', DateTimeType::class, [
+            ])            ->add('lastUpdated', DateTimeType::class, [
                 'widget' => 'single_text',
                 'html5' => true,
                 'required' => true,
                 'label' => 'Last Updated',
+                'property_path' => 'lastUpdated',
             ]);
-    }
-
-    public function configureOptions(OptionsResolver $resolver): void
+    }    public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Bicycle::class,
-            'csrf_protection' => true,
+            'csrf_protection' => false,
             'bicycleId' => null,  // No need to bind this to the Bicycle entity
         ]);
     }
