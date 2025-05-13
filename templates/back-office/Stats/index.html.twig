@@ -89,29 +89,31 @@
 
             <!-- Charts Row -->
             <div class="row">
-                <!-- Pie Chart -->
-                <div class="col-md-6">
-                    <div class="card card-primary">
-                        <div class="card-header">
-                            <h3 class="card-title">Reservations Status</h3>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="pieChart" style="min-height: 350px; height: 350px; max-height: 350px; max-width: 100%;"></canvas>
+               <!-- Pie Chart -->
+            <div class="col-md-6">
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">Reservations Status</h3>
+                    </div>
+                    <div class="card-body">                        <canvas id="pieChart" style="min-height: 350px; height: 350px; max-height: 350px; max-width: 100%;"></canvas>
+                        <div id="pieChartStats" class="mt-2 text-muted small">
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Bar Chart -->
-                <div class="col-md-6">
-                    <div class="card card-success">
-                        <div class="card-header">
-                            <h3 class="card-title">Reservations Status Overview</h3>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="barChart" style="min-height: 350px; height: 350px; max-height: 350px; max-width: 100%;"></canvas>
+            <!-- Bar Chart -->
+            <div class="col-md-6">
+                <div class="card card-success">
+                    <div class="card-header">
+                        <h3 class="card-title">Reservations Status Overview</h3>
+                    </div>
+                    <div class="card-body">                        <canvas id="barChart" style="min-height: 350px; height: 350px; max-height: 350px; max-width: 100%;"></canvas>
+                        <div id="barChartStats" class="mt-2 text-muted small">
                         </div>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     </section>
@@ -122,113 +124,125 @@
     {{ parent() }}
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
     <script>
-        // Pie Chart
-var pieCtx = document.getElementById('pieChart').getContext('2d');
-var pieChart = new Chart(pieCtx, {
-    type: 'pie',
-    data: {
-        labels: [
-            'On Going ({{ reservationsPercentage.ongoing|number_format(1) }}%)',
-            'Completed ({{ reservationsPercentage.completed|number_format(1) }}%)',
-            'Cancelled ({{ reservationsPercentage.canceled|number_format(1) }}%)',
-            'Confirmed ({{ reservationsPercentage.confirmed|number_format(1) }}%)'
-        ],
-        datasets: [{
-            data: [
-                {{ reservationsByStatus.ongoing }},
-                {{ reservationsByStatus.completed }},
-                {{ reservationsByStatus.canceled }},
-                {{ reservationsByStatus.confirmed }}
-            ],
-            backgroundColor: [
-                'rgba(255, 206, 86, 0.9)',   // Jaune pour On Going
-                'rgba(75, 192, 192, 0.9)',   // Cyan pour Completed
-                'rgba(255, 99, 132, 0.9)',   // Rouge pour Cancelled
-                'rgba(54, 162, 235, 0.9)'    // Bleu pour Confirmed
-            ],
-            borderColor: [
-                'rgba(255, 206, 86, 1)',
-                'rgba(75, 192, 192, 1)',
-                'rgba(255, 99, 132, 1)',
-                'rgba(54, 162, 235, 1)'
-            ],
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'right',
+        // Define status data
+        const statusData = {
+            'On Going': {
+                value: {{ reservationsByStatus.ongoing }},
+                percentage: {{ reservationsPercentage.ongoing|number_format(1) }},
+                color: 'rgba(255, 206, 86, 0.9)',
+                borderColor: 'rgba(255, 206, 86, 1)'
             },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        let label = context.label || '';
-                        if (label) {
-                            label += ': ';
-                        }
-                        label += context.raw + ' (' + context.parsed + '%)';
-                        return label;
-                    }
-                }
+            'Completed': {
+                value: {{ reservationsByStatus.completed }},
+                percentage: {{ reservationsPercentage.completed|number_format(1) }},
+                color: 'rgba(75, 192, 192, 0.9)',
+                borderColor: 'rgba(75, 192, 192, 1)'
+            },
+            'Cancelled': {
+                value: {{ reservationsByStatus.canceled }},
+                percentage: {{ reservationsPercentage.canceled|number_format(1) }},
+                color: 'rgba(255, 99, 132, 0.9)',
+                borderColor: 'rgba(255, 99, 132, 1)'
+            },
+            'Confirmed': {
+                value: {{ reservationsByStatus.confirmed }},
+                percentage: {{ reservationsPercentage.confirmed|number_format(1) }},
+                color: 'rgba(54, 162, 235, 0.9)',
+                borderColor: 'rgba(54, 162, 235, 1)'
             }
-        }
-    }
-});
+        };
 
-// Bar Chart
-var barCtx = document.getElementById('barChart').getContext('2d');
-var barChart = new Chart(barCtx, {
-    type: 'bar',
-    data: {
-        labels: ['On Going', 'Completed', 'Cancelled', 'Confirmed'],
-        datasets: [{
-            label: 'Reservations',
-            data: [
-                {{ reservationsByStatus.ongoing }},
-                {{ reservationsByStatus.completed }},
-                {{ reservationsByStatus.canceled }},
-                {{ reservationsByStatus.confirmed }}
-            ],
-            backgroundColor: [
-                'rgba(255, 206, 86, 0.7)',
-                'rgba(75, 192, 192, 0.7)',
-                'rgba(255, 99, 132, 0.7)',
-                'rgba(54, 162, 235, 0.7)'
-            ],
-            borderColor: [
-                'rgba(255, 206, 86, 1)',
-                'rgba(75, 192, 192, 1)',
-                'rgba(255, 99, 132, 1)',
-                'rgba(54, 162, 235, 1)'
-            ],
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                beginAtZero: true,
-                title: {
-                    display: true,
-                    text: 'Total Reservations'
-                }
-            }
-        },
-        plugins: {
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        return context.parsed.y + ' reservations';
+        // Filter out statuses with 0 values
+        const activeStatuses = Object.entries(statusData).filter(([_, data]) => data.value > 0);
+
+        // Prepare data for charts
+        const labels = activeStatuses.map(([status, data]) => `${status} (${data.percentage}%)`);
+        const values = activeStatuses.map(([_, data]) => data.value);
+        const colors = activeStatuses.map(([_, data]) => data.color);
+        const borderColors = activeStatuses.map(([_, data]) => data.borderColor);
+
+        // Pie Chart
+        var pieCtx = document.getElementById('pieChart').getContext('2d');
+        var pieChart = new Chart(pieCtx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: colors,
+                    borderColor: borderColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += context.raw + ' réservations';
+                                return label;
+                            }
+                        }
                     }
                 }
-            }
-        }
-    }
-});
+            }        });
+
+        // Update pie chart stats text
+        const pieStatsText = activeStatuses
+            .map(([status, data]) => `${status}: ${data.percentage}%`)
+            .join(' • ');
+        document.getElementById('pieChartStats').innerHTML = 
+            `Current reservation distribution: ${pieStatsText}`;
+
+        // Bar Chart
+        var barCtx = document.getElementById('barChart').getContext('2d');
+        var barChart = new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: activeStatuses.map(([status]) => status),
+                datasets: [{
+                    label: 'Réservations',
+                    data: values,
+                    backgroundColor: colors,
+                    borderColor: borderColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Total des Réservations'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.raw + ' réservations';
+                            }
+                        }
+                    }
+                }
+            }        });
+
+        // Update bar chart stats text
+        const totalReservations = values.reduce((sum, value) => sum + value, 0);
+        const barStatsText = `Total of ${totalReservations} reservations tracked across ${activeStatuses.length} different statuses.`;
+        document.getElementById('barChartStats').innerHTML = barStatsText;
     </script>
 {% endblock %}
