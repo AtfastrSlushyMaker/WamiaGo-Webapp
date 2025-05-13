@@ -1163,10 +1163,16 @@
 
 <!-- Include unified JavaScript file for bicycle management -->
 <script src="{{ asset('js/back/bicycle/bicycle.js') }}"></script>
+<link href="{{ asset('css/back/global-search.css') }}" rel="stylesheet">
+<script src="{{ asset('js/back/bicycle/global-search.js') }}"></script>
 
 <!-- Modal and form initialization script -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize global search if it exists
+    if (typeof window.bicycleSearch !== 'undefined') {
+        window.bicycleSearch.init();
+    }
     console.log('Bicycle page initialized');
     
     // Wait for the page to fully load before manipulating modals
@@ -1494,26 +1500,32 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Client-side search functionality for bicycles
+    // Use global search functionality if available, otherwise fallback to client-side search
     const bicycleSearchInput = document.getElementById('bicycleSearchInput');
     const bicycleSearchClearBtn = document.getElementById('bicycleSearchClearBtn');
     
     if (bicycleSearchInput) {
-        bicycleSearchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase().trim();
-            filterBicyclesTable(searchTerm);
-        });
-        
-        // Clear search button
-        if (bicycleSearchClearBtn) {
-            bicycleSearchClearBtn.addEventListener('click', function() {
-                bicycleSearchInput.value = '';
-                filterBicyclesTable(''); // Reset filter
+        // If global search is available, setup will be handled by global-search.js
+        if (typeof window.bicycleSearch === 'undefined') {
+            // Fallback to client-side search if global search is not available
+            bicycleSearchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                filterBicyclesTable(searchTerm);
             });
+            
+            // Clear search button
+            if (bicycleSearchClearBtn) {
+                bicycleSearchClearBtn.addEventListener('click', function() {
+                    bicycleSearchInput.value = '';
+                    filterBicyclesTable(''); // Reset filter
+                });
+            }
+        } else {
+            console.log('Using global search functionality for bicycles tab');
         }
     }
     
-    // Function to filter bicycles table based on search term
+    // Function to filter bicycles table based on search term (client-side fallback)
     function filterBicyclesTable(searchTerm) {
         const tableRows = document.querySelectorAll('#bicyclesTable tbody tr');
         let hasResults = false;

@@ -592,15 +592,16 @@
     </div>
     
     <!-- Enhanced stations data table with actions -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
+    <div class="card border-0 shadow-sm">        <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
             <h5 class="mb-0"><i class="fas fa-table me-2"></i>Stations Management</h5>
             <div class="actions">
                 <div class="search-box">
                     <div class="input-group" style="width: 300px;">
-                        <span class="input-group-text"><i class="fas fa-search"></i></span>
-                        <input type="text" id="stationSearchInput" class="form-control" placeholder="Search by ID, name, or location...">
-                        <button type="button" id="stationSearchClearBtn" class="btn btn-outline-secondary">
+                        <span class="input-group-text bg-gradient-primary text-white">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" id="stationSearchInput" class="form-control border-start-0" placeholder="Search by ID, name, or location...">
+                        <button type="button" id="stationSearchClearBtn" class="btn btn-outline-secondary" style="display: none;">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -1121,36 +1122,41 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         });
     });
-    
-    // Client-side search functionality for stations
+      // Use global search functionality if available, otherwise fallback to implementation below
     const stationSearchInput = document.getElementById('stationSearchInput');
     const stationSearchClearBtn = document.getElementById('stationSearchClearBtn');
     
     if (stationSearchInput) {
-        // Only trigger search when user presses Enter or changes focus (onblur)
-        stationSearchInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                const searchTerm = this.value.toLowerCase().trim();
-                performSearch(searchTerm);
-            }
-        });
-        
-        // Also trigger search on blur (when focus leaves the input)
-        stationSearchInput.addEventListener('blur', function() {
-            const searchTerm = this.value.toLowerCase().trim();
-            if (searchTerm.length >= 1) { // Only search if there's something to search for
-                performSearch(searchTerm);
-            }
-        });
-        
-        // Clear search button functionality
-        if (stationSearchClearBtn) {
-            stationSearchClearBtn.addEventListener('click', function() {
-                stationSearchInput.value = '';
-                clearSearch();
-                stationSearchInput.focus();
+        // If global search is available, setup will be handled by global-search.js
+        if (typeof window.bicycleSearch === 'undefined') {
+            console.log('Using local search functionality for stations tab');
+            // Only trigger search when user presses Enter or changes focus (onblur)
+            stationSearchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const searchTerm = this.value.toLowerCase().trim();
+                    performSearch(searchTerm);
+                }
             });
+            
+            // Also trigger search on blur (when focus leaves the input)
+            stationSearchInput.addEventListener('blur', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                if (searchTerm.length >= 1) { // Only search if there's something to search for
+                    performSearch(searchTerm);
+                }
+            });
+            
+            // Clear search button functionality
+            if (stationSearchClearBtn) {
+                stationSearchClearBtn.addEventListener('click', function() {
+                    stationSearchInput.value = '';
+                    clearSearch();
+                    stationSearchInput.focus();
+                });
+            }
+        } else {
+            console.log('Using global search functionality for stations tab');
         }
     }
     
@@ -1499,7 +1505,16 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<link href="{{ asset('css/back/global-search.css') }}?v={{ 'now'|date('YmdHi') }}" rel="stylesheet">
+<script src="{{ asset('js/back/bicycle/global-search.js') }}?v={{ 'now'|date('YmdHi') }}"></script>
 <script>
+    // Initialize global search if it exists
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof window.bicycleSearch !== 'undefined') {
+            window.bicycleSearch.init();
+        }
+    });
+    
     // Pass failsafe station data to scripts as a fallback
     // This will only be used if the API fetch fails
     window.stationDataFallback = {{ stations|map(s => {

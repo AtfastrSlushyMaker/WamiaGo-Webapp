@@ -433,11 +433,18 @@
 {% block javascripts %}
 {{ parent() }}
 <script src="{{ asset('js/back/bicycle/station-pagination.js?v=' ~ date().format('YmdHi')) }}"></script>
+<link href="{{ asset('css/back/global-search.css?v=' ~ date().format('YmdHi')) }}" rel="stylesheet">
+<script src="{{ asset('js/back/bicycle/global-search.js?v=' ~ date().format('YmdHi')) }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize Ajax tabs
     initAjaxTabs();
     initAjaxPagination();
+    
+    // Initialize global search functionality
+    if (typeof window.bicycleSearch !== 'undefined') {
+        window.bicycleSearch.init();
+    }
     
     // Check if we need to force a specific tab based on URL parameter
     const urlParams = new URLSearchParams(window.location.search);

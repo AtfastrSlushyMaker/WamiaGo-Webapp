@@ -830,8 +830,14 @@
 {% endblock %}
 
 {% block javascripts %}
+<link href="{{ asset('css/back/global-search.css') }}" rel="stylesheet">
+<script src="{{ asset('js/back/bicycle/global-search.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize global search if it exists
+    if (typeof window.bicycleSearch !== 'undefined') {
+        window.bicycleSearch.init();
+    }
     // Initialize tooltips
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
@@ -914,26 +920,32 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, 500);
     
-    // Client-side search functionality
+    // Use global search functionality if available, otherwise fallback to client-side search
     const rentalSearchInput = document.getElementById('rentalSearchInput');
     const searchClearBtn = document.getElementById('searchClearBtn');
     
     if (rentalSearchInput) {
-        rentalSearchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase().trim();
-            filterRentalsTable(searchTerm);
-        });
-        
-        // Clear search button
-        if (searchClearBtn) {
-            searchClearBtn.addEventListener('click', function() {
-                rentalSearchInput.value = '';
-                filterRentalsTable(''); // Reset filter
+        // If global search is available, setup will be handled by global-search.js
+        if (typeof window.bicycleSearch === 'undefined') {
+            // Fallback to client-side search if global search is not available
+            rentalSearchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                filterRentalsTable(searchTerm);
             });
+            
+            // Clear search button
+            if (searchClearBtn) {
+                searchClearBtn.addEventListener('click', function() {
+                    rentalSearchInput.value = '';
+                    filterRentalsTable(''); // Reset filter
+                });
+            }
+        } else {
+            console.log('Using global search functionality for rentals tab');
         }
     }
     
-    // Function to filter rentals table based on search term
+    // Function to filter rentals table based on search term (client-side fallback)
     function filterRentalsTable(searchTerm) {
         const tableRows = document.querySelectorAll('.datatable tbody tr');
         let hasResults = false;
