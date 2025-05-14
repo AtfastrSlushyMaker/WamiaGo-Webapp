@@ -27,6 +27,25 @@
         body { visibility: visible !important; }
         .loading-overlay { display: none !important; }
         
+        /* Ban/Unban Button Styles */
+        .btn-action.btn-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-action.btn-warning:hover {
+            background-color: #e0a800;
+        }
+        
+        .btn-action.btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .btn-action.btn-success:hover {
+            background-color: #218838;
+        }
+        
         /* Modern User Card Styling - Enhanced */
         .user-card-modern {
             transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -702,6 +721,8 @@
     <script src="{{ asset('js/user/admin-user-management.js') }}?v={{ 'now'|date('YmdHis') }}"></script>
     <!-- Include user status actions for quick ban/unban -->
     <script src="{{ asset('js/user/user-status-actions.js') }}?v={{ 'now'|date('YmdHis') }}"></script>
+    <!-- Include the new ban/unban toggle functionality -->
+    <script src="{{ asset('js/user/user-ban-toggle.js') }}?v={{ 'now'|date('YmdHis') }}"></script>
     <!-- URL placeholder diagnostic tool to detect issues with API URLs -->
     <script src="{{ asset('js/user/url-placeholder-diagnostic.js') }}?v={{ 'now'|date('YmdHis') }}"></script>
 {% endblock %}

@@ -677,7 +677,9 @@ function renderUserTable(users) {
         const dateOfBirth = user.date_of_birth || user.dateOfBirth || '-';
         const gender = user.gender || '-';
         const role = user.role || 'CLIENT';
-        const accountStatus = user.account_status || user.accountStatus || 'ACTIVE';
+        // Normalize account status to lowercase for comparison but keep original value for display
+        const accountStatus = (user.account_status || user.accountStatus || 'ACTIVE').toLowerCase();
+        const originalAccountStatus = user.account_status || user.accountStatus || 'ACTIVE';
         const isVerified = user.isVerified !== undefined ? user.isVerified : (user.isVerified !== undefined ? user.isVerified : false);
         const profilePicture = user.profile_picture || user.profilePicture || '/images/default-avatar.png';
 
@@ -743,7 +745,7 @@ function renderUserTable(users) {
                 <span class="badge-role badge-${role.toLowerCase()}">${role}</span>
             </td>
             <td>
-                <span class="badge-status badge-${accountStatus.toLowerCase()}">${accountStatus}</span>
+                <span class="badge-status badge-${accountStatus}">${originalAccountStatus}</span>
             </td>
             <td>
                 <span class="badge-status ${isVerified ? 'badge-verified' : 'badge-not-verified'}">
@@ -759,6 +761,14 @@ function renderUserTable(users) {
                 </button>
                 <button type="button" class="btn-action btn-delete delete-user" data-id="${userId}" data-name="${name}" title="Delete User">
                     <i class="fas fa-trash-alt"></i>
+                </button>
+                <!-- Ban/Unban Button -->
+                <button type="button" class="btn-action ${accountStatus === 'banned' ? 'btn-success toggle-status-btn' : 'btn-warning toggle-status-btn'}" 
+                        data-id="${userId}" 
+                        data-name="${name}" 
+                        data-status="${originalAccountStatus}" 
+                        title="${accountStatus === 'banned' ? 'Unban User' : 'Ban User'}">
+                    <i class="fas ${accountStatus === 'banned' ? 'fa-unlock' : 'fa-ban'}"></i>
                 </button>
             </td>
         `;
@@ -850,7 +860,8 @@ function renderUserCards(users) {
         col.className = 'user-card-container';
 
         // Get account status for styling
-        const accountStatus = user.account_status?.toLowerCase() || 'active';
+        const accountStatus = (user.account_status?.toLowerCase() || user.accountStatus?.toLowerCase() || 'active').toLowerCase();
+        const originalAccountStatus = user.account_status || user.accountStatus || 'ACTIVE';
 
         // Get verification badge
         const verificationBadge = user.isVerified
@@ -941,6 +952,14 @@ function renderUserCards(users) {
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-danger action-btn delete-user" data-id="${userId}" data-name="${name}" title="Delete User">
                         <i class="fas fa-trash me-1"></i> Delete
+                    </button>
+                    <!-- Ban/Unban Button -->
+                    <button type="button" class="btn btn-sm ${accountStatus === 'banned' ? 'btn-outline-success' : 'btn-outline-warning'} action-btn toggle-status-btn" 
+                            data-id="${userId}" 
+                            data-name="${name}" 
+                            data-status="${originalAccountStatus}" 
+                            title="${accountStatus === 'banned' ? 'Unban User' : 'Ban User'}">
+                        <i class="fas ${accountStatus === 'banned' ? 'fa-unlock' : 'fa-ban'} me-1"></i> ${accountStatus === 'banned' ? 'Unban' : 'Ban'}
                     </button>
                 </div>
             </div>
@@ -1374,7 +1393,9 @@ function editUser(userId) {
                         streetAddress: user.streetAddress,
                         'address_info.address': user.address_info?.address,
                         'addressInfo.address': user.addressInfo?.address,
-                        'location.address': user.location?.address
+                        'location.address': user.location && typeof user.location === 'object' ? user.location.address : null,
+                        'location object exists': user.location !== undefined && user.location !== null,
+                        'location type': user.location !== undefined && user.location !== null ? typeof user.location : 'not present'
                     },
                     'city/country/postal': {
                         city: user.city,
@@ -1524,18 +1545,26 @@ function editUser(userId) {
                 let fullAddress = '';
 
                 // Try to find address from the location object first (this is the proper way in your data model)
-                if (user.location && user.location.address) {
-                    console.log('Found address in user.location:', user.location.address);
-                    fullAddress = user.location.address;
+                try {
+                    if (user.location && typeof user.location === 'object' && user.location.address) {
+                        console.log('Found address in user.location:', user.location.address);
+                        fullAddress = user.location.address;
 
-                    // Handle coordinates if they exist in the form
-                    populateField(form, 'latitude', user.location.latitude || '');
-                    populateField(form, 'longitude', user.location.longitude || '');
-                } else {
-                    // Fallback to directly looking for address properties anywhere in the user object
-                    fullAddress = findPropertyInObject(user, ['address', 'street_address', 'streetAddress']) || '';
-                    populateField(form, 'latitude', user.latitude || '');
-                    populateField(form, 'longitude', user.longitude || '');
+                        // Handle coordinates if they exist in the form
+                        populateField(form, 'latitude', user.location.latitude || '');
+                        populateField(form, 'longitude', user.location.longitude || '');
+                    } else {
+                        // Fallback to directly looking for address properties anywhere in the user object
+                        console.log('No location object with address found, looking for address elsewhere');
+                        fullAddress = findPropertyInObject(user, ['address', 'street_address', 'streetAddress']) || '';
+                        populateField(form, 'latitude', user.latitude || '');
+                        populateField(form, 'longitude', user.longitude || '');
+                    }
+                } catch (err) {
+                    console.error('Error handling location data:', err);
+                    fullAddress = '';
+                    populateField(form, 'latitude', '');
+                    populateField(form, 'longitude', '');
                 }
 
                 // Simply populate the address field, normalizing N/A to empty string
@@ -2392,6 +2421,26 @@ function showAndSetupEditModal(form, userId, modal) {
         });
     }
     bsModal.show();
+    
+    // Dispatch custom event for the ban toggle functionality
+    // Extract user data from form fields
+    const userData = {
+        id: userId,
+        name: form.querySelector('#name-edit')?.value || '',
+        email: form.querySelector('#email-edit')?.value || '',
+        phone_number: form.querySelector('#phone-edit')?.value || '',
+        date_of_birth: form.querySelector('#date-of-birth-edit')?.value || '',
+        gender: form.querySelector('#gender-edit')?.value || '',
+        role: form.querySelector('#role-edit')?.value || '',
+        account_status: form.querySelector('#status-edit')?.value || ''
+    };
+    
+    // Dispatch the event with user data
+    const userEditEvent = new CustomEvent('userEditModalOpened', {
+        detail: userData
+    });
+    document.dispatchEvent(userEditEvent);
+    console.log('Dispatched userEditModalOpened event with data:', userData);
 }
 
 /**
