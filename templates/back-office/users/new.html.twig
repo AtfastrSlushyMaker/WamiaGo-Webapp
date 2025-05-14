@@ -7,7 +7,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="new-user-form" method="post">
+                <form id="new-user-form" method="post" action="{{ path('admin_add_user_api') }}">
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="name-new" class="form-label">Full Name</label>
@@ -23,7 +23,19 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="phone-new" class="form-label">Phone Number</label>
-                            <input type="text" class="form-control" id="phone-new" name="phone">
+                            <input type="text" class="form-control" id="phone-new" name="phone_number" placeholder="Tunisian format: 2XXXXXXX, 4XXXXXXX, 5XXXXXXX, 9XXXXXXX" pattern="[2459][0-9]{7}" required>
+                            <small class="form-text text-muted">Must be a valid 8-digit Tunisian number starting with 2, 4, 5, or 9</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="date-of-birth-new" class="form-label">Date of Birth</label>
+                            <input type="date" class="form-control" id="date-of-birth-new" name="date_of_birth" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="gender-new" class="form-label">Gender</label>
+                            <select class="form-control" id="gender-new" name="gender">
+                                <option value="MALE">Male</option>
+                                <option value="FEMALE">Female</option>
+                            </select>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="role-new" class="form-label">Role</label>
@@ -34,7 +46,7 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="status-new" class="form-label">Status</label>
-                            <select class="form-control" id="status-new" name="status">
+                            <select class="form-control" id="status-new" name="account_status">
                                 <option value="ACTIVE">Active</option>
                                 <option value="DEACTIVATED">Deactivated</option>
                                 <option value="BANNED">Banned</option>
@@ -43,16 +55,19 @@
                         <div class="col-md-6 mb-3">
                             <label for="verified-new" class="form-label">Verification Status</label>
                             <div class="form-check form-switch mt-2">
-                                <input class="form-check-input" type="checkbox" id="verified-new" name="verified">
+                                <input class="form-check-input" type="checkbox" id="verified-new" name="isVerified" value="1">
                                 <label class="form-check-label" for="verified-new">User is verified</label>
                             </div>
                         </div>
                     </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary submit-btn" id="save-user-new">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            Add User
+                        </button>
+                    </div>
                 </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="save-user-new">Add User</button>
             </div>
         </div>
     </div>

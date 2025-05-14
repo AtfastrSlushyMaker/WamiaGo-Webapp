@@ -1716,6 +1716,13 @@ function setupFormSubmitHandler(form, userId) {
 
     // Add direct event listener to submit buttons as a backup
     const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"], button.submit-btn, .btn-primary');
+    console.log(`Found ${submitButtons.length} potential submit buttons for form #${form.id}:`, Array.from(submitButtons).map(b => ({
+        id: b.id,
+        text: b.textContent.trim(),
+        type: b.type,
+        classes: b.className
+    })));
+
     submitButtons.forEach(button => {
         // Remove existing click listeners by cloning
         const newButton = button.cloneNode(true);
@@ -1732,6 +1739,13 @@ function setupFormSubmitHandler(form, userId) {
                 return;
             }
 
+            // Show loading indicator if there's a spinner in the button
+            const spinner = this.querySelector('.spinner-border');
+            if (spinner) {
+                spinner.classList.remove('d-none');
+            }
+            this.disabled = true;
+
             // Call our submit handler
             submitFormData(form, userId);
         });
@@ -1746,6 +1760,17 @@ function setupFormSubmitHandler(form, userId) {
     form.onsubmit = function (e) {
         e.preventDefault();
         console.log('Form submission intercepted through onsubmit event for user:', userId);
+        
+        // Get the submit button to show a loading indicator
+        const submitButton = form.querySelector('button[type="submit"]');
+        if (submitButton) {
+            submitButton.disabled = true;
+            const spinner = submitButton.querySelector('.spinner-border');
+            if (spinner) {
+                spinner.classList.remove('d-none');
+            }
+        }
+        
         submitFormData(form, userId);
     };
 
@@ -1775,6 +1800,93 @@ function submitFormData(form, userId) {
 
         // Disable ALL buttons to prevent double submission
         allButtons.forEach(btn => btn.disabled = true);
+
+        // For new user forms, ensure we have all the required fields
+        if (!userId && form.id === 'new-user-form') {
+            console.log('Processing new user form data');
+            
+            // Make sure all necessary fields have proper names
+            // Check if we have a password field
+            if (!formData.has('password') && form.querySelector('#password-new')) {
+                const passwordField = form.querySelector('#password-new');
+                formData.append('password', passwordField.value);
+                console.log('Added password field to form data');
+            }
+            
+            // Phone number should be phone_number not phone
+            if (formData.has('phone') && !formData.has('phone_number')) {
+                formData.append('phone_number', formData.get('phone'));
+                formData.delete('phone');
+                console.log('Renamed phone to phone_number');
+            }
+            
+            // Validate phone number format for Tunisian numbers
+            if (formData.has('phone_number')) {
+                const phoneNumber = formData.get('phone_number');
+                const tunisianPhoneRegex = /^[2459][0-9]{7}$/;
+                
+                if (!tunisianPhoneRegex.test(phoneNumber)) {
+                    console.warn('Phone number does not match Tunisian format requirement');
+                    const phoneField = form.querySelector('#phone-new');
+                    if (phoneField) {
+                        phoneField.classList.add('is-invalid');
+                        phoneField.setCustomValidity('Please enter a valid Tunisian phone number starting with 2, 4, 5, or 9 followed by 7 digits.');
+                        phoneField.reportValidity();
+                        throw new Error('Invalid phone number format. Must be a valid Tunisian number starting with 2, 4, 5, or 9.');
+                    }
+                }
+            }
+            
+            // Ensure date of birth is present and in the correct format
+            if (formData.has('date_of_birth')) {
+                const dateOfBirth = formData.get('date_of_birth');
+                if (!dateOfBirth) {
+                    console.warn('Date of birth is required');
+                    const dobField = form.querySelector('#date-of-birth-new');
+                    if (dobField) {
+                        dobField.classList.add('is-invalid');
+                        dobField.setCustomValidity('Date of birth is required');
+                        dobField.reportValidity();
+                        throw new Error('Date of birth is required');
+                    }
+                }
+            } else {
+                const dobField = form.querySelector('#date-of-birth-new');
+                if (dobField && dobField.value) {
+                    formData.append('date_of_birth', dobField.value);
+                    console.log('Added date_of_birth field to form data:', dobField.value);
+                } else {
+                    console.warn('Date of birth is required but missing');
+                    if (dobField) {
+                        dobField.classList.add('is-invalid');
+                        dobField.setCustomValidity('Date of birth is required');
+                        dobField.reportValidity();
+                        throw new Error('Date of birth is required');
+                    }
+                }
+            }
+            
+            // Account status field
+            if (formData.has('status') && !formData.has('account_status')) {
+                formData.append('account_status', formData.get('status'));
+                formData.delete('status');
+                console.log('Renamed status to account_status');
+            }
+            
+            // isVerified field from checkbox
+            if (formData.has('verified') && !formData.has('isVerified')) {
+                const isChecked = formData.get('verified') === 'on' || formData.get('verified') === '1';
+                formData.append('isVerified', isChecked ? '1' : '0');
+                formData.delete('verified');
+                console.log('Renamed verified to isVerified with value', isChecked ? '1' : '0');
+            }
+            
+            // Ensure gender is set if missing
+            if (!formData.has('gender')) {
+                formData.append('gender', 'MALE'); // Default to MALE if missing
+                console.log('Added default gender: MALE');
+            }
+        }
 
         // Debug all form data being submitted
         console.log('📋 Form data being submitted:');
@@ -1833,110 +1945,108 @@ function submitFormData(form, userId) {
                 'X-Requested-With': 'XMLHttpRequest'
             }
         })
-            .then(response => {
-                console.log('Fetch response received:', response.status);
+        .then(response => {
+            console.log('Fetch response received:', response.status);
 
-                // Pass the response to the handler
-                return handleSubmissionResponse(response, form, userId, allButtons);
-            })
-            .catch(error => {
-                console.error('Fetch submission failed, trying XMLHttpRequest as backup:', error);
+            // Pass the response to the handler
+            return handleSubmissionResponse(response, form, userId, allButtons);
+        })
+        .catch(error => {
+            console.error('Fetch submission failed, trying XMLHttpRequest as backup:', error);
 
-                // Method 2: Fall back to XMLHttpRequest if fetch fails
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', form.action, true);
-                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            // Method 2: Fall back to XMLHttpRequest if fetch fails
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', form.action, true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 
-                xhr.onload = function () {
-                    console.log('XMLHttpRequest response received:', xhr.status);
+            xhr.onload = function () {
+                console.log('XMLHttpRequest response received:', xhr.status);
 
-                    // Create a Response-like object to use with the same handler
-                    const responseObj = {
-                        ok: xhr.status >= 200 && xhr.status < 300,
-                        status: xhr.status,
-                        text: () => Promise.resolve(xhr.responseText),
-                        json: () => {
-                            try {
-                                return Promise.resolve(JSON.parse(xhr.responseText));
-                            } catch (e) {
-                                return Promise.reject(e);
-                            }
-                        }
-                    };
-
-                    handleSubmissionResponse(responseObj, form, userId, allButtons);
-                };
-
-                xhr.onerror = function () {
-                    console.error('Both submission methods failed!');
-
-                    // Method 3: Last resort - try actual form submission
-                    console.log('📮 LAST RESORT: Attempting direct form submission');
-
-                    // Create a temporary iframe to capture the form submission
-                    const iframe = document.createElement('iframe');
-                    iframe.name = 'submission-frame-' + Date.now();
-                    iframe.style.display = 'none';
-                    document.body.appendChild(iframe);
-
-                    // Set up form to submit to the iframe
-                    const originalAction = form.action;
-                    const originalMethod = form.method;
-                    const originalTarget = form.target;
-
-                    form.action = originalAction;
-                    form.method = 'post';
-                    form.target = iframe.name;
-
-                    // After iframe loads, try to extract result
-                    iframe.onload = function () {
+                // Create a Response-like object to use with the same handler
+                const responseObj = {
+                    ok: xhr.status >= 200 && xhr.status < 300,
+                    status: xhr.status,
+                    text: () => Promise.resolve(xhr.responseText),
+                    json: () => {
                         try {
-                            const iframeContent = iframe.contentWindow.document.body.innerHTML;
-                            console.log('Direct form submission completed');
-
-                            if (iframeContent.includes('success') ||
-                                iframeContent.includes('Success') ||
-                                iframeContent.includes('created') ||
-                                iframeContent.includes('updated')) {
-                                // Success
-                                showSuccess(userId ? 'User updated successfully' : 'User created successfully');
-
-                                // Close modal
-                                const modal = form.closest('.modal');
-                                const bsModal = bootstrap.Modal.getInstance(modal);
-                                if (bsModal) bsModal.hide();
-
-                                // Reload users list
-                                loadUsers(currentPage);
-                            } else {
-                                // Error
-                                showError('Form submission failed. Please try again.');
-                            }
+                            return Promise.resolve(JSON.parse(xhr.responseText));
                         } catch (e) {
-                            console.error('Error handling iframe response:', e);
-                            showError('Unknown error during form submission');
+                            return Promise.reject(e);
                         }
-
-                        // Cleanup
-                        form.action = originalAction;
-                        form.method = originalMethod;
-                        form.target = originalTarget;
-
-                        setTimeout(() => {
-                            document.body.removeChild(iframe);
-                            showLoading(false);
-                            allButtons.forEach(btn => btn.disabled = false);
-                        }, 500);
-                    };
-
-                    // Submit the form
-                    console.log('Submitting form directly...');
-                    form.submit();
+                    }
                 };
 
-                xhr.send(formData);
-            });
+                handleSubmissionResponse(responseObj, form, userId, allButtons);
+            };
 
+            xhr.onerror = function () {
+                console.error('Both submission methods failed!');
+
+                // Method 3: Last resort - try actual form submission
+                console.log('📮 LAST RESORT: Attempting direct form submission');
+
+                // Create a temporary iframe to capture the form submission
+                const iframe = document.createElement('iframe');
+                iframe.name = 'submission-frame-' + Date.now();
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+
+                // Set up form to submit to the iframe
+                const originalAction = form.action;
+                const originalMethod = form.method;
+                const originalTarget = form.target;
+
+                form.action = originalAction;
+                form.method = 'post';
+                form.target = iframe.name;
+
+                // After iframe loads, try to extract result
+                iframe.onload = function () {
+                    try {
+                        const iframeContent = iframe.contentWindow.document.body.innerHTML;
+                        console.log('Direct form submission completed');
+
+                        if (iframeContent.includes('success') ||
+                            iframeContent.includes('Success') ||
+                            iframeContent.includes('created') ||
+                            iframeContent.includes('updated')) {
+                            // Success
+                            showSuccess(userId ? 'User updated successfully' : 'User created successfully');
+
+                            // Close modal
+                            const modal = form.closest('.modal');
+                            const bsModal = bootstrap.Modal.getInstance(modal);
+                            if (bsModal) bsModal.hide();
+
+                            // Reload users list
+                            loadUsers(currentPage);
+                        } else {
+                            // Error
+                            showError('Form submission failed. Please try again.');
+                        }
+                    } catch (e) {
+                        console.error('Error handling iframe response:', e);
+                        showError('Unknown error during form submission');
+                    }
+
+                    // Cleanup
+                    form.action = originalAction;
+                    form.method = originalMethod;
+                    form.target = originalTarget;
+
+                    setTimeout(() => {
+                        document.body.removeChild(iframe);
+                        showLoading(false);
+                        allButtons.forEach(btn => btn.disabled = false);
+                    }, 500);
+                };
+
+                // Submit the form
+                form.submit();
+            };
+
+            xhr.send(formData);
+        });
     } catch (error) {
         console.error('❌ Critical error preparing form submission:', error);
         showError('Critical error: ' + error.message);
@@ -1974,51 +2084,137 @@ function handleSubmissionResponse(response, form, userId, allButtons) {
             const bsModal = bootstrap.Modal.getInstance(modal);
             if (bsModal) bsModal.hide();
 
+            // Reset the form for future use
+            form.reset();
+            
+            // Clear any validation errors
+            form.querySelectorAll('.is-invalid').forEach(field => {
+                field.classList.remove('is-invalid');
+                field.setCustomValidity('');
+            });
+            
+            // Re-enable buttons
+            if (allButtons) {
+                allButtons.forEach(btn => {
+                    btn.disabled = false;
+                    // Hide any spinners
+                    const spinner = btn.querySelector('.spinner-border');
+                    if (spinner) spinner.classList.add('d-none');
+                });
+            }
+
             // Show success message
             const message = userId ? 'User updated successfully' : 'User created successfully';
             showSuccess(message);
 
             // Reload users to show the updated data
-            loadUsers(currentPage);
+            console.log('Reloading users to show updated data...');
+            setTimeout(() => {
+                loadUsers(currentPage);
+                showLoading(false);
+            }, 500);
 
             return data;
         } else {
             // Handle error responses
             console.error('Error response:', response.status, text);
 
+            // Re-enable buttons
+            if (allButtons) {
+                allButtons.forEach(btn => {
+                    btn.disabled = false;
+                    // Hide any spinners
+                    const spinner = btn.querySelector('.spinner-border');
+                    if (spinner) spinner.classList.add('d-none');
+                });
+            }
+
             // Try to extract a meaningful error message
             let errorMessage = `Server error (${response.status})`;
+            let validationErrors = {};
+            
             if (text) {
-                // Check for HTML error message
-                const errorPattern = /<div[^>]*class="[^"]*alert[^"]*"[^>]*>([\s\S]*?)<\/div>/i;
-                const errorMatch = text.match(errorPattern);
-                if (errorMatch && errorMatch[1]) {
-                    // Remove HTML tags for cleaner error message
-                    errorMessage = errorMatch[1].replace(/<\/?[^>]+(>|$)/g, " ").trim();
-                } else if (text.length < 200) {
-                    errorMessage = text;
-                }
-
-                // Try to extract JSON error message if present
                 try {
                     const jsonData = JSON.parse(text);
+                    
                     if (jsonData.error || jsonData.message) {
                         errorMessage = jsonData.error || jsonData.message;
                     }
+                    
+                    // Handle validation errors
+                    if (jsonData.errors) {
+                        validationErrors = jsonData.errors;
+                        
+                        // Display validation errors on the form fields
+                        if (form) {
+                            // Check for phone number validation error
+                            if (errorMessage.includes('phone_number')) {
+                                const phoneField = form.querySelector('#phone-new');
+                                if (phoneField) {
+                                    phoneField.classList.add('is-invalid');
+                                    const feedbackDiv = document.createElement('div');
+                                    feedbackDiv.className = 'invalid-feedback';
+                                    feedbackDiv.textContent = 'Please enter a valid Tunisian phone number starting with 2, 4, 5, or 9 followed by 7 digits.';
+                                    phoneField.parentNode.appendChild(feedbackDiv);
+                                }
+                            }
+                            
+                            // Check for date of birth validation error
+                            if (errorMessage.includes('date_of_birth')) {
+                                const dobField = form.querySelector('#date-of-birth-new');
+                                if (dobField) {
+                                    dobField.classList.add('is-invalid');
+                                    const feedbackDiv = document.createElement('div');
+                                    feedbackDiv.className = 'invalid-feedback';
+                                    feedbackDiv.textContent = 'Date of birth is required.';
+                                    dobField.parentNode.appendChild(feedbackDiv);
+                                }
+                            }
+                        }
+                    }
                 } catch (e) {
-                    // Not JSON, continue with the error message we already have
+                    // Not JSON, try to extract error from HTML
+                    const errorPattern = /<div[^>]*class="[^"]*alert[^"]*"[^>]*>([\s\S]*?)<\/div>/i;
+                    const errorMatch = text.match(errorPattern);
+                    if (errorMatch && errorMatch[1]) {
+                        // Remove HTML tags for cleaner error message
+                        errorMessage = errorMatch[1].replace(/<\/?[^>]+(>|$)/g, " ").trim();
+                    } else if (text.length < 200) {
+                        errorMessage = text;
+                    }
                 }
             }
 
-            showError('Failed to save user: ' + errorMessage);
+            // Simplified error message for display
+            let displayErrorMessage = errorMessage;
+            
+            // Cleanup error message to be more user-friendly
+            if (displayErrorMessage.includes('Object(App\\Entity\\User)')) {
+                displayErrorMessage = displayErrorMessage
+                    .replace(/Object\(App\\Entity\\User\)\./g, '')
+                    .replace(/\(code [a-z0-9-]+\)/g, '')
+                    .replace(/\n\s+/g, ': ');
+            }
+            
+            showError('Failed to save user: ' + displayErrorMessage);
+            showLoading(false);
             throw new Error(errorMessage);
         }
     })
-        .finally(() => {
-            // Always ensure we reset the UI state
-            showLoading(false);
-            if (allButtons) allButtons.forEach(btn => btn.disabled = false);
-        });
+    .catch(error => {
+        // Always ensure we reset the UI state
+        showLoading(false);
+        if (allButtons) {
+            allButtons.forEach(btn => {
+                btn.disabled = false;
+                // Hide any spinners
+                const spinner = btn.querySelector('.spinner-border');
+                if (spinner) spinner.classList.add('d-none');
+            });
+        }
+        // Re-throw the error for upstream handling
+        throw error;
+    });
 }
 
 /**
