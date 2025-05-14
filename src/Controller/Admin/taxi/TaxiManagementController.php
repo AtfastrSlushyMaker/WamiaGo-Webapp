@@ -310,7 +310,7 @@ public function exportRidesExcel(HttpRequest $request): Response
     foreach ($availableRides as $ride) {
         $sheet->fromArray([
             $ride->getIdRide(),
-            $ride->getRequest()->getUser()->getName(),
+            //$ride->getRequest()->getUser()->getName(),
             $ride->getRequest()->getDepartureLocation()?->getAddress() ?? 'N/A',
             $ride->getRequest()->getArrivalLocation()?->getAddress() ?? 'N/A',
             $ride->getPrice(),
@@ -453,7 +453,7 @@ private function generateHtmlForPdf(array $availableRequests): string
         foreach ($availableRides as $ride) {
             $html .= '<tr>';
             $html .= '<td>' . $ride->getIdRide() . '</td>';
-            $html .= '<td>' . $ride->getDriver()->getUser()->getName() . '</td>';
+            $html .= '<td>' ."badereddine derbel". '</td>';
             $html .= '<td>' . $ride->getRideDate()?->format('Y-m-d H:i:s') . '</td>';
             $html .= '<td>' . $ride->getRequest()?->getDepartureLocation()?->getAddress() . '</td>';
             $html .= '<td>' . $ride->getRequest()?->getArrivalLocation()?->getAddress() . '</td>';
