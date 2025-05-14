@@ -28,20 +28,23 @@ security:
                 path: app_logout
                 target: /login
                 invalidate_session: true
+                csrf_parameter: _csrf_token
+                csrf_token_id: logout
             form_login:
                 login_path: app_login
                 check_path: app_login
-                default_target_path: app_front_home
             entry_point: form_login
-            # switch_user: true  # décommenter si tu veux activer l’usurpation d’utilisateur
+            # switch_user: true  # décommenter si tu veux activer l'usurpation d'utilisateur
 
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/signup, roles: PUBLIC_ACCESS }
+        - { path: ^/logout, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/reclamation, roles: ROLE_ADMIN }
         - { path: ^/driver, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/profile, roles: ROLE_USER }
-        - { path: ^/, roles: PUBLIC_ACCESS }
+        - { path: ^/, roles: [PUBLIC_ACCESS, ROLE_USER] }
 
 when@test:
     security:

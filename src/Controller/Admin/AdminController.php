@@ -257,12 +257,12 @@ class AdminController extends AbstractController
                 'id' => $user->getId_user(),
                 'name' => $user->getName(),
                 'email' => $user->getEmail(),
-                'phone' => $user->getPhoneNumber(),
-                'role' => $user->getRole()->value,
-                'status' => $user->getStatus()->value,
-                'verified' => $user->isVerified(),
+                'phone' => $user->getPhoneNumber() ?? $user->getPhone_number() ?? '',
+                'profile_picture' => $user->getProfilePicture(),
+                'account_status' => $user->getAccountStatus() ?? $user->getAccount_status() ?? 'ACTIVE',
+                'isVerified' => $user->isVerified(),
+                'role' => $user->getRole(),
                 'dateOfBirth' => $user->getDateOfBirth() ? $user->getDateOfBirth()->format('Y-m-d') : null,
-                'profilePicture' => $user->getProfilePicture()
             ];
         }
         
@@ -296,12 +296,12 @@ class AdminController extends AbstractController
                 'id' => $user->getId_user(),
                 'name' => $user->getName(),
                 'email' => $user->getEmail(),
-                'phone' => $user->getPhoneNumber(),
-                'role' => $user->getRole()->value,
-                'status' => $user->getStatus()->value,
-                'verified' => $user->isVerified(),
+                'phone' => $user->getPhoneNumber() ?? $user->getPhone_number() ?? '',
+                'profile_picture' => $user->getProfilePicture(),
+                'account_status' => $user->getAccountStatus() ?? $user->getAccount_status() ?? 'ACTIVE',
+                'isVerified' => $user->isVerified(),
+                'role' => $user->getRole(),
                 'dateOfBirth' => $user->getDateOfBirth() ? $user->getDateOfBirth()->format('Y-m-d') : null,
-                'profilePicture' => $user->getProfilePicture()
             ]
         ]);
     }
@@ -326,12 +326,12 @@ class AdminController extends AbstractController
                     'id' => $user->getId_user(),
                     'name' => $user->getName(),
                     'email' => $user->getEmail(),
-                    'phone' => $user->getPhoneNumber(),
-                    'role' => $user->getRole()->value,
-                    'status' => $user->getStatus()->value,
-                    'verified' => $user->isVerified(),
+                    'phone' => $user->getPhoneNumber() ?? $user->getPhone_number() ?? '',
+                    'profile_picture' => $user->getProfilePicture(),
+                    'account_status' => $user->getAccountStatus() ?? $user->getAccount_status() ?? 'ACTIVE',
+                    'isVerified' => $user->isVerified(),
+                    'role' => $user->getRole(),
                     'dateOfBirth' => $user->getDateOfBirth() ? $user->getDateOfBirth()->format('Y-m-d') : null,
-                    'profilePicture' => $user->getProfilePicture()
                 ]
             ]);
         }

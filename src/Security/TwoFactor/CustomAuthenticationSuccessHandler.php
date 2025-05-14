@@ -43,6 +43,17 @@ class CustomAuthenticationSuccessHandler implements AuthenticationSuccessHandler
             return new RedirectResponse($targetPath);
         }
         
+        // Check if user is admin and redirect to dashboard
+        $user = $token->getUser();
+        if (method_exists($user, 'getRole')) {
+            $role = $user->getRole();
+            $roleValue = is_object($role) && method_exists($role, 'value') ? $role->value : $role;
+            
+            if ($roleValue === 'ADMIN') {
+                return new RedirectResponse($this->urlGenerator->generate('admin_dashboard'));
+            }
+        }
+        
         // Default to homepage if no target path was stored
         return new RedirectResponse($this->urlGenerator->generate('app_front_home'));
     }

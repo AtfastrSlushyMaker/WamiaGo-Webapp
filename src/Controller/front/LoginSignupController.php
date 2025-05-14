@@ -176,11 +176,12 @@ class LoginSignupController extends AbstractController
         ]);
     }
 
-    #[Route('/logout', name: 'app_logout', methods: ['GET'])]
-    public function logout(): void
+    #[Route('/logout', name: 'app_logout', methods: ['GET', 'POST'])]
+    public function logout(Request $request): Response
     {
-        // Controller can be blank: it will be intercepted by the logout key on your firewall
-        throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
+        // This should never be executed as Symfony will intercept the logout request
+        // But just in case it does get called, provide a fallback redirect
+        return $this->redirectToRoute('app_login');
     }
 
     #[Route('/validate-step/{step}', name: 'app_validate_registration_step', methods: ['POST'])]
