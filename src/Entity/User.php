@@ -78,9 +78,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     #[Assert\NotNull(message: 'Role must be specified', groups: ['Default'])]
     private ROLE $role;
 
-    #[ORM\ManyToOne(targetEntity: Location::class, inversedBy: 'users')]
-    #[ORM\JoinColumn(name: 'id_location', referencedColumnName: 'id_location')]
-    private ?Location $location = null;
+    // Location relationship removed as requested
 
     #[ORM\Column(type: 'string', enumType: GENDER::class)]
     #[Assert\NotNull(message: 'Gender must be specified')]

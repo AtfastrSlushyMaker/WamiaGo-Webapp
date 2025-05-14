@@ -631,9 +631,9 @@
     </div>
     
     <!-- Include the modals with empty forms, they will be populated dynamically -->
-    {% include 'admin/users/edit.html.twig' with {'form': form_edit|default(null), 'modal_id': 'edit-user-modal'} %}
-    {% include 'admin/users/new.html.twig' with {'form': form_new|default(null), 'modal_id': 'new-user-modal'} %}
-    {% include 'admin/users/delete.html.twig' with {'form': form_delete|default(null), 'modal_id': 'delete-user-modal'} %}
+    {% include 'back-office/users/edit.html.twig' with {'form': form_edit|default(null), 'modal_id': 'edit-user-modal'} %}
+    {% include 'back-office/users/new.html.twig' with {'form': form_new|default(null), 'modal_id': 'new-user-modal'} %}
+    {% include 'back-office/users/delete.html.twig' with {'form': form_delete|default(null), 'modal_id': 'delete-user-modal'} %}
     
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loading-overlay" style="display: none;">
@@ -671,10 +671,7 @@
         var userDeletePath = "{{ path('admin_user_delete', {'id': '__id__'}) }}";
         window.userDeleteUrl = userDeletePath.replace('__id__', '{id}');
         
-        var userDeleteApiPath = "{{ path('admin_delete_user_api', {'id': '__id__'}) }}";
-        window.userDeleteApiUrl = userDeleteApiPath.replace('__id__', '{id}');
-        
-        window.userCreateUrl = "{{ path('admin_add_user_api') }}";
+        window.userCreateUrl = "{{ path('admin_user_new') }}";
         
         // Debug the generated URLs
         console.log('Generated API URLs in template:');

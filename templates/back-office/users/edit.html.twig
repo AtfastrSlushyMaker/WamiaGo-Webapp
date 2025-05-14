@@ -1,0 +1,62 @@
+<!-- Modal Edit User -->
+<div class="modal fade" id="{{ modal_id }}" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-user-form" method="post">
+                    <input type="hidden" id="user-id-edit" name="id" value="">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name-edit" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="name-edit" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email-edit" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email-edit" name="email" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="phone-edit" class="form-label">Phone Number</label>
+                            <input type="text" class="form-control" id="phone-edit" name="phone_number">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="date-of-birth-edit" class="form-label">Date of Birth</label>
+                            <input type="date" class="form-control" id="date-of-birth-edit" name="date_of_birth">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="gender-edit" class="form-label">Gender</label>
+                            <select class="form-control" id="gender-edit" name="gender">
+                                <option value="MALE">Male</option>
+                                <option value="FEMALE">Female</option>
+                            
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="role-edit" class="form-label">Role</label>
+                            <select class="form-control" id="role-edit" name="role">
+                                <option value="ADMIN">Admin</option>
+                                <option value="CLIENT">Client</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="status-edit" class="form-label">Status</label>
+                            <select class="form-control" id="status-edit" name="account_status">
+                                <option value="ACTIVE">Active</option>
+                                <option value="DEACTIVATED">Deactivated</option>
+                                <option value="BANNED">Banned</option>
+                            </select>
+                        </div>
+                        
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="save-user-edit">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>

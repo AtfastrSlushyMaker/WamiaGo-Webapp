@@ -21,6 +21,7 @@
         "knplabs/knp-snappy-bundle": "*",
         "knpuniversity/oauth2-client-bundle": "*",
         "nyholm/psr7": "^1.8",
+        "pagerfanta/pagerfanta": "^4.7",
         "php-http/discovery": "^1.20",
         "php-http/guzzle7-adapter": "^1.1",
         "php-http/message": "^1.16",
