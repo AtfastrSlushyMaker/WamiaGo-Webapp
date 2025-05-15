@@ -27,7 +27,7 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 final class TripOwnerController extends AbstractController
 {
-    #[IsGranted('ROLE_DRIVER')]
+    ////#[IsGranted('ROLE_DRIVER')]
 #[Route('/trip/owner', name: 'app_trip_owner')]
 public function index(EntityManagerInterface $entityManager): Response
 {
