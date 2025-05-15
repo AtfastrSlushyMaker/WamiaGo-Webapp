@@ -24,6 +24,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.min.css">
+    <!-- Fix for modal table text colors -->
+    <link rel="stylesheet" href="{{ asset('css/modal-table-fix.css') }}?v={{ 'now'|date('YmdHis') }}">
     
     <!-- Inline styles for immediate visibility and modern card styling -->
     <style>
@@ -577,12 +579,12 @@
                 <!-- Stats Cards -->
                 <div class="row mb-4">
                     <div class="col-xl-3 col-md-6">
-                        <div class="card bg-gradient-primary text-white mb-4 stat-card">
+                        <div class="card bg-gradient-primary text-white mb-4 stat-card shadow-sm" data-toggle="modal" data-target="#users-stats-modal" data-status="all" data-title="All Users">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h5 class="mb-0 font-weight-bold">Total Users</h5>
-                                        <h2 class="mt-2 mb-0" id="total-users-count">-</h2>
+                                        <h5 class="mb-0 font-weight-bold text-white">Total Users</h5>
+                                        <h2 class="mt-2 mb-0 text-white" id="total-users-count">-</h2>
                                     </div>
                                     <div class="icon-circle bg-white text-primary">
                                         <i class="fas fa-users fa-2x"></i>
@@ -590,18 +592,20 @@
                                 </div>
                             </div>
                             <div class="card-footer d-flex align-items-center justify-content-between stat-card-footer">
-                                <a class="small text-white stretched-link" href="#">View Details</a>
+                                <a class="small text-white stretched-link font-weight-bold" href="javascript:void(0)">
+                                    <i class="fas fa-list mr-1"></i> View List
+                                </a>
                                 <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                             </div>
                         </div>
                     </div>
                     <div class="col-xl-3 col-md-6">
-                        <div class="card bg-gradient-success text-white mb-4 stat-card">
+                        <div class="card bg-gradient-success text-white mb-4 stat-card shadow-sm" data-toggle="modal" data-target="#users-stats-modal" data-status="ACTIVE" data-title="Active Users">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h5 class="mb-0 font-weight-bold">Active Users</h5>
-                                        <h2 class="mt-2 mb-0" id="active-users-count">-</h2>
+                                        <h5 class="mb-0 font-weight-bold text-white">Active Users</h5>
+                                        <h2 class="mt-2 mb-0 text-white" id="active-users-count">-</h2>
                                     </div>
                                     <div class="icon-circle bg-white text-success">
                                         <i class="fas fa-user-check fa-2x"></i>
@@ -609,37 +613,41 @@
                                 </div>
                             </div>
                             <div class="card-footer d-flex align-items-center justify-content-between stat-card-footer">
-                                <a class="small text-white stretched-link" href="#">View Details</a>
+                                <a class="small text-white stretched-link font-weight-bold" href="javascript:void(0)">
+                                    <i class="fas fa-list mr-1"></i> View List
+                                </a>
                                 <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                             </div>
                         </div>
                     </div>
                     <div class="col-xl-3 col-md-6">
-                        <div class="card bg-gradient-warning text-white mb-4 stat-card">
+                        <div class="card bg-gradient-warning mb-4 stat-card shadow-sm" data-toggle="modal" data-target="#users-stats-modal" data-status="SUSPENDED" data-title="Suspended Users">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h5 class="mb-0 font-weight-bold">Suspended</h5>
-                                        <h2 class="mt-2 mb-0" id="suspended-users-count">-</h2>
+                                        <h5 class="mb-0 font-weight-bold text-dark">Suspended</h5>
+                                        <h2 class="mt-2 mb-0 text-dark" id="suspended-users-count">-</h2>
                                     </div>
                                     <div class="icon-circle bg-white text-warning">
                                         <i class="fas fa-user-clock fa-2x"></i>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-footer d-flex align-items-center justify-content-between stat-card-footer">
-                                <a class="small text-white stretched-link" href="#">View Details</a>
-                                <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                            <div class="card-footer d-flex align-items-center justify-content-between stat-card-footer bg-warning-light">
+                                <a class="small text-dark stretched-link font-weight-bold" href="javascript:void(0)">
+                                    <i class="fas fa-list mr-1"></i> View List
+                                </a>
+                                <div class="small text-dark"><i class="fas fa-angle-right"></i></div>
                             </div>
                         </div>
                     </div>
                     <div class="col-xl-3 col-md-6">
-                        <div class="card bg-gradient-danger text-white mb-4 stat-card">
+                        <div class="card bg-gradient-danger text-white mb-4 stat-card shadow-sm" data-toggle="modal" data-target="#users-stats-modal" data-status="BANNED" data-title="Banned Users">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h5 class="mb-0 font-weight-bold">Banned Users</h5>
-                                        <h2 class="mt-2 mb-0" id="banned-users-count">-</h2>
+                                        <h5 class="mb-0 font-weight-bold text-white">Banned Users</h5>
+                                        <h2 class="mt-2 mb-0 text-white" id="banned-users-count">-</h2>
                                     </div>
                                     <div class="icon-circle bg-white text-danger">
                                         <i class="fas fa-user-slash fa-2x"></i>
@@ -647,11 +655,164 @@
                                 </div>
                             </div>
                             <div class="card-footer d-flex align-items-center justify-content-between stat-card-footer">
-                                <a class="small text-white stretched-link" href="#">View Details</a>
+                                <a class="small text-white stretched-link font-weight-bold" href="javascript:void(0)">
+                                    <i class="fas fa-list mr-1"></i> View List
+                                </a>
                                 <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                             </div>
                         </div>
                     </div>
+                    
+                    <style>
+                        .stat-card {
+                            transition: transform 0.2s, box-shadow 0.2s;
+                            border: none;
+                        }
+                        .stat-card:hover {
+                            transform: translateY(-5px);
+                            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+                        }
+                        .icon-circle {
+                            width: 60px;
+                            height: 60px;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+                        }
+                        .bg-warning-light {
+                            background-color: rgba(255, 193, 7, 0.2);
+                        }
+                        .text-dark {
+                            color: #343a40 !important;
+                        }
+                        .card-footer {
+                            border-top: 1px solid rgba(255, 255, 255, 0.2);
+                        }
+                        .bg-gradient-warning .card-footer {
+                            border-top: 1px solid rgba(0, 0, 0, 0.1);
+                        }
+                        
+                        /* Fix for text visibility in stat cards */
+                        .stat-card .card-footer {
+                            border-top: 1px solid rgba(255, 255, 255, 0.3);
+                        }
+                        
+                        /* EXTREMELY VISIBLE TEXT STYLING - No shadows, simple colors */
+                        .stat-card .card-footer a.stretched-link {
+                            font-size: 16px !important;
+                            font-weight: 900 !important; /* Maximum boldness */
+                            letter-spacing: 1.2px !important;
+                            text-transform: uppercase !important;
+                            color: #000000 !important; /* Pure white */
+                            background-color: transparent !important; /* No background */
+                            padding: 0 !important;
+                            border: none !important;
+                            text-shadow: none !important; /* Remove all shadows */
+                            display: inline-block !important;
+                            position: relative !important;
+                            z-index: 10 !important; /* Ensure it's on top */
+                        }
+                        
+                        /* Make the icon extra visible too */
+                        .stat-card .card-footer a.stretched-link i {
+                            margin-right: 5px !important;
+                            font-size: 18px !important; /* Slightly larger icon */
+                        }
+                        
+                        /* Warning card specifically needs different text treatment */
+                        .bg-gradient-warning .card-footer a.stretched-link {
+                            color: #000000 !important; /* Pure black */
+                            font-weight: 900 !important;
+                            text-shadow: none !important;  /* No shadow */
+                            border: none !important;
+                            background-color: transparent !important;
+                        }
+                        
+                        /* Visible hover effect without background changes */
+                        .stat-card .card-footer a.stretched-link:hover {
+                            transform: scale(1.1) !important; /* Slight grow effect */
+                            letter-spacing: 1.5px !important; /* Increased letter spacing on hover */
+                        }
+                        
+                        /* EXTREME TABLE TEXT VISIBILITY */
+                        .modal .table thead th,
+                        .modal .table tbody td,
+                        .table thead th,
+                        .table tbody td,
+                        .users-table thead th,
+                        .users-table tbody td,
+                        #stats-users-table thead th, 
+                        #stats-users-table tbody td {
+                            color: #000000 !important; /* Pure black */
+                            font-weight: normal !important;
+                            background-color: transparent !important;
+                        }
+                        
+                        /* Make table headers stand out */
+                        .modal .table thead th,
+                        .table thead th,
+                        .users-table thead th,
+                        #stats-users-table thead th {
+                            font-weight: 700 !important; /* Bold headers */
+                            color: #000000 !important;
+                            border-bottom: 2px solid #4e73df !important; /* Colored bottom border */
+                        }
+                        
+                        /* Make sure modal text is black */
+                        .modal-content,
+                        .modal-body {
+                            color: #000000 !important;
+                        }
+                        
+                        /* Ensure modal list text is visible */
+                        #users-stats-modal td,
+                        #users-stats-modal th {
+                            color: #000000 !important;
+                        }
+                        
+                        /* Fix for badge text in the stats modal */
+                        #stats-users-table .badge,
+                        .modal .badge {
+                            color: #ffffff !important;
+                            font-weight: bold !important;
+                        }
+                        
+                        /* Fix text colors for specific badge types */
+                        .badge-success { color: #ffffff !important; background-color: #28a745 !important; }
+                        .badge-danger { color: #ffffff !important; background-color: #dc3545 !important; }
+                        .badge-warning { color: #000000 !important; background-color: #ffc107 !important; }
+                        .badge-info { color: #ffffff !important; background-color: #17a2b8 !important; }
+                        .badge-primary { color: #ffffff !important; background-color: #007bff !important; }
+                        .badge-secondary { color: #ffffff !important; background-color: #6c757d !important; }
+                        
+                        /* Make Female gender badges PINK everywhere */
+                        .badge-primary[data-gender="FEMALE"],
+                        .gender-stat:nth-child(3) .badge-primary,
+                        span.badge:nth-child(1):contains("F"),
+                        #stats-users-table .badge[data-gender="FEMALE"],
+                        #stats-users-table td:nth-child(5) .badge-primary {
+                            background-color: #e83e8c !important; /* Pink color */
+                            color: #ffffff !important;
+                        }
+                        
+                        /* Fix for the gender badge specifically */
+                        #users-stats-modal td:nth-child(5) .badge-primary,
+                        .gender-stat:last-child .badge-primary {
+                            background-color: #e83e8c !important; /* Pink color for female */
+                        }
+                        
+                        /* This ensures the modal's buttons are properly visible */
+                        #users-stats-modal .btn-primary, 
+                        #users-stats-modal .btn-secondary,
+                        #users-stats-modal .btn-success,
+                        #users-stats-modal .btn-danger,
+                        #users-stats-modal .btn-warning,
+                        #users-stats-modal .btn-info {
+                            color: #ffffff !important;
+                        }
+                    </style>
                 </div>
             </div>
         </div>
@@ -832,6 +993,7 @@
     {% include 'back-office/users/edit.html.twig' with {'form': form_edit|default(null), 'modal_id': 'edit-user-modal'} %}
     {% include 'back-office/users/new.html.twig' with {'form': form_new|default(null), 'modal_id': 'new-user-modal'} %}
     {% include 'back-office/users/delete.html.twig' with {'form': form_delete|default(null), 'modal_id': 'delete-user-modal'} %}
+    {% include 'back-office/users/stats-modal.html.twig' %}
     
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loading-overlay" style="display: none;">
@@ -910,4 +1072,6 @@
     <script src="{{ asset('js/user/user-bulk-actions.js') }}?v={{ 'now'|date('YmdHis') }}"></script>
     <!-- Include table sorting functionality -->
     <script src="{{ asset('js/user/table-sort.js') }}?v={{ 'now'|date('YmdHis') }}"></script>
+    <!-- Include stats modal functionality -->
+    <script src="{{ asset('js/user/stats-modal-handler.js') }}?v={{ 'now'|date('YmdHis') }}"></script>
 {% endblock %}

@@ -1,0 +1,43 @@
+/* Fix for white text in stats modal table */
+#stats-users-table td,
+#stats-users-table th,
+.modal-body table td,
+.modal-body table th {
+    color: #000000 !important;
+}
+
+/* Fix badge colors in stats modal */
+#stats-users-table .badge,
+.modal-body table .badge {
+    color: #ffffff !important;
+}
+
+#stats-users-table .badge-warning,
+.modal-body table .badge-warning,
+#stats-users-table .badge-light,
+.modal-body table .badge-light {
+    color: #000000 !important;
+}
+
+/* Ensure button text in modals is visible */
+.modal .btn-outline-primary,
+.modal .btn-outline-danger,
+.modal .btn-outline-warning,
+.modal .btn-outline-success {
+    color: inherit !important;
+}
+
+.modal .btn-primary,
+.modal .btn-danger,
+.modal .btn-success,
+.modal .btn-info {
+    color: #ffffff !important;
+}
+
+/* Fix specific cells for Gender, Role, Status, Verification */
+#stats-users-table td.align-middle.text-center span.badge {
+    text-shadow: none !important;
+    font-weight: bold !important;
+    display: inline-block !important;
+    min-width: 70px !important;
+}
