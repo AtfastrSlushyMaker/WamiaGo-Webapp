@@ -24,6 +24,7 @@ security:
             custom_authenticators:
                 - App\Security\LoginAuthenticator
                 - App\Security\FacialRecognitionAuthenticator
+                - App\Security\GoogleOAuthAuthenticator
             logout:
                 path: app_logout
                 target: /login
@@ -40,6 +41,8 @@ security:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/signup, roles: PUBLIC_ACCESS }
         - { path: ^/logout, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/connect/google, roles: PUBLIC_ACCESS }
+        - { path: ^/connect/google/check, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/reclamation, roles: ROLE_ADMIN }
         - { path: ^/driver, roles: IS_AUTHENTICATED_FULLY }

@@ -1,0 +1,137 @@
+<?php
+
+namespace App\Controller;
+
+use App\Entity\User;
+use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+
+class GoogleLoginController extends AbstractController
+{
+    /**
+     * @Route("/connect/google/login", name="connect_google")
+     */
+    public function connectToGoogle(ClientRegistry $clientRegistry): Response
+    {
+        try {
+            // Add debugging to see if this method is executed
+            file_put_contents(
+                '/home/rzouga/Desktop/Projects/WamiaGo-Webapp/var/log/google_debug.log',
+                date('Y-m-d H:i:s') . " - Attempting to redirect to Google\n",
+                FILE_APPEND
+            );
+            
+            $googleClient = $clientRegistry->getClient('google');
+            
+            // Log the client initialization
+            file_put_contents(
+                '/home/rzouga/Desktop/Projects/WamiaGo-Webapp/var/log/google_debug.log',
+                date('Y-m-d H:i:s') . " - Google client initialized\n",
+                FILE_APPEND
+            );
+            
+            $redirectResponse = $googleClient->redirect([
+                'email', 'profile'
+            ]);
+            
+            // This probably won't execute if redirect works properly
+            file_put_contents(
+                '/home/rzouga/Desktop/Projects/WamiaGo-Webapp/var/log/google_debug.log',
+                date('Y-m-d H:i:s') . " - Redirect response created\n",
+                FILE_APPEND
+            );
+            
+            return $redirectResponse;
+        } catch (\Exception $e) {
+            // Log any exceptions
+            file_put_contents(
+                '/home/rzouga/Desktop/Projects/WamiaGo-Webapp/var/log/google_debug.log',
+                date('Y-m-d H:i:s') . " - ERROR: " . $e->getMessage() . "\n" . $e->getTraceAsString() . "\n",
+                FILE_APPEND
+            );
+            
+            // Redirect back to login page with error
+            $this->addFlash('error', 'Could not connect to Google: ' . $e->getMessage());
+            return $this->redirectToRoute('app_login');
+        }
+    }
+
+    /**
+     * @Route("/connect/google/callback", name="connect_google_check")
+     */
+    public function connectCheckAction(
+        Request $request,
+        ClientRegistry $clientRegistry,
+        EntityManagerInterface $em,
+        UserRepository $userRepository,
+        UserPasswordHasherInterface $passwordHasher,
+        TokenStorageInterface $tokenStorage
+    ): Response {
+        $client = $clientRegistry->getClient('google');
+        
+        try {
+            // The OAuth2 client handles the redirect parameters for you
+            $user = $client->fetchUser();
+            
+            // Email address is unique in our system
+            $existingUser = $userRepository->findOneBy(['email' => $user->getEmail()]);
+            
+            if ($existingUser) {
+                $this->loginUser($existingUser, $tokenStorage);
+                $this->addFlash('success', 'Welcome back! You have successfully logged in with Google.');
+            } else {
+                // Create a new user from Google data
+                $newUser = new User();
+                $newUser->setEmail($user->getEmail());
+                $newUser->setFirstName($user->getFirstName());
+                $newUser->setLastName($user->getLastName());
+                
+                // Generate a random secure password (user won't need this)
+                $randomPass = bin2hex(random_bytes(10));
+                $hashedPassword = $passwordHasher->hashPassword($newUser, $randomPass);
+                $newUser->setPassword($hashedPassword);
+                
+                $newUser->setRoles(['ROLE_USER']);
+                $newUser->setIsVerified(true); // Skip email verification since Google already verified them
+                
+                // Persist the new user
+                $em->persist($newUser);
+                $em->flush();
+                
+                // Log in the new user
+                $this->loginUser($newUser, $tokenStorage);
+                $this->addFlash('success', 'Your account has been created! You are now logged in.');
+            }
+            
+            return $this->redirectToRoute('app_front_home');
+            
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Failed to authenticate with Google: ' . $e->getMessage());
+            return $this->redirectToRoute('app_login');
+        }
+    }
+    
+    private function loginUser(User $user, TokenStorageInterface $tokenStorage): void
+    {
+        // Manual login - create authentication token
+        $token = new UsernamePasswordToken(
+            $user,
+            'main', // Firewall name
+            $user->getRoles()
+        );
+        
+        // Set token in the token storage
+        $tokenStorage->setToken($token);
+        
+        // Update the session
+        $this->container->get('session')->set('_security_main', serialize($token));
+    }
+}
