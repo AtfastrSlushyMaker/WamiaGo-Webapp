@@ -19,25 +19,45 @@ use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+
 
 final class TripOwnerController extends AbstractController
 {
-    #[Route('/trip/owner', name: 'app_trip_owner')]
-    public function index(EntityManagerInterface $entityManager): Response
-    {
-        // Fetch trips for the static driver with ID 1
-        $driverId = 1;
-        $driverTrips = $entityManager->getRepository(Trip::class)->findBy(['driver' => $driverId]);
+    #[IsGranted('ROLE_DRIVER')]
+#[Route('/trip/owner', name: 'app_trip_owner')]
+public function index(EntityManagerInterface $entityManager): Response
+{
+    // Retrieve the authenticated user
+    $user = $this->getUser();
 
-        // Get all cities from the Zone enum
-        $cities = array_map(fn($zone) => $zone->value, \App\Enum\Zone::cases());
-
-        // Pass the trips and cities to the template
-        return $this->render('front/carpooling/DriverTripsManagement.twig', [
-            'driverTrips' => $driverTrips,
-            'cities' => $cities,
-        ]);
+    if (!$user instanceof \App\Entity\User) {
+        return $this->json(['success' => false, 'me ssage' => 'Invalid user type'], 401);
     }
+
+    // Retrieve the driver associated with the authenticated user
+    $driver = $entityManager->getRepository(\App\Entity\Driver::class)->findOneBy(['user' => $user]);
+
+    if (!$driver) {
+        return $this->json(['success' => false, 'message' => 'Driver not found'], 404);
+    }
+
+    // Fetch trips for the authenticated driver
+    $driverId = $driver->getId_driver();
+    $driverTrips = $entityManager->getRepository(Trip::class)->findBy(['driver' => $driverId]);
+
+    // Get all cities from the Zone enum
+    $cities = array_map(fn($zone) => $zone->value, \App\Enum\Zone::cases());
+
+    // Pass the trips and cities to the template
+    return $this->render('front/carpooling/DriverTripsManagement.twig', [
+        'driverTrips' => $driverTrips,
+        'cities' => $cities,
+    ]);
+}
 
     /**
      * @throws \Exception
