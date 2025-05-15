@@ -166,7 +166,7 @@ public function saveTrip(Request $request, TripService $tripService, EntityManag
     }
     #[Route('/api/predict-price', name: 'api_predict_price', methods: ['POST'])]
     public function predict(Request $request, PredictPrice $predictPrice, LoggerInterface $logger): JsonResponse
-    {
+    {   
         try {
             // Ensure it's an AJAX request
             if (!$request->isXmlHttpRequest()) {
@@ -234,12 +234,12 @@ public function saveTrip(Request $request, TripService $tripService, EntityManag
         $randomPrice = round(7 + (mt_rand() / mt_getrandmax() * 3), 2);
         return new JsonResponse(['price' => $randomPrice, 'warning' => 'Used fallback pricing']);
     }
-    #[Route('/api/predict-price', methods: ['POST'])]
+    /*#[Route('/api/predict-price', methods: ['POST'])]
     public function testRoute(Request $request): JsonResponse
     {
         return new JsonResponse(['status' => 'ok', 'data' => $request->request->all()]);
     }
-
+*/
     #[Route('/driver/trip/create', name: 'app_driver_trip_create', methods: ['POST'])]
 public function createTripForBooking(Request $request, EntityManagerInterface $entityManager): Response
 {
