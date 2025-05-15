@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="{{ asset('css/gender-badges.css') }}?v={{ 'now'|date('YmdHis') }}">
     <link rel="stylesheet" href="{{ asset('css/date-badge.css') }}?v={{ 'now'|date('YmdHis') }}">
     <link rel="stylesheet" href="{{ asset('css/user-cards-modern.css') }}?v={{ 'now'|date('YmdHis') }}">
+    <link rel="stylesheet" href="{{ asset('css/table-sort.css') }}?v={{ 'now'|date('YmdHis') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/styles/overlayscrollbars.min.css" integrity="sha256-tZHrRjVqNSRyWg2wbppGnT833E/Ys0DHWGwT04GiqQg=" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- SweetAlert2 CSS -->
@@ -433,6 +434,40 @@
             position: relative;
         }
         
+        /* Table Sorting Styles */
+        .sortable {
+            cursor: pointer;
+            position: relative;
+            user-select: none;
+        }
+        
+        .sortable:hover {
+            background-color: rgba(0, 123, 255, 0.05);
+        }
+        
+        .sort-icon {
+            margin-left: 5px;
+            color: #ccc;
+            transition: all 0.2s ease;
+        }
+        
+        .sortable.asc .sort-icon {
+            color: #3f6ad8;
+            transform: rotate(180deg);
+        }
+        
+        .sortable.desc .sort-icon {
+            color: #3f6ad8;
+        }
+        
+        .sortable.asc .sort-icon:before {
+            content: "\f0d7"; /* fa-sort-down */
+        }
+        
+        .sortable.desc .sort-icon:before {
+            content: "\f0d7"; /* fa-sort-down */
+        }
+        
         .status-dot.active {
             background-color: #28a745;
             box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
@@ -728,14 +763,14 @@
                                     <th class="text-center" width="40">
                                         <input type="checkbox" class="select-checkbox" id="select-all-checkbox">
                                     </th>
-                                    <th class="text-center" width="50">#</th>
-                                    <th width="220">User</th>
-                                    <th>Contact Info</th>
-                                    <th>Date of Birth</th>
-                                    <th>Gender</th>
-                                    <th>Role</th>
-                                    <th>Status</th>
-                                    <th>Verification</th>
+                                    <th class="text-center sortable" width="50" data-sort="id"># <i class="fas fa-sort sort-icon"></i></th>
+                                    <th width="220" class="sortable" data-sort="user">User <i class="fas fa-sort sort-icon"></i></th>
+                                    <th class="sortable" data-sort="contact">Contact Info <i class="fas fa-sort sort-icon"></i></th>
+                                    <th class="sortable" data-sort="dob">Date of Birth <i class="fas fa-sort sort-icon"></i></th>
+                                    <th class="sortable" data-sort="gender">Gender <i class="fas fa-sort sort-icon"></i></th>
+                                    <th class="sortable" data-sort="role">Role <i class="fas fa-sort sort-icon"></i></th>
+                                    <th class="sortable" data-sort="status">Status <i class="fas fa-sort sort-icon"></i></th>
+                                    <th class="sortable" data-sort="verification">Verification <i class="fas fa-sort sort-icon"></i></th>
                                     <th class="text-center" width="150">Actions</th>
                                 </tr>
                             </thead>
@@ -873,4 +908,6 @@
     <script src="{{ asset('js/user/url-placeholder-diagnostic.js') }}?v={{ 'now'|date('YmdHis') }}"></script>
     <!-- Include bulk actions functionality -->
     <script src="{{ asset('js/user/user-bulk-actions.js') }}?v={{ 'now'|date('YmdHis') }}"></script>
+    <!-- Include table sorting functionality -->
+    <script src="{{ asset('js/user/table-sort.js') }}?v={{ 'now'|date('YmdHis') }}"></script>
 {% endblock %}
