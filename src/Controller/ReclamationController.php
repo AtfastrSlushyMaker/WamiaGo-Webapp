@@ -15,7 +15,7 @@ use Knp\Component\Pager\PaginatorInterface;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
-#[Route('/reclamation')]
+#[Route('/admin/reclamation')]
 final class ReclamationController extends AbstractController
 {
     #[Route('/{id_reclamation}/detail', name: 'app_reclamation_detail', methods: ['GET'])]

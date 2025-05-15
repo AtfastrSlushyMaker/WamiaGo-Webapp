@@ -41,7 +41,8 @@ security:
         - { path: ^/signup, roles: PUBLIC_ACCESS }
         - { path: ^/logout, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/admin, roles: ROLE_ADMIN }
-        - { path: ^/reclamation, roles: ROLE_ADMIN }
+        - { path: ^/reclamation, roles: [ROLE_ADMIN, ROLE_USER] }
+        - { path: ^/response, roles: ROLE_ADMIN }
         - { path: ^/driver, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/profile, roles: ROLE_USER }
         - { path: ^/, roles: [PUBLIC_ACCESS, ROLE_USER] }
