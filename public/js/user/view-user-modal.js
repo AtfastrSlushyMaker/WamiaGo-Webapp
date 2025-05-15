@@ -3,7 +3,7 @@
  * Implements functionality for viewing comprehensive user details and action buttons
  */
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Constants for user statuses
     const STATUS_ACTIVE = 'ACTIVE';
     const STATUS_SUSPENDED = 'SUSPENDED';
@@ -17,9 +17,9 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function setupViewUserButtons() {
         // Use event delegation to handle view button clicks
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             const viewButton = e.target.closest('.view-user-btn, .view-user');
-            
+
             if (viewButton) {
                 const userId = viewButton.dataset.id;
                 if (userId) {
@@ -36,10 +36,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show loading overlay
         const viewModal = document.getElementById('view-user-modal');
         if (!viewModal) return;
-        
+
         // Get modal body for manipulating content
         const modalBody = viewModal.querySelector('.modal-body');
-        
+
         // Display loading spinner
         modalBody.innerHTML = `
             <div class="text-center py-5">
@@ -49,16 +49,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 <p class="mt-2">Loading user details...</p>
             </div>
         `;
-        
+
         // Show the modal while loading data
         const modal = new bootstrap.Modal(viewModal);
         modal.show();
-        
+
         // Construct URL for user details
-        const apiUrl = window.apiBaseUrl ? 
-            `${window.apiBaseUrl}/users/${userId}` : 
+        const apiUrl = window.apiBaseUrl ?
+            `${window.apiBaseUrl}/users/${userId}` :
             `/api/users/${userId}`;
-        
+
         // Fetch user details
         fetch(apiUrl)
             .then(response => {
@@ -96,29 +96,29 @@ document.addEventListener('DOMContentLoaded', function() {
             avatarImg.src = user.profilePicture || '/images/default-avatar.png';
             avatarImg.alt = `${user.name}'s Avatar`;
         }
-        
+
         // Set user name and email
         document.getElementById('view-user-name').textContent = user.name || 'N/A';
         document.getElementById('view-user-email').textContent = user.email || 'N/A';
-        
+
         // Set user ID
         document.getElementById('view-user-id').textContent = user.id || 'N/A';
-        
+
         // Set user phone
         document.getElementById('view-user-phone').textContent = user.phone_number || 'N/A';
-        
+
         // Set user gender
         document.getElementById('view-user-gender').textContent = user.gender || 'N/A';
-        
+
         // Set date of birth with formatting
-        const dob = user.date_of_birth ? 
+        const dob = user.date_of_birth ?
             new Date(user.date_of_birth).toLocaleDateString() : 'N/A';
         document.getElementById('view-user-dob').textContent = dob;
-        
+
         // Set account status
         const accountStatus = document.getElementById('view-user-account-status');
         accountStatus.textContent = user.account_status || 'ACTIVE';
-        
+
         // Set status badge color
         const statusBadge = document.getElementById('view-user-status-badge');
         if (statusBadge) {
@@ -133,23 +133,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 statusBadge.innerHTML = '<i class="fas fa-check-circle"></i>';
             }
         }
-        
+
         // Set verified status
-        document.getElementById('view-user-verified').textContent = 
+        document.getElementById('view-user-verified').textContent =
             user.isVerified ? 'Yes' : 'No';
-        
+
         // Set role
         const role = user.role || 'CLIENT';
         document.getElementById('view-user-role').textContent = role;
-        
+
         // Set role badge
         const roleBadge = document.getElementById('view-user-role-badge');
         if (roleBadge) {
             roleBadge.textContent = role;
-            roleBadge.className = role === 'ADMIN' ? 
+            roleBadge.className = role === 'ADMIN' ?
                 'badge bg-primary me-1' : 'badge bg-info me-1';
         }
-        
+
         // Set verification badge
         const verificationBadge = document.getElementById('view-user-verification-badge');
         if (verificationBadge) {
@@ -171,12 +171,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const activateBtn = document.getElementById('view-user-activate-btn');
         const suspendBtn = document.getElementById('view-user-suspend-btn');
         const banBtn = document.getElementById('view-user-ban-btn');
-        
+
         // Hide all buttons initially
         if (activateBtn) activateBtn.style.display = 'none';
         if (suspendBtn) suspendBtn.style.display = 'none';
         if (banBtn) banBtn.style.display = 'none';
-        
+
         // Show relevant buttons based on current status
         switch (user.account_status) {
             case STATUS_ACTIVE:
@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (activateBtn) activateBtn.style.display = 'inline-block';
                 break;
         }
-        
+
         // Verification button
         const verifyBtn = document.getElementById('view-user-verify-btn');
         if (verifyBtn) {
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 verifyBtn.classList.add('btn-info');
             }
         }
-        
+
         // Set up action button event listeners
         setupActionButtonEvents(user.id);
     }
@@ -220,45 +220,45 @@ document.addEventListener('DOMContentLoaded', function() {
         // Activate button
         const activateBtn = document.getElementById('view-user-activate-btn');
         if (activateBtn) {
-            activateBtn.onclick = function() {
+            activateBtn.onclick = function () {
                 updateUserStatus(userId, STATUS_ACTIVE);
             };
         }
-        
+
         // Suspend button
         const suspendBtn = document.getElementById('view-user-suspend-btn');
         if (suspendBtn) {
-            suspendBtn.onclick = function() {
+            suspendBtn.onclick = function () {
                 updateUserStatus(userId, STATUS_SUSPENDED);
             };
         }
-        
+
         // Ban button
         const banBtn = document.getElementById('view-user-ban-btn');
         if (banBtn) {
-            banBtn.onclick = function() {
+            banBtn.onclick = function () {
                 updateUserStatus(userId, STATUS_BANNED);
             };
         }
-        
+
         // Verify button
         const verifyBtn = document.getElementById('view-user-verify-btn');
         if (verifyBtn) {
-            verifyBtn.onclick = function() {
+            verifyBtn.onclick = function () {
                 const isCurrentlyVerified = verifyBtn.innerHTML.includes('Unverify');
                 toggleUserVerification(userId, !isCurrentlyVerified);
             };
         }
-        
+
         // Edit button
         const editBtn = document.getElementById('view-user-edit-btn');
         if (editBtn) {
-            editBtn.onclick = function() {
+            editBtn.onclick = function () {
                 // Close current modal
                 const viewModal = document.getElementById('view-user-modal');
                 const bsViewModal = bootstrap.Modal.getInstance(viewModal);
                 if (bsViewModal) bsViewModal.hide();
-                
+
                 // Trigger edit modal with a small delay
                 setTimeout(() => {
                     const editBtn = document.querySelector(`.edit-user-btn[data-id="${userId}"]`);
@@ -271,10 +271,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             // Set the user ID for the edit form
                             const userIdInput = editModal.querySelector('input[name="user_id"]');
                             if (userIdInput) userIdInput.value = userId;
-                            
+
                             // Load user data into edit form
                             loadUserIntoEditForm(userId);
-                            
+
                             // Show edit modal
                             const bsEditModal = new bootstrap.Modal(editModal);
                             bsEditModal.show();
@@ -283,16 +283,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 300);
             };
         }
-        
+
         // Delete button
         const deleteBtn = document.getElementById('view-user-delete-btn');
         if (deleteBtn) {
-            deleteBtn.onclick = function() {
+            deleteBtn.onclick = function () {
                 // Close current modal
                 const viewModal = document.getElementById('view-user-modal');
                 const bsViewModal = bootstrap.Modal.getInstance(viewModal);
                 if (bsViewModal) bsViewModal.hide();
-                
+
                 // Trigger delete confirmation with a small delay
                 setTimeout(() => {
                     const deleteBtn = document.querySelector(`.delete-user-btn[data-id="${userId}"]`);
@@ -311,17 +311,17 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function updateUserStatus(userId, newStatus) {
         // Construct update URL
-        const updateUrl = window.userUpdateUrl ? 
-            window.userUpdateUrl.replace('USER_ID', userId) : 
+        const updateUrl = window.userUpdateUrl ?
+            window.userUpdateUrl.replace('USER_ID', userId) :
             `/api/users/${userId}/update-status`;
-        
+
         // Show loading spinner on buttons
         const actionButtons = document.querySelectorAll('#status-action-group button');
         actionButtons.forEach(btn => {
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ' + btn.textContent;
         });
-        
+
         // Send request to update status
         fetch(updateUrl, {
             method: 'POST',
@@ -333,58 +333,58 @@ document.addEventListener('DOMContentLoaded', function() {
                 account_status: newStatus
             })
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Failed to update status. Status code: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                // Show success message
-                showToast('Success', `User status updated to ${newStatus}`, 'success');
-                
-                // Reload user details
-                fetchAndDisplayUserDetails(userId);
-                
-                // Refresh user list if function exists
-                if (typeof reloadUsers === 'function') {
-                    reloadUsers();
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Failed to update status. Status code: ${response.status}`);
                 }
-            } else {
-                throw new Error(data.error || 'Failed to update user status');
-            }
-        })
-        .catch(error => {
-            console.error('Error updating user status:', error);
-            showToast('Error', error.message, 'error');
-        })
-        .finally(() => {
-            // Re-enable buttons
-            actionButtons.forEach(btn => {
-                btn.disabled = false;
-                btn.innerHTML = btn.innerHTML.replace('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ', '');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    showToast('Success', `User status updated to ${newStatus}`, 'success');
+
+                    // Reload user details
+                    fetchAndDisplayUserDetails(userId);
+
+                    // Refresh user list if function exists
+                    if (typeof reloadUsers === 'function') {
+                        reloadUsers();
+                    }
+                } else {
+                    throw new Error(data.error || 'Failed to update user status');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating user status:', error);
+                showToast('Error', error.message, 'error');
+            })
+            .finally(() => {
+                // Re-enable buttons
+                actionButtons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.innerHTML = btn.innerHTML.replace('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ', '');
+                });
             });
-        });
     }
-    
+
     /**
      * Toggle user verification status
      */
     function toggleUserVerification(userId, setVerified) {
         // Construct verification URL
-        const verifyUrl = window.userVerifyUrl ? 
-            window.userVerifyUrl.replace('USER_ID', userId) : 
+        const verifyUrl = window.userVerifyUrl ?
+            window.userVerifyUrl.replace('USER_ID', userId) :
             `/api/users/${userId}/verify`;
-        
+
         // Show loading spinner on verify button
         const verifyBtn = document.getElementById('view-user-verify-btn');
         if (verifyBtn) {
             verifyBtn.disabled = true;
-            verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ' + 
+            verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ' +
                 (setVerified ? 'Verifying...' : 'Unverifying...');
         }
-        
+
         // Send request to toggle verification
         fetch(verifyUrl, {
             method: 'POST',
@@ -396,43 +396,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 isVerified: setVerified
             })
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Failed to update verification. Status code: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                // Show success message
-                showToast('Success', `User ${setVerified ? 'verified' : 'unverified'} successfully`, 'success');
-                
-                // Reload user details
-                fetchAndDisplayUserDetails(userId);
-                
-                // Refresh user list if function exists
-                if (typeof reloadUsers === 'function') {
-                    reloadUsers();
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Failed to update verification. Status code: ${response.status}`);
                 }
-            } else {
-                throw new Error(data.error || 'Failed to update verification status');
-            }
-        })
-        .catch(error => {
-            console.error('Error updating verification status:', error);
-            showToast('Error', error.message, 'error');
-        })
-        .finally(() => {
-            // Re-enable verify button
-            if (verifyBtn) {
-                verifyBtn.disabled = false;
-                verifyBtn.innerHTML = setVerified ? 
-                    '<i class="fas fa-user-check me-1"></i> Verify' : 
-                    '<i class="fas fa-user-times me-1"></i> Unverify';
-            }
-        });
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    showToast('Success', `User ${setVerified ? 'verified' : 'unverified'} successfully`, 'success');
+
+                    // Reload user details
+                    fetchAndDisplayUserDetails(userId);
+
+                    // Refresh user list if function exists
+                    if (typeof reloadUsers === 'function') {
+                        reloadUsers();
+                    }
+                } else {
+                    throw new Error(data.error || 'Failed to update verification status');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating verification status:', error);
+                showToast('Error', error.message, 'error');
+            })
+            .finally(() => {
+                // Re-enable verify button
+                if (verifyBtn) {
+                    verifyBtn.disabled = false;
+                    verifyBtn.innerHTML = setVerified ?
+                        '<i class="fas fa-user-check me-1"></i> Verify' :
+                        '<i class="fas fa-user-times me-1"></i> Unverify';
+                }
+            });
     }
-    
+
     /**
      * Confirm and delete user
      */
@@ -463,41 +463,41 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
         `;
-        
+
         // Append modal to body
         document.body.insertAdjacentHTML('beforeend', modalHtml);
-        
+
         // Show modal
         const modal = new bootstrap.Modal(document.getElementById('confirm-delete-modal'));
         modal.show();
-        
+
         // Handle confirm button click
-        document.getElementById('confirm-delete-btn').addEventListener('click', function() {
+        document.getElementById('confirm-delete-btn').addEventListener('click', function () {
             deleteUser(userId);
             modal.hide();
-            
+
             // Remove modal from DOM after hiding
-            document.getElementById('confirm-delete-modal').addEventListener('hidden.bs.modal', function() {
+            document.getElementById('confirm-delete-modal').addEventListener('hidden.bs.modal', function () {
                 this.remove();
             });
         });
     }
-    
+
     /**
      * Delete user
      */
     function deleteUser(userId) {
         // Construct delete URL
-        const deleteUrl = window.userDeleteUrl ? 
-            window.userDeleteUrl.replace('USER_ID', userId) : 
+        const deleteUrl = window.userDeleteUrl ?
+            window.userDeleteUrl.replace('USER_ID', userId) :
             `/api/users/${userId}/delete`;
-        
+
         // Show loading overlay if it exists
         const loadingOverlay = document.getElementById('loading-overlay');
         if (loadingOverlay) {
             loadingOverlay.style.display = 'flex';
         }
-        
+
         // Send request to delete user
         fetch(deleteUrl, {
             method: 'DELETE',
@@ -505,53 +505,53 @@ document.addEventListener('DOMContentLoaded', function() {
                 'X-Requested-With': 'XMLHttpRequest'
             }
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Failed to delete user. Status code: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                // Show success message
-                showToast('Success', 'User deleted successfully', 'success');
-                
-                // Close the view modal if it's open
-                const viewModal = document.getElementById('view-user-modal');
-                const bsViewModal = bootstrap.Modal.getInstance(viewModal);
-                if (bsViewModal) {
-                    bsViewModal.hide();
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Failed to delete user. Status code: ${response.status}`);
                 }
-                
-                // Refresh user list if function exists
-                if (typeof reloadUsers === 'function') {
-                    reloadUsers();
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    showToast('Success', 'User deleted successfully', 'success');
+
+                    // Close the view modal if it's open
+                    const viewModal = document.getElementById('view-user-modal');
+                    const bsViewModal = bootstrap.Modal.getInstance(viewModal);
+                    if (bsViewModal) {
+                        bsViewModal.hide();
+                    }
+
+                    // Refresh user list if function exists
+                    if (typeof reloadUsers === 'function') {
+                        reloadUsers();
+                    }
+                } else {
+                    throw new Error(data.error || 'Failed to delete user');
                 }
-            } else {
-                throw new Error(data.error || 'Failed to delete user');
-            }
-        })
-        .catch(error => {
-            console.error('Error deleting user:', error);
-            showToast('Error', error.message, 'error');
-        })
-        .finally(() => {
-            // Hide loading overlay
-            if (loadingOverlay) {
-                loadingOverlay.style.display = 'none';
-            }
-        });
+            })
+            .catch(error => {
+                console.error('Error deleting user:', error);
+                showToast('Error', error.message, 'error');
+            })
+            .finally(() => {
+                // Hide loading overlay
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = 'none';
+                }
+            });
     }
-    
+
     /**
      * Load user data into edit form
      */
     function loadUserIntoEditForm(userId) {
         // Construct URL for user details
-        const apiUrl = window.apiBaseUrl ? 
-            `${window.apiBaseUrl}/users/${userId}` : 
+        const apiUrl = window.apiBaseUrl ?
+            `${window.apiBaseUrl}/users/${userId}` :
             `/api/users/${userId}`;
-            
+
         // Fetch user details
         fetch(apiUrl)
             .then(response => {
@@ -576,14 +576,14 @@ document.addEventListener('DOMContentLoaded', function() {
                             { id: 'edit-dob', value: user.date_of_birth ? user.date_of_birth.substring(0, 10) : '' },
                             { id: 'edit-profile-pic', value: user.profilePicture }
                         ];
-                        
+
                         fields.forEach(field => {
                             const element = document.getElementById(field.id);
                             if (element) {
                                 element.value = field.value || '';
                             }
                         });
-                        
+
                         // Set user ID for form submission
                         const userIdField = editForm.querySelector('input[name="user_id"]');
                         if (userIdField) {
@@ -599,7 +599,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 showToast('Error', error.message, 'error');
             });
     }
-    
+
     /**
      * Display toast notification
      */
@@ -611,17 +611,17 @@ document.addEventListener('DOMContentLoaded', function() {
             toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
             document.body.appendChild(toastContainer);
         }
-        
+
         // Create toast element
         const toastId = 'toast-' + Date.now();
-        const bgClass = type === 'success' ? 'bg-success' : 
-                       type === 'error' ? 'bg-danger' : 
-                       type === 'warning' ? 'bg-warning' : 'bg-primary';
-                       
-        const iconClass = type === 'success' ? 'fas fa-check-circle' : 
-                         type === 'error' ? 'fas fa-exclamation-circle' : 
-                         type === 'warning' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle';
-        
+        const bgClass = type === 'success' ? 'bg-success' :
+            type === 'error' ? 'bg-danger' :
+                type === 'warning' ? 'bg-warning' : 'bg-primary';
+
+        const iconClass = type === 'success' ? 'fas fa-check-circle' :
+            type === 'error' ? 'fas fa-exclamation-circle' :
+                type === 'warning' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle';
+
         const toastHtml = `
             <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" id="${toastId}">
                 <div class="toast-header ${bgClass} text-white">
@@ -634,21 +634,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
         `;
-        
+
         // Add toast to container
         toastContainer.insertAdjacentHTML('beforeend', toastHtml);
-        
+
         // Initialize and show toast
         const toastElement = document.getElementById(toastId);
         const toast = new bootstrap.Toast(toastElement, {
             autohide: true,
             delay: 5000
         });
-        
+
         toast.show();
-        
+
         // Remove toast from DOM after hiding
-        toastElement.addEventListener('hidden.bs.toast', function() {
+        toastElement.addEventListener('hidden.bs.toast', function () {
             this.remove();
         });
     }
