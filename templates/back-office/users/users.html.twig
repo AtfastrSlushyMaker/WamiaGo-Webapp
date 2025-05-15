@@ -21,6 +21,8 @@
     <link rel="stylesheet" href="{{ asset('css/user-cards-modern.css') }}?v={{ 'now'|date('YmdHis') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/styles/overlayscrollbars.min.css" integrity="sha256-tZHrRjVqNSRyWg2wbppGnT833E/Ys0DHWGwT04GiqQg=" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.min.css">
     
     <!-- Inline styles for immediate visibility and modern card styling -->
     <style>
@@ -44,6 +46,119 @@
         
         .btn-action.btn-success:hover {
             background-color: #218838;
+        }
+        
+        /* Bulk Actions Toolbar Styles */
+        .bulk-actions-toolbar {
+            display: none;
+            padding: 10px 15px;
+            background: linear-gradient(to right, #f8f9fa, #eef1f5);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border-left: 4px solid #3f6ad8;
+        }
+        
+        .bulk-actions-toolbar.visible {
+            display: flex;
+            animation: slideDown 0.3s forwards;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .bulk-actions-counter {
+            font-weight: 600;
+            color: #3f6ad8;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .bulk-action-btn {
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            padding: 5px 15px;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s ease;
+            color: #495057;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .bulk-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 5px rgba(0,0,0,0.1);
+        }
+        
+        .bulk-action-btn i {
+            margin-right: 5px;
+        }
+        
+        .bulk-action-btn.ban-btn:hover {
+            background-color: #dc3545;
+            border-color: #dc3545;
+            color: white;
+        }
+        
+        .bulk-action-btn.unban-btn:hover {
+            background-color: #28a745;
+            border-color: #28a745;
+            color: white;
+        }
+        
+        .bulk-action-btn.export-btn:hover {
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+            color: white;
+        }
+        
+        .bulk-action-btn.delete-btn:hover {
+            background-color: #dc3545;
+            border-color: #dc3545;
+            color: white;
+        }
+        
+        /* Checkbox styling */
+        .select-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #d1d3e2;
+            border-radius: 3px;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-color: white;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .select-checkbox:checked {
+            background-color: #4e73df;
+            border-color: #4e73df;
+        }
+        
+        .select-checkbox:checked::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            color: white;
+            font-size: 11px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .select-checkbox:hover {
+            border-color: #4e73df;
         }
         
         /* Modern User Card Styling - Enhanced */
@@ -580,10 +695,39 @@
                 
                 <!-- List View -->
                 <div id="list-view" class="view-container">
+                    <!-- Bulk Actions Toolbar -->
+                    <div class="bulk-actions-toolbar" id="bulk-actions-toolbar">
+                        <div class="bulk-actions-counter">
+                            <i class="fas fa-check-square mr-2"></i> <span id="selected-count">0</span> users selected
+                        </div>
+                        <div class="bulk-actions">
+                            <button type="button" class="bulk-action-btn ban-btn" id="bulk-ban-btn">
+                                <i class="fas fa-ban"></i> Ban
+                            </button>
+                            <button type="button" class="bulk-action-btn unban-btn" id="bulk-unban-btn">
+                                <i class="fas fa-unlock"></i> Unban
+                            </button>
+                            <button type="button" class="bulk-action-btn export-btn" id="bulk-export-btn">
+                                <i class="fas fa-file-export"></i> Export
+                            </button>
+                            <button type="button" class="bulk-action-btn delete-btn" id="bulk-delete-btn">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </button>
+                        </div>
+                        <div class="ml-auto">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="clear-selection-btn">
+                                <i class="fas fa-times"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+                    
                     <div class="table-responsive">
                         <table class="table table-hover users-table" id="users-table">
                             <thead class="table-light">
                                 <tr>
+                                    <th class="text-center" width="40">
+                                        <input type="checkbox" class="select-checkbox" id="select-all-checkbox">
+                                    </th>
                                     <th class="text-center" width="50">#</th>
                                     <th width="220">User</th>
                                     <th>Contact Info</th>
@@ -665,6 +809,8 @@
 
 {% block javascripts %}
     {{ parent() }}
+    <!-- SweetAlert2 for beautiful alerts and confirmations -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.all.min.js"></script>
     <!-- Pass route URLs to the external JavaScript file -->
     <script>
         // Set route URLs as global variables for the JS file
@@ -725,4 +871,6 @@
     <script src="{{ asset('js/user/user-ban-toggle.js') }}?v={{ 'now'|date('YmdHis') }}"></script>
     <!-- URL placeholder diagnostic tool to detect issues with API URLs -->
     <script src="{{ asset('js/user/url-placeholder-diagnostic.js') }}?v={{ 'now'|date('YmdHis') }}"></script>
+    <!-- Include bulk actions functionality -->
+    <script src="{{ asset('js/user/user-bulk-actions.js') }}?v={{ 'now'|date('YmdHis') }}"></script>
 {% endblock %}

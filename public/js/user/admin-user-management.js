@@ -268,6 +268,15 @@ function setupEventListeners() {
             }
         }
     });
+
+    // Bulk actions - select all checkbox
+    if (elements.selectAllCheckbox) {
+        // Note: The actual event handling is in user-bulk-actions.js
+        // This is just to ensure any app-specific initialization happens
+        if (DEBUG) {
+            console.log('Select all checkbox is available for bulk actions');
+        }
+    }
 }
 
 /**
@@ -613,7 +622,7 @@ function renderUserTable(users) {
     if (users.length === 0) {
         const emptyRow = document.createElement('tr');
         emptyRow.innerHTML = `
-            <td colspan="9" class="text-center py-5">
+            <td colspan="10" class="text-center py-5">
                 <div class="py-5">
                     <div class="mb-4">
                         <div class="empty-state-icon">
@@ -726,6 +735,9 @@ function renderUserTable(users) {
         }
 
         row.innerHTML = `
+            <td class="text-center">
+                <input type="checkbox" class="select-checkbox user-checkbox" data-id="${userId}" data-name="${name}">
+            </td>
             <td class="text-center">${userId}</td>
             <td>
                 <div class="d-flex align-items-center">
@@ -1760,7 +1772,7 @@ function setupFormSubmitHandler(form, userId) {
     form.onsubmit = function (e) {
         e.preventDefault();
         console.log('Form submission intercepted through onsubmit event for user:', userId);
-        
+
         // Get the submit button to show a loading indicator
         const submitButton = form.querySelector('button[type="submit"]');
         if (submitButton) {
@@ -1770,7 +1782,7 @@ function setupFormSubmitHandler(form, userId) {
                 spinner.classList.remove('d-none');
             }
         }
-        
+
         submitFormData(form, userId);
     };
 
@@ -1804,7 +1816,7 @@ function submitFormData(form, userId) {
         // For new user forms, ensure we have all the required fields
         if (!userId && form.id === 'new-user-form') {
             console.log('Processing new user form data');
-            
+
             // Make sure all necessary fields have proper names
             // Check if we have a password field
             if (!formData.has('password') && form.querySelector('#password-new')) {
@@ -1812,19 +1824,19 @@ function submitFormData(form, userId) {
                 formData.append('password', passwordField.value);
                 console.log('Added password field to form data');
             }
-            
+
             // Phone number should be phone_number not phone
             if (formData.has('phone') && !formData.has('phone_number')) {
                 formData.append('phone_number', formData.get('phone'));
                 formData.delete('phone');
                 console.log('Renamed phone to phone_number');
             }
-            
+
             // Validate phone number format for Tunisian numbers
             if (formData.has('phone_number')) {
                 const phoneNumber = formData.get('phone_number');
                 const tunisianPhoneRegex = /^[2459][0-9]{7}$/;
-                
+
                 if (!tunisianPhoneRegex.test(phoneNumber)) {
                     console.warn('Phone number does not match Tunisian format requirement');
                     const phoneField = form.querySelector('#phone-new');
@@ -1836,7 +1848,7 @@ function submitFormData(form, userId) {
                     }
                 }
             }
-            
+
             // Ensure date of birth is present and in the correct format
             if (formData.has('date_of_birth')) {
                 const dateOfBirth = formData.get('date_of_birth');
@@ -1865,14 +1877,14 @@ function submitFormData(form, userId) {
                     }
                 }
             }
-            
+
             // Account status field
             if (formData.has('status') && !formData.has('account_status')) {
                 formData.append('account_status', formData.get('status'));
                 formData.delete('status');
                 console.log('Renamed status to account_status');
             }
-            
+
             // isVerified field from checkbox
             if (formData.has('verified') && !formData.has('isVerified')) {
                 const isChecked = formData.get('verified') === 'on' || formData.get('verified') === '1';
@@ -1880,7 +1892,7 @@ function submitFormData(form, userId) {
                 formData.delete('verified');
                 console.log('Renamed verified to isVerified with value', isChecked ? '1' : '0');
             }
-            
+
             // Ensure gender is set if missing
             if (!formData.has('gender')) {
                 formData.append('gender', 'MALE'); // Default to MALE if missing
@@ -1945,108 +1957,108 @@ function submitFormData(form, userId) {
                 'X-Requested-With': 'XMLHttpRequest'
             }
         })
-        .then(response => {
-            console.log('Fetch response received:', response.status);
+            .then(response => {
+                console.log('Fetch response received:', response.status);
 
-            // Pass the response to the handler
-            return handleSubmissionResponse(response, form, userId, allButtons);
-        })
-        .catch(error => {
-            console.error('Fetch submission failed, trying XMLHttpRequest as backup:', error);
+                // Pass the response to the handler
+                return handleSubmissionResponse(response, form, userId, allButtons);
+            })
+            .catch(error => {
+                console.error('Fetch submission failed, trying XMLHttpRequest as backup:', error);
 
-            // Method 2: Fall back to XMLHttpRequest if fetch fails
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', form.action, true);
-            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                // Method 2: Fall back to XMLHttpRequest if fetch fails
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', form.action, true);
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 
-            xhr.onload = function () {
-                console.log('XMLHttpRequest response received:', xhr.status);
+                xhr.onload = function () {
+                    console.log('XMLHttpRequest response received:', xhr.status);
 
-                // Create a Response-like object to use with the same handler
-                const responseObj = {
-                    ok: xhr.status >= 200 && xhr.status < 300,
-                    status: xhr.status,
-                    text: () => Promise.resolve(xhr.responseText),
-                    json: () => {
-                        try {
-                            return Promise.resolve(JSON.parse(xhr.responseText));
-                        } catch (e) {
-                            return Promise.reject(e);
+                    // Create a Response-like object to use with the same handler
+                    const responseObj = {
+                        ok: xhr.status >= 200 && xhr.status < 300,
+                        status: xhr.status,
+                        text: () => Promise.resolve(xhr.responseText),
+                        json: () => {
+                            try {
+                                return Promise.resolve(JSON.parse(xhr.responseText));
+                            } catch (e) {
+                                return Promise.reject(e);
+                            }
                         }
-                    }
+                    };
+
+                    handleSubmissionResponse(responseObj, form, userId, allButtons);
                 };
 
-                handleSubmissionResponse(responseObj, form, userId, allButtons);
-            };
+                xhr.onerror = function () {
+                    console.error('Both submission methods failed!');
 
-            xhr.onerror = function () {
-                console.error('Both submission methods failed!');
+                    // Method 3: Last resort - try actual form submission
+                    console.log('📮 LAST RESORT: Attempting direct form submission');
 
-                // Method 3: Last resort - try actual form submission
-                console.log('📮 LAST RESORT: Attempting direct form submission');
+                    // Create a temporary iframe to capture the form submission
+                    const iframe = document.createElement('iframe');
+                    iframe.name = 'submission-frame-' + Date.now();
+                    iframe.style.display = 'none';
+                    document.body.appendChild(iframe);
 
-                // Create a temporary iframe to capture the form submission
-                const iframe = document.createElement('iframe');
-                iframe.name = 'submission-frame-' + Date.now();
-                iframe.style.display = 'none';
-                document.body.appendChild(iframe);
+                    // Set up form to submit to the iframe
+                    const originalAction = form.action;
+                    const originalMethod = form.method;
+                    const originalTarget = form.target;
 
-                // Set up form to submit to the iframe
-                const originalAction = form.action;
-                const originalMethod = form.method;
-                const originalTarget = form.target;
-
-                form.action = originalAction;
-                form.method = 'post';
-                form.target = iframe.name;
-
-                // After iframe loads, try to extract result
-                iframe.onload = function () {
-                    try {
-                        const iframeContent = iframe.contentWindow.document.body.innerHTML;
-                        console.log('Direct form submission completed');
-
-                        if (iframeContent.includes('success') ||
-                            iframeContent.includes('Success') ||
-                            iframeContent.includes('created') ||
-                            iframeContent.includes('updated')) {
-                            // Success
-                            showSuccess(userId ? 'User updated successfully' : 'User created successfully');
-
-                            // Close modal
-                            const modal = form.closest('.modal');
-                            const bsModal = bootstrap.Modal.getInstance(modal);
-                            if (bsModal) bsModal.hide();
-
-                            // Reload users list
-                            loadUsers(currentPage);
-                        } else {
-                            // Error
-                            showError('Form submission failed. Please try again.');
-                        }
-                    } catch (e) {
-                        console.error('Error handling iframe response:', e);
-                        showError('Unknown error during form submission');
-                    }
-
-                    // Cleanup
                     form.action = originalAction;
-                    form.method = originalMethod;
-                    form.target = originalTarget;
+                    form.method = 'post';
+                    form.target = iframe.name;
 
-                    setTimeout(() => {
-                        document.body.removeChild(iframe);
-                        showLoading(false);
-                        allButtons.forEach(btn => btn.disabled = false);
-                    }, 500);
+                    // After iframe loads, try to extract result
+                    iframe.onload = function () {
+                        try {
+                            const iframeContent = iframe.contentWindow.document.body.innerHTML;
+                            console.log('Direct form submission completed');
+
+                            if (iframeContent.includes('success') ||
+                                iframeContent.includes('Success') ||
+                                iframeContent.includes('created') ||
+                                iframeContent.includes('updated')) {
+                                // Success
+                                showSuccess(userId ? 'User updated successfully' : 'User created successfully');
+
+                                // Close modal
+                                const modal = form.closest('.modal');
+                                const bsModal = bootstrap.Modal.getInstance(modal);
+                                if (bsModal) bsModal.hide();
+
+                                // Reload users list
+                                loadUsers(currentPage);
+                            } else {
+                                // Error
+                                showError('Form submission failed. Please try again.');
+                            }
+                        } catch (e) {
+                            console.error('Error handling iframe response:', e);
+                            showError('Unknown error during form submission');
+                        }
+
+                        // Cleanup
+                        form.action = originalAction;
+                        form.method = originalMethod;
+                        form.target = originalTarget;
+
+                        setTimeout(() => {
+                            document.body.removeChild(iframe);
+                            showLoading(false);
+                            allButtons.forEach(btn => btn.disabled = false);
+                        }, 500);
+                    };
+
+                    // Submit the form
+                    form.submit();
                 };
 
-                // Submit the form
-                form.submit();
-            };
-
-            xhr.send(formData);
-        });
+                xhr.send(formData);
+            });
     } catch (error) {
         console.error('❌ Critical error preparing form submission:', error);
         showError('Critical error: ' + error.message);
@@ -2086,13 +2098,13 @@ function handleSubmissionResponse(response, form, userId, allButtons) {
 
             // Reset the form for future use
             form.reset();
-            
+
             // Clear any validation errors
             form.querySelectorAll('.is-invalid').forEach(field => {
                 field.classList.remove('is-invalid');
                 field.setCustomValidity('');
             });
-            
+
             // Re-enable buttons
             if (allButtons) {
                 allButtons.forEach(btn => {
@@ -2132,19 +2144,19 @@ function handleSubmissionResponse(response, form, userId, allButtons) {
             // Try to extract a meaningful error message
             let errorMessage = `Server error (${response.status})`;
             let validationErrors = {};
-            
+
             if (text) {
                 try {
                     const jsonData = JSON.parse(text);
-                    
+
                     if (jsonData.error || jsonData.message) {
                         errorMessage = jsonData.error || jsonData.message;
                     }
-                    
+
                     // Handle validation errors
                     if (jsonData.errors) {
                         validationErrors = jsonData.errors;
-                        
+
                         // Display validation errors on the form fields
                         if (form) {
                             // Check for phone number validation error
@@ -2158,7 +2170,7 @@ function handleSubmissionResponse(response, form, userId, allButtons) {
                                     phoneField.parentNode.appendChild(feedbackDiv);
                                 }
                             }
-                            
+
                             // Check for date of birth validation error
                             if (errorMessage.includes('date_of_birth')) {
                                 const dobField = form.querySelector('#date-of-birth-new');
@@ -2187,7 +2199,7 @@ function handleSubmissionResponse(response, form, userId, allButtons) {
 
             // Simplified error message for display
             let displayErrorMessage = errorMessage;
-            
+
             // Cleanup error message to be more user-friendly
             if (displayErrorMessage.includes('Object(App\\Entity\\User)')) {
                 displayErrorMessage = displayErrorMessage
@@ -2195,26 +2207,26 @@ function handleSubmissionResponse(response, form, userId, allButtons) {
                     .replace(/\(code [a-z0-9-]+\)/g, '')
                     .replace(/\n\s+/g, ': ');
             }
-            
+
             showError('Failed to save user: ' + displayErrorMessage);
             showLoading(false);
             throw new Error(errorMessage);
         }
     })
-    .catch(error => {
-        // Always ensure we reset the UI state
-        showLoading(false);
-        if (allButtons) {
-            allButtons.forEach(btn => {
-                btn.disabled = false;
-                // Hide any spinners
-                const spinner = btn.querySelector('.spinner-border');
-                if (spinner) spinner.classList.add('d-none');
-            });
-        }
-        // Re-throw the error for upstream handling
-        throw error;
-    });
+        .catch(error => {
+            // Always ensure we reset the UI state
+            showLoading(false);
+            if (allButtons) {
+                allButtons.forEach(btn => {
+                    btn.disabled = false;
+                    // Hide any spinners
+                    const spinner = btn.querySelector('.spinner-border');
+                    if (spinner) spinner.classList.add('d-none');
+                });
+            }
+            // Re-throw the error for upstream handling
+            throw error;
+        });
 }
 
 /**
@@ -2617,7 +2629,7 @@ function showAndSetupEditModal(form, userId, modal) {
         });
     }
     bsModal.show();
-    
+
     // Dispatch custom event for the ban toggle functionality
     // Extract user data from form fields
     const userData = {
@@ -2630,7 +2642,7 @@ function showAndSetupEditModal(form, userId, modal) {
         role: form.querySelector('#role-edit')?.value || '',
         account_status: form.querySelector('#status-edit')?.value || ''
     };
-    
+
     // Dispatch the event with user data
     const userEditEvent = new CustomEvent('userEditModalOpened', {
         detail: userData
@@ -3082,6 +3094,16 @@ function initializeElements() {
 
         // Action buttons
         addUserBtn: document.getElementById('add-user-btn'),
+
+        // Bulk action elements
+        selectAllCheckbox: document.getElementById('select-all-checkbox'),
+        bulkActionsToolbar: document.getElementById('bulk-actions-toolbar'),
+        selectedCount: document.getElementById('selected-count'),
+        bulkBanBtn: document.getElementById('bulk-ban-btn'),
+        bulkUnbanBtn: document.getElementById('bulk-unban-btn'),
+        bulkExportBtn: document.getElementById('bulk-export-btn'),
+        bulkDeleteBtn: document.getElementById('bulk-delete-btn'),
+        clearSelectionBtn: document.getElementById('clear-selection-btn'),
     };
 
     // Log which elements were not found to help with debugging
@@ -3108,7 +3130,7 @@ function initializeElements() {
     }
 }
 
-
-
+// Expose the function globally for other modules
+window.showStyledAlert = showStyledAlert;
 
 document.addEventListener('DOMContentLoaded', init);

@@ -539,4 +539,90 @@ class UserController extends AbstractController
             ], 500);
         }
     }
+
+    #[Route('/admin/users/bulk-status-update', name: 'admin_bulk_status_update', methods: ['POST'])]
+    public function bulkUpdateStatus(Request $request): JsonResponse
+    {
+        try {
+            $this->logger->info('Bulk user status update request received');
+            
+            // Get data from request body as JSON
+            $content = $request->getContent();
+            $data = json_decode($content, true);
+            
+            if (!$data) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Invalid JSON data'
+                ], 400);
+            }
+            
+            // Extract user IDs and target status
+            $userIds = $data['userIds'] ?? [];
+            $newStatus = $data['status'] ?? null;
+            
+            if (empty($userIds) || !$newStatus) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Missing user IDs or status'
+                ], 400);
+            }
+            
+            $this->logger->info('Bulk updating status of ' . count($userIds) . ' users to ' . $newStatus);
+            
+            // Success counter
+            $successCount = 0;
+            $errors = [];
+            
+            // Update each user's status
+            foreach ($userIds as $userId) {
+                try {
+                    $user = $this->userService->getUserById($userId);
+                    
+                    if (!$user) {
+                        $errors[] = "User ID $userId not found";
+                        continue;
+                    }
+                    
+                    // Use the dedicated updateUserStatus method to properly update the status
+                    // This ensures the same mechanism is used for both individual and bulk updates
+                    $this->userService->updateUserStatus($user, $newStatus);
+                    $successCount++;
+                } catch (\Exception $e) {
+                    $errors[] = "Error updating user $userId: " . $e->getMessage();
+                    $this->logger->error("Error updating user $userId: " . $e->getMessage());
+                }
+            }
+            
+            // Return results
+            if ($successCount === count($userIds)) {
+                return new JsonResponse([
+                    'success' => true,
+                    'message' => "Successfully updated $successCount users to status $newStatus"
+                ]);
+            } else if ($successCount > 0) {
+                return new JsonResponse([
+                    'success' => true,
+                    'message' => "Partially successful: Updated $successCount out of " . count($userIds) . " users to status $newStatus",
+                    'errors' => $errors
+                ]);
+            } else {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Failed to update any users',
+                    'errors' => $errors
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            $this->logger->error('Error in bulk status update: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Server error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
