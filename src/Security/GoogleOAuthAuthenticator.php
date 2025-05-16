@@ -85,17 +85,8 @@ class GoogleOAuthAuthenticator extends OAuth2Authenticator implements Authentica
                 // Try to get user data from Google
                 $userData = $googleUser->toArray();
                 
-                // Add extra detailed logging for testing
-                file_put_contents(
-                    '/home/rzouga/Desktop/Projects/WamiaGo-Webapp/var/log/google_user_data.log', 
-                    date('Y-m-d H:i:s') . " - TESTING WITH SENSITIVE SCOPES - " . json_encode($userData, JSON_PRETTY_PRINT) . "\n", 
-                    FILE_APPEND
-                );
+            
                 
-                // After adding yourself as a test user and updating scopes, this should now
-                // provide phone number and birthdate if they're in your Google account
-                
-                // Set profile picture from Google if available
                 if ($googleUser->getAvatar()) {
                     $user->setProfilePicture($googleUser->getAvatar());
                 }
