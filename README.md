@@ -601,6 +601,15 @@ php bin/console cache:warmup --env=prod
 
 We welcome contributions to make WamiaGo even better! Here's how you can help:
 
+### 👨‍💻 Core Contributors
+
+- **[Malek Bsaissa](https://github.com/AtfastrSlushyMaker)** - Bicycle & Station Management
+- **[Ezer Abrougui](https://github.com/ezer2002)** - Transport Related Management  
+- **[Farah Derbell](https://github.com/farahderbell)** - Taxi Related Management
+- **[Abd Razek Nakhli](https://github.com/Rzouga01)** - User Related Management
+- **[Mohamed Islem Ghazouani](https://github.com/islem201)** - Carpooling Related Management
+- **[Walaa Eddine Ghrairi](https://github.com/walaaghrairi)** - Feedback Related Management
+
 ### Development Workflow
 1. **Fork** the repository
 2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
