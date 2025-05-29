@@ -674,7 +674,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 **WamiaGo Development Team**
 
-📧 **Email**: [wamiago.contact@gmail.com](mailto:wamiago.contact@gmail.com)  
+📧 **Email**: [wamiago@gmail.com](mailto:wamiago@gmail.com)  
 🔗 **Repository**: [github.com/AtfastrSlushyMaker/WamiaGo-Webapp](https://github.com/AtfastrSlushyMaker/WamiaGo-Webapp)  
 🌐 **Documentation**: [Coming Soon]  
 💬 **Discussions**: [GitHub Discussions](https://github.com/AtfastrSlushyMaker/WamiaGo-Webapp/discussions)
