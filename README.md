@@ -6,10 +6,9 @@
   </a>
   
   <p><strong>Advanced Transportation Management Platform with AI-Powered Security</strong></p>
-  
-  [![Symfony](https://img.shields.io/badge/Symfony-6.4-000000.svg?style=flat&logo=symfony)](https://symfony.com)
+    [![Symfony](https://img.shields.io/badge/Symfony-6.4-000000.svg?style=flat&logo=symfony)](https://symfony.com)
   [![PHP](https://img.shields.io/badge/PHP-8.1+-777BB4.svg?style=flat&logo=php)](https://php.net)
-  [![React](https://img.shields.io/badge/React-19.1.0-61DAFB.svg?style=flat&logo=react)](https://react.dev)
+  [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3.svg?style=flat&logo=bootstrap)](https://getbootstrap.com)
   [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?style=flat&logo=docker)](https://docker.com)
   [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 </div>
@@ -48,8 +47,8 @@
 🔐 **AI-Powered Security** - Facial recognition authentication using Python/Flask with dlib and OpenCV  
 🚴‍♂️ **Smart Bike Sharing** - Complete bicycle rental system with station management and QR codes  
 🚗 **Ride Management** - Driver-passenger matching with real-time trip tracking  
-📱 **Modern UI/UX** - React-powered frontend with Bootstrap 5 and real-time updates  
-🐳 **Docker Ready** - Complete containerized setup with all microservices  
+📱 **Modern UI/UX** - Symfony UX frontend with Bootstrap 5 and real-time updates  
+🐳 **Docker Ready** - Complete containerized setup with all microservices
 
 ---
 
@@ -125,10 +124,12 @@ doctrine/doctrine-fixtures-bundle # Database seeding
 ```
 
 ### Frontend Technologies
-- **[React 19.1.0](https://react.dev/)** - Modern JavaScript library for building user interfaces
+- **[Symfony UX](https://ux.symfony.com/)** - Modern JavaScript integration for Symfony
+- **[Stimulus](https://stimulus.hotwired.dev/)** - Modest JavaScript framework for progressive enhancement
+- **[Turbo](https://turbo.hotwired.dev/)** - Fast navigation and real-time updates
 - **[Bootstrap 5.3.5](https://getbootstrap.com/)** - Responsive CSS framework
 - **[Chart.js 4.4.9](https://www.chartjs.org/)** - Beautiful and responsive charts
-- **[Stimulus](https://stimulus.hotwired.dev/)** - Modest JavaScript framework
+- **[Vanilla JavaScript ES6+](https://developer.mozilla.org/en-US/docs/Web/JavaScript)** - Modern JavaScript implementation
 
 ### AI Facial Recognition Service
 - **[Python 3.8+](https://python.org/)** - Core programming language
@@ -152,7 +153,7 @@ doctrine/doctrine-fixtures-bundle # Database seeding
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   React Frontend │    │  Symfony Backend │    │  Python AI Service │
+│ Symfony UX + JS │    │  Symfony Backend │    │  Python AI Service │
 │   (Port 80/8000) │◄──►│   (Apache/PHP)   │◄──►│   (Port 5000)    │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                        │                        │
@@ -661,8 +662,8 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ### Third-Party Licenses
 - Symfony Framework: MIT License
-- React: MIT License  
 - Bootstrap: MIT License
+- Chart.js: MIT License
 - dlib: Boost Software License
 - OpenCV: Apache 2.0 License
 
