@@ -51,6 +51,10 @@
 📱 **Modern UI/UX** - Symfony UX frontend with Bootstrap 5 and real-time updates  
 🐳 **Docker Ready** - Complete containerized setup with all microservices
 
+### 🔗 Related Projects
+
+📱 **[WamiaGo Desktop App](https://github.com/AtfastrSlushyMaker/WamiaGo-Desktop)** - Native desktop application for Windows/macOS/Linux with enhanced features and offline capabilities
+
 ---
 
 ## ✨ Key Features
