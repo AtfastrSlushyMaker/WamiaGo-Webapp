@@ -1,0 +1,238 @@
+<!-- User Stats List Modal -->
+<div class="modal fade" id="users-stats-modal" tabindex="-1" role="dialog" aria-labelledby="users-stats-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-gradient-primary text-white">
+                <h5 class="modal-title font-weight-bold" id="users-stats-modal-label">
+                    <i class="fas fa-users-cog mr-2"></i>User List
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-0">
+              
+                <div class="stats-summary p-4 bg-light border-bottom">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body py-4">
+                                    <div class="row">
+                                        <div class="col-md-3 text-center border-right">
+                                            <div class="stat-icon-circle bg-primary text-white mx-auto mb-2">
+                                                <i class="fas fa-users"></i>
+                                            </div>
+                                            <h6 class="text-uppercase text-muted small mb-1">Total Count</h6>
+                                            <h3 class="mb-0 font-weight-bold text-dark" id="stats-modal-total">-</h3>
+                                        </div>
+                                        <div class="col-md-3 text-center border-right">
+                                            <div class="stat-icon-circle bg-success text-white mx-auto mb-2">
+                                                <i class="fas fa-check-circle"></i>
+                                            </div>
+                                            <h6 class="text-uppercase text-muted small mb-1">Verified Users</h6>
+                                            <h3 class="mb-0 font-weight-bold text-success" id="stats-modal-verified">-</h3>
+                                            <small class="text-muted" id="stats-modal-verified-percent">-%</small>
+                                        </div>
+                                        <div class="col-md-3 text-center border-right">
+                                            <div class="stat-icon-circle bg-info text-white mx-auto mb-2">
+                                                <i class="fas fa-birthday-cake"></i>
+                                            </div>
+                                            <h6 class="text-uppercase text-muted small mb-1">Average Age</h6>
+                                            <h3 class="mb-0 font-weight-bold text-dark" id="stats-modal-avg-age">-</h3>
+                                        </div>
+                                        <div class="col-md-3 text-center">
+                                            <div class="stat-icon-circle bg-secondary text-white mx-auto mb-2">
+                                                <i class="fas fa-venus-mars"></i>
+                                            </div>
+                                            <h6 class="text-uppercase text-muted small mb-1">Gender Ratio</h6>
+                                            <div class="d-flex justify-content-center align-items-center">
+                                                <div class="gender-stat mr-2">
+                                                    <span class="badge badge-info p-2">M</span>
+                                                    <span id="stats-modal-male-count" class="font-weight-bold text-dark">-</span>
+                                                </div>
+                                                <div class="mx-2 text-dark">:</div>
+                                                <div class="gender-stat ml-2">
+                                                    <span class="badge badge-primary p-2">F</span>
+                                                    <span id="stats-modal-female-count" class="font-weight-bold text-dark">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-container p-3">
+                    <div class="alert alert-info d-none" id="loading-users-message">
+                        <i class="fas fa-spinner fa-spin mr-2"></i> Loading user data...
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered" id="stats-users-table">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th class="text-center" width="50">#</th>
+                                    <th width="220">User</th>
+                                    <th>Contact Info</th>
+                                    <th>Date of Birth</th>
+                                    <th>Gender</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Verification</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stats-users-table-body" class="align-middle">
+                                <!-- User rows will be dynamically populated here -->
+                                <tr>
+                                    <td colspan="8" class="text-center py-4">Loading users...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <div class="text-muted mr-auto">
+                    <i class="fas fa-filter mr-1"></i> Showing <span id="stats-showing-results" class="font-weight-bold text-dark">0</span> users
+                </div>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i> Close
+                </button>
+                <button type="button" class="btn btn-primary" id="stats-view-all-btn">
+                    <i class="fas fa-table mr-1"></i> View All in Main Table
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-icon-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.gender-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.gender-stat span.font-weight-bold {
+    margin-top: 5px;
+    color: #333;
+}
+
+#stats-users-table th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    color: #495057;
+    font-weight: bold;
+}
+
+#stats-users-table tbody tr td {
+    color: #000000 !important; /* Force black text color for all cells */
+}
+
+#stats-users-table tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* Make sure the action buttons work properly */
+#stats-users-table .action-btn {
+    color: #fff;
+    margin: 0 2px;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    display: inline-block;
+    text-align: center;
+}
+
+#stats-users-table .btn-view {
+    background-color: #17a2b8;
+}
+
+#stats-users-table .btn-edit {
+    background-color: #4e73df;
+}
+
+#stats-users-table .btn-ban {
+    background-color: #dc3545;
+}
+
+#stats-users-table .btn-unban {
+    background-color: #28a745;
+}
+
+.avatar-container {
+    position: relative;
+    width: 45px;
+    height: 45px;
+}
+
+.avatar-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border: 2px solid #fff;
+}
+
+.user-status-indicator {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background-color: #28a745;
+}
+
+.user-status-indicator.banned {
+    background-color: #dc3545;
+}
+
+.user-status-indicator.suspended {
+    background-color: #ffc107;
+}
+
+/* Fix for contrast issues */
+.modal-title {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.text-dark {
+    color: #333 !important;
+}
+
+.badge {
+    text-shadow: none;
+}
+
+.badge-success, .badge-primary, .badge-info, .badge-warning, .badge-danger {
+    color: white !important;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.1);
+}
+
+.badge-light, .badge-secondary {
+    color: #333 !important;
+}
+
+.gender-stat .badge-primary,
+span.badge-primary:contains("F"),
+span.badge:contains("FEMALE"),
+#stats-users-table .badge:contains("FEMALE") {
+    background-color: #e83e8c !important; 
+    color: white !important;
+}
+</style>

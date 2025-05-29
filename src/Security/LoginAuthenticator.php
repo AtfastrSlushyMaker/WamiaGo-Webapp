@@ -187,7 +187,15 @@ class LoginAuthenticator extends AbstractLoginFormAuthenticator
             $session->remove('permanent_totp_secret');
             $session->remove('2fa_in_progress');
             
-            $response = new RedirectResponse($this->urlGenerator->generate('app_front_home'));
+            // Check user role and redirect accordingly - handle both string and Enum return types
+            $role = $user->getRole();
+            $roleValue = is_object($role) && method_exists($role, 'value') ? $role->value : $role;
+            
+            if ($roleValue === 'ADMIN') {
+                $response = new RedirectResponse($this->urlGenerator->generate('admin_dashboard'));
+            } else {
+                $response = new RedirectResponse($this->urlGenerator->generate('app_front_home'));
+            }
         }
         
         // Add secured cookies with user data

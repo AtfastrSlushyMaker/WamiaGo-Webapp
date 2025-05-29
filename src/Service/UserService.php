@@ -290,4 +290,27 @@ class UserService
             $user->setDate_of_birth(new \DateTime($data['date_of_birth']));
         }
     }
+
+    /**
+     * Update only the user's account status
+     * This is a specialized method to avoid issues with the full update process
+     */
+    public function updateUserStatus(User $user, string $status): User
+    {
+        // Validate the status
+        try {
+            $accountStatus = ACCOUNT_STATUS::from($status);
+        } catch (\ValueError $e) {
+            throw new \InvalidArgumentException('Invalid account status: ' . $status);
+        }
+        
+        // Update only the status
+        $user->setAccount_status($accountStatus);
+        
+        // Save changes
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+        
+        return $user;
+    }
 }

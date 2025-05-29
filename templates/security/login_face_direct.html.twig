@@ -304,12 +304,7 @@
                         data-check-url="{{ path('app_face_check') }}">
                     <i class="fas fa-camera me-2"></i> Verify My Face
                 </button>
-                {% if app.environment == 'dev' %}
-                <button id="test-api" class="btn btn-outline-info ms-2"
-                        data-check-url="{{ path('app_face_check') }}">
-                    <i class="fas fa-wrench me-2"></i> Test API Connection
-                </button>
-                {% endif %}
+              
             </div>
         </div>
         

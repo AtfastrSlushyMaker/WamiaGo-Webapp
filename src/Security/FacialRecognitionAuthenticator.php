@@ -132,7 +132,18 @@ class FacialRecognitionAuthenticator extends AbstractAuthenticator implements Au
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
-        // Redirect to a success page
+        // Check if user is admin and redirect to dashboard
+        $user = $token->getUser();
+        if (method_exists($user, 'getRole')) {
+            $role = $user->getRole();
+            $roleValue = is_object($role) && method_exists($role, 'value') ? $role->value : $role;
+            
+            if ($roleValue === 'ADMIN') {
+                return new RedirectResponse($this->urlGenerator->generate('admin_dashboard'));
+            }
+        }
+        
+        // Redirect to a success page for other users
         return new RedirectResponse($this->urlGenerator->generate('app_front_home'));
     }
 

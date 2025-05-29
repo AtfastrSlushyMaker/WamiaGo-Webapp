@@ -931,5 +931,39 @@
         updatePreview();
     });
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const departureCity = document.getElementById('departureCity');
+    const arrivalCity = document.getElementById('arrivalCity');
+    const availableSeats = document.getElementById('availableSeats');
+    const priceInput = document.getElementById('pricePerPassenger');
+    const priceSlider = document.getElementById('priceSlider');
+    const priceDisplay = document.getElementById('priceDisplay');
+    const previewPrice = document.getElementById('previewPrice');
+
+    function generateRandomPrice(min, max) {
+        return (Math.random() * (max - min) + min).toFixed(3);
+    }
+
+    function updatePriceIfReady() {
+        const dep = departureCity.value;
+        const arr = arrivalCity.value;
+        const seats = availableSeats.value;
+
+        if (dep && arr && seats) {
+            const randomPrice = generateRandomPrice(7.5, 10);
+            priceInput.value = randomPrice;
+            priceSlider.value = randomPrice;
+            priceDisplay.textContent = `${randomPrice} TND`;
+            previewPrice.textContent = `${randomPrice} TND`;
+        }
+    }
+
+    departureCity.addEventListener('change', updatePriceIfReady);
+    arrivalCity.addEventListener('change', updatePriceIfReady);
+    availableSeats.addEventListener('input', updatePriceIfReady);
+});
+</script>
+
 </body>
 </html>

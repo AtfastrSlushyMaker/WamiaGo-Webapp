@@ -59,9 +59,355 @@ class AdminController extends AbstractController
     }
 
     #[Route('/admin/users', name: 'admin_users')]
-    public function users(): Response
+    public function users(Request $request): Response
     {
-        return $this->render('back-office/users.html.twig');
+        $isAjax = $request->headers->get('X-Requested-With') === 'XMLHttpRequest';
+        
+        $role = $request->query->get('role');
+        $status = $request->query->get('status');
+        $verified = $request->query->get('verified');
+        $searchTerm = $request->query->get('search');
+        
+        $queryBuilder = $this->entityManager->createQueryBuilder()
+            ->select('u')
+            ->from(\App\Entity\User::class, 'u')
+            ->orderBy('u.id_user', 'DESC');
+        
+        if ($role) {
+            $queryBuilder->andWhere('u.role = :role')
+                        ->setParameter('role', $role);
+        }
+        
+        if ($status) {
+            $queryBuilder->andWhere('u.status = :status')
+                        ->setParameter('status', $status);
+        }
+        
+        if ($verified !== null) {
+            $queryBuilder->andWhere('u.isVerified = :verified')
+                        ->setParameter('verified', $verified == '1');
+        }
+        
+        if ($searchTerm) {
+            $queryBuilder->andWhere('u.name LIKE :search OR u.email LIKE :search OR u.phoneNumber LIKE :search')
+                        ->setParameter('search', '%' . $searchTerm . '%');
+        }
+        
+        $users = $this->paginator->paginate(
+            $queryBuilder->getQuery(),
+            $request->query->getInt('page', 1),
+            $request->query->getInt('perPage', 10)
+        );
+        
+        $allUsers = $this->entityManager->getRepository(\App\Entity\User::class)->findAll();
+        $adminCount = 0;
+        $clientCount = 0;
+        $activeCount = 0;
+        $suspendedCount = 0;
+        $bannedCount = 0;
+        $verifiedCount = 0;
+        
+        foreach ($allUsers as $user) {
+            if ($user->getRole() === \App\Enum\ROLE::ADMIN) {
+                $adminCount++;
+            } elseif ($user->getRole() === \App\Enum\ROLE::CLIENT) {
+                $clientCount++;
+            }
+            
+            $status = $user->getStatus();
+            if ($status === \App\Enum\ACCOUNT_STATUS::ACTIVE) {
+                $activeCount++;
+            } elseif ($status === \App\Enum\ACCOUNT_STATUS::DEACTIVATED) {
+                $suspendedCount++;
+            } elseif ($status === \App\Enum\ACCOUNT_STATUS::BANNED) {
+                $bannedCount++;
+            }
+            
+            if ($user->isVerified()) {
+                $verifiedCount++;
+            }
+        }
+        
+        // Create empty user for edit form (fixes the edit modal not found issue)
+        $editUser = new \App\Entity\User();
+        
+        $params = [
+            'users' => $users,
+            'stats' => [
+                'totalUsers' => count($allUsers),
+                'adminCount' => $adminCount,
+                'clientCount' => $clientCount,
+                'activeCount' => $activeCount,
+                'suspendedCount' => $suspendedCount,
+                'bannedCount' => $bannedCount,
+                'verifiedCount' => $verifiedCount,
+                'verificationRate' => count($allUsers) > 0 ? round(($verifiedCount / count($allUsers)) * 100) : 0
+            ],
+            'filters' => [
+                'role' => $role,
+                'status' => $status,
+                'verified' => $verified,
+                'search' => $searchTerm
+            ],
+            'account_statuses' => [
+                ['value' => \App\Enum\ACCOUNT_STATUS::ACTIVE->value],
+                ['value' => \App\Enum\ACCOUNT_STATUS::DEACTIVATED->value],
+                ['value' => \App\Enum\ACCOUNT_STATUS::BANNED->value]
+            ],
+            'roles' => [
+                ['value' => \App\Enum\ROLE::ADMIN->value],
+                ['value' => \App\Enum\ROLE::CLIENT->value]
+            ],
+            'form_edit' => $editUser  // Add this variable for the edit modal
+        ];
+        
+        if ($isAjax) {
+            return $this->render('back-office/users/users.html.twig', $params);
+        }
+        
+        return $this->render('back-office/users/users.html.twig', $params);
+    }
+
+    #[Route('/admin/user/new', name: 'admin_user_new', methods: ['POST'])]
+    public function newUser(Request $request): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        $user = new \App\Entity\User();
+        
+        try {
+        
+            $user->setName($data['name']);
+            $user->setEmail($data['email']);
+            
+    
+            $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
+            $user->setPassword($hashedPassword);
+            
+         
+            $user->setPhoneNumber($data['phone'] ?? null);
+            $user->setRole(\App\Enum\ROLE::from($data['role']));
+            $user->setStatus(\App\Enum\ACCOUNT_STATUS::from($data['status']));
+            $user->setIsVerified(isset($data['verified']) && $data['verified']);
+
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
+            
+            return $this->json([
+                'success' => true,
+                'message' => 'User created successfully',
+                'user' => [
+                    'id' => $user->getId_user(),
+                    'name' => $user->getName(),
+                    'email' => $user->getEmail()
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error creating user: ' . $e->getMessage()
+            ], 400);
+        }
+    }
+    
+    #[Route('/admin/users/api', name: 'admin_users_api', methods: ['GET'])]
+    public function usersApi(Request $request): Response
+    {
+        $page = $request->query->getInt('page', 1);
+        $perPage = $request->query->getInt('perPage', 10);
+        $role = $request->query->get('role');
+        $status = $request->query->get('status');
+        $verified = $request->query->get('verified');
+        $search = $request->query->get('search');
+        
+        $queryBuilder = $this->entityManager->createQueryBuilder()
+            ->select('u')
+            ->from(\App\Entity\User::class, 'u')
+            ->orderBy('u.id_user', 'DESC');
+        
+        // Apply filters
+        if ($role) {
+            $queryBuilder->andWhere('u.role = :role')
+                        ->setParameter('role', $role);
+        }
+        
+        if ($status) {
+            $queryBuilder->andWhere('u.status = :status')
+                        ->setParameter('status', $status);
+        }
+        
+        if ($verified !== null) {
+            $queryBuilder->andWhere('u.isVerified = :verified')
+                        ->setParameter('verified', $verified == '1');
+        }
+        
+        if ($search) {
+            $queryBuilder->andWhere('u.name LIKE :search OR u.email LIKE :search OR u.phoneNumber LIKE :search')
+                        ->setParameter('search', '%' . $search . '%');
+        }
+        
+        $paginator = $this->paginator->paginate(
+            $queryBuilder->getQuery(),
+            $page,
+            $perPage
+        );
+        
+        $users = [];
+        foreach ($paginator->getItems() as $user) {
+            $users[] = [
+                'id' => $user->getId_user(),
+                'name' => $user->getName(),
+                'email' => $user->getEmail(),
+                'phone' => $user->getPhoneNumber() ?? $user->getPhone_number() ?? '',
+                'profile_picture' => $user->getProfilePicture(),
+                'account_status' => $user->getAccountStatus() ?? $user->getAccount_status() ?? 'ACTIVE',
+                'isVerified' => $user->isVerified(),
+                'role' => $user->getRole(),
+                'dateOfBirth' => $user->getDateOfBirth() ? $user->getDateOfBirth()->format('Y-m-d') : null,
+            ];
+        }
+        
+        return $this->json([
+            'users' => $users,
+            'pagination' => [
+                'total' => $paginator->getTotalItemCount(),
+                'count' => count($users),
+                'perPage' => $perPage,
+                'currentPage' => $page,
+                'lastPage' => ceil($paginator->getTotalItemCount() / $perPage)
+            ]
+        ]);
+    }
+    
+    #[Route('/admin/api/user/{id}', name: 'admin_api_user_get', methods: ['GET'])]
+    public function getUserApi(int $id): Response
+    {
+        $user = $this->entityManager->getRepository(\App\Entity\User::class)->find($id);
+        
+        if (!$user) {
+            return $this->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+        
+        return $this->json([
+            'success' => true,
+            'user' => [
+                'id' => $user->getId_user(),
+                'name' => $user->getName(),
+                'email' => $user->getEmail(),
+                'phone' => $user->getPhoneNumber() ?? $user->getPhone_number() ?? '',
+                'profile_picture' => $user->getProfilePicture(),
+                'account_status' => $user->getAccountStatus() ?? $user->getAccount_status() ?? 'ACTIVE',
+                'isVerified' => $user->isVerified(),
+                'role' => $user->getRole(),
+                'dateOfBirth' => $user->getDateOfBirth() ? $user->getDateOfBirth()->format('Y-m-d') : null,
+            ]
+        ]);
+    }
+    
+    #[Route('/admin/user/{id}/edit', name: 'admin_user_edit', methods: ['GET', 'POST'])]
+    public function editUser(int $id, Request $request): Response
+    {
+        $user = $this->entityManager->getRepository(\App\Entity\User::class)->find($id);
+        
+        if (!$user) {
+            return $this->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+        
+        // Handle GET request - return form data
+        if ($request->isMethod('GET')) {
+            return $this->json([
+                'success' => true,
+                'user' => [
+                    'id' => $user->getId_user(),
+                    'name' => $user->getName(),
+                    'email' => $user->getEmail(),
+                    'phone' => $user->getPhoneNumber() ?? $user->getPhone_number() ?? '',
+                    'profile_picture' => $user->getProfilePicture(),
+                    'account_status' => $user->getAccountStatus() ?? $user->getAccount_status() ?? 'ACTIVE',
+                    'isVerified' => $user->isVerified(),
+                    'role' => $user->getRole(),
+                    'dateOfBirth' => $user->getDateOfBirth() ? $user->getDateOfBirth()->format('Y-m-d') : null,
+                ]
+            ]);
+        }
+        
+        // Handle POST request - update user
+        $data = json_decode($request->getContent(), true);
+        
+        try {
+            // Update user properties
+            $user->setName($data['name']);
+            $user->setEmail($data['email']);
+            
+            // Optional password update
+            if (!empty($data['password'])) {
+                $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
+                $user->setPassword($hashedPassword);
+            }
+            
+            // Set other properties
+            $user->setPhoneNumber($data['phone'] ?? null);
+            if (isset($data['role'])) {
+                $user->setRole(\App\Enum\ROLE::from($data['role']));
+            }
+            if (isset($data['status'])) {
+                $user->setStatus(\App\Enum\ACCOUNT_STATUS::from($data['status']));
+            }
+            if (isset($data['verified'])) {
+                $user->setIsVerified($data['verified']);
+            }
+            
+            // Save to database
+            $this->entityManager->flush();
+            
+            return $this->json([
+                'success' => true,
+                'message' => 'User updated successfully',
+                'user' => [
+                    'id' => $user->getId_user(),
+                    'name' => $user->getName(),
+                    'email' => $user->getEmail()
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error updating user: ' . $e->getMessage()
+            ], 400);
+        }
+    }
+    
+    #[Route('/admin/user/{id}/delete', name: 'admin_user_delete', methods: ['POST', 'DELETE'])]
+    public function deleteUser(int $id): Response
+    {
+        $user = $this->entityManager->getRepository(\App\Entity\User::class)->find($id);
+        
+        if (!$user) {
+            return $this->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+        
+        try {
+            $this->entityManager->remove($user);
+            $this->entityManager->flush();
+            
+            return $this->json([
+                'success' => true,
+                'message' => 'User deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error deleting user: ' . $e->getMessage()
+            ], 400);
+        }
     }
 
     #[Route('/admin/ride-sharing', name: 'admin_ride_sharing')]

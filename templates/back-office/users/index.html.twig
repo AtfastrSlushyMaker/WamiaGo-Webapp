@@ -1,0 +1,751 @@
+{% extends 'back-office/base.html.twig' %}
+
+{% block title %}User Management{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        /* Custom styles for the user management page */
+        .table th {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .badge {
+            font-weight: 500;
+            padding: 0.5em 0.75em;
+        }
+        
+        .user-avatar-sm {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .btn-group .btn {
+            border-radius: 0.25rem;
+            margin: 0 2px;
+        }
+        
+        /* Status colors */
+        .badge.bg-client {
+            background-color: #17a2b8 !important;
+        }
+        
+        .badge.bg-admin {
+            background-color: #0d6efd !important;
+        }
+        
+        #loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .search-container {
+            position: relative;
+        }
+        
+        .btn-clear {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container-fluid py-4">
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    Total Users</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.totalUsers }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-users fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    Active Users</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.activeCount }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                    Verification Rate</div>
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col-auto">
+                                        <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{ stats.verificationRate }}%</div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="progress progress-sm mr-2">
+                                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ stats.verificationRate }}%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-clipboard-check fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                    Admin Users</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.adminCount }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-user-shield fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center bg-gradient-primary text-white">
+                <h5 class="mb-0">User Management</h5>
+                <div>
+                    <button type="button" class="btn btn-light" id="add-user-btn" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                        <i class="fas fa-plus me-2"></i> Add User
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Filters & Search -->
+                <div class="row mb-4 g-3">
+                    <div class="col-md-4">
+                        <div class="search-container">
+                            <input type="text" id="user-search" class="form-control" placeholder="Search users...">
+                            <button class="btn-clear" id="clear-search" type="button" style="display: none;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                            <select id="filter-role" class="form-select filter-dropdown">
+                                <option value="">All Roles</option>
+                                <option value="ADMIN">Admin</option>
+                                <option value="CLIENT">Client</option>
+                            </select>
+                            <select id="filter-status" class="form-select filter-dropdown">
+                                <option value="">All Account Status</option>
+                                <option value="ACTIVE">Active</option>
+                                <option value="DEACTIVATED">Deactivated</option>
+                                <option value="BANNED">Banned</option>
+                            </select>
+                            <select id="filter-verified" class="form-select filter-dropdown">
+                                <option value="">All Verification</option>
+                                <option value="1">Verified</option>
+                                <option value="0">Unverified</option>
+                            </select>
+                            <select id="page-size" class="form-select filter-dropdown">
+                                <option value="10">10 per page</option>
+                                <option value="25">25 per page</option>
+                                <option value="50">50 per page</option>
+                                <option value="100">100 per page</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- View Toggles -->
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="view-toggle btn-group">
+                        <button id="list-view-btn" class="btn btn-outline-primary active">
+                            <i class="fas fa-list me-1"></i> List View
+                        </button>
+                        <button id="card-view-btn" class="btn btn-outline-primary">
+                            <i class="fas fa-th-large me-1"></i> Card View
+                        </button>
+                    </div>
+                    <div class="d-flex align-items-center text-muted">
+                        Showing <span id="showing-results" class="fw-bold mx-1">{{ users|length }}</span> of 
+                        <span id="total-results" class="fw-bold mx-1">{{ stats.totalUsers }}</span> users
+                    </div>
+                </div>
+
+                <!-- Loading Overlay -->
+                <div id="loading-overlay" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+
+                <!-- List View -->
+                <div id="list-view" class="mb-3 position-relative">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle" id="users-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 3%">#</th>
+                                    <th style="width: 18%">User</th>
+                                    <th style="width: 15%">Contact Info</th>
+                                    <th style="width: 10%">Date of Birth</th>
+                                    <th style="width: 7%">Gender</th>
+                                    <th style="width: 7%">Role</th>
+                                    <th style="width: 10%">Status</th>
+                                    <th style="width: 10%">Verification</th>
+                                    <th style="width: 20%">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                {% if users|length > 0 %}
+                                    {% for user in users %}
+                                        <tr>
+                                            <td>{{ loop.index }}</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="{{ user.profilePicture ?? asset('images/default-avatar.png') }}" alt="{{ user.name }}" class="user-avatar-sm me-3" onerror="this.src='{{ asset('images/default-avatar.png') }}'">
+                                                    <div>
+                                                        <div class="fw-bold">{{ user.name }}</div>
+                                                        <small class="text-muted">ID: {{ user.id_user }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div><i class="fas fa-envelope me-2 text-muted"></i> {{ user.email }}</div>
+                                                <div><i class="fas fa-phone me-2 text-muted"></i> {{ user.phoneNumber ?? 'N/A' }}</div>
+                                            </td>
+                                            <td>{{ user.dateOfBirth ? user.dateOfBirth|date('Y-m-d') : 'N/A' }}</td>
+                                            <td>{{ user.gender ?? 'N/A' }}</td>
+                                            <td>
+                                                <span class="badge {{ user.role == 'ADMIN' ? 'bg-admin' : 'bg-client' }}">
+                                                    {{ user.role }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% set statusClass = '' %}
+                                                {% if user.status == 'ACTIVE' %}
+                                                    {% set statusClass = 'bg-success' %}
+                                                {% elseif user.status == 'DEACTIVATED' %}
+                                                    {% set statusClass = 'bg-warning' %}
+                                                {% elseif user.status == 'BANNED' %}
+                                                    {% set statusClass = 'bg-danger' %}
+                                                {% endif %}
+                                                <span class="badge {{ statusClass }}">{{ user.status }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge {{ user.isVerified ? 'bg-success' : 'bg-danger' }}">
+                                                    {{ user.isVerified ? 'Verified' : 'Unverified' }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary view-user-btn" data-user-id="{{ user.id_user }}">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary edit-user-btn" data-user-id="{{ user.id_user }}">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger delete-user-btn" data-user-id="{{ user.id_user }}" data-user-name="{{ user.name }}">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="9" class="text-center py-4">
+                                            <div class="alert alert-info mb-0">
+                                                <i class="fas fa-info-circle me-2"></i> No users found matching the criteria
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Card View -->
+                <div id="card-view" class="mb-3" style="display: none;">
+                    <div id="users-cards" class="row">
+                        {% if users|length > 0 %}
+                            {% for user in users %}
+                                <div class="col-md-6 col-lg-4 mb-4">
+                                    <div class="card h-100 shadow-sm">
+                                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                            <span class="badge {{ user.role == 'ADMIN' ? 'bg-admin' : 'bg-client' }}">{{ user.role }}</span>
+                                            {% set statusClass = '' %}
+                                            {% if user.status == 'ACTIVE' %}
+                                                {% set statusClass = 'bg-success' %}
+                                            {% elseif user.status == 'DEACTIVATED' %}
+                                                {% set statusClass = 'bg-warning' %}
+                                            {% elseif user.status == 'BANNED' %}
+                                                {% set statusClass = 'bg-danger' %}
+                                            {% endif %}
+                                            <span class="badge {{ statusClass }}">{{ user.status }}</span>
+                                        </div>
+                                        <div class="card-body text-center">
+                                            <img src="{{ user.profilePicture ?? asset('images/default-avatar.png') }}" alt="{{ user.name }}" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;" onerror="this.src='{{ asset('images/default-avatar.png') }}'">
+                                            <h5 class="card-title">{{ user.name }}</h5>
+                                            <p class="card-text">
+                                                <i class="fas fa-envelope me-2 text-muted"></i> {{ user.email }}<br>
+                                                <i class="fas fa-phone me-2 text-muted"></i> {{ user.phoneNumber ?? 'N/A' }}<br>
+                                                <i class="fas fa-birthday-cake me-2 text-muted"></i> {{ user.dateOfBirth ? user.dateOfBirth|date('Y-m-d') : 'N/A' }}<br>
+                                                <i class="fas fa-venus-mars me-2 text-muted"></i> {{ user.gender ?? 'N/A' }}
+                                            </p>
+                                            <div class="mb-3">
+                                                <span class="badge {{ user.isVerified ? 'bg-success' : 'bg-danger' }}">
+                                                    {{ user.isVerified ? 'Verified' : 'Unverified' }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer bg-white border-0 d-flex justify-content-center gap-2">
+                                            <button type="button" class="btn btn-sm btn-outline-primary view-user-btn" data-user-id="{{ user.id_user }}">
+                                                <i class="fas fa-eye"></i> View
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary edit-user-btn" data-user-id="{{ user.id_user }}">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger delete-user-btn" data-user-id="{{ user.id_user }}" data-user-name="{{ user.name }}">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i> No users found matching the criteria
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted">
+                        <select id="goto-page" class="form-select form-select-sm d-inline-block" style="max-width: 80px;">
+                            {% for i in 1..users.paginationData.pageCount %}
+                                <option value="{{ i }}" {% if i == users.paginationData.current %}selected{% endif %}>{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                        <span class="ms-2">Go to page</span>
+                    </div>
+                    <div class="pagination-container">
+                        {{ knp_pagination_render(users) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="addUserModalLabel">Add New User</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addUserForm">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="add-name" class="form-label">Full Name</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <input type="text" class="form-control" id="add-name" name="name" required>
+                                </div>
+                                <div class="invalid-feedback" id="add-name-error"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="add-email" class="form-label">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" class="form-control" id="add-email" name="email" required>
+                                </div>
+                                <div class="invalid-feedback" id="add-email-error"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="add-password" class="form-label">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                    <input type="password" class="form-control" id="add-password" name="password" required>
+                                </div>
+                                <div class="invalid-feedback" id="add-password-error"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="add-phone" class="form-label">Phone Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                    <input type="tel" class="form-control" id="add-phone" name="phoneNumber" required>
+                                </div>
+                                <div class="invalid-feedback" id="add-phone-error"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="add-role" class="form-label">Role</label>
+                                <select class="form-select" id="add-role" name="role">
+                                    <option value="CLIENT">Client</option>
+                                    <option value="ADMIN">Administrator</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="add-gender" class="form-label">Gender</label>
+                                <select class="form-select" id="add-gender" name="gender">
+                                    <option value="MALE">Male</option>
+                                    <option value="FEMALE">Female</option>
+                                    <option value="OTHER">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="add-status" class="form-label">Account Status</label>
+                                <select class="form-select" id="add-status" name="status">
+                                    <option value="ACTIVE">Active</option>
+                                    <option value="DEACTIVATED">Deactivated</option>
+                                    <option value="BANNED">Banned</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="add-dob" class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="add-dob" name="dateOfBirth">
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="add-profile-pic" class="form-label">Profile Picture URL</label>
+                                <input type="url" class="form-control" id="add-profile-pic" name="profilePicture" placeholder="https://example.com/image.jpg">
+                            </div>
+                            <div class="col-12 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="1" id="add-verified" name="isVerified">
+                                    <label class="form-check-label" for="add-verified">
+                                        Mark as verified
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="add-user-submit">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            Add User
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="edit-user-modal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editUserForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="edit-id" name="id_user">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="edit-name" class="form-label">Full Name</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <input type="text" class="form-control" id="edit-name" name="name" required>
+                                </div>
+                                <div class="invalid-feedback" id="edit-name-error"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="edit-email" class="form-label">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" class="form-control" id="edit-email" name="email" required>
+                                </div>
+                                <div class="invalid-feedback" id="edit-email-error"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="edit-phone" class="form-label">Phone Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                    <input type="tel" class="form-control" id="edit-phone" name="phoneNumber" required>
+                                </div>
+                                <div class="invalid-feedback" id="edit-phone-error"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="edit-role" class="form-label">Role</label>
+                                <select class="form-select" id="edit-role" name="role">
+                                    <option value="CLIENT">Client</option>
+                                    <option value="ADMIN">Administrator</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="edit-gender" class="form-label">Gender</label>
+                                <select class="form-select" id="edit-gender" name="gender">
+                                    <option value="MALE">Male</option>
+                                    <option value="FEMALE">Female</option>
+                                    <option value="OTHER">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="edit-status" class="form-label">Account Status</label>
+                                <select class="form-select" id="edit-status" name="status">
+                                    <option value="ACTIVE">Active</option>
+                                    <option value="DEACTIVATED">Deactivated</option>
+                                    <option value="BANNED">Banned</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="edit-dob" class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="edit-dob" name="dateOfBirth">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="edit-profile-pic" class="form-label">Profile Picture URL</label>
+                                <input type="url" class="form-control" id="edit-profile-pic" name="profilePicture" placeholder="https://example.com/image.jpg">
+                                <div class="form-text">Leave blank to keep current image</div>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="1" id="edit-verified" name="isVerified">
+                                    <label class="form-check-label" for="edit-verified">
+                                        Mark as verified
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="edit-user-submit">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete User Modal -->
+    <div class="modal fade" id="delete-user-modal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteUserModalLabel">Confirm Deletion</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete user: <strong id="delete-user-name"></strong>?</p>
+                    <p class="text-danger"><i class="fas fa-exclamation-triangle me-2"></i> This action cannot be undone!</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete-btn">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        Delete User
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View User Modal -->
+    <div class="modal fade" id="view-user-modal" tabindex="-1" aria-labelledby="viewUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="viewUserModalLabel">User Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="user-detail-container">
+                        <div class="text-center mb-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading user details...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary edit-from-view-btn">
+                        <i class="fas fa-edit me-1"></i> Edit User
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // View toggle functionality
+            document.getElementById('list-view-btn').addEventListener('click', function() {
+                document.getElementById('list-view').style.display = 'block';
+                document.getElementById('card-view').style.display = 'none';
+                this.classList.add('active');
+                document.getElementById('card-view-btn').classList.remove('active');
+                localStorage.setItem('userViewPreference', 'list');
+            });
+            
+            document.getElementById('card-view-btn').addEventListener('click', function() {
+                document.getElementById('list-view').style.display = 'none';
+                document.getElementById('card-view').style.display = 'block';
+                this.classList.add('active');
+                document.getElementById('list-view-btn').classList.remove('active');
+                localStorage.setItem('userViewPreference', 'card');
+            });
+            
+            // Restore user's view preference
+            const viewPreference = localStorage.getItem('userViewPreference');
+            if (viewPreference === 'card') {
+                document.getElementById('card-view-btn').click();
+            }
+            
+            // Filter functionality
+            const filterRole = document.getElementById('filter-role');
+            const filterStatus = document.getElementById('filter-status');
+            const filterVerified = document.getElementById('filter-verified');
+            const pageSize = document.getElementById('page-size');
+            const userSearch = document.getElementById('user-search');
+            
+            function applyFilters() {
+                const params = new URLSearchParams(window.location.search);
+                
+                if (filterRole.value) params.set('role', filterRole.value);
+                else params.delete('role');
+                
+                if (filterStatus.value) params.set('status', filterStatus.value);
+                else params.delete('status');
+                
+                if (filterVerified.value) params.set('verified', filterVerified.value);
+                else params.delete('verified');
+                
+                if (userSearch.value) params.set('search', userSearch.value);
+                else params.delete('search');
+                
+                params.set('perPage', pageSize.value);
+                
+                window.location.href = '{{ path('admin_users') }}?' + params.toString();
+            }
+            
+            filterRole.addEventListener('change', applyFilters);
+            filterStatus.addEventListener('change', applyFilters);
+            filterVerified.addEventListener('change', applyFilters);
+            pageSize.addEventListener('change', applyFilters);
+            
+            // Search functionality with debounce
+            let searchTimer;
+            userSearch.addEventListener('input', function() {
+                const clearBtn = document.getElementById('clear-search');
+                clearBtn.style.display = this.value ? 'block' : 'none';
+                
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(applyFilters, 500);
+            });
+            
+            // Clear search
+            document.getElementById('clear-search').addEventListener('click', function() {
+                userSearch.value = '';
+                this.style.display = 'none';
+                applyFilters();
+            });
+            
+            // Set initial filter values from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            if (urlParams.has('role')) filterRole.value = urlParams.get('role');
+            if (urlParams.has('status')) filterStatus.value = urlParams.get('status');
+            if (urlParams.has('verified')) filterVerified.value = urlParams.get('verified');
+            if (urlParams.has('search')) {
+                userSearch.value = urlParams.get('search');
+                document.getElementById('clear-search').style.display = 'block';
+            }
+            if (urlParams.has('perPage')) pageSize.value = urlParams.get('perPage');
+            
+            // Page navigation
+            document.getElementById('goto-page').addEventListener('change', function() {
+                const params = new URLSearchParams(window.location.search);
+                params.set('page', this.value);
+                window.location.href = '{{ path('admin_users') }}?' + params.toString();
+            });
+
+            // Initialize modals for view/edit/delete
+            document.querySelectorAll('.view-user-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const userId = this.getAttribute('data-user-id');
+                    // Here you would fetch user details from the API
+                    // For now, just show the modal
+                    const modal = new bootstrap.Modal(document.getElementById('view-user-modal'));
+                    modal.show();
+                });
+            });
+
+            document.querySelectorAll('.edit-user-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const userId = this.getAttribute('data-user-id');
+                    // Here you would fetch user details from the API and populate the form
+                    // For now, just show the modal
+                    const modal = new bootstrap.Modal(document.getElementById('edit-user-modal'));
+                    modal.show();
+                });
+            });
+
+            document.querySelectorAll('.delete-user-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const userId = this.getAttribute('data-user-id');
+                    const userName = this.getAttribute('data-user-name');
+                    
+                    document.getElementById('delete-user-name').textContent = userName;
+                    document.getElementById('confirm-delete-btn').setAttribute('data-user-id', userId);
+                    
+                    const modal = new bootstrap.Modal(document.getElementById('delete-user-modal'));
+                    modal.show();
+                });
+            });
+        });
+    </script>
+{% endblock %}

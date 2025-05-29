@@ -1,0 +1,12 @@
+/* 
+ * Search highlighting styles
+ * These styles ensure that search highlights are clearly visible
+ */
+.highlight-match {
+    background-color: #ffff00 !important;
+    color: #000000 !important;
+    font-weight: bold !important;
+    padding: 0 2px !important;
+    border-radius: 2px !important;
+    display: inline-block !important;
+}

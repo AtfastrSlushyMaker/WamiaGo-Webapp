@@ -167,6 +167,57 @@
 
 {# Our Team #}
 <section class="our-team py-5 bg-light">
+    <style>
+        .team-card .card-img-top {
+            height: 200px;
+            width: 100%;
+            object-fit: cover;
+            object-position: center top;
+            transition: transform 0.3s ease;
+        }
+        
+        .team-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .team-card:hover .team-overlay {
+            opacity: 1;
+        }
+        
+        .team-card:hover .card-img-top {
+            transform: scale(1.05);
+        }
+        
+        .social-link {
+            color: white;
+            background: rgba(0, 0, 0, 0.6);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .social-link:hover {
+            background: #0d6efd;
+            transform: scale(1.1);
+            text-decoration: none;
+        }
+    </style>
+
     <div class="container py-4">
         <div class="text-center mb-5">
             <span class="badge bg-primary px-3 py-2 rounded-pill mb-3">Meet Our Experts</span>
@@ -177,23 +228,102 @@
         </div>
 
         <div class="row g-4">
+             <!-- Abd Razek Nakhli -->
+             <div class="col-md-6 col-lg-4 col-xl-2">
+                <div class="team-card card border-0 shadow-sm h-100 text-center">
+                    <div class="position-relative overflow-hidden">
+                        <img src="{{ asset('images/team/rzouga.png') }}" 
+                             alt="Abd Razek Nakhli" 
+                             class="card-img-top"
+                             style="height: 200px; object-fit: cover; object-position: center top;"
+                             loading="lazy"
+                        <div class="team-overlay">
+                            <div class="d-flex justify-content-center">
+                                <a href="https://www.linkedin.com/in/abd-razek-nakhli-b04999209/" 
+                                   target="_blank" 
+                                   class="social-link"
+                                   aria-label="LinkedIn">
+                                    <i class="fab fa-linkedin-in"></i>
+                                </a>
+                                <a href="https://github.com/Rzouga01" 
+                                   target="_blank" 
+                                   class="social-link"
+                                   aria-label="GitHub">
+                                    <i class="fab fa-github"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <h4 class="fw-bold mb-1">Abd Razek Nakhli</h4>
+                        <p class="text-primary mb-3">Full Stack Developer</p>
+                        <p class="mb-0 text-muted small">Data engineering specialist with full-stack expertise.</p>
+                    </div>
+                </div>
+            </div>
+               <!-- Malek Bsaissa -->
+               <div class="col-md-6 col-lg-4 col-xl-2">
+                <div class="team-card card border-0 shadow-sm h-100 text-center">
+                    <div class="position-relative overflow-hidden">
+                        <img src="{{ asset('images/team/malek.png') }}" 
+                             alt="Malek Bsaissa" 
+                             class="card-img-top"
+                             style="height: 200px; object-fit: cover; object-position: center top;"
+                             loading="lazy"
+                        <div class="team-overlay">
+                            <div class="d-flex justify-content-center">
+                                <a href="https://www.linkedin.com/in/malek-b-8861b229b/" 
+                                   target="_blank" 
+                                   class="social-link"
+                                   aria-label="LinkedIn">
+                                    <i class="fab fa-linkedin-in"></i>
+                                </a>
+                                <a href="https://github.com/AtfastrSlushyMaker" 
+                                   target="_blank" 
+                                   class="social-link"
+                                   aria-label="GitHub">
+                                    <i class="fab fa-github"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <h4 class="fw-bold mb-1">Malek Bsaissa</h4>
+                        <p class="text-primary mb-3">Full Stack Developer</p>
+                        <p class="mb-0 text-muted small">UI/UX expert with backend integration skills.</p>
+                    </div>
+                </div>
+            </div>
             <!-- Ezer Abrougui -->
             <div class="col-md-6 col-lg-4 col-xl-2">
                 <div class="team-card card border-0 shadow-sm h-100 text-center">
                     <div class="position-relative overflow-hidden">
-                        <img src="{{ asset('images/team/ezer.jpg') }}" alt="Ezer Abrougui" class="card-img-top">
+                        <img src="{{ asset('images/team/ezer.png') }}" 
+                             alt="Ezer Abrougui" 
+                             class="card-img-top"
+                             style="height: 200px; object-fit: cover; object-position: center top;"
+                             loading="lazy"
                         <div class="team-overlay">
                             <div class="d-flex justify-content-center">
-                                <a href="https://www.linkedin.com/in/ezer-abrougui-149623228/" target="_blank" class="social-link">
+                                <a href="https://www.linkedin.com/in/ezer-abrougui-149623228/" 
+                                   target="_blank" 
+                                   class="social-link"
+                                   aria-label="LinkedIn">
                                     <i class="fab fa-linkedin-in"></i>
+                                </a>
+                                <a href="https://github.com/ezer2002" 
+                                   target="_blank" 
+                                   class="social-link"
+                                   aria-label="GitHub">
+                                    <i class="fab fa-github"></i>
                                 </a>
                             </div>
                         </div>
                     </div>
                     <div class="card-body p-4">
                         <h4 class="fw-bold mb-1">Ezer Abrougui</h4>
-                        <p class="text-primary mb-3">Cloud & DevOps Engineer</p>
-                        <p class="mb-0 text-muted small">Full-stack developer skilled in cloud, CI/CD, software engineering, and AI.</p>
+                        <p class="text-primary mb-3">Full-stack Developer</p>
+                        <p class="mb-0 text-muted small">Cloud & DevOps expert with full-stack development skills.</p>
                     </div>
                 </div>
             </div>
@@ -202,74 +332,62 @@
             <div class="col-md-6 col-lg-4 col-xl-2">
                 <div class="team-card card border-0 shadow-sm h-100 text-center">
                     <div class="position-relative overflow-hidden">
-                        <img src="https://randomuser.me/api/portraits/women/45.jpg" alt="Farah Derbel" class="card-img-top">
+                        <img src="{{ asset('images/team/farah.png') }}" 
+                             alt="Farah Derbel" 
+                             class="card-img-top"
+                             style="height: 200px; object-fit: cover; object-position: center top;"
+                             loading="lazy"
                         <div class="team-overlay">
                             <div class="d-flex justify-content-center">
-                                <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="https://www.linkedin.com/in/farah-derbel-933414268/" 
+                                   target="_blank" 
+                                   class="social-link"
+                                   aria-label="LinkedIn">
+                                    <i class="fab fa-linkedin-in"></i>
+                                </a>
+                                <a href="https://github.com/farahderbell" 
+                                   target="_blank" 
+                                   class="social-link"
+                                   aria-label="GitHub">
+                                    <i class="fab fa-github"></i>
+                                </a>
                             </div>
                         </div>
                     </div>
                     <div class="card-body p-4">
                         <h4 class="fw-bold mb-1">Farah Derbel</h4>
                         <p class="text-primary mb-3">Full Stack Developer</p>
-                        <p class="mb-0 text-muted small">Expert in modern web development with focus on scalable solutions.</p>
+                        <p class="mb-0 text-muted small">Expert in scalable web solutions and modern frameworks.</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Abd Razek Nakhli -->
-            <div class="col-md-6 col-lg-4 col-xl-2">
-                <div class="team-card card border-0 shadow-sm h-100 text-center">
-                    <div class="position-relative overflow-hidden">
-                        <img src="https://randomuser.me/api/portraits/men/70.jpg" alt="Abd Razek Nakhli" class="card-img-top">
-                        <div class="team-overlay">
-                            <div class="d-flex justify-content-center">
-                                <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body p-4">
-                        <h4 class="fw-bold mb-1">Abd Razek Nakhli</h4>
-                        <p class="text-primary mb-3">Data Engineer</p>
-                        <p class="mb-0 text-muted small">Specialist in big data processing and real-time analytics systems.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Malek Bsaissa -->
-            <div class="col-md-6 col-lg-4 col-xl-2">
-                <div class="team-card card border-0 shadow-sm h-100 text-center">
-                    <div class="position-relative overflow-hidden">
-                        <img src="https://randomuser.me/api/portraits/men/65.jpg" alt="Malek Bsaissa" class="card-img-top">
-                        <div class="team-overlay">
-                            <div class="d-flex justify-content-center">
-                                <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body p-4">
-                        <h4 class="fw-bold mb-1">Malek Bsaissa</h4>
-                        <p class="text-primary mb-3">Frontend Developer</p>
-                        <p class="mb-0 text-muted small">UI/UX enthusiast creating immersive user experiences.</p>
-                    </div>
-                </div>
-            </div>
+         
 
             <!-- Walaa Eddine Ghrairi -->
             <div class="col-md-6 col-lg-4 col-xl-2">
                 <div class="team-card card border-0 shadow-sm h-100 text-center">
                     <div class="position-relative overflow-hidden">
-                        <img src="https://randomuser.me/api/portraits/men/75.jpg" alt="Walaa Eddine Ghrairi" class="card-img-top">
+                        <img src="{{ asset('images/team/walaa.png') }}"     
+                             alt="Walaa Eddine Ghrairi" 
+                             class="card-img-top"
+                             style="height: 200px; object-fit: cover; object-position: center top;"
+                             loading="lazy"
                         <div class="team-overlay">
                             <div class="d-flex justify-content-center">
-                                <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="https://github.com/walaaghrairi" 
+                                   target="_blank" 
+                                   class="social-link"
+                                   aria-label="GitHub">
+                                    <i class="fab fa-github"></i>
+                                </a>
                             </div>
                         </div>
                     </div>
                     <div class="card-body p-4">
                         <h4 class="fw-bold mb-1">Walaa Eddine Ghrairi</h4>
                         <p class="text-primary mb-3">Backend Developer</p>
-                        <p class="mb-0 text-muted small">API architect specializing in microservices development.</p>
+                        <p class="mb-0 text-muted small">Microservices architect and system integration specialist.</p>
                     </div>
                 </div>
             </div>
@@ -278,17 +396,32 @@
             <div class="col-md-6 col-lg-4 col-xl-2">
                 <div class="team-card card border-0 shadow-sm h-100 text-center">
                     <div class="position-relative overflow-hidden">
-                        <img src="https://randomuser.me/api/portraits/men/80.jpg" alt="Mohamed Islem Ghazouani" class="card-img-top">
+                        <img src="{{ asset('images/team/islem.png') }}" 
+                             alt="Mohamed Islem Ghazouani" 
+                             class="card-img-top"
+                             style="height: 200px; object-fit: cover; object-position: center top;"
+                             loading="lazy"
                         <div class="team-overlay">
                             <div class="d-flex justify-content-center">
-                                <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="https://www.linkedin.com/in/ghazouani-mohamed-islem-094694248/" 
+                                   target="_blank" 
+                                   class="social-link"
+                                   aria-label="LinkedIn">
+                                    <i class="fab fa-linkedin-in"></i>
+                                </a>
+                                <a href="https://github.com/islem126" 
+                                   target="_blank" 
+                                   class="social-link"
+                                   aria-label="GitHub">
+                                    <i class="fab fa-github"></i>
+                                </a>
                             </div>
                         </div>
                     </div>
                     <div class="card-body p-4">
                         <h4 class="fw-bold mb-1">Mohamed Islem Ghazouani</h4>
-                        <p class="text-primary mb-3">Mobile Developer</p>
-                        <p class="mb-0 text-muted small">Cross-platform development expert focusing on performance optimization.</p>
+                        <p class="text-primary mb-3">Full Stack Developer</p>
+                        <p class="mb-0 text-muted small">Mobile-first developer with full-stack capabilities.</p>
                     </div>
                 </div>
             </div>
@@ -316,7 +449,7 @@
                                 <img src="https://randomuser.me/api/portraits/men/41.jpg" alt="User" class="testimonial-avatar rounded-circle">
                             </div>
                             <div class="flex-grow-1 ms-3">
-                                <h5 class="fw-bold mb-0">Michael Thompson</h5>
+                                <h5 class="fw-bold mb-0">Hamdi Laabidi</h5>
                                 <p class="text-muted mb-0 small">Regular Commuter</p>
                             </div>
                             <div class="text-warning">
@@ -339,7 +472,7 @@
                                 <img src="https://randomuser.me/api/portraits/women/33.jpg" alt="User" class="testimonial-avatar rounded-circle">
                             </div>
                             <div class="flex-grow-1 ms-3">
-                                <h5 class="fw-bold mb-0">Emma Wilson</h5>
+                                <h5 class="fw-bold mb-0">Zakia Ben Ali</h5>
                                 <p class="text-muted mb-0 small">Weekend Explorer</p>
                             </div>
                             <div class="text-warning">
@@ -363,7 +496,7 @@
                                 <img src="https://randomuser.me/api/portraits/men/22.jpg" alt="User" class="testimonial-avatar rounded-circle">
                             </div>
                             <div class="flex-grow-1 ms-3">
-                                <h5 class="fw-bold mb-0">James Cooper</h5>
+                                <h5 class="fw-bold mb-0">Mohamed Amine Larbi</h5>
                                 <p class="text-muted mb-0 small">Business Traveler</p>
                             </div>
                             <div class="text-warning">
@@ -434,7 +567,7 @@
         <h2 class="display-5 fw-bold mb-4">Join Our Journey</h2>
         <p class="lead mb-4 mx-auto" style="max-width: 700px;">Whether you're looking for convenient transportation solutions or interested in career opportunities, we'd love to connect with you.</p>
         <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
-            <a href="#" class="btn btn-light btn-lg px-4 py-2 fw-medium">Download Our Desktop App</a>
+            <a href="https://github.com/AtfastrSlushyMaker/WamiaGo-Desktop" class="btn btn-light btn-lg px-4 py-2 fw-medium">Download Our Desktop App</a>
             <a href="{{ path('app_front_contact') }}" class="btn btn-outline-light btn-lg px-4 py-2 fw-medium">Contact Us</a>
         </div>
     </div>

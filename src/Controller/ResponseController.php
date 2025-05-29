@@ -16,7 +16,7 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-#[Route('/response')]
+#[Route('/admin/response')]
 final class ResponseController extends AbstractController
 {
     #[Route(name: 'app_response_index', methods: ['GET'])]

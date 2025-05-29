@@ -1,0 +1,35 @@
+/* Table Sorting Styles */
+.sortable {
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+}
+
+.sortable:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.sort-icon {
+    margin-left: 5px;
+    color: #ccc;
+    transition: all 0.2s ease;
+}
+
+.sortable.asc .sort-icon {
+    color: #3f6ad8;
+    transform: rotate(180deg);
+}
+
+.sortable.desc .sort-icon {
+    color: #3f6ad8;
+}
+
+.sortable.asc .sort-icon:before {
+    content: "\f0d7";
+    /* fa-sort-down */
+}
+
+.sortable.desc .sort-icon:before {
+    content: "\f0d7";
+    /* fa-sort-down */
+}

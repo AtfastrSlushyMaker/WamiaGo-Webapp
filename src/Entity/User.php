@@ -78,8 +78,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     #[Assert\NotNull(message: 'Role must be specified', groups: ['Default'])]
     private ROLE $role;
 
+    // Update the join column to use the existing id_location column in the database
     #[ORM\ManyToOne(targetEntity: Location::class, inversedBy: 'users')]
-    #[ORM\JoinColumn(name: 'id_location', referencedColumnName: 'id_location')]
+    #[ORM\JoinColumn(name: 'id_location', referencedColumnName: 'id_location', nullable: true)]
     private ?Location $location = null;
 
     #[ORM\Column(type: 'string', enumType: GENDER::class)]
