@@ -19,9 +19,11 @@
   "bugs": {
     "url": "https://github.com/AtfastrSlushyMaker/WamiaGo-Webapp/issues"
   },
-  "homepage": "https://github.com/AtfastrSlushyMaker/WamiaGo-Webapp#readme",  "dependencies": {
+  "homepage": "https://github.com/AtfastrSlushyMaker/WamiaGo-Webapp#readme",
+  "dependencies": {
     "chart.js": "^4.4.9"
-  },  "devDependencies": {
+  },
+  "devDependencies": {
     "bootstrap": "^5.3.5"
   }
 }

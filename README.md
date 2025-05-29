@@ -6,7 +6,8 @@
   </a>
   
   <p><strong>Advanced Transportation Management Platform with AI-Powered Security</strong></p>
-    [![Symfony](https://img.shields.io/badge/Symfony-6.4-000000.svg?style=flat&logo=symfony)](https://symfony.com)
+  
+  [![Symfony](https://img.shields.io/badge/Symfony-6.4-000000.svg?style=flat&logo=symfony)](https://symfony.com)
   [![PHP](https://img.shields.io/badge/PHP-8.1+-777BB4.svg?style=flat&logo=php)](https://php.net)
   [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3.svg?style=flat&logo=bootstrap)](https://getbootstrap.com)
   [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?style=flat&logo=docker)](https://docker.com)
